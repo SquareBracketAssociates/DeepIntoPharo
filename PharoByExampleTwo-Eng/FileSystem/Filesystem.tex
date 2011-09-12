@@ -8,7 +8,7 @@
 % version of max
 % 2011-09-11 - Migrated to PharoBox: svn checkout https://XXX@scm.gforge.inria.fr/svn/pharobooks/PharoByExampleTwo-Eng
 %% to do check the difference between the previous version and what max did
-
+% 2011-09-12 - Stef checked max changes and did a large pass.
 
 %=================================================================
 \ifx\wholebook\relax\else
@@ -39,28 +39,34 @@
 \chapter{Files with FileSystem }\chalabel{filesystem}
 \chapterauthor{\authorsteph{}}
 
-A while ago Colin Putney announced the Filesystem framework, a nice and extensible replacement for the ugly FileDirectory classes in Pharo. While all core classes are well commented, there is a quick start missing that explains how end users are supposed to adopt the framework. 
+Filesystem is the new file system library for Pharo. It is available in the system since Pharo 1.4. 
+Filesystem has been developed by Colin Putney. This chapter is a quick start that 
+shows how to get started. 
 
 \section{Getting started}
-From Pharo 1.4 on Filesystem is included in the system by default. If you want to load this library, use the following expression:
+%From Pharo 1.4 on Filesystem is included in the system by default. If you want to load this library, use the following expression:
+%
+%\begin{code}{}
+%Gofer new
+%  squeaksource: 'fs'; 
+%  package: 'ConfigurationOfFilesystem';
+%  load.
+%ConfigurationOfFilesystem load.
+%\end{code}     
+
+The framework supports different kinds of filesystems that can be used interchangeably and that can transparently work with each other. The most obvious one is the filesystem on your hard disk. We are going to work with that one for now. 
+\ct{FSFilesystem} is the factory to access different filesystem. 
+
+Sending the message \method{disk} to \ct{FSFilesystem}, returns a file system as on your physical harddrive. Another less used possibility is \method{memory} to create a file system at the system of the image. 
 
 \begin{code}{}
-Gofer new
-  squeaksource: 'fs'; 
-  package: 'ConfigurationOfFilesystem';
-  load.
-ConfigurationOfFilesystem load.
-\end{code}     
-
-The framework supports different kinds of filesystems that can be used interchangeably and that can transparently work with each other. The most obvious one is the filesystem on your hard disk. We are going to work with that one for now:
-
-\begin{code}{}
+| working |
 working := FSFilesystem disk workingDirectory.
 \end{code} 
 
-Type the above code into a workspace and evaluate it. It assigns a reference of the current working directory to the variable \ct{working}. References are the central objects of the framework and provide the primary mechanism of working with files and directories. They are instances of the class \lct{FSReference}.
+The code above returns a reference to the working directory. References are instances of the class \ct{FSReference}. It  References are the central objects of the framework and provide the primary mechanisms for working with files and directories. 
 
-Note that you do not use platform specific classes such as \ct{FSUnixStore} or \ct{FSWindowsStore}. All code below works on \ct{FSReference} instances.
+In fact in Filesystem, four classes are central \ct{FSFilesystem}, \ct{FSReference}, \ct{FSLocator}, and \ct{FSDirectoryEntry}. You should do not use platform specific classes such as \ct{FSUnixStore} or \ct{FSWindowsStore}, there are internal classes. All code snippets below work on \ct{FSReference} instances.
 
 
 \section{Navigating the Filesystem}
