@@ -37,7 +37,7 @@
 \sloppy
 %=================================================================
 \chapter{Files with FileSystem }\chalabel{filesystem}
-\chapterauthor{\authorsteph{}}
+\chapterauthor{}
 
 Filesystem is the new file system library for Pharo. It is available in the system since Pharo 1.4. 
 Filesystem has been developed by Colin Putney. This chapter is a quick start that 
@@ -57,16 +57,17 @@ shows how to get started.
 The framework supports different kinds of filesystems that can be used interchangeably and that can transparently work with each other. The most obvious one is the filesystem on your hard disk. We are going to work with that one for now. 
 \ct{FSFilesystem} is the factory to access different filesystem. 
 
-Sending the message \method{disk} to \ct{FSFilesystem}, returns a file system as on your physical harddrive. Another less used possibility is \method{memory} to create a file system at the system of the image. 
+Sending the message \mthind{FSFilesystem}{disk} to \ct{FSFilesystem}, returns a file system as on your physical harddrive. Another less used possibility is \ct{memory} to create a file system at the system of the image. 
+
 
 \begin{code}{}
 | working |
 working := FSFilesystem disk workingDirectory.
 \end{code} 
 
-The code above returns a reference to the working directory. References are instances of the class \ct{FSReference}. It  References are the central objects of the framework and provide the primary mechanisms for working with files and directories. 
+The message \mthind{FSReference}{workingDirectory} above returns a reference to the working directory. References are instances of the class \ct{FSReference}.  As we will see references are the central objects of the framework and provide the primary mechanisms for working with files and directories. 
 
-In fact in Filesystem, four classes are central \ct{FSFilesystem}, \ct{FSReference}, \ct{FSLocator}, and \ct{FSDirectoryEntry}. You should do not use platform specific classes such as \ct{FSUnixStore} or \ct{FSWindowsStore}, there are internal classes. All code snippets below work on \ct{FSReference} instances.
+Filesystem defines four classes that are important for the end-user: \ct{FSFilesystem}, \ct{FSReference}, \ct{FSLocator}, and \ct{FSDirectoryEntry}. You should do not use platform specific classes such as \ct{FSUnixStore} or \ct{FSWindowsStore}, there are internal classes. All code snippets below work on \ct{FSReference} instances.
 
 
 \section{Navigating the Filesystem}
@@ -349,11 +350,6 @@ The enumeration methods described above are implemented with visitors; see \ct{F
    \nobibliography{scg}
    \end{document}
 \fi
-
-%=================================================================
-\ifx\wholebook\relax\else\end{document}\fi
-%=================================================================
-
 %-----------------------------------------------------------------
 
 %%% Local Variables:
