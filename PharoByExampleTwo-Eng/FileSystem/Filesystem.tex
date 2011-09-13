@@ -72,21 +72,23 @@ Filesystem defines four classes that are important for the end-user: \ct{FSFiles
 
 \section{Navigating the Filesystem}
 
-Now let's do some more interesting things. To list the immediate children of your working directory evaluate the following expression:
+Now let's do some more interesting things. To list the immediate children of your working directory, execute the following expression:
 
 \begin{code}{}
+| working |
 working := FSFilesystem disk workingDirectory.
 working children.
 \end{code} 
 
-To recursively access all the children of the current directory you can use \ct{allChildren}:
+Notice that \mthind{FSReference}{children} returns the files and folders. 
+To recursively access all the children of the current directory you should use the message \mthind{FSReference}{allChildren}:
 
 \begin{code}{}
 working allChildren.
 \end{code}
 
 
-To find all jpeg files in \ct{working}, evaluate:
+To find all jpeg files in \ct{working}, execute:
 
 \begin{code}{}
 working allChildren select: [ :each | each basename endsWith: 'jpeg' ]
@@ -95,75 +97,84 @@ working allChildren select: [ :each | each basename endsWith: 'jpeg' ]
 Use the slash operator to obtain a reference to a specific file or directory within your working directory:
 
 \begin{code}{}
+| working cache |
+working := FSFilesystem disk workingDirectory.
 cache := working / 'package-cache'.
 \end{code} 
 
-Navigating back to the parent is easy:
+Navigating back to the parent is easy using the \mthind{FSReference}{parent} message:
 
 \begin{code}{}
 parent := cache parent.
 parent = working			--> true
 \end{code}
 
-You can check for various properties of the cache directory by evaluating the following expressions:
+You can check for various properties of the cache directory by executing the following expressions:
 
 \begin{code}{}
- cache exists.				--> true
- cache isFile.				--> false
- cache isDirectory.			--> true
- cache basename.			--> 'package-cache'
+cache exists.				--> true
+cache isFile.				--> false
+cache isDirectory.			--> true
+cache basename.			--> 'package-cache'
 \end{code} 
- 
-To get additional information about the filesystem entry evaluate:
+The methods \mthind{FSReference}{exists}, \mthind{FSReference}{isFile}, \mthind{FSReference}{isDirectory}, and  \mthind{FSReference}{basename} are defined on the \ct{FSReference} class. 
+
+  
+To get additional information about a filesystem entry, we should get an \ct{FSDirectoryEntry} using the message \mthind{FSDirectoryEntry}{entry}. Here are some examples:
 
 \begin{code}{}
- cache entry creation.		--> 2010-02-14T10:34:31+00:00
- cache entry modification.	--> 2010-02-14T10:34:31+00:00
- cache entry size.			--> 0 (directories have size 0)
+cache entry creation.		--> 2010-02-14T10:34:31+00:00
+cache entry modification.	--> 2010-02-14T10:34:31+00:00
+cache entry size.			--> 0 (directories have size 0)
 \end{code} 
 
 The framework also supports locations, late-bound references that point to a file or directory. When asking to perform a concrete operation, a location behaves the same way as a reference. Currently the following locations are supported:
 
 \begin{code}{}
- FSLocator desktop.
- FSLocator home.
- FSLocator imageDirectory.
- FSLocator image.
- FSLocator changes.
- FSLocator vmBinary.
- FSLocator vmDirectory.
+FSLocator desktop.
+FSLocator home.
+FSLocator imageDirectory.
+FSLocator image.
+FSLocator changes.
+FSLocator vmBinary.
+FSLocator vmDirectory.
 \end{code} 
 
-If you save a location with your image and move the image to a different machine or operating system, a location will still resolve to the expected directory or file.
+If you save a location with your image and move the image to a different machine or operating system, a location will still resolve to the expected directory or file. Note that some of them are still in flux because depending on specific VM functionalities. 
 
 \subsection{Opening Read- and Write-Streams}
 
 To open a file-stream on a file ask the reference for a read- or write-stream:
 
 \begin{code}{}
- stream := (working / 'foo.txt') writeStream.
- stream nextPutAll: 'Hello World'.
- stream close.
- stream := (working / 'foo.txt') readStream.
- stream contents.			--> 'Hello World'
- stream close.
+| working stream |
+working := FSFilesystem disk workingDirectory.
+stream := (working / 'foo.txt') writeStream.
+stream nextPutAll: 'Hello World'.
+stream close.
+stream := (working / 'foo.txt') readStream.
+stream contents.			--> 'Hello World'
+stream close.
 \end{code}
+
+\sd{in Pharo 1.4 we do not get 'Hello World' but a byte array}
 
 Please note that \ct{writeStream} overrides any existing file and \ct{readStream} throws an exception if the file does not exist. There are also short forms available that eliminate the need to close a stream manually:
 
 \begin{code}{}
- (working / 'foo.txt') writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].
- (working / 'foo.txt') readStreamDo: [ :stream | stream contents ].
+working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].
+working / 'foo.txt' readStreamDo: [ :stream | stream contents ].
 \end{code}
 
 Have a look at the streams protocol of FSReference for other convenience methods.
 
 \subsection{Renaming, Copying and Deleting Files and Directories}
 
-You can also copy and rename files by evaluating:
+You can also copy and rename files by executing:
 
 \begin{code}{}
- (working / 'foo.txt') copyTo: (working / 'bar.txt').
+working / 'foo.txt' copyTo: (working / 'bar.txt').
+working / 'foo.txt' renameAs: 'zork.txt'
 \end{code} 
 
 To create a directory evaluate:
