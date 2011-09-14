@@ -37,7 +37,7 @@
 \sloppy
 %=================================================================
 \chapter{Files with FileSystem }\chalabel{filesystem}
-\chapterauthor{}
+\chapterauthor{Max Leske}
 
 Filesystem is the new file system library for Pharo. It is available in the system since Pharo 1.4. 
 Filesystem has been developed by Colin Putney. This chapter is a quick start that 
@@ -143,7 +143,7 @@ FSLocator vmDirectory.
 If you save a location with your image and move the image to a different machine or operating system, a location will still resolve to the expected directory or file. Note that some of them are still in flux because depending on specific VM functionalities. 
 
 \subsection{Opening Read- and Write-Streams}
-
+\sd{this example seems conceptually bogus with the current state of FS}
 To open a file-stream on a file ask the reference for a read- or write-stream:
 
 \begin{code}{}
@@ -177,13 +177,16 @@ working / 'foo.txt' copyTo: (working / 'bar.txt').
 working / 'foo.txt' renameAs: 'zork.txt'
 \end{code} 
 
-To create a directory evaluate:
+\sd{renameAs: does not work since it calls unimplemented methods}
+
+To create a directory use the message \mthind{FSReference}{createDirectory}:
+
 \begin{code}{}
- backup := working / 'cache-backup'.
- backup createDirectory.
+backup := working / 'cache-backup'.
+backup createDirectory.
 \end{code} 
 
-To then copy the contents of the complete package-cache to that directory simply evaluate:
+To then copy the contents of the complete package-cache to that directory simply use \ct{FSReference}{copyAllTo:}:
 
 \begin{code}{}
  cache copyAllTo: backup.
@@ -191,105 +194,112 @@ To then copy the contents of the complete package-cache to that directory simply
 
 Note that the target directory would be automatically created if it was not there before.
 
-To delete a single file evaluate:
 
+
+To delete a single file, use the message \mthind{FSReference}{delete}:
 \begin{code}{}
  (working / 'bar.txt') delete.
 \end{code}
 
-To delete a complete directory tree use the following expression. Be careful with that one though.
+To delete a complete directory tree use \mthind{FSReference}{deleteAll}. Be careful with that one though.
 
 \begin{code}
- backup deleteAll.
+backup deleteAll.
 \end{code}
 
 
 \section{Design }
 \sd{should add class comments and a uml diagram}
 
-\subsection{Path}
+Now we explain the key classes of Filesystem. 
 
-Paths are the most fundamental element of the Filesystem API. They represent filesystem paths in a very abstract sense, and provide a high-level protocol for working with paths without having to manipulate strings. Here are some examples using the methods that FSPath provides:
+
+\subsection{Path}
+Paths are the most fundamental element of the Filesystem API. They represent filesystem paths in a very abstract sense, and provide a high-level protocol for working with paths without having to manipulate strings. Here are some examples showing how to 
+define absolute paths (\mthind{FSPath}{/}), relative paths (\mthind{FSPath}{*}), file extension (\mthind{FSPath}{,}), parent navigation (\mthind{FSPath}{parent})
 
 \begin{code}{}
-    "absolute path"
-    FSPath / 'plonk' / 'feep'       --> /plonk/feep
+"absolute path"
+FSPath / 'plonk' / 'feep'       --> /plonk/feep
     
-    "relative path"
-    FSPath * 'plonk' / 'feep'       --> plonk/feep
+"relative path"
+FSPath * 'plonk' / 'feep'       --> plonk/feep
 
-    "relative path with extension"
-    FSPath * 'griffle' , 'txt'      --> griffle.txt
+"relative path with extension"
+FSPath * 'griffle' , 'txt'      --> griffle.txt
     
-    "changing the extension"
-    FSPath * 'griffle.txt' , 'jpeg'     --> griffle.jpeg
+"changing the extension"
+FSPath * 'griffle.txt' , 'jpeg'     --> griffle.jpeg
     
-    "parent directory"
-    (FSPath / 'plonk' / 'griffle') parent   --> /plonk
+"parent directory"
+(FSPath / 'plonk' / 'griffle') parent   --> /plonk
     
-    "resolving a relative path"
-    (FSPath / 'plonk' / 'griffle') resolve: (FSPath * '..' / 'feep')
-                        --> /plonk/feep
+"resolving a relative path"
+(FSPath / 'plonk' / 'griffle') resolve: (FSPath * '..' / 'feep')
+                   --> /plonk/feep
     
-    "resolving an absolute path"
-    (FSPath / 'plonk' / 'griffle') resolve: (FSPath / 'feep')
-                        --> /feep
+"resolving an absolute path"
+(FSPath / 'plonk' / 'griffle') resolve: (FSPath / 'feep')
+                   --> /feep
+                                           
+"resolving a string"
+(FSPath * 'griffle') resolve: 'plonk'   --> griffle/plonk
                         
-    "resolving a string"
-    (FSPath * 'griffle') resolve: 'plonk'   --> griffle/plonk
-                        
-    "comparing"
-    (FSPath / 'plonk') contains: (FSPath / 'griffle' / 'nurp')
-                        --> false
+"comparing"
+(FSPath / 'plonk') contains: (FSPath / 'griffle' / 'nurp')
+                     --> false
 \end{code}
+
+Note that some of the path protocol (messages like \ct{/}, \ct{parent} and \ct{resolve:}) are also available on references --- references are a combination of path and filesystem. 
+
 
 \subsection{Filesystem}
 
-A filesystem is an interface to some hierarchy of directories and files. "The filesystem," provided by the host operating system, is embodied by FSDiskFilesystem and it's platform-specific subclasses. But other kinds of Filesystems are also possible. The memory filesystem provides a RAM disk filesystem where all files are stored as ByteArrays in the image. The zip filesystem represents the contents of a zip file.
+A filesystem is an interface to access hierarchies of directories and files. "The filesystem," provided by the host operating system, is represented by \ct{FSDiskFilesystem} and it's platform-specific subclasses. However, the user should not access them directly but using \ct{FSFilesystem} as we show previously. Other kinds of Filesystems are also possible. The memory filesystem provides a RAM disk filesystem where all files are stored as ByteArrays in the image. The zip filesystem represents the contents of a zip file.
 
 Each filesystem has its own working directory, which it uses to resolve any relative paths that are passed to it. Some examples:
 
 \begin{code}{}
-    fs := FSFilesystem memory.
-    fs workingDirectoryPath: (FSPath / 'plonk').
-    griffle := FSPath / 'plonk' / 'griffle'.
-    nurp := FSPath * 'nurp'.
+fs := FSFilesystem memory.
+fs workingDirectoryPath: (FSPath / 'plonk').
+griffle := FSPath / 'plonk' / 'griffle'.
+nurp := FSPath * 'nurp'.
     
-    fs resolve: nurp.            --> /plonk/nurp
+fs resolve: nurp.            --> /plonk/nurp
     
-    fs createDirectory: (FSPath / 'plonk').  --> "/plonk created"
-    (fs writeStreamOn: griffle) close.  --> "/plonk/griffle created"
-    fs isFile: griffle.         --> true
-    fs isDirectory: griffle.         --> false
-    fs copy: griffle to: nurp.       --> "/plonk/griffle copied to /plonk/nurp"
-    fs exists: nurp.             --> true
-    fs delete: griffle.          --> "/plonk/griffle" deleted
-    fs isFile: griffle.          --> false
-    fs isDirectory: griffle.         --> false
+fs createDirectory: (FSPath / 'plonk').  --> "/plonk created"
+(fs writeStreamOn: griffle) close.  --> "/plonk/griffle created"
+fs isFile: griffle.         --> true
+fs isDirectory: griffle.         --> false
+fs copy: griffle to: nurp.       --> "/plonk/griffle copied to /plonk/nurp"
+fs exists: nurp.             --> true
+fs delete: griffle.          --> "/plonk/griffle" deleted
+fs isFile: griffle.          --> false
+fs isDirectory: griffle.         --> false
 \end{code}
 	
 \subsection{Reference}
 
-Paths and filesystems are the lowest level of the Filesystem API. An FSReference combines a path and a filesystem into a single object which provides a simpler protocol for working with files. It implements the same operations as FSFilesystem , but without the need to track paths and filesystem separately:
+Paths and filesystems are the lowest level of the Filesystem API. A \ct{FSReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FSFilesystem}, but without the need to track paths and filesystem separately:
 
 
 \begin{code}{}
-    fs := FSFilesystem memory.
-    griffle := fs referenceTo: (FSPath / 'plonk' / 'griffle').
-    nurp := fs referenceTo: (FSPath * 'nurp').
+fs := FSFilesystem memory.
+griffle := fs referenceTo: (FSPath / 'plonk' / 'griffle').
+nurp := fs referenceTo: (FSPath * 'nurp').
     
-    griffle isFile.				--> false
-    griffle isDirectory. 		--> false
+griffle isFile.				--> false
+griffle isDirectory. 		--> false
     
-    griffle parent ensureDirectory.
-    griffle writeStreamDo: [ :stream | ].
-    griffle exists & griffle isFile		--> true
-    griffle copyTo: nurp
-	nurp exists.				--> true
-    griffle delete              
+griffle parent ensureDirectory.
+griffle writeStreamDo: [ :stream | ].
+griffle exists & griffle isFile		--> true
+griffle copyTo: nurp
+nurp exists.				--> true
+griffle delete              
 \end{code}    
 
-References also implement the path protocol, with methods like \ct{/} , \ct{parent} and \ct{resolve:}.
+References also implement the path protocol with methods like \ct{/}, \ct{parent} and \ct{resolve:}.
 
 \subsection{Locator}
 
