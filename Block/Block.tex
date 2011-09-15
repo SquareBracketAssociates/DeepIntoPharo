@@ -45,7 +45,8 @@
 Blocks (lexical closures) are a powerful and essential feature of Smalltalk. Without them it
 would be difficult to have a so small and compact syntax. The use of blocks in Smalltalk
 is the key to get conditional and loops not hardcoded in the language syntax but just 
-simple messages -- Simple messages having blocks as arguments. Blocks work extremely well with message passing and the Smalltalk syntax. \ja{not clear}
+simple messages -- Simple messages having blocks as arguments. This is why we can say that 
+blocks work extremely well with the message passing syntax of Smalltalk.
 
 In addition blocks are  effective to improve the readability, reusability and efficiency of code. 
 However the dynamic runtime semantics of Smalltalk is often not well documented. Blocks in presence of
@@ -55,48 +56,55 @@ In this chapter we will discuss some basic block behavior such as the notion of 
 defined at block compiled time. Then we will present some deeper issues. But let us first recall some basics.
 
 
-We presented blocks in Pharo by Example. Here we just mention other aspects \ja{what is other aspects ? is it new aspects ? aspect for expert users ? or complementary information ?}. 
+We presented blocks in Pharo by Example for normal users. Here we just will focus on deeper aspects and their run time behavior.
+Note that their escaping behavior is shown here to describe the big picture 
 
 \section{Basics}
-What is a block? Historically, it's a Lambda expression, or an anonymous function. A block is a piece of code whose execution is frozen and kicked in using a specific protocol.  Blocks are defined by square brackets. \ja{singular or plural, not the two in the same paragraph}
+What is a block? Historically, it's a Lambda expression, or an anonymous function. A block is a piece of code whose execution is frozen and kicked in using a specific protocol.  Blocks are defined by square brackets. 
 
 If you execute and print the result of the following block you will not get 3 but a block. 
 \begin{code}[Block definition]{Block Definition}
 [1 + 2]
 \end{code}
 
- A block is evaluated by sending the \ct{value} message to it. More precisely \ja{"more precisely" means that you are not clear before. Please remove it} blocks can be executed using \ct{value} (when no argument is mandatory), \ct{value:} (when one argument), \ct{value:value:}, \ct{value:value:value:} \ja{does it already exist ?} and \ct{valueWithArguments: anArray}...) \ja{give examples}
+ A block is evaluated by sending the \ct{value} message to it. More precisely blocks can be executed using \ct{value} (when no argument is mandatory), \ct{value:} (when one argument), \ct{value:value:}, \ct{value:value:value:}  and \ct{valueWithArguments: anArray}...). These messages are the basic and historical API for block execution. They were presented in Pharo by Example. 
+ 
 
 \begin{code}[Block definition]{Block Execution}
 [1 + 2] value  
-    returns 3
+    --> 3
+    
+[:x | x + 2] value: 5
+    --> 7
 \end{code}
 
-
+\subsection{Some handy extensions}
 Pharo includes some handy messages such as \ct{cull:} and friends to support the execution of blocks even in presence of more values than necessary. This allows us to write blocks more concisely when we are not necessarily interested in all the available arguments.
-\ct{cull} \ja{is it cull or cull: ?} fills the same need as  \ct{valueWith[Possible/Enough]Args:} \ja{what is this syntax?}, but does not require creating an Array with the arguments, and will raise an error if the receiver has more arguments than provided rather than pass nil in the extraneous ones. \ja{can we have an example that shows the differences ?}
-Hence, from where the block is provided, they look almost the same, but where \ja{where or when ?} the block is executed, the code is usually cleaner.
+\ct{cull:} fills the same need as  \ct{valueWith[Possible/Enough]Args:}, but does not require creating an Array with the arguments, and will raise an error if the receiver has more arguments than provided rather than pass nil in the extraneous ones. 
+Hence, from where the block is provided, they look almost the same, but where the block is executed, the code is usually cleaner.
 
-
+Here are some examples of \ct{cull:} and  valueWithPossibleArgs: usages.
 \begin{code}{Cull: examples}
 [ 1 + 2 ] cull: 5
 	returns 3
-[ :x | 1+ 2 + x] cull: 5 
+[ :x | 1 + 2 + x] cull: 5 
 	returns 8
 [ 1 + 2 ] cull: 5 cull: 6
 	returns 3
-[ :x | 1+ 2 + x] cull: 5 
+[ :x | 1 + 2 + x] cull: 5 
 	returns 8
-[ :x | 1+ 2 + x] cull: 5 cull: 3	
+[ :x | 1 + 2 + x] cull: 5 cull: 3	
 	returns 8 
-[ :x : y | 1+ y + x] cull: 5 cull: 2 
+[ :x : y | 1 + y + x] cull: 5 cull: 2 
 	returns 8
-[ :x : y | 1+ y + x] cull: 5 
-	raises error
+[ :x : y | 1 + y + x] cull: 5 
+	raises an error mentioning that the block requires two arguments.
+[ :x : y | 1 + y + x] valueWithPossibleArgs: #(5) 
+	leads to an error because nil is passed as arguments.	
 \end{code}
 
-The message \ct{once} is another extension \ja{what are the first extensions ?} that caches the results and interned it until the receiver is uncached.
-A typical usage is the following one: \ja{and ? why is it interesting to use it now ?}
+The message \ct{once} is another extension that caches the results and interned it until the receiver is uncached.
+A typical usage is the following one:
 
 \begin{method}{Example for resources caching using once}
 myResourceMethod
@@ -106,12 +114,12 @@ myResourceMethod
 The table below lists some of the messages available on the class \ct{BlockClosure} whose blocks are instance of. 
  
 \begin{tabular}{p{2cm}|p{8cm}}
-\textsf{silentlyValue}&Execute the receiver but avoiding progress bar notifications to show up \ja{does this progress bar already exist ? It is strange where block should not depend on graphics !}.\\
+\textsf{silentlyValue}&Execute the receiver but avoiding progress bar notifications to show up.\\
 \textsf{once}&Answer and remember the receiver value, answering exactly the same object in any further sends
 	 of once or value. The expression will be evaluated once and its result returned for any subsequent evaluations.\\
 \end{tabular}
 
-Some messages are useful to profile execution: \ja{add a ref to profiler chapter}
+Some messages are useful to profile execution (more information on Chapter~\ref{cha:Profiler}: 
 
 \begin{tabular}{p{2cm}|p{8cm}}
 \textsf{bench}&Returns how many times the receiver can get executed in 5 seconds. \\
@@ -130,7 +138,7 @@ An original process will continue running as if receiver evaluation finished and
 \end{tabular}
 
 
-Some messages are related to process scheduling and should be detailed in a specific Chapter \ja{which one ?}. 
+Some messages are related to process scheduling. We list the most important ones. Since this Chapter is not about concurrent programming in Pharo we will not go deep into them.
 
 \begin{tabular}{p{2cm}|p{8cm}}
 \textsf{fork}&ECreate and schedule a Process running the code in the receiver.\\
