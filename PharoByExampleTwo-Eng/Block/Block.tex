@@ -64,17 +64,17 @@ What is a block? Historically, it's a Lambda expression, or an anonymous functio
 
 If you execute and print the result of the following block you will not get 3 but a block. 
 \begin{code}[Block definition]{Block Definition}
-[1 + 2]
+[ 1 + 2 ]
 \end{code}
 
- A block is evaluated by sending the \ct{value} message to it. More precisely blocks can be executed using \ct{value} (when no argument is mandatory), \ct{value:} (when one argument), \ct{value:value:}, \ct{value:value:value:}  and \ct{valueWithArguments: anArray}...). These messages are the basic and historical API for block execution. They were presented in Pharo by Example. 
+ A block is evaluated by sending the \mthind{BlockClosure}{value} message to it. More precisely blocks can be executed using \ct{value} (when no argument is mandatory), \ct{value:} (when one argument), \ct{value:value:}, \ct{value:value:value:}  and \ct{valueWithArguments: anArray}...). These messages are the basic and historical API for block execution. They were presented in Pharo by Example. 
  
 
 \begin{code}[Block definition]{Block Execution}
-[1 + 2] value  
+[ 1 + 2 ] value  
     --> 3
     
-[:x | x + 2] value: 5
+[ :x | x + 2 ] value: 5
     --> 7
 \end{code}
 
@@ -83,32 +83,31 @@ Pharo includes some handy messages such as \ct{cull:} and friends to support the
 \ct{cull:} fills the same need as  \ct{valueWith[Possible/Enough]Args:}, but does not require creating an Array with the arguments, and will raise an error if the receiver has more arguments than provided rather than pass nil in the extraneous ones. 
 Hence, from where the block is provided, they look almost the same, but where the block is executed, the code is usually cleaner.
 
-Here are some examples of \ct{cull:} and  valueWithPossibleArgs: usages.
+Here are some examples of \mthind{BlockClosure}{cull:} and  valueWithPossibleArgs: usages.
 \begin{code}{Cull: examples}
 [ 1 + 2 ] cull: 5
-	returns 3
-[ :x | 1 + 2 + x] cull: 5 
-	returns 8
+	--> 3
+[ :x | 1 + 2 + x ] cull: 5 
+	--> 8
 [ 1 + 2 ] cull: 5 cull: 6
-	returns 3
-[ :x | 1 + 2 + x] cull: 5 
-	returns 8
-[ :x | 1 + 2 + x] cull: 5 cull: 3	
-	returns 8 
-[ :x : y | 1 + y + x] cull: 5 cull: 2 
-	returns 8
-[ :x : y | 1 + y + x] cull: 5 
+	--> 3
+[ :x | 1 + 2 + x ] cull: 5 
+	--> 8
+[ :x | 1 + 2 + x ] cull: 5 cull: 3	
+	--> 8 
+[ :x :y | 1 + y + x ] cull: 5 cull: 2 
+	--> 8
+[ :x :y | 1 + y + x ] cull: 5 
 	raises an error mentioning that the block requires two arguments.
-[ :x : y | 1 + y + x] valueWithPossibleArgs: #(5) 
+[ :x :y | 1 + y + x ] valueWithPossibleArgs: #(5) 
 	leads to an error because nil is passed as arguments.	
 \end{code}
 
-The message \ct{once} is another extension that caches the results and interned it until the receiver is uncached.
-A typical usage is the following one:
+The message \mthind{BlockClosure}{once} is another extension that caches the results and interned it until the receiver is uncached. A typical usage is the following one:
 
 \begin{method}{Example for resources caching using once}
 myResourceMethod
-	^[expression] once.
+	^ [expression] once
 \end{method}
 
 The table below lists some of the messages available on the class \ct{BlockClosure} whose blocks are instance of. 
@@ -306,7 +305,7 @@ It is not a really good idea to have return statement in a block that you pass o
 
 \subsection{Basics on Return}
 A return statement allows one to return a different value than the receiver of the message.
-Now a return expression behaves also like an escape mechanism since the execution flow will jump out to the current caller and not just one level up. For example, the following code will return 3 and 42 will never be reached. The expression \ct{[^3]} could be deeply nested, its execution jumps out all the levels.
+Now a return expression behaves also like an escape mechanism since the execution flow will jump out to the current caller and not just one level up. For example, the following code will return 3 and 42 will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels.
 
 \begin{code}{}
 BExp>>foo
@@ -317,27 +316,47 @@ BExp>>foo
 	^ 42
 \end{code}
 
-Now to see that a return is really escaping the current execution you can try the following expression. 
+Now to see that a return is really escaping the current execution. 
+We define 
 
 \begin{code}{}
-testExplicitReturn
-	"self new testExplicitReturn"
-	
-	self crLog: 'one'.
-	0 isZero ifTrue: [ self crLog: 'two'. ^ self].
-	self crLog: ' not printed'
--> one two
+Foo>>start	| res |	self logCr: 'start start'.	res := self defineBlock.	self logCr: 'start end'.	^ res
 \end{code}
+
+\begin{code}{}
+Foo>>defineBlock	| res |	self logCr: 'defineBlock start'.	res := self arg: [ self logCr: 'block start'.                             1 isZero ifFalse: !\textbf{[ \^{} 33 ]}!.                            self logCr: 'block end'. ].	self logCr: 'defineBlock end'.	^ res
+\end{code}
+
+\begin{code}{}
+Foo>>arg: aBlock	| res |	self logCr: 'arg start'. 	res := self arg2: aBlock.	self logCr: 'arg end'. 	^ res 
+\end{code}
+
+\begin{code}{}
+Foo>>arg2: aBlock	| res |	self logCr: 'arg2 start'. 	res := self arg2: aBlock value.	self logCr: 'arg2 end'. 	^ res		
+\end{code}
+
+
+
+
+%\begin{code}{}
+%testExplicitReturn
+%	"self new testExplicitReturn"
+%	
+%	self crLog: 'one'.
+%	0 isZero ifTrue: [ self crLog: 'two'. ^ self].
+%	self crLog: ' not printed'
+%-> one two
+%\end{code}
 
 
 
 In Pharo \ct{^} should be the last statement of a block body. You should get a compile error if you type and compile the following expression. 
 
-\begin{code}{}
-[ self crLog: 'two'.
-  ^ self.  
-  self crLog: 'not printed' ]
-\end{code}
+%\begin{code}{}
+%[ self crLog: 'two'.
+%  ^ self.  
+%  self crLog: 'not printed' ]
+%\end{code}
 
 
 

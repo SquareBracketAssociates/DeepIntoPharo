@@ -186,13 +186,13 @@ backup := working / 'cache-backup'.
 backup createDirectory.
 \end{code} 
 
-To then copy the contents of the complete package-cache to that directory simply use \ct{FSReference}{copyAllTo:}:
+To then copy the contents of the complete package-cache to that directory simply use \mthind{FSReference}{copyAllTo:}:
 
 \begin{code}{}
  cache copyAllTo: backup.
 \end{code}
 
-Note that the target directory would be automatically created if it was not there before.
+Note that the target directory will be automatically created if it was not there before.
 
 
 
@@ -209,7 +209,7 @@ backup deleteAll.
 
 
 \section{Design }
-\sd{should add class comments and a uml diagram}
+\sd{should check class comments and a uml diagram}
 
 Now we explain the key classes of Filesystem. 
 
