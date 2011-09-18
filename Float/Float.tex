@@ -467,7 +467,18 @@ Hope that helps...
 
 cheers
 
+There is a difference between these two:
 
+(1/10) asScaledDecimal: 2.
+(1/10) asFloat asScaledDecimal: 2.
+
+asFloat introduces a rounding error.
+Though the result prints 0.1, it is different from (1/10), asFrank
+said, just convert it back asTrueFraction, and you'll see.
+asScaledDecimal: does not undo the rounding error, it just uses asTrueFraction.
+If you want to undo the error, you may try (0.1 roundTo: 0.01s2).
+
+Nicolas
 
 %=========================================================
 \ifx\wholebook\relax\else
