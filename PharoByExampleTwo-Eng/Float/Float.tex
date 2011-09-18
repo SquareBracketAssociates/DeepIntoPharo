@@ -5,6 +5,7 @@
 % HISTORY:
 % 2011-09-11 - Migrated to PharoBox: svn checkout https://XXX@scm.gforge.inria.fr/svn/pharobooks/PharoByExampleTwo-Eng
 % 2011-09-17 - Stef integrated mariano feedback
+% 2011-09-18 - Adding raw answers to our questions at the end of the file.
 
 
 %=================================================================
@@ -421,6 +422,51 @@ If you want to know how far it is, then get an idea with:
 \section{Conclusion}
 Floats are inexact numbers. Pay attention when you manipulate them.
 There are much more things to know about floats, and if you are advanced enough, it would be a good idea to check this link from the wikipedia page \href{http://www.validlab.com/goldberg/paper.pdf}{"What Every Computer Scientist Should Know About Floating-Point Arithmetic"}.
+
+
+
+\section{To digest}
+
+Hi Stephane,
+occasionally i look at the the Pharo-project mailing list and i saw your question re ScaledDecimals. they are Fractions and you can can look at their internal representation by using asFraction. things like 0.1s2 are fractions built from scratch , hence 0.1s2 asFraction returns 1/10 while (0.1 asScaledDecimal: 2) asFraction returns the same thing as 0.1 asFraction.
+aFloat asFraction is constructed in such a way that
+aFloat asFraction asFloat= aFloat
+for every aFloat. At least with a probability of (100 - epsilon)\% with epsilon going to 0. while epsilon is not equal to 0 according to the author of asFraction (see the last comment at the end of Float>>asTrueFraction),obviously nobody has as yet found a counterexample, hence i would forget that.
+iow (0.1 asScaledDecimal: 2)represents exactly the same number as the float 0.1.
+since 0.1 + 0.2=0.3 returns false  you would of course expect your first example to return false. and you would expect the error in the equality to be similar to the error in 0.1 + 0.2=0.3. although not necessarily equal. if this last statement does not immediately make sense, you might want to think a second or two about the results of these things:
+((0.1 asFraction ) + (0.2 asFraction))asFloat  = (0.1 +0.2) .
+((0.1 asFraction ) + (0.2 asFraction))   = (0.1 +0.2) asFraction .
+
+werner
+
+Hi Stef and Mariano,
+these are good questions...
+
+1) closeTo: good idea, i always found the threshold arbitrary.
+
+2) (0.1 asScaledDecimal:2 ) is exactly (0.1 asTrueFraction asScaledDecimal: 2)
+So just evaluate (0.1 asFraction) + (0.2 asFraction) = (0.3 asFraction).
+0.1 is a Float and is inexact because it result from this inexact
+operation: 1/10.0.
+
+Even if by chance we would have  (0.1 asFraction) + (0.2 asFraction) =
+(0.3 asFraction), then it would still be something different from
+0.3s2, 0.3 = (3/10) -> false, 0.3s2 = (3/10) -> true.
+
+3) significand: yes, maybe we can write that (f significand
+timesTwoPower: f exponent) = f is true for every finite Float (can't
+remember if significand includes the sign, otherwise it would be f
+sign * f significand timesTwoPower: f exponent)
+
+4) 1/10 and 1/5 : they will share the same significand (mantissa)
+because (1/5) / 2.0 = (1/10.0), and = (1/5.0 timesTwoPower: -1).
+Multiplying or dividing by a power of two just changes the exponent
+and is an exact operation (unfortunately, 1/5 isn't).
+
+Hope that helps...
+
+cheers
+
 
 
 %=========================================================
