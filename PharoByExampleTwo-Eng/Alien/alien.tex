@@ -32,7 +32,6 @@
 	\sloppy
 \fi
 %=================================================================
-
 % Pharo 1.1 used 
 % Alien-Prereqs.5
 % Alien-Core-JoachimGeidel.64
@@ -41,9 +40,152 @@
 % Alien-LibC.9
 % 40 tests green
 
-\chapter{Alien}\label{cha:alien}
+\chapter{Inter-language communication}\label{cha:alien}
 
 Despite of our aim of doing as much as possible directly in Smalltalk (as deeper as the virtual machine itself cf. ChapXX), it is still required in some special cases to call external code written in another language or even compiled in a binary library.
+
+Suppose you want to use OpenGL in Pharo. Then
+you would face a problem, because the OpenGL libraries
+only know about C and nothing about Smalltalk. In
+order to solve this kind of problems there is a
+standard solution, which is to make a \emph{binding}
+of each C library function to a Smalltalk method, and
+then to call this methods from Smalltalk code.
+But the remaining question is, how does a binding
+call a C function? and also, how do you write such
+binding? Doing this kind of work is usually called
+FFI, for Foreign Function Interface.
+
+There are other possibilities: imagine that you want
+to optimize some piece of code. In the first approach,
+of course, you would try to make it more efficient by
+using a better algorithm, but that may not be enough.
+Then you may encounter the need of writing code in a
+lower level language that is more CPU efficient. In
+that case, you may ask, which is the way to communicate
+the high-level smalltalk world with the low level one?
+
+In this chapter we are going to try to answer this kind
+of questions, and give you some practical examples of
+how to solve common problems faced when communicating
+with other languages.
+
+\section{Calling C code}
+
+Some time ago, this wasn't an easy task, but the good
+news is that since Pharo 1.4, this has become really
+easy.
+
+Suppose you want to know the amount of time the image
+has been running, but in a C way, that is, calling the 
+\texttt{clock} function. Its C declaration is:
+
+\begin{code}{}
+int clock (void)
+\end{code}
+
+To call clock from the image, you will need to write
+a binding, which is a normal method with a {\sffamily <primitive>}
+pragma, that describes the signature of the C function:
+
+\begin{code}{}
+ticksSinceStart
+
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ NBFFICallout cdecl: #( int clock () ) module: NativeBoost CLibrary
+\end{code}
+
+this method can be in any class, in instance or class side,
+it doesn't make any difference. We will place it in a new
+one, called CExamples, class side in order to make it
+consistent through the chapter and easy to access.
+
+Then, to know the time since the program started you can print
+
+\dothis{CExamples ticksSinceStart}
+
+but of course, this are the clock ticks, which aren't of much
+use. The important thing to notice in the binding is the 
+{\sffamily \#cdecl:module:} message and its arguments. This
+message describes the signature of the function that is about
+to be called. The first argument is an array that
+describes the signature of the called function and its name.
+The second one is the name of the library to look for the
+called function, which this time is the standard C library.
+The first element of the signature array is the C return type,
+and the second, the name of the called function. The third
+and last element is also an array, which will describe the
+arguments of the function when there's any. Notice that the
+type of the return type is int, and not SmallInteger. This
+will be the same with function arguments.
+
+If you look carefully
+you will notice that the C integer returned was automatically
+converted to a Smalltalk integer. We will see a lot more
+examples of conversions in this chapter. 
+
+Now, lets look another example, and to make it more interesting
+lets call \texttt{strlen}, which receives a string as
+argument and returns the amount of characters it has. Its
+signature is:
+
+\begin{code}{}
+ int strlen ( const char * str );
+\end{code}
+
+Then the corresponding binding will be
+
+\begin{code}{}
+stringLength: aString
+
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ NBFFICallout cdecl: #( int strlen (char* aString) ) module: NativeBoost CLibrary
+\end{code}
+
+Can you see the small differences with the previous
+example? In this case, we are specifying strlen
+instead of clock, of course. Besides that, the only
+change is that we have to specify the string passed
+as argument. That is, in the arguments array, we
+put the C type of the argument, and after that,
+the name of the Smalltalk variable we are going to pass.
+This type-and-name pair will be repeated, separated by
+comma for each argument, as we will show in the next
+example. The last important
+
+% \section{The levels of native code}
+% 
+% In Pharo there are many levels where native code
+% can live. Some of this code forms part of the
+% Virtual Machine itself, so it's actually Slang code
+% that gets converted to C and then compiled. It is a
+% bit static because changing this code would mean to
+% regenerate and recompile the whole Virtual Machine.
+% A work around this are \emph{plugins}, which are also
+% written in Slang and can be thought as extensions to
+% the Virtual Machine that don't require recompiling
+% the whole virtual machine after each change. Unfortunatelly,
+% they aren't much dynamic either because, after each
+% change.
+% part of the 
+% 
+% The simplest and most
+% used form of native code is the implementation
+% of each byte-code. For each byte-code there 
+% exists a bunch of Slang code which, after being
+% converted to C, is compiled to machine code and
+% put into the VM executable. Of course, there
+% aren't many byte-codes left free for use, and
+% the existing ones have been very well thought so
+% there is little chance that you may want to
+% write native code for a byte-code.
+% 
+% Next in the level of 
+
+
+
 Thanks to a Foreign Function Interface (FFI), it is possible to achieve this and interact with third-party libraries.
 Multiple FFI libraries are available in Pharo such as FFI (\url{http://wiki.squeak.org/squeak/1414}) and Alien (\url{http://www.squeaksource.com/Alien}).
 As an example the dynamic \texttt{OpenGL} library (.dll, .so or .dylib depending on the operating system) is used in Croquet through the FFI library and AlienOpenGL (\url{http://www.squeaksource.com/AlienOpenGL}) use it through the Alien library.
@@ -61,7 +203,7 @@ A plugin enable the Smalltalk code (in the image) to access third-party function
 
 \begin{figure}[htbp]
 	\centering
-		\includegraphics[width=0.4\linewidth]{figs/plugins}
+		\includegraphics[width=0.4\linewidth]{figs/plugins.pdf}
 	\caption{Pharo Architecture}
 	\label{fig:plugins}
 \end{figure}
