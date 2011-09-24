@@ -40,74 +40,80 @@
 % Alien-LibC.9
 % 40 tests green
 
-\chapter{Inter-language communication}\label{cha:alien}
+\newcommand{\Spock}[0]{Spock} %could be alius
+\chapter{Calling Foreign Code with Spock}\label{cha:alien}
 
-Despite of our aim of doing as much as possible directly in Smalltalk (as deeper as the virtual machine itself cf. ChapXX), it is still required in some special cases to call external code written in another language or even compiled in a binary library.
+Despite of our aim of doing as much as possible directly in Smalltalk (as deeper as the virtual machine itself cf. ChapXX), it is still required in some special cases to call external code written in other languages and compiled in a binary library.
 
-Suppose you want to use OpenGL in Pharo. Then
-you would face a problem, because the OpenGL libraries
-only know about C and nothing about Smalltalk. In
-order to solve this kind of problems there is a
-standard solution, which is to make a \emph{binding}
-of each C library function to a Smalltalk method, and
-then to call this methods from Smalltalk code.
-But the remaining question is, how does a binding
-call a C function? and also, how do you write such
-binding? Doing this kind of work is usually called
-FFI, for Foreign Function Interface.
+Suppose you want to use OpenGL in Pharo. Then you will face a problem, because the OpenGL libraries
+only know about C and nothing about Smalltalk. To solve this kind of problems there is a
+standard solution, which is to make a \emph{binding} of each C library function to a Smalltalk method, 
+and then to call this methods from Smalltalk code. But the remaining question is, how does a binding call a 
+C function? and also, how do you write such binding? Doing this kind of work is usually called FFI, for Foreign Function Interface.
 
-There are other possibilities: imagine that you want
-to optimize some piece of code. In the first approach,
-of course, you would try to make it more efficient by
-using a better algorithm, but that may not be enough.
-Then you may encounter the need of writing code in a
-lower level language that is more CPU efficient. In
-that case, you may ask, which is the way to communicate
-the high-level smalltalk world with the low level one?
+%There are other possibilities: imagine that you want
+%to optimize some piece of code. In the first approach,
+%of course, you would try to make it more efficient by
+%using a better algorithm, but that may not be enough.
+%Then you may encounter the need of writing code in a
+%lower level language that is more CPU efficient. In
+%that case, you may ask, which is the way to communicate
+%the high-level smalltalk world with the low level one?
 
-In this chapter we are going to try to answer this kind
-of questions, and give you some practical examples of
-how to solve common problems faced when communicating
-with other languages.
+You can invoke C libraries by defining a specific plugin or you can directly call a foreign function from within the image.
 
-\section{Calling C code}
+In this chapter we are going to answer such questions, and give you some practical examples of
+how to solve common problems faced when communicating with other languages. We will start to show you how to use \Spock a new foreign function library. \Spock is based on NativeBoost and previous FFI libraries.
+
+
+\section{Calling External Functions}
 
 Some time ago, this wasn't an easy task, but the good
 news is that since Pharo 1.4, this has become really
 easy.
 
 Suppose you want to know the amount of time the image
-has been running, but in a C way, that is, calling the 
-\texttt{clock} function. Its C declaration is:
+has been running, but using the underlying OS function, that is, calling the 
+\ct{clock} function. Its C declaration is:
 
 \begin{code}{}
 int clock (void)
 \end{code}
 
-To call clock from the image, you will need to write
-a binding, which is a normal method with a {\sffamily <primitive>}
-pragma, that describes the signature of the C function:
+To call \ct{clock} from the image, you will need to write a binding, which is a normal method with a \ct{<primitive:module:>}
+pragma, that describes the signature of the C function. Here is the definition. We will explain below the details.
 
 \begin{code}{}
-ticksSinceStart
+CExamples class>>ticksSinceStart
 
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
 	^ NBFFICallout cdecl: #( int clock () ) module: NativeBoost CLibrary
 \end{code}
 
-this method can be in any class, in instance or class side,
-it doesn't make any difference. We will place it in a new
-one, called CExamples, class side in order to make it
-consistent through the chapter and easy to access.
+You can define this method in any class, in instance or class side,
+it doesn't make any difference. We  place it on the class side of a new one, called \ct{CExamples}. This way 
+it will be easier to access. 
 
-Then, to know the time since the program started you can print
+Then, to know the time since the program started you can execute and print it.
+But of course, these are the clock ticks, which aren't of much use. 
+\begin{code}{}
+CExamples ticksSinceStart
+\end{code}
 
-\dothis{CExamples ticksSinceStart}
 
-but of course, this are the clock ticks, which aren't of much
-use. The important thing to notice in the binding is the 
-{\sffamily \#cdecl:module:} message and its arguments. This
+
+Let us now have a look at the definition part
+\sd{stef here}
+\begin{description}
+\item [Pragma declaration.]
+\item [C header.]
+\item [Library access.]
+\end{description}
+
+
+The important thing to notice in the binding is the 
+\ct{#cdecl:module:} message and its arguments. This
 message describes the signature of the function that is about
 to be called. The first argument is an array that
 describes the signature of the called function and its name.
@@ -126,7 +132,7 @@ converted to a Smalltalk integer. We will see a lot more
 examples of conversions in this chapter. 
 
 Now, lets look another example, and to make it more interesting
-lets call \texttt{strlen}, which receives a string as
+lets call \ct{strlen}, which receives a string as
 argument and returns the amount of characters it has. Its
 signature is:
 
@@ -137,7 +143,7 @@ signature is:
 Then the corresponding binding will be
 
 \begin{code}{}
-stringLength: aString
+CExamples class>>stringLength: aString
 
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
