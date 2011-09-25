@@ -230,6 +230,56 @@ You should observe that the size and the position are not set with your values. 
 
 \section{Buttons}
 \subsection{Push button}
+Button is the simplest common GUI element. Button shows information what it will do by showing texts and images. Button sends message when clicked by the user. The simplest button is a button that shows nothing nor does anything.
+
+\begin{code}{}
+b := PluggableButtonMorph new openInWorld.b bounds: (100@100 extent: 40@30).\end{code}
+
+\begin{figure}[htbp]
+\begin{center}
+	\includegraphics[width=3.0cm]{SimpleButton}
+	\caption{simple button}
+	\figlabel{fig:simple button}
+\end{center}
+\end{figure}
+
+If you click this button, you will notice the button does nothing. That's becuase we haven't told it what to do. We can set up the button to send a message to an object when it is clicked. The object who will receive a message is called "target" sometimes "model". For now it is called "model". The selector of the message is called "action". Let's set up the model and action, so the button itself be deleted when it is clicked. 
+
+\begin{code}{}
+b model: b.b action: #delete.
+\end{code}
+
+\dothis{click the button}
+ 
+ Ok. The button is deleted. Since, block is an object and block is a chunk of operation that can be evaluated later. We can make a button do more complicated operations by setting model with a block and action with \clsind{\#value}.
+
+\begin{code}{}
+b := PluggableButtonMorph new openInWorld.b bounds: (100@100 extent: 40@30).b model: [ self inform: 'you pressed me!' ].b action: \#value.\end{code}
+\hjo{exclamation mark is not showing in the code pane}
+ 
+\begin{figure}[htbp]
+\begin{center}
+	\includegraphics[width=3.0cm]{SimpleButtonInform}
+	\caption{simple button with block}
+	\figlabel{fig:simple button with block}
+\end{center}
+\end{figure}
+
+To give our user some hint what the button will do, it will be nice put a label on the button.
+
+\begin{code}{}
+b label: 'press me'.
+\end{code}
+
+\begin{figure}[htbp]
+\begin{center}
+	\includegraphics[width=3.0cm]{SimpleButtonWithLabel}
+	\caption{simple button with label}
+	\figlabel{fig:simple button with label}
+\end{center}
+\end{figure}
+ 
+
 \subsection{Check button}
 \subsection{Radio button}
 
