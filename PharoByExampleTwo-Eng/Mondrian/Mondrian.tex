@@ -28,9 +28,8 @@
 \chapter{Mondrian}
 \chalabel{mondrian}
 
-\ja{we should verify the end of paragraphs: a lot of them have no end point}
 
-Giving a meaning to a a large amount of data is challenging without adequate tools. Textual outputs are known to be limiting in their expression and interactions. 
+Giving a meaning to a a large amount of data is challenging without adequate tools. Textual outputs are known to be limited in their expression and interactions. 
 
 Mondrian is an agile visualization engine. It is made to visualize and interact with any arbitrary data, defined in terms of objects and their relationships. Mondrian is commonly employed in software assessment activities. Mondrian excels at visualizing software source code. This chapter introduces Mondrian's principles and describes its expressive commands to quickly make up your data. After its reading, you will be able to create interactive and visual representation.
 
@@ -39,7 +38,7 @@ Mondrian is an agile visualization engine. It is made to visualize and interact 
 \section{Installation and first visualization}
 
 Mondrian is available via a Metacello configuration. Just open a workspace and type:
-
+\ja{we need a stable version before the publishing}
 \begin{code}{}
 Gofer new
 	squeaksource: 'Mondrian'; 
@@ -48,13 +47,13 @@ Gofer new
 (Smalltalk at: #ConfigurationOfMondrian) loadDefault
 \end{code}
 
-There are essentially two ways to work with Mondrian. By either using the easel which provides an interactive scripting engine or by directly interacting with a view renderer. We will first use Mondrian in its easiest way, by using the easel. To open an easel, you can either use the World menu (it should contains the entry ``Mondrian Easel'') or execute the expression:
+There are essentially two ways to work with Mondrian. Either by using the easel which provides an interactive scripting engine or directly by interacting with a view renderer \ja{what are the easel and the view renderer ? what is the difference ?}. We will first use Mondrian in its easiest way, by using the easel. To open an easel, you can either use the World menu (it should contains the entry ``Mondrian Easel'') or execute the expression:
 
 \begin{code}{}
 MOEasel open.
 \end{code}
 
-In the easel you have just opened, you can see two panels: the one on top is the visualization panel, the second one is the script panel. In the script panel, enter the following code and press the \emph{generate} button:
+In the easel you have just opened, you can see two panels: the one on top is the visualization panel, the second one is the script panel \ja{give a screenshot, maybe replacing the first image}. In the script panel, enter the following code and press the \emph{generate} button:
 
 \begin{code}{}
 view nodes: (1 to: 20).
@@ -71,7 +70,7 @@ view edgesFrom: [ :v | v * 2 ].
 \end{code}
 \begin{center}\includegraphics[scale=0.4]{picture2}\end{center}
 
-Each number is linked with its double. Not all the doubles are visualized. For example, the double of 20 is 400, which is not part of the visualization. In that case, no edge is drawn. 
+Each number is linked with its double. Not all the doubles are visualized \ja{visible?}. For example, the double of 20 is 400, which is not part of the visualization. In that case, no edge is drawn. 
 
 The message \ct{edgesFrom:} defines one edge per node, when possible. For each node that has been added in the visualization, an edge is defined between this node and a node lookup from the provided block.
 
@@ -93,7 +92,7 @@ In the subsequent section we will visualize software code. Visualizing source co
 
 \section{Visualizing the collection framework}
 
-We will now visualize Smalltalk classes. In the remaining of this section, we will intensively use Smalltalk reflection to make compelling examples. Let's visualize the hierarchy of classes contained in the Collection framework:
+We will now visualize Smalltalk classes. In the remaining of this section, we will intensively use Smalltalk reflection \ja{is it explained before in the book ? else we should explain it in few words.} to make compelling examples. Let's visualize the hierarchy of classes contained in the Collection framework:
 
 \begin{code}{}
 view nodes: Collection withAllSubclasses.
@@ -103,7 +102,7 @@ view treeLayout.
 \begin{center}\includegraphics[scale=0.4]{picture4}\end{center}
 
 
-We have used a tree layout to visualize Smalltalk class hierarchies. This layout is particularly adequate since Smalltalk is single-inheritance oriented. Collection is the root class of the Smalltalk collection framework library. The message \ct{withAllSubclasses} returns the list of its subclasses.
+We have used a tree layout to visualize Smalltalk class hierarchies. This layout is particularly adequate since Smalltalk is single-inheritance oriented. Collection is the root class of the Smalltalk collection framework library. The message \ct{withAllSubclasses} returns the list of Collection and its subclasses.
 
 Classes are ordered vertically along their inheritance link. A superclass is above its subclasses. 
 
@@ -158,7 +157,6 @@ The obtained visualization is given in \figref{classDependencies}.
 \end{figure}
 
 \ct{String} and \ct{CompiledMethod} clearly shows up. These two classes contains many references to other classes.
-
 We also see that \ct{text:} makes a shape contain a text.
 
 Mondrian provides a whole bunch of utility methods to easily create elements.  Consider the expression:
@@ -179,6 +177,8 @@ view
   from: [ :each | each yourself ] 
   to: [ :each | each superclass ].
 \end{code}
+
+\ja{I just see that the name edgesFrom: is not logical... it should be edgesTo:}
 
 %Multiple edges may be defined. In the previous section, edges where departed from the superclass to the running node. Alternatively, edges may depart from the running nodes to all subclasses. For that very purpose, we will use \ct{edges:from:toAll:}, a variant of \ct{edges:from:to:}.
 %
@@ -225,12 +225,12 @@ The produced visualization is given in \figref{abstractClasses}. It easily help 
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=\linewidth]{abstractClasses}}
-\caption{Abstract classes are in gray and classes with the word ``Abstract'' in their name are in blue.}
+\caption{Abstract classes are in gray and classes with the word ``Abstract'' in their name are in blue. \ja{this class has the same label as fig 1.6}}
 \label{fig:abstractClasses}
 \end{figure}
 
-Similarly than with \ct{height:} and \ct{width:}, messages to defines color either takes a symbol, a block or a constant value as argument. The argument is evaluated against the domain object represented by the graphical element (the message \ct{moValue:} with the domain object is sent to the argument). 
-The use of \ct{ifTrue:ifFalse:} is a bit cumbersome. Utilities methods are provided for that purpose to easily pick a color from a particular condition. The definition of the shape can simply be:
+Similarly than with \ct{height:} and \ct{width:}, messages to defines color either takes a symbol, a block or a constant value as argument. The argument is evaluated against the domain object represented by the graphical element (the message \ct{moValue:} with the domain object is sent to the argument \ja{what ?}). 
+The use of \ct{ifTrue:ifFalse:} is a bit cumbersome \ja{a synonym should be better :)}. Utilities methods are provided for that purpose to easily pick a color from a particular condition. The definition of the shape can simply be:
 
 \begin{code}{}
 view shape rectangle
@@ -240,12 +240,13 @@ view shape rectangle
 ...
 \end{code}
 
-The method \ct{isAbstractClass} is defined on Behavior and Metaclass. By sending the \ct{isAbstractClass} to a class return a boolean value telling us whether the class is abstract or not. We recall that an abstract class in Smalltalk is a class that defines or inherits at least one  abstract method (i.e., which contain \ct{self subclassResponsibility}).
+The method \ct{isAbstractClass} is defined on Behavior and Metaclass in \pharo. By sending the \ct{isAbstractClass} to a class return a boolean value telling us whether the class is abstract or not. We recall that an abstract class in Smalltalk is a class that defines or inherits at least one  abstract method (i.e., which contain \ct{self subclassResponsibility}).
 
 
 %=====================
 
 \section{More on colors}
+\ja{--here--}
 
 Colors are pretty useful to designate a property (\eg gray if the class is abstract). They may also be employed to represent a continuous distribution. For example, the color intensity may indicate the result of a metric. Consider the previous script in which the node color intensity tells about the number of lines of Code:
 
@@ -281,7 +282,14 @@ A color may be assigned to an object identity using \ct{identityFillColorOf:}. T
 Let's jump back on the abstract class example. The following script indicates abstract classes and how many abstract methods they define:
 
 \begin{code}{}
-view shape rectangle	size: [ :cls | (cls methods select:  #isAbstract ) size * 5 ] ;	if: #isAbstractClass fillColor: Color lightRed;	if: [:cls | cls methods anySatisfy: #isAbstract ] fillColor: Color red.view nodes: Collection withAllSubclasses.view edgesFrom: #superclass.view treeLayout.\end{code}
+view shape rectangle
+	size: [ :cls | (cls methods select:  #isAbstract ) size * 5 ] ;
+	if: #isAbstractClass fillColor: Color lightRed;
+	if: [:cls | cls methods anySatisfy: #isAbstract ] fillColor: Color red.
+view nodes: Collection withAllSubclasses.
+view edgesFrom: #superclass.
+view treeLayout.
+\end{code}
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=0.6\linewidth]{abstractClasses2.png}}
@@ -308,7 +316,23 @@ So far, we have seen that a graphical element has a shape to describe its graphi
 In addition to a textual content, Mondrian allows a view to be pop up. We will enhance the previous example to illustrate this point. When the mouse enters a node, a new view is defined and displayed next to the node. The method \ct{popupView:} receives a two-arguments block as parameters. 
 
 \begin{code}{}
-view interaction popupView: [ :element :secondView | 	secondView node: element forIt: [	  secondView shape rectangle 	    if: #isAbstract fillColor: Color red;	    size: 10.  	  secondView nodes: (element methods sortedAs: #isAbstract).	  secondView gridLayout gapSize: 2 	] ].view shape rectangle	size: [ :cls | (cls methods select:  #isAbstract ) size * 5 ] ;	if: #isAbstractClass fillColor: Color lightRed;	if: [:cls | cls methods anySatisfy: #isAbstract ] fillColor: Color red.view nodes: Collection withAllSubclasses.view edgesFrom: #superclass.view treeLayout.\end{code}
+view interaction popupView: [ :element :secondView | 
+	secondView node: element forIt: [
+	  secondView shape rectangle 
+	    if: #isAbstract fillColor: Color red;
+	    size: 10.  
+	  secondView nodes: (element methods sortedAs: #isAbstract).
+	  secondView gridLayout gapSize: 2 
+	] ].
+
+view shape rectangle
+	size: [ :cls | (cls methods select:  #isAbstract ) size * 5 ] ;
+	if: #isAbstractClass fillColor: Color lightRed;
+	if: [:cls | cls methods anySatisfy: #isAbstract ] fillColor: Color red.
+view nodes: Collection withAllSubclasses.
+view edgesFrom: #superclass.
+view treeLayout.
+\end{code}
 
 The argument of \ct{popupView:} is a two argument block. The first parameter of the block is the element represented by the node located below the mouse. The second argument is a new view that will be opened.
 
@@ -328,7 +352,14 @@ A node is a view in itself. This allows for a graph to be embedded in any node. 
 The following example approximates the dependencies between methods by linking methods that may call each other. A method \ct{m1} is connected to a method \ct{m2} if \ct{m1} contains a reference to the selector \ct{#m2}. This is a simple but effective way to see the dependencies between methods. Consider:
 
 \begin{code}{}
-view nodes: Collection withAllSubclasses forEach: [:cls |	view nodes: cls methods.	view edges: cls methods from: #yourself toAll: [ :cm | cls methods select: [ :rcm |  cm messages anySatisfy: [:s | rcm selector == s ] ] ].	view treeLayout].view interaction action: #browse.view edgesFrom: #superclass.view treeLayout.
+view nodes: Collection withAllSubclasses forEach: [:cls |
+	view nodes: cls methods.
+	view edges: cls methods from: #yourself toAll: [ :cm | cls methods select: [ :rcm |  cm messages anySatisfy: [:s | rcm selector == s ] ] ].
+	view treeLayout
+].
+view interaction action: #browse.
+view edgesFrom: #superclass.
+view treeLayout.
 \end{code}
 
 A subview contains its own layout. Interactions and shapes defined in a subview are not accessible from a nesting node. 
@@ -418,7 +449,17 @@ A subview contains its own layout. Interactions and shapes defined in a subview 
 Method of the visualization given in the previous section may be moved by a simple drag and drop. However, it may be wished that the methods have a fixed position, and only the classes can be drag-and-dropped. In that case, the message \ct{forward} has to be sent to the interaction. Consider:
 
 \begin{code}{}
-view nodes: MOShape withAllSubclasses forEach: [:cls |	view interaction forward.	view shape rectangle 					size: #numberOfLinesOfCode.	view nodes: cls methods.	view edges: cls methods from: #yourself toAll: [ :cm | cls methods select: [ :rcm |  cm messages anySatisfy: [:s | rcm selector == s ] ] ].	view treeLayout].view interaction action: #browse.view edgesFrom: #superclass.view treeLayout.
+view nodes: MOShape withAllSubclasses forEach: [:cls |
+	view interaction forward.
+	view shape rectangle 
+					size: #numberOfLinesOfCode.
+	view nodes: cls methods.
+	view edges: cls methods from: #yourself toAll: [ :cm | cls methods select: [ :rcm |  cm messages anySatisfy: [:s | rcm selector == s ] ] ].
+	view treeLayout
+].
+view interaction action: #browse.
+view edgesFrom: #superclass.
+view treeLayout.
 \end{code}
 
 Moving a method will move the class instead. As most operating systems, Mondrian offers multiple selection using the Ctrl or Cmd key. This default behavior is available for every nodes.
@@ -430,7 +471,19 @@ Moving a method will move the class instead. As most operating systems, Mondrian
 Each mouse movement, click and keyboard keystroke corresponds to a particular events. Mondrian offers a rich hierarchy of events. The root of the hierarchy is MOEvent. To associate a particular action to an event, an handler has to be defined on the object interaction. On the following example, double clicking on a class opens a code browser:
 
 \begin{code}{}
-view shape rectangle  width: [ :each | each instVarNames size * 5 ];  height: [ :each | each methods size ];  if: #isAbstractClass fillColor: Color lightRed;  if: [:cls | cls methods anySatisfy: #isAbstract ] fillColor: Color red.  view interaction on: MOMouseDouble do: [ :ann |   ann modelElement browse].view nodes: Collection withAllSubclasses.view edgesFrom: #superclass.view treeLayout.\end{code}
+view shape rectangle
+  width: [ :each | each instVarNames size * 5 ];
+  height: [ :each | each methods size ];
+  if: #isAbstractClass fillColor: Color lightRed;
+  if: [:cls | cls methods anySatisfy: #isAbstract ] fillColor: Color red.
+  
+view interaction on: MOMouseDouble do: [ :ann | 
+  ann modelElement browse
+].
+view nodes: Collection withAllSubclasses.
+view edgesFrom: #superclass.
+view treeLayout.
+\end{code}
 
 The block handler accepts one argument: the event generated. The object that triggered the event is obtained by sending \ct{modelElement} to the event object. 
 
@@ -494,7 +547,7 @@ view node: 'compound' forIt: [
 \end{figure}
 
 
-The script contains two parts. The first part is the ubiquitous system complexity of the collection framework \ja{give us the number of lines}.  The second part renders the tests contained in the CollectionsTests \ja{explain more about this part, maybe line by line}. The width of a class is the number of literals contained in it. The height is the number of lines of code. Since the collection tests makes a great use of traits to reuse code, these metrics have to be scaled down. When the mouse is put over a test unit, then all the classes of the collection framework referenced in this class are highlighted. 
+The script contains two parts. The first part is the ubiquitous system complexity of the collection framework.  The second part renders the tests contained in the CollectionsTests. The width of a class is the number of literals contained in it. The height is the number of lines of code. Since the collection tests makes a great use of traits to reuse code, these metrics have to be scaled down. When the mouse is put over a test unit, then all the classes of the collection framework referenced in this class are highlighted. 
 
 %=====================
 
