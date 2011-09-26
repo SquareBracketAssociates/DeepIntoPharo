@@ -40,7 +40,7 @@
 % Alien-LibC.9
 % 40 tests green
 
-\newcommand{\Spock}[0]{Spock} %could be alius
+\newcommand{\Spock}[0]{Spock } %could be alius
 \chapter{Calling Foreign Code with Spock}\label{cha:alien}
 
 Despite of our aim of doing as much as possible directly in Smalltalk (as deeper as the virtual machine itself cf. ChapXX), it is still required in some special cases to call external code written in other languages and compiled in a binary library.
@@ -49,7 +49,8 @@ Suppose you want to use OpenGL in Pharo. Then you will face a problem, because t
 only know about C and nothing about Smalltalk. To solve this kind of problems there is a
 standard solution, which is to make a \emph{binding} of each C library function to a Smalltalk method, 
 and then to call this methods from Smalltalk code. But the remaining question is, how does a binding call a 
-C function? and also, how do you write such binding? Doing this kind of work is usually called FFI, for Foreign Function Interface.
+C function? and also, how do you write such binding? The libraries and macanisms in charge of doing this kind of work are usually called FFI, for Foreign Function Interface. In this chapter we will help you to use this interface by exposing some practical examples of
+how to solve common problems faced when communicating with other languages.
 
 %There are other possibilities: imagine that you want
 %to optimize some piece of code. In the first approach,
@@ -60,10 +61,9 @@ C function? and also, how do you write such binding? Doing this kind of work is 
 %that case, you may ask, which is the way to communicate
 %the high-level smalltalk world with the low level one?
 
-You can invoke C libraries by defining a specific plugin or you can directly call a foreign function from within the image.
+Another approach would be to invoke C libraries by defining a specific plugin, but its much more complex and it offers no important advantadge compared to the results of using bindings in the same language and with the same constructions you are used to.
 
-In this chapter we are going to answer such questions, and give you some practical examples of
-how to solve common problems faced when communicating with other languages. We will start to show you how to use \Spock a new foreign function library. \Spock is based on NativeBoost and previous FFI libraries.
+We will start to show you how to use \Spock a new foreign function library. \Spock is based on NativeBoost and previous FFI libraries.
 
 
 \section{Calling External Functions}
@@ -114,27 +114,31 @@ Let us now have a look at the definition part
 
 The important thing to notice in the binding is the 
 \ct{#cdecl:module:} message and its arguments. This
-message describes the signature of the function that is about
-to be called. The first argument is an array that
-describes the signature of the called function and its name.
-The second one is the name of the library to look for the
-called function, which this time is the standard C library.
-The first element of the signature array is the C return type,
-and the second, the name of the called function. The third
-and last element is also an array, which will describe the
+message represents a call to an external function an has as
+arguments the signature of the function that is about
+to be called and the module where to look for it. 
+The first argument is an array that describes the signature 
+while the second is the name of the library, which in this case 
+is the standard C library. The first element of the signature 
+array is the C return type, and the second, the name of the called function.
+The third and last element is also an array, which will describe the
 arguments of the function when there's any. Notice that the
 type of the return type is int, and not SmallInteger. This
-will be the same with function arguments.
+will be the same with function arguments. They are all describe
+in terms of C language.
 
-If you look carefully
-you will notice that the C integer returned was automatically
-converted to a Smalltalk integer. We will see a lot more
-examples of conversions in this chapter. 
+But you don't have to bother about this. \Spock library does
+an automatically conversion between C types and Smalltalk types.
+So, actually, when this message is executed, the return value 
+would be an SmallInteger. Just to let you know, this conversion
+process for types from diferent languages is called marshalling.
+We will see a lot more examples of automatic conversions in 
+this chapter. 
 
-Now, lets look another example, and to make it more interesting
-lets call \ct{strlen}, which receives a string as
-argument and returns the amount of characters it has. Its
-signature is:
+Now, lets look at another example, and to make it more interesting
+lets call the very well known \ct{strlen} function, which receives 
+a string as argument and returns the amount of characters it has. 
+Its C signature is:
 
 \begin{code}{}
  int strlen ( const char * str );
@@ -151,15 +155,30 @@ CExamples class>>stringLength: aString
 \end{code}
 
 Can you see the small differences with the previous
-example? In this case, we are specifying strlen
-instead of clock, of course. Besides that, the only
+example? First of all, in this case we are specifying strlen
+instead of clock, of course. But besides that, the only
 change is that we have to specify the string passed
 as argument. That is, in the arguments array, we
 put the C type of the argument, and after that,
 the name of the Smalltalk variable we are going to pass.
 This type-and-name pair will be repeated, separated by
 comma for each argument, as we will show in the next
-example. The last important
+example. 
+
+Before getting into the next example, to little things
+needs to be clarified. The first is that there is a little
+difference between the C signature and the signature we are
+providing in the Smalltalk array. This little difference is 
+the const keyword of the argument. For those not used to C, 
+that's only a modifier keyword that the compiler take advantage
+of to make some static validations at compile time. It's has no
+value when describing the signature for calling a function at
+runtime.
+The second important thing to notice is that as argument we provide
+the object aString, the same as the one receive as Smalltalk argument.
+This is really neccesary as we are not only describing the signature
+but we are also describing which arguments we will give to the C 
+function as arguments to receive the correct result. 
 
 % \section{The levels of native code}
 % 
