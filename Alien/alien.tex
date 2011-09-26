@@ -32,13 +32,7 @@
 	\sloppy
 \fi
 %=================================================================
-% Pharo 1.1 used 
-% Alien-Prereqs.5
-% Alien-Core-JoachimGeidel.64
-% Alien-Core-Tests.22
-% Alien-Examples.1
-% Alien-LibC.9
-% 40 tests green
+
 
 \newcommand{\Spock}[0]{Spock } %could be alius
 \chapter{Calling Foreign Code with Spock}\label{cha:alien}
@@ -49,7 +43,7 @@ Suppose you want to use OpenGL in Pharo. Then you will face a problem, because t
 only know about C and nothing about Smalltalk. To solve this kind of problems there is a
 standard solution, which is to make a \emph{binding} of each C library function to a Smalltalk method, 
 and then to call this methods from Smalltalk code. But the remaining question is, how does a binding call a 
-C function? and also, how do you write such binding? The libraries and macanisms in charge of doing this kind of work are usually called FFI, for Foreign Function Interface. In this chapter we will help you to use this interface by exposing some practical examples of
+C function? and also, how do you write such binding? The libraries and mechanisms in charge of doing this kind of work are usually called FFI, for Foreign Function Interface. In this chapter we will help you to use this interface by exposing some practical examples of
 how to solve common problems faced when communicating with other languages.
 
 %There are other possibilities: imagine that you want
@@ -61,20 +55,28 @@ how to solve common problems faced when communicating with other languages.
 %that case, you may ask, which is the way to communicate
 %the high-level smalltalk world with the low level one?
 
-Another approach would be to invoke C libraries by defining a specific plugin, but its much more complex and it offers no important advantadge compared to the results of using bindings in the same language and with the same constructions you are used to.
+Another approach would be to invoke C libraries by defining a specific plugin for the virtual machine, but its much more complex and it offers no important advantage compared to the results of using bindings in the same language and with the same constructions you are used to.
 
-We will start to show you how to use \Spock a new foreign function library. \Spock is based on NativeBoost and previous FFI libraries.
+We will start to show you how to use \Spock a new foreign function library. \Spock is based on NativeBoost and previous FFI libraries.\luc{Alien and FFI. cite them here no?}
+
+
+\section{What you need before entering the beast}
+
+\luc{Before the section ``calling Ext func'', I think we should first introduce the basics (part of the old ``What is a FFI and how it works?'' section). Because the reader will want to test while reading. And for that he probably will need a special VM (NativeBoost VM), an image with NativeBoost inside, ... }
+
+\begin{code}{}
+Gofer new
+	...
+
+\end{code}
 
 
 \section{Calling External Functions}
 
-Some time ago, this wasn't an easy task, but the good
-news is that since Pharo 1.4, this has become really
-easy.
+Some time ago, this wasn't an easy task, but the good news is that since Pharo 1.4, this has become really easy.
 
-Suppose you want to know the amount of time the image
-has been running, but using the underlying OS function, that is, calling the 
-\ct{clock} function. Its C declaration is:
+Suppose you want to know the amount of time the image has been running by calling the underlying OS function named \ct{clock}. 
+This function is part of the standard C library. Its C declaration is\luc{according to man it is: clock\_t clock(void) , I suppose clock\_t end up in an int?}:
 
 \begin{code}{}
 int clock (void)
@@ -91,9 +93,10 @@ CExamples class>>ticksSinceStart
 	^ NBFFICallout cdecl: #( int clock () ) module: NativeBoost CLibrary
 \end{code}
 
-You can define this method in any class, in instance or class side,
-it doesn't make any difference. We  place it on the class side of a new one, called \ct{CExamples}. This way 
-it will be easier to access. 
+You can define this method in any class, on its instance or class side.
+It doesn't make any difference. 
+In the above example, we place it on the class side of \ct{CExamples}. 
+This way it is easy to access it by sending a message to this class without creating a useless instance. 
 
 Then, to know the time since the program started you can execute and print it.
 But of course, these are the clock ticks, which aren't of much use. 
@@ -112,39 +115,28 @@ Let us now have a look at the definition part
 \end{description}
 
 
-The important thing to notice in the binding is the 
-\ct{#cdecl:module:} message and its arguments. This
-message represents a call to an external function an has as
-arguments the signature of the function that is about
-to be called and the module where to look for it. 
-The first argument is an array that describes the signature 
-while the second is the name of the library, which in this case 
-is the standard C library. The first element of the signature 
-array is the C return type, and the second, the name of the called function.
-The third and last element is also an array, which will describe the
-arguments of the function when there's any. Notice that the
-type of the return type is int, and not SmallInteger. This
-will be the same with function arguments. They are all describe
-in terms of C language.
+\ct{NBFFICallout} represents a call to an external function.
+We use the the  message \ct{#cdecl:module:} to describe this call. 
+This message has two arguments: the signature of the function that is about to be called and the module (or library) where to look for it which is the standard C library in this example. 
+The signature is described by an array whose first element is the C return type and the second is the name of the called function.
+The third and last element is also an array which describe the arguments of the function when there's any. 
 
-But you don't have to bother about this. \Spock library does
-an automatically conversion between C types and Smalltalk types.
-So, actually, when this message is executed, the return value 
-would be an SmallInteger. Just to let you know, this conversion
-process for types from diferent languages is called marshalling.
-We will see a lot more examples of automatic conversions in 
-this chapter. 
+Notice that the return type is \ct{int} and not \ct{SmallInteger}. 
+This is the same with function arguments. 
+They are all describe in terms of C language.
+But you don't have to bother with this because the \Spock library does an automatic conversion between C types and Smalltalk types.
+So, when this message is executed, the return value will be a \ct{SmallInteger}. 
+This conversion process for types from different languages is called \emph{marshaling}.
+We will see more examples of automatic conversions in this chapter. 
 
-Now, lets look at another example, and to make it more interesting
-lets call the very well known \ct{strlen} function, which receives 
-a string as argument and returns the amount of characters it has. 
+Now, lets look at another example, and to make it more interesting lets call the very well known \ct{strlen} function, which receives a string as argument and returns the amount of characters it has. 
 Its C signature is:
 
 \begin{code}{}
  int strlen ( const char * str );
 \end{code}
 
-Then the corresponding binding will be
+Then the corresponding binding is:
 
 \begin{code}{}
 CExamples class>>stringLength: aString
@@ -154,8 +146,8 @@ CExamples class>>stringLength: aString
 	^ NBFFICallout cdecl: #( int strlen (char* aString) ) module: NativeBoost CLibrary
 \end{code}
 
-Can you see the small differences with the previous
-example? First of all, in this case we are specifying strlen
+Can you see the small differences with the previous example? 
+First of all, in this case we are specifying strlen
 instead of clock, of course. But besides that, the only
 change is that we have to specify the string passed
 as argument. That is, in the arguments array, we
