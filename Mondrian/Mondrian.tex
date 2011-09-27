@@ -246,9 +246,8 @@ The method \ct{isAbstractClass} is defined on Behavior and Metaclass in \pharo. 
 %=====================
 
 \section{More on colors}
-\ja{--here--}
 
-Colors are pretty useful to designate a property (\eg gray if the class is abstract). They may also be employed to represent a continuous distribution. For example, the color intensity may indicate the result of a metric. Consider the previous script in which the node color intensity tells about the number of lines of Code:
+Colors are pretty useful to designate a property (\eg gray if the class is abstract). They may also be employed to represent a continuous distribution. For example, the color intensity may indicate the result of a metric. Consider the previous script in which the node color intensity tells about the number of lines of code:
 
 \begin{code}{}
 view interaction action: #browse.
@@ -261,11 +260,12 @@ view edgesFrom: #superclass.
 view treeLayout.
 \end{code}
 
-\figref{systemComplexity} shows the resulting picture. The message \ct{linearFillColor:within:} takes as first argument a block function that return a numerical value. The second argument is a group of elements that is used to scale the intensity of each node. The block function is applied to each element of the group. The greatest value is set to black. The fading scales from 0 to this maximum. The maximum intensity is given by the maximum \ct{#numberOfLinesOfCode} can take for all the subclasses of \ct{Collection}. 
-
-The visualization\footnote{This visualization is named 'System complexity', if you wish to know more about this visualization, you can refer to 'Polymetric Views---A Lightweight Visual Approach to Reverse Engineering' (Transactions on Software Engineering, 2003).} you now obtain put in relation for each class the number of methods, the number of instance variables and the number of lines of code. Differences in size between classes might suggest some maintenance activities. 
-
+\figref{systemComplexity} shows the resulting picture. The message \ct{linearFillColor:within:} takes as first argument a block function that return a numerical value. The second argument is a group of elements that is used to scale the intensity of each node. The block function is applied to each element of the group. The greatest value is set to black. The fading scales from 0 to this maximum \ja{why THIS maximum ? in real, black is 0 and white is 255. Maybe you should write: from white (0 line of codes) to black (maximum lines of code)}. The maximum intensity is given by the maximum \ct{#numberOfLinesOfCode} can take for all the subclasses of \ct{Collection}. 
 Variants of \ct{linearFillColor:within:} are \ct{linearXXXFillColor:within:}, where \ct{XXX} is one among \ct{Blue}, \ct{Green}, \ct{Red}, \ct{Yellow}.
+
+The visualization\footnote{This visualization is named 'System complexity', if you wish to know more about it, you can refer to 'Polymetric Views---A Lightweight Visual Approach to Reverse Engineering' (Transactions on Software Engineering, 2003).} you now obtain put in relation for each class the number of methods, the number of instance variables and the number of lines of code. Differences in size between classes might suggest some maintenance activities. 
+
+
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=6cm]{systemComplexity}}
@@ -293,7 +293,7 @@ view treeLayout.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=0.6\linewidth]{abstractClasses2.png}}
-\caption{Boxes are classes and links are inheritance relationships. The amount of abstract method is indicated by the size of the class. A red class defines abstract methods and a pink class inherits from an abstract class solely.}
+\caption{Boxes are classes and links are inheritance relationships. The amount of abstract method is indicated by the size of the class. A red class defines abstract methods and a pink class inherits from an abstract class solely.\ja{this figure has the same label as 1.4 and 1.6}}
 \label{fig:abstractClasses}
 \end{figure}
 
@@ -311,9 +311,9 @@ view interaction popupText: [ :aClass |
 ...
 \end{code}
 
-So far, we have seen that a graphical element has a shape to describe its graphical representation. It also contains an \emph{interaction} that contains event handlers. The message \ct{popupText:} takes a block as argument. This block is evaluated with the domain object as argument. The block has to return the popup text content. In our case, it is simply a list of the methods.
+So far, we have seen that a \del{graphical} element has a shape to describe its graphical representation. It also contains an \emph{interaction} that contains event handlers. The message \ct{popupText:} takes a block as argument. This block is evaluated with the domain object as argument. The block has to return the popup text content. In our case, it is simply a list of the methods.
 
-In addition to a textual content, Mondrian allows a view to be pop up. We will enhance the previous example to illustrate this point. When the mouse enters a node, a new view is defined and displayed next to the node. The method \ct{popupView:} receives a two-arguments block as parameters. 
+In addition to a textual content, Mondrian allows a view to be popped up. We will enhance the previous example to illustrate this point. When the mouse enters a node, a new view is defined and displayed next to the node. %The method \ct{popupView:} receives a two-arguments block as parameters. 
 
 \begin{code}{}
 view interaction popupView: [ :element :secondView | 
@@ -336,12 +336,12 @@ view treeLayout.
 
 The argument of \ct{popupView:} is a two argument block. The first parameter of the block is the element represented by the node located below the mouse. The second argument is a new view that will be opened.
 
-In the example, we used \ct{sortedAs:} to order the nodes representing methods. This method is defined on Collection and belongs to Mondrian. To see example usages of \ct{sortedAs:}, browse its corresponding unit test:
+In the example, we used \ct{sortedAs:} to order the nodes representing methods. This method is defined on Collection and belongs to Mondrian \ja{why it belongs to mondrian ?}. To see example usages of \ct{sortedAs:}, browse its corresponding unit test:
 \begin{code}{}
 ToolSet browse: MOViewRendererTest selector: #testSortedAs 
 \end{code}
 
-This last example use the message \ct{node:forIt:} in the popup view to define a subview.
+This last example uses the message \ct{node:forIt:} in the popup view to define a subview.
 
 %=====================
 
@@ -462,13 +462,13 @@ view edgesFrom: #superclass.
 view treeLayout.
 \end{code}
 
-Moving a method will move the class instead. As most operating systems, Mondrian offers multiple selection using the Ctrl or Cmd key. This default behavior is available for every nodes.
+Moving a method will move the class instead. \ja{add a transition} As most operating systems, Mondrian offers multiple selection using the Ctrl or Cmd key. This default behavior is available for every nodes.
 
 %=====================
 
 \section{Events}
 
-Each mouse movement, click and keyboard keystroke corresponds to a particular events. Mondrian offers a rich hierarchy of events. The root of the hierarchy is MOEvent. To associate a particular action to an event, an handler has to be defined on the object interaction. On the following example, double clicking on a class opens a code browser:
+Each mouse movement, click and keyboard keystroke corresponds to a particular event. Mondrian offers a rich hierarchy of events. The root of the hierarchy is MOEvent. To associate a particular action to an event, an handler has to be defined on the object interaction. On the following example, double clicking on a class opens a code browser:
 
 \begin{code}{}
 view shape rectangle
@@ -490,7 +490,7 @@ The block handler accepts one argument: the event generated. The object that tri
 %=====================
 
 \section{Interaction}
-Mondrian offers a number of contextual interaction mechanisms. The interaction object contains a number of keywords for that purpose. The message \ct{highlightWhenOver:} takes a block as argument. This block returns a list of the node to highlight when the mouse enters a node. Consider the example:
+Mondrian offers a number of contextual interaction mechanisms. The interaction object contains a number of keywords for that purpose. The message \ct{highlightWhenOver:} takes a block as argument. This block returns a list of the nodes to highlight when the mouse enters a node. Consider the example:
 
 \begin{code}{}
 view interaction 
@@ -553,16 +553,16 @@ The script contains two parts. The first part is the ubiquitous system complexit
 
 \section{Conclusion}
 
-Mondrian enables any graph of objects to be visualized. This chapter has reviewed the principal features of Mondrian:
+Mondrian enables any graph of objects to be visualized. This chapter has reviewed the main features of Mondrian:
 \begin{itemize}
-\item The most common way to defines nodes is wit \ct{nodes:} and edges with \ct{edgesFrom:}, \ct{edges:from:to:} and \ct{edges:from:toAll:}.
-\item A whole range of layout are offered. The most common layouts are accessible by sending \ct{circleLayout}, \ct{treeLayout}, \ct{gridLayout} to a view.
+\item The most common way to define nodes is with \ct{nodes:} and edges with \ct{edgesFrom:}, \ct{edges:from:to:} and \ct{edges:from:toAll:}.
+\item A whole range of layout is offered. The most common layouts are accessible by sending \ct{circleLayout}, \ct{treeLayout}, \ct{gridLayout} to a view.
 \item A shape defines the graphical aspect of an element. Height and width are commonly set with \ct{height:} and \ct{width:}, respectively. 
 \item A shape is colored with \ct{borderColor:} and \ct{fillColor:}.
-\item Information my be popped up with \ct{popupText:} and \ct{popupView:}.
+\item Information may be popped up with \ct{popupText:} and \ct{popupView:}.
 \item A subview is defined with \ct{nodes:forEach:} and \ct{node:forIt:}.
-\item Events of a sub node is forward to its parent with \ct{forward} and \ct{forward:}.
-\item Highlighting is available with \ct{highlightWhenOver:}, which takes a one-arg block that has to returns the list of node to highlight.
+\item Events of a sub node is forwarded to its parent with \ct{forward} and \ct{forward:}.
+\item Highlighting is available with \ct{highlightWhenOver:}, which takes a one-arg block that has to return the list of nodes to highlight.
 \end{itemize}
 
 %Mondrian is a perpetual evolving application. This chapter intents to cover the features frequently used. If there is a topic you wish to see discussed here, send an email to alexandre@bergel.eu.
