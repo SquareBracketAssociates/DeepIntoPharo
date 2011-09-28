@@ -6,6 +6,7 @@
 % 2011-09-08: addressed mariano + nicolas paez comments
 % 2011-09-11 - Migrated to PharoBox: svn checkout https://XXX@scm.gforge.inria.fr/svn/pharobooks/PharoByExampleTwo-Eng
 % could change returns by answers 
+% 2011-09-28 - Alexandre doing a pass
 
 
 %=================================================================
@@ -37,7 +38,7 @@
 
 \chapter{Exploring Little Numbers}
 
-We manipulate numbers all the time and in this Chapter we propose you a little journey into the way 
+We manipulate numbers all the time and in this chapter we propose you a little journey into the way 
 integers are mapped to their binary representations. We will open the box and take a language implementor perspective and happily explore how small integers are represented. 
 
 We will start with some simple reminders on math that are the basics of our digital world. Then we will have a look at how integers and in particular small integers are encoded.
@@ -218,10 +219,10 @@ Integer>>bitAt: anInteger
 We shift to the right from an integer minus one (hence \ct{1 - anInteger})
 and with a \ct{bitAnd:} we know whether there is a one or zero in the location.
 
-\sd{mmp: show an example, otherwise it is difficult to understand. Use for example 2r000001101 bitAt: 5 -> returns 0. Do the drawing you always do and it will be much clear. }\sd{ok later}
+\sd{mmp: show an example, otherwise it is difficult to understand. Use for example 2r000001101 bitAt: 5 -> returns 0. Do the drawing you always do and it will be much clear. }\sd{ok later}\alex{I feel a drawing is not necessary, we give plenty of examples later on. We could maybe say that we will understand this formula with the two complement.}
 
 
-Pharo offers the traditional Boolean operations for bit sequence. Hence you can send the messages \ct{bitAnd:}, \ct{bitOr:}, and \ct{bitXor:} to numbers. 
+Pharo offers common boolean operations for bit manipulation. Hence you can send the messages \ct{bitAnd:}, \ct{bitOr:}, and \ct{bitXor:} to numbers. 
 
 \begin{code}{bitAnd:}
 2r000001101 bitAnd: 2r11
@@ -235,7 +236,7 @@ Again, nothing really special but this was to refresh our memories. Now we will 
 To fully understand 2's complement it is interesting to see how it works with decimal numbers. There is no obvious usage for 10's complement but here the point we want to show is that a complement is the replacement of addition with subtraction (\ie adding the complement of A to B is equivalent to subtracting A from B).
 
 
-The 10's complement of a positive decimal integer $n$ is 10 to the power of $k$ + 1, minus $n$, where $k$ is the number of digits in the decimal representation of $n$. $Complement_{10}(n) = 10^{k+1} - n$.
+The 10's complement of a positive decimal integer $n$ is 10 to the power of $k$ + 1, minus $n$, where $k$ is the number of digits in the \ins{textual} decimal representation of $n$. $Complement_{10}(n) = 10^{k+1} - n$.
 For example $Complement_{10}(8)= 10^1-8$, $Complement_{10}(1968)=10^{5}-1968=8032$
 
 
@@ -266,12 +267,12 @@ So to compute the 10's complement of a number, it is enough to perform \ct{9-d} 
 The key point of complement techniques is to convert subtractions into additions. Let's check that.
 
 \paragraph{Examples.}
-$8 - 3 = 5$. The 10's complement of 3 is $9 - 3 + 1 = 7$. We add 7 to 8 and get 15. 
+\ins{Suppose we want to turn the subtraction $8 - 3 = 5$ into an addition}. The 10's complement of 3 is $9 - 3 + 1 = 7$. We add 7 to 8 and get 15. 
 We drop the carry we obtained when from the addition. So we obtain 5. (Note that when using binary representation as we will show later, the carry results in overflow because there will be not enough bits to represent it. Therefore implementors should use tricks to determine if the subtraction is correct - usually the trick is to perform a bitXor on the last two digits).
 
 Now $98-60$. The 10's complement of 60 is $9-6$, $9-0$ \ie $39 + 1$ \ie 40. 
  $98-60 = 98 + 40 - 100 = 138 - 100 = 38$. Note that the 100 subtraction is a way to show that we drop the carry. 
- We could have written $98-60 = 98 + 40 = 138 = 38$ but this is an incorrect use of the $=$ mathematical operator.
+ We could have written $98-60 = 98 + 40 = 138 = 38$ \ugh{but this is an incorrect use of the $=$ mathematical operator}\ins{do you want to say that 138 is equal to 38 modulo 100?}.
 
 
 Now performing $60-80$ works too. 80 10's complement is $9-8$, $9-0$, so 19 + 1, so 20.
@@ -413,7 +414,7 @@ we obtained the negative of a number but computing its two's complement (flippin
 
 \paragraph{In Pharo.}
 Let's try with Pharo to check a bit our understanding. 
-If your Smalltalk does not offer the \ct{bitString} method. You can define it as follow:
+\chg{If your Smalltalk does not offer the \ct{bitString} method. You can define it as follow}{A possible implementation of the \ct{bitString} methods is}:
 \begin{code}{}
 SmallInteger>>bitString
 	"Returns the bit representation of the receiver."
@@ -437,7 +438,7 @@ In Pharo, you can experiment to confirm the fact that the two's complement is th
 \end{code}	
 	
 	
-Creating a two complement version of a number equals negating the number bits and adding one.
+Creating a two complement version of a number equals negating the number bits and adding one\ab{I have the impression we are repeating ourselves}.
 \begin{code}{Calculating two complement of 3}
 3 bitString 
 	returns '0000000000000000000000000000011'
@@ -512,7 +513,7 @@ SmallInteger>>bitInvert
 
 \section{SmallIntegers in Pharo}
 
-Smalltalk small integers use a two's complement arithmetic on 31 bits.  A N-bit two's-complement numeral system can represent every integer in the range $-1 * 2^{N-1}\ to\ 2^{N-1}-1$. So for 31 bits Smalltalk systems small integers values are the range -1073741824 to  1073741823.  Remember in Smalltalk integers are special objects and this marking requires one bit, therefore on 32 bits we have 31 bits for small signed integers. Of course since we also have automatic coercion this is not really a concern for the end programmer. Here we take a language implementation perspective.
+Smalltalk small integers use a two's complement arithmetic on 31 bits.  A N-bit two's-complement numeral system can represent every integer in the range $-1 * 2^{N-1}\ to\ 2^{N-1}-1$. So for 31 bits Smalltalk systems small integers values are the range -1 073 741 824 to  1 073 741 823.  Remember in Smalltalk integers are special objects and this marking requires one bit, therefore on 32 bits we have 31 bits for small signed integers. Of course since we also have automatic coercion this is not really a concern for the end programmer. Here we take a language implementation perspective.
  Let's check that a bit (this is the occasion to say it). 
 
 If you want to know the number of bits used to represent a
@@ -568,7 +569,7 @@ We cannot finish this Chapter without talking about hexadecimal. In Smalltalk, t
 We can get the hexadecimal equivalent of a number using the message \ct{hex}. 
 Using the message \ct{printStringHex} we get the number printed in hexadecimal without the radix notation. 
 
-\begin{code}
+\begin{code}{}
 15 hex
 	returns '16rF'
 	
@@ -625,8 +626,17 @@ To get the encoded value, we shift out the 8 first ones and clear all the others
 
 \section{Conclusion}
 
-Smalltalk uses two's complement encoding for its internal number representation and supports  bit manipulation of their internal representation. This is useful when we want to speed up algorithms using simple encoding.
+Smalltalk uses two's complement encoding for its internal number representation and supports  bit manipulation of their internal representation. This is useful when we want to speed up algorithms using simple encoding. We have reviewed the following points:
 
+\alex{I inserted the following}
+\begin{itemize}
+\item Numerical values use complement to encode their negative value.
+\item Shifting a bit to the left multiple is equivalent to multiply it by 2, modulo the maximum value of its encoding size.
+\item On the opposite, shifting a bit to the right divides it by 2.
+\item Bits operations can be performed on any numerical values.
+\item Complement are useful to turn an addition into a subtraction, thus simplifying the operation.
+\item SmallInteger are coded on 31 bits on Pharo.
+\end{itemize}
 
 %=========================================================
 \ifx\wholebook\relax\else
