@@ -47,18 +47,22 @@ Gofer new
 (Smalltalk at: #ConfigurationOfMondrian) loadDefault
 \end{code}
 
-There are essentially two ways to work with Mondrian. Either by using the easel which provides an interactive scripting engine or directly by interacting with a view renderer \ja{what are the easel and the view renderer ? what is the difference ?}. We will first use Mondrian in its easiest way, by using the easel. To open an easel, you can either use the World menu (it should contains the entry ``Mondrian Easel'') or execute the expression:
+There are essentially two ways to work with Mondrian, either using the easel or a view renderer. 
+The easel is a tool in which users may interactively and incrementally build a visualization by means of a script.  The easel is particularly useful when prototyping.
+\ct{MOViewRenderer} enables a visualization to be programmatically built, in a non-interactive fashion. You probably want to use this class when embedding your visualization in your application.
+
+We will first use Mondrian in its easiest way, by using the easel. To open an easel, you can either use the World menu (it should contains the entry ``Mondrian Easel'') or execute the expression:
 
 \begin{code}{}
 MOEasel open.
 \end{code}
 
-In the easel you have just opened, you can see two panels: the one on top is the visualization panel, the second one is the script panel \ja{give a screenshot, maybe replacing the first image}. In the script panel, enter the following code and press the \emph{generate} button:
+In the easel you have just opened, you can see two panels: the one on top is the visualization panel, the second one is the script panel. In the script panel, enter the following code and press the \emph{generate} button:
 
 \begin{code}{}
 view nodes: (1 to: 20).
 \end{code}
-\begin{center}\includegraphics[scale=0.4]{picture1}\end{center}
+\begin{center}\includegraphics[scale=0.45]{picture1}\end{center}
 
 You should see in the top pane 20 small boxes lined up in the top left corner. You have just rendered the numerical set between 1 and 20. Each box represents a number. The amount of interaction you can do is quite limited for now. You can only drag and drop a number and get a tooltip that indicates its value. We will soon see how to define interactions. For now, let us explore the basic drawing capabilities of Mondrian.
 
@@ -70,7 +74,7 @@ view edgesFrom: [ :v | v * 2 ].
 \end{code}
 \begin{center}\includegraphics[scale=0.4]{picture2}\end{center}
 
-Each number is linked with its double. Not all the doubles are visualized \ja{visible?}. For example, the double of 20 is 400, which is not part of the visualization. In that case, no edge is drawn. 
+Each number is linked with its double. Not all the doubles are visible. For example, the double of 20 is 400, which is not part of the visualization. In that case, no edge is drawn. 
 
 The message \ct{edgesFrom:} defines one edge per node, when possible. For each node that has been added in the visualization, an edge is defined between this node and a node lookup from the provided block.
 
@@ -92,7 +96,7 @@ In the subsequent section we will visualize software code. Visualizing source co
 
 \section{Visualizing the collection framework}
 
-We will now visualize Smalltalk classes. In the remaining of this section, we will intensively use Smalltalk reflection \ja{is it explained before in the book ? else we should explain it in few words.} to make compelling examples. Let's visualize the hierarchy of classes contained in the Collection framework:
+We will now visualize Smalltalk classes. In the remaining of this section, we will intensively use the reflective capability of Pharo to introspect the collection class hierarchy. This will serve as compelling examples. Let's visualize the hierarchy of classes contained in the Collection framework:
 
 \begin{code}{}
 view nodes: Collection withAllSubclasses.
@@ -174,11 +178,9 @@ itself equivalent to
 \begin{code}{}
 view 
   edges: Collection withAllSubclasses 
-  from: [ :each | each yourself ] 
-  to: [ :each | each superclass ].
+  from: [ :each | each superclass ] 
+  to: [ :each | each yourself ].
 \end{code}
-
-\ja{I just see that the name edgesFrom: is not logical... it should be edgesTo:}
 
 %Multiple edges may be defined. In the previous section, edges where departed from the superclass to the running node. Alternatively, edges may depart from the running nodes to all subclasses. For that very purpose, we will use \ct{edges:from:toAll:}, a variant of \ct{edges:from:to:}.
 %
@@ -225,12 +227,12 @@ The produced visualization is given in \figref{abstractClasses}. It easily help 
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=\linewidth]{abstractClasses}}
-\caption{Abstract classes are in gray and classes with the word ``Abstract'' in their name are in blue. \ja{this class has the same label as fig 1.6}}
+\caption{Abstract classes are in gray and classes with the word ``Abstract'' in their name are in blue.}
 \label{fig:abstractClasses}
 \end{figure}
 
-Similarly than with \ct{height:} and \ct{width:}, messages to defines color either takes a symbol, a block or a constant value as argument. The argument is evaluated against the domain object represented by the graphical element (the message \ct{moValue:} with the domain object is sent to the argument \ja{what ?}). 
-The use of \ct{ifTrue:ifFalse:} is a bit cumbersome \ja{a synonym should be better :)}. Utilities methods are provided for that purpose to easily pick a color from a particular condition. The definition of the shape can simply be:
+Similarly than with \ct{height:} and \ct{width:}, messages to defines color either takes a symbol, a block or a constant value as argument. The argument is evaluated against the domain object represented by the graphical element (a double dispatch sends the message \ct{moValue:} to the argument). 
+The use of \ct{ifTrue:ifFalse:} is not really practicable. Utilities methods are provided for that purpose to easily pick a color from a particular condition. The definition of the shape can simply be:
 
 \begin{code}{}
 view shape rectangle
@@ -252,7 +254,7 @@ Colors are pretty useful to designate a property (\eg gray if the class is abstr
 \begin{code}{}
 view interaction action: #browse.
 view shape rectangle
-	width: [ :each | each instVarNames size * 3];
+	width: [ :each | each instVarNames size * 3 ];
 	height: [ :each | each methods size ];
 	linearFillColor: #numberOfLinesOfCode within: Collection withAllSubclasses.
 view nodes: Collection withAllSubclasses.
@@ -260,7 +262,7 @@ view edgesFrom: #superclass.
 view treeLayout.
 \end{code}
 
-\figref{systemComplexity} shows the resulting picture. The message \ct{linearFillColor:within:} takes as first argument a block function that return a numerical value. The second argument is a group of elements that is used to scale the intensity of each node. The block function is applied to each element of the group. The greatest value is set to black. The fading scales from 0 to this maximum \ja{why THIS maximum ? in real, black is 0 and white is 255. Maybe you should write: from white (0 line of codes) to black (maximum lines of code)}. The maximum intensity is given by the maximum \ct{#numberOfLinesOfCode} can take for all the subclasses of \ct{Collection}. 
+\figref{systemComplexity} shows the resulting picture. The message \ct{linearFillColor:within:} takes as first argument a block function that return a numerical value. The second argument is a group of elements that is used to scale the intensity of each node. The block function is applied to each element of the group. The fading scales from white (0 line of code) to black (the maximum lines of code). The maximum intensity is given by the maximum \ct{#numberOfLinesOfCode} can take for all the subclasses of \ct{Collection}. 
 Variants of \ct{linearFillColor:within:} are \ct{linearXXXFillColor:within:}, where \ct{XXX} is one among \ct{Blue}, \ct{Green}, \ct{Red}, \ct{Yellow}.
 
 The visualization\footnote{This visualization is named 'System complexity', if you wish to know more about it, you can refer to 'Polymetric Views---A Lightweight Visual Approach to Reverse Engineering' (Transactions on Software Engineering, 2003).} you now obtain put in relation for each class the number of methods, the number of instance variables and the number of lines of code. Differences in size between classes might suggest some maintenance activities. 
@@ -293,11 +295,11 @@ view treeLayout.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=0.6\linewidth]{abstractClasses2.png}}
-\caption{Boxes are classes and links are inheritance relationships. The amount of abstract method is indicated by the size of the class. A red class defines abstract methods and a pink class inherits from an abstract class solely.\ja{this figure has the same label as 1.4 and 1.6}}
-\label{fig:abstractClasses}
+\caption{Boxes are classes and links are inheritance relationships. The amount of abstract method is indicated by the size of the class. A red class defines abstract methods and a pink class inherits from an abstract class solely.}
+\label{fig:abstractClasses2}
 \end{figure}
 
-\figref{abstractClasses} indicate classes that are abstract either by inheritance or by defining abstract methods. Class size indicates the amount of abstract method defined. 
+\figref{abstractClasses2} indicate classes that are abstract either by inheritance or by defining abstract methods. Class size indicates the amount of abstract method defined. 
 
 The popup message can be enhanced to list abstract methods. Putting the mouse above a class does not only give its name, but also the list of abstract methods defined in the class. The following piece of code has to be added at the beginning:
 
@@ -311,7 +313,7 @@ view interaction popupText: [ :aClass |
 ...
 \end{code}
 
-So far, we have seen that a \del{graphical} element has a shape to describe its graphical representation. It also contains an \emph{interaction} that contains event handlers. The message \ct{popupText:} takes a block as argument. This block is evaluated with the domain object as argument. The block has to return the popup text content. In our case, it is simply a list of the methods.
+So far, we have seen that an element has a shape to describe its graphical representation. It also contains an \emph{interaction} that contains event handlers. The message \ct{popupText:} takes a block as argument. This block is evaluated with the domain object as argument. The block has to return the popup text content. In our case, it is simply a list of the methods.
 
 In addition to a textual content, Mondrian allows a view to be popped up. We will enhance the previous example to illustrate this point. When the mouse enters a node, a new view is defined and displayed next to the node. %The method \ct{popupView:} receives a two-arguments block as parameters. 
 
@@ -336,7 +338,7 @@ view treeLayout.
 
 The argument of \ct{popupView:} is a two argument block. The first parameter of the block is the element represented by the node located below the mouse. The second argument is a new view that will be opened.
 
-In the example, we used \ct{sortedAs:} to order the nodes representing methods. This method is defined on Collection and belongs to Mondrian \ja{why it belongs to mondrian ?}. To see example usages of \ct{sortedAs:}, browse its corresponding unit test:
+In the example, we used \ct{sortedAs:} to order the nodes representing methods. This method is defined on Collection and belongs to Mondrian \ja{why it belongs to mondrian ?}\alex{I am checking whether this method could be move directly to Pharo}. To see example usages of \ct{sortedAs:}, browse its corresponding unit test:
 \begin{code}{}
 ToolSet browse: MOViewRendererTest selector: #testSortedAs 
 \end{code}
@@ -362,7 +364,7 @@ view edgesFrom: #superclass.
 view treeLayout.
 \end{code}
 
-A subview contains its own layout. Interactions and shapes defined in a subview are not accessible from a nesting node. 
+A subview contains its own layout. Interactions and shapes defined in a subview are not accessible from a nesting node (\figref{abstractClasses3}). 
 
 %view shape rectangle
 %  if: #isAbstractClass fillColor: Color lightRed.
@@ -379,7 +381,7 @@ A subview contains its own layout. Interactions and shapes defined in a subview 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=0.6\linewidth]{methodDependencies.png}}
 \caption{Large boxes are classes. Inner boxes are methods. Edges shows a possible invocation between the two.}
-\label{fig:abstractClasses}
+\label{fig:abstractClasses3}
 \end{figure}
 
 
@@ -462,7 +464,7 @@ view edgesFrom: #superclass.
 view treeLayout.
 \end{code}
 
-Moving a method will move the class instead. \ja{add a transition} As most operating systems, Mondrian offers multiple selection using the Ctrl or Cmd key. This default behavior is available for every nodes.
+Moving a method will move the class instead. It is often convenient to drag and drop more than one element. As most operating systems, Mondrian offers multiple selection using the Ctrl or Cmd key. This default behavior is available for every nodes. Multiple selection allows for a group of node to be moved.
 
 %=====================
 
