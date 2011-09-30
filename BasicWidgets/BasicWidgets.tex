@@ -291,7 +291,7 @@ Let's delete the button and move on to the next subject.
 b delete.
 \end{code}
 
-Last button we played with had a label. But maybe our model for the button changed its state by pressing the button or by other events. User must be informed with correct information. Button has a getLabelSelector which is a selector used for asking the model what the new label should it be. To use getLabelSelector, we must send a message <pound>on:getState:action:label:menu:, which is a very typical form of method used in Morphic. It sets a bunch of requried selectors with its model. Put your model for keyword <pound>on: and your button action for keyword <pound>action: and getLabelSelector for keyword <pound>label:.
+Last button we played with had a label. But maybe our model for the button changed its state by pressing the button or by other events. User must be informed with correct information. Button has a getLabelSelector which is a selector used for asking the model what the new label should it be. To use getLabelSelector, we must send a message \ct{#on:getState:action:label:menu:}, which is a very typical form of method used in Morphic. It sets a bunch of requried selectors with its model. Put your model for keyword \ct{on:} and your button action for keyword \ct{action:} and \ct{getLabelSelector} for keyword \ct{#label:}.
 
 Evaluate the code below in your workspace. You will see a button with label showing an OrderedCollection which is the model for the button.
 
@@ -299,15 +299,15 @@ Evaluate the code below in your workspace. You will see a button with label show
 m := OrderedCollection withAll: {1. 2. 3. 4. 5}.b := PluggableButtonMorph new openInWorld.b addDependent: m.  b bounds: (100@100 extent: 40@30).b on: m getState: nil action: #myButtonAction label: #printString menu: nil.
 \end{code}
 
-Since we assigned the getLabelSelector with <pound>printString, label of the button will be the result of <pound>printString on m.
+Since we assigned the getLabelSelector with \ct{#printString}, label of the button will be the result of \ct{#printString} on m.
 
-If you press the button, you will get a <pound>dontUnderstandMessage: error. That is because OrderedCollection does not have method myButtonAction. Define one as code below.
+If you press the button, you will get a \ct{#dontUnderstandMessage:} error. That is because OrderedCollection does not have method myButtonAction. Define one as code below.
 
 \begin{code}{}
 myButtonAction	self removeFirst.	self changed: #printString.
 \end{code}
 
-Now if you press the button you will see the the m is being <pound>removeFirst and its label is updated. Button does not update the label of itself even the getLabelSelector is set. It need to be asked the update itself. To do that <pound>changed: in the <pound>myButtonAction method and <pound>addDependent: is used. To learn more about dependency system read section .......
+Now if you press the button you will see the the m is being \ct{#removeFirst} and its label is updated. Button does not update the label of itself even the getLabelSelector is set. It need to be asked the update itself. To do that \ct{#changed:} in the \ct{#myButtonAction} method and \ct{#addDependent:} is used. To learn more about dependency system read section .......
 
  
 
