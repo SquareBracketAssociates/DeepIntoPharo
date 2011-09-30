@@ -307,7 +307,7 @@ If you press the button, you will get a \ct{#dontUnderstandMessage:} error. That
 myButtonAction	self removeFirst.	self changed: #printString.
 \end{code}
 
-Now if you press the button you will see the the m is being \ct{#removeFirst} and its label is updated. Button does not update the label of itself even the getLabelSelector is set. It need to be asked the update itself. To do that \ct{#changed:} in the \ct{#myButtonAction} method and \ct{#addDependent:} is used. To learn more about dependency system read section .......
+Now if you press the button you will see the the m is being \ct{#removeFirst} and its label is updated. Button does not update the label of itself even though the getLabelSelector is set. It need to be asked the update itself. To do that \ct{#changed:} in the \ct{#myButtonAction} method and \ct{#addDependent:} is used. To learn more about dependency system read section .......
 
  
 
