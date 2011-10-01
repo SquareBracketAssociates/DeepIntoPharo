@@ -119,17 +119,14 @@ Metacello has the following features:
 
 \item Configurations: Metacello actually manages not projects but \emph{configurations of projects}.  This is because large projects frequently have multiple variants: there might be a configuration for Pharo and another configuration for Squeak, which might have different prerequisites.  Moreover, there might be stable, released configurations as well as experimental configurations that have cool new features but also more bugs.
 
-\ab{Please correct the above; I found that something needed to be said about configurations before we start using the term.}
-
 \end{itemize}
 
 
 \section{A Simple Case Study}
 
-Let's start using Metacello to manage a software project called \emph{CoolBrowser}. The first step is to create a Metacello configuration for the project by simply copying the class \ct{MetacelloConfigTemplate} and naming it \ct{ConfigurationOfCoolBrowser}.  
+Let's start using Metacello to manage a software project called \emph{CoolBrowser}. The first step is to create a Metacello configuration for the project by simply copying the class \ct{MetacelloConfigTemplate} and naming it \ct{ConfigurationOfCoolBrowser}. A configuration is a class that describes the currently available configurations of a project. A configuration represents different versions of projects so that you can load a project in different environment or in different versions of Pharo.
 
-By convention, the name of a Metacello configuration is constructed by prefixing the name of the project with \ct{'ConfigurationOf'}. 
-To do this, find class \ct{MetacelloConfigTemplate} in the system browser, right click on the class name, and select the option \menu{copy}. 
+By convention, the name of a Metacello configuration is constructed by prefixing the name of the project with \ct{'ConfigurationOf'}. To do this, find class \ct{MetacelloConfigTemplate} in the system browser, right click on the class name, and select the option \menu{copy}. 
 
 This is the class definition:
 \begin{code}{}
@@ -142,77 +139,81 @@ Object subclass: #ConfigurationOfCoolBrowser
 
 You will notice that \ct{ConfigurationOfCoolBrowser} has some instance- and class-side methods; we will explain later how they are used. Notice also that this class inherits from \ct{Object}.  This is deliberate: it's important that Metacello configurations can be loaded without any prerequisites, including Metacello itself, so Metacello configurations cannot rely on a common superclass.
 
-\ab{Should these be called configuration methods?  Are versions different from or the same as configurations?  If they are different, then we need to explain the difference; if they are the same, then we should pick one term and use it.}
-
 Now imagine that the project \ct{CoolBrowser} has several versions, for example, 1.0, 1.0.1, 1.4, and 1.67. 
-With Metacello you create an instance-side method that describes the contents of each version of the project. Method names for version methods are unimportant as long as the method is annotated with the \ct{<version: >} pragma, as shown below.  However, there is a  convention that  version methods are named \ct{versionXXX:}, where \ct{XXX} is the version number with illegal characters (like '.') removed.
+With Metacello, you create configuration methods, instance-side methods that describe the contents of each version of the project. Method names for version methods are unimportant as long as the method is annotated with the \ct{<version: >} pragma, as shown below.  However, there is a  convention that  version methods are named \ct{versionXXX:}, where \ct{XXX} is the version number with illegal characters (like '.') removed.
 
-Suppose for the moment that the project \ct{CoolBrowser} contains two packages: \ct{CoolBrowser-Core} and \ct{CoolBrowser-Tests}. 
-A version method might look like this:
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.6\linewidth]{version01}
+\caption{Simple version.\label{version01}}
+\end{center}
+\end{figure}
+
+Suppose for the moment that the project \ct{CoolBrowser} contains two packages: \ct{CoolBrowser-Core} and \ct{CoolBrowser-Tests} (see Figure~\ref{version01}). A configuration method (here a version) method might look like the following one.
 
 \begin{code}{}
 ConfigurationOfCoolBrowser>>version01: spec 
-       <version: '0.1'>
+       !\textbf{<version:}! '0.1'!\textbf{>}!
        
-       spec for: #common do: [
-              spec repository: 'http://www.example.com/CoolBrowser'.
+       spec for: !\textbf{\#common}! do: [
+              spec !\textbf{repository:}! 'http://www.example.com/CoolBrowser'.
               spec 
-                     package: 'CoolBrowser-Core' with: 'CoolBrowser-Core-MichaelJones.10';
+                     !\textbf{package:}! 'CoolBrowser-Core'  !\textbf{with:}! 'CoolBrowser-Core-MichaelJones.10';
                      package: 'CoolBrowser-Tests' with: 'CoolBrowser-Tests-JohnLewis.3' ]
 \end{code}
 
 \noindent
-There are a lot of things that we need to explain in this code!
-
-\begin{itemize}
-\item Immediately after the method selector you see the pragma definition:  \ct{ <version: '0.1'>}. The pragma indicates that the version created in this method should be associated with version \ct{0.1} of the CoolBrowser project. That's why we said that the name of the method is not that important. Metacello uses the pragma, not the method name, to identify the version being defined.
-
-\item Looking a little closer, you see that the argument to the method, \ct{spec}, is the only variable in
-the method and it is used as the receiver of four different messages:    \ct{for:do:},    \ct{package:with:},  \ct{file:}  and  \ct{repository:}.
-
-\item Each time a block expression is executed a new object is pushed on a stack and the messages within the block are sent to the object on the top of the stack.
-\ab{I've no idea what this means.}
-
-\item The symbol \ct{#common} indicates that this project version is common to all platforms.  In addition to \ct{#common}, there are pre-defined attributes for each of the platforms on which Metacello runs (\ct{#pharo}, \ct{#squeak}, \ct{#gemstone} and \ct{#squeakCommon}). 
-We will describe this feature later in the chapter. 
-\end{itemize}
-
-The  method \ct{version01: spec} builds a description of version \ct{0.1} of the package in the object \ct{spec}.
+The  method \ct{version01: spec} builds a description of version 0.1 of the package in the object \ct{spec}.
 The common code for version \ct{0.1} (specified using the message \ct{for: #common do:}) consists of particular versions of the packages named \ct{'CoolBrowser-Core'} and \ct{'CoolBrowser-Tests'}.
 These are specified with the message \ct{package:} \emph{packageName} \ct{with:} \emph{versionName}.
 These versions are available in the Monticello repository \ct{'http://www.example.com/CoolBrowser'}, which is specified using the message \ct{repository:}.
 
-Sometimes, a Monticello repository requires a username and password. In such case the following message can be used:
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.6\linewidth]{version01}
+\caption{Simple version.\label{version01}}
+\end{center}
+\end{figure}
+
+Now let us look at more details.
+
+\begin{itemize}
+\item Immediately after the method selector you see the pragma definition:  \ct{<version: '0.1'>}. The pragma \ct{version:} indicates that the version created in this method should be associated with version 0.1 of the CoolBrowser project. That's why we said that the name of the method is not that important. Metacello uses the pragma, not the method name, to identify the version being defined.
+
+\item The argument of the method, \ct{spec}, is the only variable in
+the method and it is used as the receiver of four different messages: \ct{for:do:},    \ct{package:with:}, and  \ct{repository:}.
+
+\item Each time a block is passed as argument of the messages (\ct{for:do:}, \ct{package:with:}...) is executed a new object is pushed on a stack and the messages within the block are sent to the object on the top of the stack.
+
+\item The symbol \ct{#common} indicates that this project version is common to all platforms.  In addition to \ct{#common}, there are pre-defined attributes for each of the platforms on which Metacello runs (\ct{#pharo}, \ct{#squeak}, \ct{#gemstone} and \ct{#squeakCommon}) \sd{dale is it correct?}. In Pharo, the method \mthind{metacelloPlatformAttributes}{metacelloPlatformAttributes} defines the tags that you can use. 
+\end{itemize}
+
+\paragraph{About passwords.} Sometimes, a Monticello repository requires a username and password. In such case, instaed of \mthind{repository:}{repository:}, use the  message \mthind{repository:username:password:}{repository:username:password:}.
 
 \begin{code}{}
          spec repository: 'http://www.example.com/private' username: 'foo' password: 'bar' 
 \end{code}
 
-\ab{Leave the above until later?  Or to a reference section?}
+%\ab{Leave the above until later?  Or to a reference section?}
 
-How can we reify the specification of version \ct{0.1}?
-We do so by evaluating the following expression: 
+\paragraph{Specification objects.}
+A spec object is an object representing all the information about a given version. A version is just a number 
+while the specification is the object. You can access (normally this is not needed) the specificaton using the \ct{spec} message. 
 
 \begin{code}{}
-         (ConfigurationOfCoolBrowser project version: '0.1') spec
+	(ConfigurationOfCoolBrowser project version: '0.1') spec
 \end{code}
 
-This will answer an object (of class \ct{MetacelloMCVersionSpec}) that contains exactly the information in the method that defines version '0.1'.
+This  answers an object (of class \ct{MetacelloMCVersionSpec}) that contains exactly the information in the method that defines version '0.1'.
 
-\ab{Somewhere we need to explain the difference between a version and a version spec.  I don't know why we have both visible.}
 
-\ab{At this point, I'm also a bit confused by the nomenclature.  The Class ``ConfigurationOfCoolBrowser'' seems to define ALL of the possible CoolBrowsers, so it really represents the project, not a particular configuration of the project.  Of course, we then get teh normal class-instance dichotomy, so an Instance of ConfigurationOfCoolBrowser does indeed describe a single configuration (called a version??)}
+%\ab{At this point, I'm also a bit confused by the nomenclature.  The Class ``ConfigurationOfCoolBrowser'' seems to define ALL of the possible CoolBrowsers, so it really represents the project, not a particular configuration of the project.  Of course, we then get teh normal class-instance dichotomy, so an Instance of ConfigurationOfCoolBrowser does indeed describe a single configuration (called a version??)}\sd{I added some text to clarify that}
 
-\begin{figure}
-\begin{center}
-\includegraphics[width=0.6\linewidth]{version01}
-\caption{Simple version.}
-\end{center}
-\end{figure}
+
 
 \paragraph{Creating a new version.}
-Let us assume that version \ct{0.2} of our project consists of the package versions \ct{'CoolBrowser-Core-MichaelJones.15'} and \mbox{\ct{'CoolBrowser-Tests-JohnLewis.8'}} and a new package \ct{'CoolBrowser-Addons'} with version \ct{'CoolBrowser-Addons-JohnLewis.3'}. 
-We can specify this by creating the following method named \ct{version02:}.
+Let us assume that version \ct{0.2} of our project consists of the package versions \mbox{\ct{'CoolBrowser-Core-MichaelJones.15'}} and \mbox{\ct{'CoolBrowser-Tests-JohnLewis.8'}} and a new package \ct{'CoolBrowser-Addons'} with version \ct{'CoolBrowser-Addons-JohnLewis.3'}. We specify this new configuration by creating the following method named \ct{version02:}.
 
 \begin{code}{}
 ConfigurationOfCoolBrowser>>version02: spec 
@@ -234,7 +235,7 @@ ConfigurationOfCoolBrowser>>version02: spec
 \end{figure} 
  
 
-\section{Naming your Configuration}
+\paragraph{Naming your Configuration.}
 
 In the previous section, we learned that we have to create a class for our configuration. 
 It is not necessary to name this class with a particular name. Nevertheless there is a convention that we recommend you follow:  name the class \ct{ConfigurationOfXXX} where \ct{XXX} is your project. In our example, it is \ct{ConfigurationOfCoolBrowser}.
@@ -255,54 +256,47 @@ As a general practice, we suggest that initially you save the Configuration pack
 
 
 
-\subsection{Loading a Metacello Configuration}
-Of course, the point of specifying project configurations in Metacello is to be able to load exactly that configuration into your image, and thus to be sure that you have a coherent set of package versions. Here are some examples for loading versions of the CoolBrowser project. 
-
-If you print the result of each expression, you will see a list of packages \emph{in load order}: Metacello manages not only which packages are loaded, but also the order. 
+\section{Loading a Metacello Configuration}
+Of course, the point of specifying project configurations in Metacello is to be able to load exactly that configuration into your image, and thus to be sure that you have a coherent set of package versions. 
+To load versions, you send the message \ct{load} to a version. Here are some examples for loading versions of the CoolBrowser: 
 
 \begin{code}{}
   (ConfigurationOfCoolBrowser project version: '0.1') load.
   (ConfigurationOfCoolBrowser project version: '0.2') load.
 \end{code}
 
-\ab{The text seems first to imply first that these expressions return values (``a list of packages'') and then that they have an effect (``loads the packages'').  Do they do both?}
-  
-Note that in each case, all of the packages associated with the version are loaded\,---\,this  
-is the default behavior. If you want to load a subset of the packages in a project, you should list 
+Note that in addition, if you print the result of each expression, you get a list of packages \emph{in load order}: Metacello manages not only which packages are loaded, but also the order. It can be handy to debug configurations.
+
+\paragraph{Selective Loading.} The \mthind{load}{load} message loads all the packages associated with the version\,---\, this is the default behavior. If you want to load a subset of the packages in a project, you should list 
 the names of the packages that you are interested in as an argument to the \ct{load:} method:
 
 \begin{code}{}
-  (ConfigurationOfCoolBrowser project version: '0.2') load: { 
-  		'CoolBrowser-Core' 
-		'CoolBrowser-Addons' }.
+  (ConfigurationOfCoolBrowser project version: '0.2') load: 
+  		{ 'CoolBrowser-Core' . 
+  		'CoolBrowser-Addons' }.
 \end{code}
 
 \ab{This seems really arcane.  Need it be mentioned here?  Can't it be deferred to a reference section?}
 
-Note that if you want to load simulate the loading of a configuration, but not to actually load it, you should use \ct{record:} instead of \ct{load:}
 
-\ab{What on earth does that mean?}
+\paragraph{Debugging Configuration.}
+\sd{May be move to another place}
 
-\begin{code}{}
-  (ConfigurationOfCoolBrowser project version: '0.2') record: {
-  		 'CoolBrowser-Core' 
-		 'CoolBrowser-Addons' }.
-\end{code}
-
-But instead of doing a "do it", do a "print it", send it the message loadDirective.
-\ab{Eh?  I'm lost.  What is the point here?}
+If you want to simulate the loading of a configuration, without actually loading it, you should use \ct{record:} instead of \ct{load:}. Then to get the result of the simulation, you should send it the message \mthind{loadDirective}{loadDirective} as follows:
 
 \begin{code}{}
-  ((ConfigurationOfCoolBrowser project version: '0.2') record: { 
-  		'CoolBrowser-Core' 
-		'CoolBrowser-Addons' }) loadDirective.
-\end{code} loadDirective.
+  ((ConfigurationOfCoolBrowser project version: '0.2') !\textbf{record:}! 
+  		{ 'CoolBrowser-Core' .
+		'CoolBrowser-Addons' }) !\textbf{loadDirective}!.
+\end{code} 
 
 
 \section{Managing dependencies between packages}
 
-A project is generally composed of several packages, which often have dependencies on other packages.  It is also likely that a certain package depends on a specific version of another package. Handling dependencies correctly is really important and  is one of the major benefits of Metacello. 
+A project is generally composed of several packages, which often have dependencies to other packages.  It is also likely that a certain package depends on a specific version of another package. Handling dependencies correctly is really important and  is one of the major benefits of Metacello. 
 
+
+\sd{here}
 There are two types of dependencies:
 \begin{itemize}
 \item Internal dependencies: there are several packages inside a project; some of them depend on other packages in the same project. 
@@ -1762,6 +1756,23 @@ ConfigurationOfGemToolsExample>>version10: spec
           package: 'GemTools-Help' with: 'GemTools-Help-DaleHenrichs.24'. ].
 \end{code}
 \end{footnotesize} 
+
+\paragraph{Loading.} \ct{load}, \ct{load:}
+
+\begin{code}{}
+(ConfigurationOfCoolBrowser project version: '0.1') load.
+(ConfigurationOfCoolBrowser project version: '0.2') load: {'CBrowser-Core' . 'CBrowser-Addons'}.
+\end{code}
+
+\paragraph{Debugging.}
+\ct{record}, \ct{record:} \ct{loadDirectives}
+
+\begin{code}{}
+((ConfigurationOfCoolBrowser project version: '0.2') !\textbf{record:}! 
+  		{ 'CoolBrowser-Core' .
+		'CoolBrowser-Addons' }) !\textbf{loadDirective}!.
+\end{code} 
+
 
 \paragraph{Proposed development process.}
 Using metacello we suggest the following development steps.
