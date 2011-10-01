@@ -126,8 +126,8 @@ Metacello has the following features:
 Metacello supports the definition of two kinds of entities (represented as methods): \emph{baselines} and \emph{versions}.
 
 \begin{description}
-\item{Baselines.} A baseline is a skeleton identifying abstractly the packages and subprojects that compose a configuration. Structural dependencies as well as code repositories are defined at the baseline level. The baseline can also specify the level of stability of the required components. 
-\item{Versions.} A version is a set of package \emph{versions} that should be loaded. Often a version simply enriches a baseline with specific version information. 
+\item{\textbf{Baselines.}} A baseline is a skeleton identifying abstractly the packages and subprojects that compose a configuration. Structural dependencies as well as code repositories are defined at the baseline level. The baseline can also specify the level of stability of the required components. 
+\item{\textbf{Versions.}} A version is a set of package \emph{versions} that should be loaded. Often a version simply enriches a baseline with specific version information. 
 \end{description}
 
 
@@ -140,7 +140,8 @@ Metacello supports the definition of two kinds of entities (represented as metho
 \end{figure} 
 
 
-Let us explain this using Figure~\ref{configurations}.
+Let us explain this using Figure~\ref{configurations}. ConfigurationOfProjectA contains several baselines (here two baselines 0.4 and 0.5) and versions (here 0.4, 0.41, 0.5, and 0.6). Baseline 0.4 defines that it is composed of two packages. Baseline 0.5 is composed of 3 packages and it depends on Project B. A version describes specific package versions. A version may also refine another one. All these points are explained in detail after. 
+
 
 
 \section{A Simple Case Study}
