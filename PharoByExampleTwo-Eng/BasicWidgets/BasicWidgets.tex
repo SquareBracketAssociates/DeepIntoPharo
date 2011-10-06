@@ -296,7 +296,12 @@ Last button we played with had a label. But maybe our model for the button chang
 Evaluate the code below in your workspace. You will see a button with label showing an OrderedCollection which is the model for the button.
 
 \begin{code}{}
-m := OrderedCollection withAll: {1. 2. 3. 4. 5}.b := PluggableButtonMorph new openInWorld.b addDependent: m.  b bounds: (100@100 extent: 40@30).b on: m getState: nil action: #myButtonAction label: #printString menu: nil.
+m := OrderedCollection withAll: {1. 2. 3. 4. 5}.
+
+b := PluggableButtonMorph new openInWorld.
+b addDependent: m.  
+b bounds: (100@100 extent: 40@30).
+b on: m getState: nil action: #myButtonAction label: #printString menu: nil.
 \end{code}
 
 Since we assigned the getLabelSelector with \ct{#printString}, label of the button will be the result of \ct{#printString} on m.
@@ -304,12 +309,37 @@ Since we assigned the getLabelSelector with \ct{#printString}, label of the butt
 If you press the button, you will get a \ct{#dontUnderstandMessage:} error. That is because OrderedCollection does not have method myButtonAction. Define one as code below.
 
 \begin{code}{}
-myButtonAction	self removeFirst.	self changed: #printString.
+myButtonAction
+
+	self removeFirst.
+	self changed: #printString.
 \end{code}
 
-Now if you press the button you will see the the m is being \ct{#removeFirst} and its label is updated. Button does not update the label of itself even though the getLabelSelector is set. It need to be asked the update itself. To do that \ct{#changed:} in the \ct{#myButtonAction} method and \ct{#addDependent:} is used. To learn more about dependency system read section .......
+Now if you press the button you will see the the m is being \ct{#removeFirst} and its label is updated. Button does not update the label of itself even though the \ct{getLabelSelector} is set. It need to be asked the update itself. To do that \ct{#changed:} in the \ct{#myButtonAction} method and \ct{#addDependent:} is used. To learn more about dependency system read section ....... \hjo{is there one?}
 
- 
+\begin{figure}[htbp]
+\begin{center}
+	\includegraphics[width=3.0cm]{UpdatingButton}
+	\caption{self updating button}
+	\figlabel{fig:self updating button}
+\end{center}
+\end{figure}
+
+Since the size of the collection is 5, more than five clicks, it will raise error. To avoid this, we need make it unpressable when collection gets empty. To do this, it is time to use \ct{#getEnabledSelector}. Set a selector that will be used for asking the model whether the button may be enabled. 
+
+\begin{code}{}
+b getEnabledSelector: #notEmpty.  
+\end{code}
+
+To trigger the enabling update, add another \ct{#changed:} send inside the \ct{#myButtonAction} method.
+
+\begin{code}{}
+myButtonAction	self removeFirst.	self changed: #printString.	self changed: #notEmpty
+\end{code}
+
+\dothis{click the button more than 5 time}
+
+
 
 \subsection{Check button}
 \subsection{Radio button}
