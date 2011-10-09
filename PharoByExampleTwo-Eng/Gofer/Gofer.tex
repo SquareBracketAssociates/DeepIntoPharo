@@ -506,11 +506,21 @@ go repository: (MCHttpRepository
 					do: [:f | go version: ('.' join: (f findTokens: $.) allButLast); push]
 \end{code}
 
-
-\section{Conclusion}
+\section{Chapter Summary}
 Gofer provides a robust and stable implementation to script the
 management of your packages. Now when you project grows you should
 really consider to use Metacello (see \charef{metacello}).
+
+In this chapter, we introduced how we can script package with Gofer. 
+\begin{itemize}
+\item The method \ct{load} allows us to load packages from sources given with the method \ct{url:} and \ct{package:}.
+
+\item The method \ct{url:} supports FTP and local directory access.
+\item The API provides some useful shortcut: \ct{squeaksource:} is a shortcut for \ct{http://www.squeaksource.com}, \ct{wiresong:} for \ct{http://source.wiresong.ca/} and \ct{gemsource:} for \ct{http://seaside.gemstone.com/ss/}.
+\item We can load several packages by calling multiple times the method \ct{package:} before calling \ct{load}.
+\item Once a Gofer instance is parametrized, we can apply different useful actions: \ct{update}, \ct{merge}, \ct{push}, \ldots
+\end{itemize}
+
 
 %=================================================================
 
