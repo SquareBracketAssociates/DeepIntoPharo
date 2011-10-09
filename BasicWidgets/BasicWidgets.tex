@@ -334,15 +334,43 @@ b getEnabledSelector: #notEmpty.
 To trigger the enabling update, add another \ct{#changed:} send inside the \ct{#myButtonAction} method.
 
 \begin{code}{}
-myButtonAction	self removeFirst.	self changed: #printString.	self changed: #notEmpty
+myButtonAction
+
+	self removeFirst.
+	self changed: #printString.
+	self changed: #notEmpty
 \end{code}
 
 \dothis{click the button more than 5 time}
 
 
 
-\subsection{Check button}
+\subsection{Checkbox}
+Checkbox is a button that can show on and off state, and toggles it when clicked. Filled box means on state, empty box means off state. In Pharo, checkbox can be made with ThreePhaseButtonMorph or CheckboxButtonMorph.
+
+\begin{code}{}
+c := CheckboxButtonMorph new.
+c openInWorld.
+\end{code}
+
+Send \ct{#selected:} message with boolean object to change its state.
+
+\begin{code}{}
+c selected: true.  "turn on"
+c selected: false. "turn off"
+\end{code}
+
+If \ct{target}, and \ct{actionSelector} is set(setting \ct{arguments} is an option), checkbox can send message to its target.
+
+\begin{code}{}
+m := Morph new.m openInWorld.c :=  CheckboxButtonMorph new.c openInWorld.c target: m.c actionSelector: #toggleCornerRounding.  
+\end{code}
+
+
+
 \subsection{Radio button}
+
+Radio buttons in Pharo is sharing same classes with checkbox. Only difference is ...
 
 \section{Text fields}
 \subsection{get text}
