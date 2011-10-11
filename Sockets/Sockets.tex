@@ -41,15 +41,16 @@
 \chapterauthor{\authornoury{}}
 
 Modern applications are often distributed on multiple devices and collaborate through a network.
-The basic approach to set up such a collaboration is to use \textit{sockets}. A typical use is in the World Wide Web. Browsers and servers interact through HTTP sockets.
+The basic approach to set up such a collaboration is to use \textit{sockets}. A typical use is in the World Wide Web. Browsers and servers interact through sockets that carry HTTP requests and responses.
 
 The concept of socket was first introduced by researchers from Berkeley University in the 1960s. They defined the first socket API for the C programming language in the context of Unix operating systems. Since then, the concept of socket was spread out to other operating systems. 
-Its API was ported to most existing programming languages including Smalltalk.
+Its API was ported to almost all programming languages including Smalltalk.
 
 In this chapter, we present the API of sockets in the context of Pharo.
-We first show through some examples how to use sockets for building both clients and servers. The notion of client and server are inherent to sockets: a server waits for a request emitted by a client.
+We first show through some examples how to use sockets for building both clients and servers. The notion of client and server are inherent to sockets: a server waits for requests emitted by clients.
 Then, we introduce \ct!SocketStream! and how to use it.
 In practice, one is likely to use \ct!SocketStream! instead of plain sockets.
+The chapter ends with a description of some unix networking utilities that are useful for experimenting.
 
 \section{Basic Concepts}
 \subsection{Socket}
@@ -128,9 +129,13 @@ localAddress := NetNameResolver addressForName: '127.0.0.1'.
 \end{script}
 
 Now we can connect our TCP socket to the server as shown in \Scrref{connectingTcpSocket}.
-Message \ct!connectTo:port:! attempts to connect the socket to the server using the address and port provided as parameters.
+Message \ct!connectTo:port:! attempts to connect the socket to the server using the server address and port provided as parameters.
 \nouryComment{SocketAddress can also store the port of the server. 
-But, NetNameResolver does NOT support building socket address WITH port.} \ins{A port is a numerical value that comes with the address to designated a service. For example, 80 is the port expected by the HTTP server to receive a connection.}\alex{Noury, maybe you have a better explanation of what is a port}
+But, NetNameResolver does NOT support building socket address WITH port.} 
+The server address refers to the address of the network interface (e.g. ethernet, wifi) used by the server.
+The port refers to the communication endpoint on the network interface. 
+Each network interface has for each IP transport protocol (e.g. TCP, UDP) a collection of ports that are numbered from 0 to 65535.
+For a given protocol, a port number on an interface can only be used by a single process.
 
 \begin{script}[connectingTcpSocket]{Connecting a TCP Socket to ESUG Server.}
 | clientSocket serverAddress |
@@ -198,7 +203,6 @@ So, we log a description of what happened on the \ct!Transcript!.
 \subsection{Close a Socket}
 A TCP socket remains alive while devices at both ends are connected.
 A socket is closed by sending \ct!close! to it.
-%\ugh{The image where this message is evaluated will then send a close request to the other side}\alex{maybe this sentence is not necessary}.
 The socket remains connected until the other side closes it.
 This may last indefinitely when there is a network failure or when the other side is down.
 This is why sockets also answer the \ct!destroy! message, which frees system resources required by the socket.
@@ -234,7 +238,7 @@ The string corresponding  to our query starts with the \ct!GET! keyword, followe
 Follows the protocol version \ct!HTTP/1.1!.
 The second line recalls the host name and port.
 The third and last line of the HTTP query refers to format accepted by our client. 
-Since, we intend to display the result of our query on the \ct!Transcript!, we state\alex{where?} that our client accepts texts with html format.
+Since, we intend to display the result of our query on the \ct!Transcript!, we state in the HTTP query (see line beginning with \ct!Accept:!) that our client accepts texts with html format.
 After sending the http query, we wait at most 5 seconds for the html text that we display on the \ct!Transcript!.
 Socket connection, query sending and html reception are inside a block which execution is ensured to end with cleaning up socket related resources, by means of the \ct!closeAndDestroy! message.
 
@@ -242,7 +246,9 @@ Socket connection, query sending and html reception are inside a block which exe
 \label{sec:serverTcpSocket}
 Now, let us build a simple TCP server. A \textit{TCP Server} is an application that awaits TCP connections from TCP clients. Once connection established, both the server and the client can send a receive data in any order. 
 A big difference between the server and the client is that the server uses at least two sockets.
-One socket is used for handling client connections, while the second serves for exchanging data with a particular client. \ins{Without having two sockets, the server could not handle more than one request. Even if you design a server that is supposed to receive one request, using two sockets is considered a good practice and avoid one to mess up with socket timeout.} \ja{i am not sure of that.}
+One socket is used for handling client connections, while the second serves for exchanging data with a particular client. 
+
+% \ins{Without having two sockets, the server could not handle more than one request. Even if you design a server that is supposed to receive one request, using two sockets is considered a good practice and avoid one to mess up with socket timeout.} \ja{i am not sure of that.}
 
 \subsection{TCP Socket Server Life-cycle}
 The life-cycle of a TCP server has 5 steps:
@@ -266,15 +272,23 @@ We illustrate the serving basics through a simple example of an echo TCP server 
 It sends back to clients whatever data it received and quits.
 The code is provided by \Scrref{servingBasicExample}.
 
-\alex{Can you make some room in the script. It is very compact. Add some comments also}
 \begin{script}[servingBasicExample]{Basic Echo Server.}
 | connectionSocket interactionSocket receivedData |
+"Prepare socket for handling client connection requests"
 connectionSocket := Socket newTCP.
 connectionSocket listenOn: 9999 backlogSize: 10.
+
+"Build a new socket for interaction with a client which connection request is accepted"
 interactionSocket := connectionSocket waitForAcceptFor: 60.
+
+"Get rid of the connection socket since it is useless for the rest of this example"
 connectionSocket closeAndDestroy.
+
+"Get and display data from the client"
 receivedData := interactionSocket receiveData.
 Transcript cr; show: receivedData.
+
+"Send echo back to client and finish interaction"
 interactionSocket sendData: 'ECHO: ', receivedData.
 interactionSocket closeAndDestroy.
 \end{script}
@@ -308,7 +322,6 @@ clientSocket := Socket newTCP.
  Transcript cr; show: echoString.
 ] ensure: [ clientSocket closeAndDestroy ].
 \end{script}
-\alex{Noury, I tried to the example, when I can run it only one. Any idea why?}
 
 You cannot test this script totally without having the client code running, for example in a different process or a second image. 
 We do use two different images, one that runs the server code and one for the client code. 
@@ -316,6 +329,8 @@ Indeed, since we use the user interaction process, the \pharo UI will be frozen 
 \Scrref{echoClient} provides the code to run on the client image.
 Note that you have to run the server code first.
 Otherwise, the client will fail.
+Note also that after the interaction both the client and the server terminate.
+To run the example a second time you need to run again both sides.
 
 %An alternative to running your own Smalltalk client socket is to use an existing one.
 %On Unix machines, the \ct{nc}\footnote{\ct{nc} stands for \ct{netcat}.} utility is very handy for experimenting with sockets.
@@ -345,13 +360,11 @@ Object subclass: #EchoServer
 	category: 'SimpleSocketServer'
 \end{classdef}
 
-\alex{Maybe having as the caption a brief description of the method instead}
-\begin{method}[meth:serverInitialize]{The \ct!EchoServer>>>initialize! Method}
-EchoServer>>>initialize 
-	super initialize.
-	isRunningLock := Mutex new.
-	self isRunning: false
-\end{method}
+
+The \ct!isRunning! instance variable is a flag that is set to \ct!true! while the serving is running.
+As we will see below, it can be accessed by different processes.
+Therefore, we need to ensure that read accesses to the flag get a coherent value even if there are concurrent write accesses.
+This is achieved using a lock (\ct!isRunningLock! instance variable) that guarantees that \ct!isRunning! is accessed by only by a single process each time.
 
 \begin{method}[meth:isRunningRead]{The \ct!EchoServer>>>isRunning! Read Accessor}
 EchoServer>>>isRunning
@@ -363,13 +376,19 @@ EchoServer>>>isRunning: aBoolean
 	isRunningLock critical: [ isRunning := aBoolean ]
 \end{method}
 
-The \ct! isRunning! instance variable is a flag that is set to \ct!true! while the serving is running.
-As we will see below, it can be accessed by different processes.
-Therefore, we use the mutex (see \mthref{meth:serverInitialize}) referenced using the \ct!isRunningLock! instance variable.
-This mutex ensures that a single process can read or write the value of \ct!isRunning! (use of the \ct!critical:! message in \mthref{meth:isRunningRead} and \mthref{meth:isRunningWrite})\alex{what critical: does? I guess it prevent from two threads to be in the block provided to critical: right?}.
+Accesses to the flag are only possible through accessor methods (\mthref{meth:isRunningRead} and \mthref{meth:isRunningWrite}).
+Thus, \ct!isRunning! is read and wrote inside blocks that are arguments of message \ct!critical:! sent to \ct!isRunningLock!.
+This lock is an instance of \ct!Mutex! (see \mthref{meth:serverInitialize}).
+When receiving a \ct!critical:! message, a mutex evaluates the argument (a block).
+During this evaluation, other processes that send a \ct!critical:! message to the same mutex are suspended.
+Once the first block is done, the mutex resumes a suspended process (the one that was first suspended).
+This cycle is repeated until there are no more suspended processes.
+Thus, the mutex ensures that the \ct!isRunning! flag is read and wrote sequentially.
 
-\begin{method}[meth:stop]{The \ct!EchoServer>>>stop! Method}
-EchoServer>>>stop
+\begin{method}[meth:serverInitialize]{The \ct!EchoServer>>>initialize! Method}
+EchoServer>>>initialize 
+	super initialize.
+	isRunningLock := Mutex new.
 	self isRunning: false
 \end{method}
 
@@ -377,6 +396,11 @@ In order to manage the life-cycle of our server, we introduced two methods \ct!E
 We begin with the simplest one \ct!EchoServer>>>stop! which definition is provided as \mthref{meth:stop}.
 It simply sets the \ct!isRunning! flag to \ct!false!.
 This will have the consequence of stopping the serving loop in method \ct!EchoServer>>>serve! (see \mthref{meth:serve}). 
+
+\begin{method}[meth:stop]{The \ct!EchoServer>>>stop! Method}
+EchoServer>>>stop
+	self isRunning: false
+\end{method}
 
 \begin{method}[meth:serve]{The \ct!EchoServer>>>serve! Method}
 EchoServer>>>serve
@@ -410,7 +434,7 @@ The backlog size is set to 10 that is -as mentioned above- the system allocates 
 This value is a trade-off that depends on how fast the server is (depending on the VM and the hardware) and the maximum rate of client connections requests.
 The backlog size has to be large enough to avoid losing any connection request, but not too big to avoid wasting memory.
 Finally \ct!EchoServer>>>start! method creates a process by sending the \ct!fork! message to the \ct![ self serve ]! block.
-The created process has the same priority as the creator process (i.e. the one that performs the \ct!EchoServer>>>start! method\ins{, the UI thread if you have executed it from a workspace}\alex{to check, I am not sure}).
+The created process has the same priority as the creator process (i.e. the one that performs the \ct!EchoServer>>>start! method, the UI process if you have executed it from a workspace).
 
 
 \begin{method}[meth:interactOnConnection]{The \ct!EchoServer>>>interactOnConnection! Method}
@@ -609,13 +633,13 @@ Right after the connection, we wait 100 milliseconds until the data is received.
 Then, we read data in chunks of 5 characters that we display on the Transcript.
 So, if the server sends a string with 10 characters \ct!'HelloWorld'!, we will get on the Transcript \ct!Hello! on one line and \ct!World! on a second line.
 
-\section{Tips on Networking Experiments}
+\section{Tips for Networking Experiments}
 In sections related to client-side sockets and socket streams, we use interactions with a web server as an example.
 So, we forge an HTTP Get query and send it to the server.
 It is worth noting that we chose these examples to make experiments straightforward and platform agnostic.
 In real scale applications, interactions involving HTTP should be coded using a higher level library such as Zinc HTTP\footnote{\url{http://zn.stfx.eu/zn/index.html}}.
 
-Network programming can easily scale up in complexity. Accessing a toolbox outside Pharo is often necessary to identify what is the source of an odd behavior. This sections list a number of survival Unit tools to deal with low level network operations.
+Network programming can easily scale up in complexity. Accessing a toolbox outside Pharo is often necessary to identify what is the source of an odd behavior. This section lists a number of Unix utilities to deal with low level network operations.
 Readers with a Unix machine (Linux, Mac OS X) or with Cygwin (for Windows) can use \ct!nc! (or netcat), \ct!netstat! and \ct!lsof! for their tests.
 
 \subsection{\ct!nc! (netcat)}
@@ -680,14 +704,14 @@ lsof -nP -i tcp
 This chapter introduces the use TCP sockets and socket streams to develop both network clients and servers. It has reviewed the survival kit of network programming:
 
 \begin{itemize}
-\item Socket-based programming always involve one server and one or more clients.
+\item Sockets are low-level bi-directional communication gateways instances of class \ct{Socket}.
+\item Socket-based programming always involves one server and one or more clients.
 \item A server waits for requests emitted by clients.
-\item The class \ct{Socket} is used to create low level sockets.
-\item Numerical internet addresses are obtained from their name using the DNS, accessible from the class \ct{NetNameResolver}.
-\item The messages \ct{sendData:} and \ct{receiveData} are the socket primitives to send and receive data.
-\item A maximum waiting time is set with \ct{receiveDataTimeout:}.
+\item Messages \ct{sendData:} and \ct{receiveData} are the socket primitives to send and receive data.
+\item A maximum waiting time can be set using \ct{receiveDataTimeout:}.
 \item \ct{SocketStream} is a buffered read-write stream that encapsulate a TCP socket.
-\item Unix network tools are often necessary for debugging and testing purpose.
+\item Network DNS is accessible through the class \ct{NetNameResolver}, which converts device names into numerical internet addresses.
+\item Unix does provide some networking utilities that are useful for debugging and testing purposes.
 \end{itemize}
 
 As mentioned in the introduction, we recommend to use socket streams which are of higher level and provide facility methods.
