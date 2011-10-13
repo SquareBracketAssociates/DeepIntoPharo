@@ -74,7 +74,7 @@ A socket can then be defined as a \textit{plug on a communication network}.
 
 \begin{figure}[ht]\centering
 	\includegraphics[width=.75\linewidth]{socketConcept}
-	\caption{Inter-Process Remote Communication Through Sockets \sd{no shadow}.}
+	\caption{Inter-Process Remote Communication Through Sockets \sd{would be good to have another representation for processes.}.}
 	\label{fig:socketConcept}
 \end{figure}
 
@@ -85,23 +85,21 @@ Such interaction can be done according to communication protocols which are enca
 TCP/IP stands for \textit{Transmission Control Protocol / Internet Protocol} (TCP for short).
 TCP use guarantees a reliable communication (no data loss). It requires that applications involved in the communication get connected before actually communicating. 
 Once a connection is established interacting parties can send and receive an arbitrary amount of bytes. This is often referred to as a \textit{stream communication}.
-Data reaches the destination in the same order of their sending.
+Data reach the destination in the same order of their sending.
 
 UDP/IP stands for \textit{User Datagram Protocol / Internet Protocol} (UDP for short).
-Datagrams are chunks of data which size cannot exceed 64KB.
-UDP is an unreliable protocol because of two reasons.
-First, UDP does not guarantee that  datagrams will actually reach there destination.
+Datagrams are chunks of data which size cannot exceed 64KB. UDP is an unreliable protocol because of two reasons. First, UDP does not guarantee that  datagrams will actually reach their destination.
 The second reason why UDP is qualified as unreliable is that the reception order of multiple datagrams from a single sender to the receiver may arrive in an arbitrary order.
 Nevertheless, UDP is faster than TCP since no connection is required before sending data.
 A typical use of UDP is  ``heart-beating'' as used in server-based social application, where clients need to notify the server their status (\eg Requesting interactions, or Invisible).
 
 \nouryComment{In a future version we will present UDP. But, so  far UDP does not work in \pharo.}
 In the remainder of this chapter we will focus on TCP Sockets.
-First, we show how to create a client socket, connect it to a server, exchange data and close the connection (section~\ref{sec:clientTcpSocket}).
+First, we show how to create a client socket, connect it to a server, exchange data and close the connection (Section~\ref{sec:clientTcpSocket}).
 This lifecycle is illustrated using examples showing the use of client sockets to interact with a web server. 
-Next, section~\ref{sec:serverTcpSocket} presents server sockets.
+Next, ection~\ref{sec:serverTcpSocket} presents server sockets.
 We describe their life-cycle and how to use them to implement a server that can handle concurrent connections.
-Last, we introduce in section~\ref{sec:socketStream} socket streams.
+Last, we introduce in Section~\ref{sec:socketStream} socket streams.
 We give an overview of their benefits by describing their use on both client and server side.
  
 \section{TCP Client}
@@ -118,7 +116,7 @@ The life-cycle of such a client in \pharo decomposes into 4 steps:
 
 \subsection{Create a TCP Socket}
 \pharo provides a single socket class.
-At creation, the socket type (TCP or UDP) is provided to the socket plugin of the virtual machine.
+At creation, the socket type (TCP or UDP) is provided to the socket plugin of the virtual machine \sd{do we need to know that?}.
 To create a TCP socket, you need to evaluate the following message 
 \begin{code}{}
 Socket newTCP
@@ -321,7 +319,7 @@ Otherwise, we get a new socket \ct!interactionSocket! connected the client's soc
 At this point, we do not need the connection socket anymore, so we can close it (\ct!connectionSocket closeAndDestroy! message).
 
 Since the interaction socket is already connected to the client, we can use it to exchange data.
-Messages \ct!receiveData! and \ct!sendData:! presented above (see section~\ref{sec:exchangeData}) can be used to achieve this goal.
+Messages \ct!receiveData! and \ct!sendData:! presented above (see Section~\ref{sec:exchangeData}) can be used to achieve this goal.
 In our example, we wait for data from the client, next we display it on the \ct!Transcript!, and last we send it back to the client prefixed with the \ct!'ECHO: '! string.
 Last, we finish the interaction with the client by closing the interaction socket.
 
@@ -553,7 +551,7 @@ Data exchanged can be treated as bytes or characters depending.
 When a socket stream is configured to exchange bytes by means of message \ct!binary! it organizes sent and received data as byte arrays.
 Conversely, when a socket stream is configured to exchange characters (default setting) by means of message \ct!ascii! it organizes sent and received data as Strings.
 
-Suppose we have an instance of the \ct!EchoServer! (see section~\ref{sec:echoServerClass}) started by means of the following expression
+Suppose we have an instance of the \ct!EchoServer! (see Section~\ref{sec:echoServerClass}) started by means of the following expression
 \begin{code}{}
 server := EchoServer new.
 server start.
@@ -649,9 +647,8 @@ Then, we read data in chunks of 5 characters that we display on the Transcript.
 So, if the server sends a string with 10 characters \ct!'HelloWorld'!, we will get on the Transcript \ct!Hello! on one line and \ct!World! on a second line.
 
 \section{Tips for Networking Experiments}
-In sections related to client-side sockets and socket streams, we use interactions with a web server as an example.
-So, we forge an HTTP Get query and send it to the server.
-It is worth noting that we chose these examples to make experiments straightforward and platform agnostic.
+In sections related to client-side sockets and socket streams, we used interactions with a web server as an example. So, we forged an HTTP Get query and send it to the server.
+We chose these examples to make experiments straightforward and platform agnostic.
 In real scale applications, interactions involving HTTP should be coded using a higher level library such as Zinc HTTP\footnote{\url{http://zn.stfx.eu/zn/index.html}}.
 
 Network programming can easily scale up in complexity. Accessing a toolbox outside Pharo is often necessary to identify what is the source of an odd behavior. This section lists a number of Unix utilities to deal with low level network operations.
