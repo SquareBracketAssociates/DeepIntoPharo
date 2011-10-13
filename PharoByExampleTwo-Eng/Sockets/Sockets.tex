@@ -52,6 +52,21 @@ Then, we introduce \ct!SocketStream! and how to use it.
 In practice, one is likely to use \ct!SocketStream! instead of plain sockets.
 The chapter ends with a description of some unix networking utilities that are useful for experimenting.
 
+\section*{Stef 's feedback}
+
+\begin{itemize}
+\item first 		socket1 -> socketclient
+		socket2 -> socketdata
+		and in the code too
+
+\item second 
+	for the server: a picture about the different thread and sockets
+
+\item third: Better API description of SocketStream
+	adding a table would help to get the big picture.
+\end{itemize}
+
+
 \section{Basic Concepts}
 \subsection{Socket}
 A remote communication involves at least two system processes exchanging some data bytes through a network. Each process accesses the network through at least one socket (see Figure~\ref{fig:socketConcept}).
@@ -59,7 +74,7 @@ A socket can then be defined as a \textit{plug on a communication network}.
 
 \begin{figure}[ht]\centering
 	\includegraphics[width=.75\linewidth]{socketConcept}
-	\caption{Inter-Process Remote Communication Through Sockets.}
+	\caption{Inter-Process Remote Communication Through Sockets \sd{no shadow}.}
 	\label{fig:socketConcept}
 \end{figure}
 
@@ -392,7 +407,7 @@ EchoServer>>>initialize
 	self isRunning: false
 \end{method}
 
-In order to manage the life-cycle of our server, we introduced two methods \ct!EchoServer>>>start! and \ct!EchoServer>>>stop!.
+To manage the life-cycle of our server, we introduced two methods \ct!EchoServer>>>start! and \ct!EchoServer>>>stop!.
 We begin with the simplest one \ct!EchoServer>>>stop! which definition is provided as \mthref{meth:stop}.
 It simply sets the \ct!isRunning! flag to \ct!false!.
 This will have the consequence of stopping the serving loop in method \ct!EchoServer>>>serve! (see \mthref{meth:serve}). 
@@ -568,7 +583,7 @@ So, each character maps to a single byte.
 SocketStream acts simply as a gateway to some network. 
 It sends or reads bytes without giving them any semantics.
 The semantics, that is the organization and meaning of exchanged data should be handled by other objects.
-Developers should decide a protocol to use and to enforce on both interacting sides in order to have correct interaction.
+Developers should decide a protocol to use and to enforce on both interacting sides to have correct interaction.
 
 A good practice is to \emph{reify} a protocol, that is to materialize it as an object which wraps a socket stream. 
 The protocol object analyzes exchanged data and decides accordingly which messages to send to the socket stream.
@@ -627,7 +642,7 @@ A possible solution is to replace missing bytes with zeros.
 \end{script}
 
 
-In order to read data in chunks, \ct!SocketStream! does respond to the \ct!next:! message as illustrated by \scrref{script:socketStreamNext}.
+To read data in chunks, \ct!SocketStream! does respond to the \ct!next:! message as illustrated by \scrref{script:socketStreamNext}.
 We consider that we have a server running at port 9999 of our machine that sends a string which size is a multiple of 5.
 Right after the connection, we wait 100 milliseconds until the data is received.
 Then, we read data in chunks of 5 characters that we display on the Transcript.
