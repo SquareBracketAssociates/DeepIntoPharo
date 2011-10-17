@@ -71,12 +71,33 @@ Gofer new
 \end{code}
 
 
+%\begin{description}
+%\item [C header.] \ 
+%
+%\begin{code}{}
+%
+%\end{code}
+%
+%\item [Pragma declaration.] \ 
+%
+%\begin{code}{}
+%
+%\end{code}
+%
+%
+%\item [Library access.] \ 
+% 
+%\dothis{ }
+%
+%\end{description}
+
+
 \section{Calling External Functions}
 
 Some time ago, this wasn't an easy task, but the good news is that since Pharo 1.4, this has become really easy.
 
 Suppose you want to know the amount of time the image has been running by calling the underlying OS function named \ct{clock}. 
-This function is part of the standard C library. Its C declaration is\luc{according to man it is: clock\_t clock(void) , I suppose clock\_t end up in an int?}:
+This function is part of the standard C library. Its C declaration is\footnote{According to man its return type is clock\_t instead of int, but we deliberately made it int for the sake of simplicity}:
 
 \begin{code}{}
 int clock (void)
@@ -104,17 +125,7 @@ But of course, these are the clock ticks, which aren't of much use.
 CExamples ticksSinceStart
 \end{code}
 
-
-
-Let us now have a look at the definition part
-\sd{stef here}
-\begin{description}
-\item [Pragma declaration.]
-\item [C header.]
-\item [Library access.]
-\end{description}
-
-
+What we just have done is usually called an FFI callout. 
 \ct{NBFFICallout} represents a call to an external function.
 We use the the  message \ct{#cdecl:module:} to describe this call. 
 This message has two arguments: the signature of the function that is about to be called and the module (or library) where to look for it which is the standard C library in this example. 
@@ -129,14 +140,44 @@ So, when this message is executed, the return value will be a \ct{SmallInteger}.
 This conversion process for types from different languages is called \emph{marshaling}.
 We will see more examples of automatic conversions in this chapter. 
 
-Now, lets look at another example, and to make it more interesting lets call the very well known \ct{strlen} function, which receives a string as argument and returns the amount of characters it has. 
-Its C signature is:
+As you will
+see later there are always three things to take into account when doing
+callouts:
+
+\begin{description}
+\item [C header.] The definition of the function from a C point of view. In the last example:
 
 \begin{code}{}
- int strlen ( const char * str );
+int clock (void)
 \end{code}
 
-Then the corresponding binding is:
+\item [Pragma declaration.] The Smalltalk code that describes the C header and `binds' Smalltalk arguments to C arguments. In this case it was:
+
+\begin{code}{}
+CExamples class>>ticksSinceStart
+\end{code}
+
+
+\item [Library access.] Finally, there is the code that sends the message to use the binded C function. In this case, 
+\begin{code}{}
+CExamples ticksSinceStart
+\end{code}
+
+
+\end{description}
+
+
+Now, lets look at another example, and to make it more interesting lets call the very well known \ct{strlen} function, which receives a string as argument and returns the amount of characters it has. 
+
+
+\begin{description}
+\item [C header.] \ 
+
+\begin{code}{}
+int strlen ( const char * str );
+\end{code}
+
+\item [Pragma declaration.] \ 
 
 \begin{code}{}
 CExamples class>>stringLength: aString
@@ -146,8 +187,17 @@ CExamples class>>stringLength: aString
 	^ NBFFICallout cdecl: #( int strlen (char* aString) ) module: NativeBoost CLibrary
 \end{code}
 
+
+\item [Library access.] \ 
+ 
+\dothis{CExamples stringLength: 'awesome!'}
+
+\end{description}
+
+
+
 Can you see the small differences with the previous example? 
-First of all, in this case we are specifying strlen
+First of all, in this case we are specifying \ct{strlen}
 instead of clock, of course. But besides that, the only
 change is that we have to specify the string passed
 as argument. That is, in the arguments array, we
@@ -155,7 +205,9 @@ put the C type of the argument, and after that,
 the name of the Smalltalk variable we are going to pass.
 This type-and-name pair will be repeated, separated by
 comma for each argument, as we will show in the next
-example. 
+example. Now you can try printing this:
+
+
 
 Before getting into the next example, to little things
 needs to be clarified. The first is that there is a little
@@ -167,10 +219,91 @@ of to make some static validations at compile time. It's has no
 value when describing the signature for calling a function at
 runtime.
 The second important thing to notice is that as argument we provide
-the object aString, the same as the one receive as Smalltalk argument.
-This is really neccesary as we are not only describing the signature
+the object {\sffamily aString}, the same as the one receive as Smalltalk argument.
+This is really necessary as we are not only describing the signature
 but we are also describing which arguments we will give to the C 
-function as arguments to receive the correct result. 
+function as arguments to receive the correct result.
+It is important to know that  Spock will take care of automagically
+doing the conversion of the arguments, which come from Smalltalk
+world, to C values. \emph{This means
+that the string passed in the example is going to be put in an
+external C \ct{char} array and that a null termination character will be
+added to it. Also, this array will be automatically released 
+after the call ends}. Conversely, Spock will take the C result
+value of calling the C function and convert it to a proper Smalltalk
+object.
+
+
+
+To continue with the examples we will call \ct{strcmp}, which takes two arguments and returns -1, 0 or 1 depending on the relationship between both strings.
+
+\begin{description}
+\item [C header.] \ 
+
+\begin{code}{}
+int strcmp ( const char * str1, const char * str2 );
+\end{code}
+
+\item [Pragma declaration.] \ 
+
+\begin{code}{}
+stringCompare: aString with: anotherString
+
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ NBFFICallout cdecl: #( int strcmp (char* aString, char* anotherString) ) module: NativeBoost CLibrary
+\end{code}
+
+
+\item [Library access.] \ 
+ 
+\dothis{CExamples stringCompare: 'awesome!' with: 'awesome'}
+
+\end{description}
+
+Notice that you can add arguments by appending them to the arguments array,
+using a comma to separate them. Also notice that you have to explicitly tell
+which object is going to be passed as each argument. In this case, aString is
+the first and anotherString is the second.
+
+The next example adds a bit more complexity: we are going to pass a ByteArray
+to the memset function. 
+
+\begin{description}
+\item [C header.] \ 
+
+\begin{code}{}
+void * memset ( void * ptr, int value, int num );
+\end{code}
+Sets the first num bytes of the block of memory pointed by ptr to the specified value
+
+\item [Pragma declaration.] \ 
+
+\begin{code}{}
+memorySet: aByteArray with: anInteger for: aByteCount
+
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ NBFFICallout cdecl: #( void* memset (char* aByteArray, int anInteger, int aByteCount) ) module: NativeBoost CLibrary
+\end{code}
+
+
+\item [Library access.] \ 
+ 
+\dothis{ array := ByteArray new: 10.\
+CExamples memorySet: array with: 100 for: 5.\
+array}
+
+\end{description}
+
+As you can see, this time Spock took care of finding out the memory address where aByteArray lives and passing a pointer to it as the first argument. After executing the example you can see that the
+byte array elements were actually changed. This is an important difference with strings: when you pass a string, a null character has to be added at the end, and for that reason it has to be copied to a bigger buffer. This means that strings are passed by-copy, while on the other hand byte arrays are passed by reference!
+
+\subsection{More advanced examples}
+
+\subsubsection{Loading code from other libraries}
+
+\subsubsection{Using C structures}
 
 % \section{The levels of native code}
 % 
@@ -202,6 +335,7 @@ function as arguments to receive the correct result.
 % Next in the level of 
 
 
+\subsection{original FFI stuff}
 
 Thanks to a Foreign Function Interface (FFI), it is possible to achieve this and interact with third-party libraries.
 Multiple FFI libraries are available in Pharo such as FFI (\url{http://wiki.squeak.org/squeak/1414}) and Alien (\url{http://www.squeaksource.com/Alien}).
