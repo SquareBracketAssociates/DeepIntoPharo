@@ -32,16 +32,15 @@
 \fi
 %=================================================================
 %Noury's commands
-\newcommand{\nouryComment}[1]{}
-%\newcommand{\nouryComment}[1]{\textcolor{red}{\textbf{\emph{#1}}}}
+\newcommand{\noury}[1]{\nnbb{Noury}{#1}}
 
 %=================================================================
 
 \chapter{Sockets}\label{cha:sockets}
 \chapterauthor{\authornoury{}}
 
-Modern applications are often distributed on multiple devices and collaborate through a network.
-The basic approach to set up such a collaboration is to use \textit{sockets}. A typical use is in the World Wide Web. Browsers and servers interact through sockets that carry HTTP requests and responses.
+Modern software often involve multiple devices that collaborate through a network.
+The basic approach to set up such collaborations is to use \textit{sockets}. A typical use is in the World Wide Web. Browsers and servers interact through sockets that carry HTTP requests and responses.
 
 The concept of socket was first introduced by researchers from Berkeley University in the 1960s. They defined the first socket API for the C programming language in the context of Unix operating systems. Since then, the concept of socket was spread out to other operating systems. 
 Its API was ported to almost all programming languages including Smalltalk.
@@ -52,13 +51,7 @@ Then, we introduce \ct!SocketStream! and how to use it.
 In practice, one is likely to use \ct!SocketStream! instead of plain sockets.
 The chapter ends with a description of some unix networking utilities that are useful for experimenting.
 
-\section*{Stef 's feedback}
-
 \begin{itemize}
-\item first 		socket1 -> socketclient
-		socket2 -> socketdata
-		and in the code too
-
 \item second 
 	for the server: a picture about the different thread and sockets
 
@@ -76,7 +69,7 @@ A socket can then be defined as a \textit{plug on a communication network}.
 
 \begin{figure}[ht]\centering
 	\includegraphics[width=.75\linewidth]{socketConcept}
-	\caption{Inter-Process Remote Communication Through Sockets \sd{would be good to have another representation for processes.}.}
+	\caption{Inter-Process Remote Communication Through Sockets \sd{would be good to have another representation for processes.}.\noury{you mean a different box?}}
 	\label{fig:socketConcept}
 \end{figure}
 
@@ -95,7 +88,7 @@ The second reason why UDP is qualified as unreliable is that the reception order
 Nevertheless, UDP is faster than TCP since no connection is required before sending data.
 A typical use of UDP is  ``heart-beating'' as used in server-based social application, where clients need to notify the server their status (\eg Requesting interactions, or Invisible).
 
-\nouryComment{In a future version we will present UDP. But, so  far UDP does not work in \pharo.}
+% In a future version we will present UDP. But, so  far UDP does not work in \pharo.
 In the remainder of this chapter we will focus on TCP Sockets.
 First, we show how to create a client socket, connect it to a server, exchange data and close the connection (Section~\ref{sec:clientTcpSocket}).
 This lifecycle is illustrated using examples showing the use of client sockets to interact with a web server. 
@@ -118,12 +111,11 @@ The life-cycle of such a client in \pharo decomposes into 4 steps:
 
 \subsection{Create a TCP Socket}
 \pharo provides a single socket class.
-At creation, the socket type (TCP or UDP) is provided to the socket plugin of the virtual machine \sd{do we need to know that?}.
+It has one creation method per socket type (TCP or UDP).
 To create a TCP socket, you need to evaluate the following message 
 \begin{code}{}
 Socket newTCP
 \end{code}
-Method \ct{newTCP} hands out the tcp type (which is stored in the class variable \ct!TCPSocketType! \sd{is it interesting to know that now?}) to set up a TCP socket.
 
 \subsection{Connect a TCP Socket to some Server}
 To connect a TCP Socket to a server, you need to have the object representing the IP address of that server. This address is an instance of \ct!SocketAddress!.
@@ -134,8 +126,8 @@ The first one creates an address from a string describing the server name (\ct!'
 Note that to use the \ct!NetNameResolver! you need to have your machine connected to a network with a DNS\footnote{\emph{Domain Name System}: basically a directory that maps device names to their IP address.}, which should probably be the case.
 The only exception is for retrieving the local host address, i.e. \ct!127.0.0.1! which is the generic address to refer to the machine that runs your software (\pharo here).
 
-\nouryComment{There are dedicated methods for retrieving the localhost address but they are buggy at the time of writing this text.}
-\nouryComment{The NameLookupFailure exception is used ONLY in NetNameResolver class>>addressForName:timeout:. It should be more widely used.}
+% There are dedicated methods for retrieving the localhost address but they are buggy at the time of writing this text.
+% The NameLookupFailure exception is used ONLY in NetNameResolver class>>addressForName:timeout:. It should be more widely used.
 
 \begin{script}[creatingSocketAddress]{Creating a Socket Address}
 | esugAddress localAddress |
@@ -145,8 +137,8 @@ localAddress := NetNameResolver addressForName: '127.0.0.1'.
 
 Now we can connect our TCP socket to the server as shown in \Scrref{connectingTcpSocket}.
 Message \ct!connectTo:port:! attempts to connect the socket to the server using the server address and port provided as parameters.
-\nouryComment{SocketAddress can also store the port of the server. 
-But, NetNameResolver does NOT support building socket address WITH port.} 
+% SocketAddress can also store the port of the server. 
+% But, NetNameResolver does NOT support building socket address WITH port.
 The server address refers to the address of the network interface (e.g. ethernet, wifi) used by the server.
 The port refers to the communication endpoint on the network interface. 
 Each network interface has for each IP transport protocol (e.g. TCP, UDP) a collection of ports that are numbered from 0 to 65535.
@@ -172,8 +164,7 @@ Otherwise, the execution can proceed by evaluating the expression \ct!clientSock
 
 \subsection{Exchange Data with Server}
 \label{sec:exchangeData}
-Once the connection is established, the client can send/receive data to/from the server.
-By data we mean a \ct!ByteString!\footnote{One can send a \ct!ByteArray!, but the receiving socket will return a \ct!ByteString! however. \sd{unclear to me}}.
+Once the connection is established, the client can exchange (send/receive) instances of \ct!ByteString! with the server.
 Typically, the client sends some request to the server and then expects for a response.
 Web browsers act according to this schema.
 A web browser is a client that issues a request to some web server identified by the URL.
@@ -187,8 +178,6 @@ clientSocket sendData: 'Hello server'.
 data := clientSocket receiveData.
 ... ``Process data''
 \end{script}
-
-\sd{}
 
 \Scrref{dataExhangeWithTcpSocket} shows the protocol to send and receive data through a client socket.
 Here, we send the string \ct-'Hello server!'- to the server using the \ct!sendData:! message.
@@ -228,12 +217,11 @@ In practice we use \ct!closeAndDestroy!. It first attempts to close the socket b
 Then, if the socket is still connected after a duration of 20 seconds, the socket is destroyed.
 Note that there exist a variant \ct!closeAndDestroy: seconds! which gets as a parameter the duration to wait before destroying the socket.
 
-\begin{script}[script:closeAndDestroy]{Closing a TCP Socket After Connection to a Web Site.}
+\begin{script}[script:closeAndDestroy]{Interaction with a Web Site and Cleanup.}
 | clientSocket serverAddress httpQuery htmlText |
 httpQuery := 'GET / HTTP/1.1', String crlf, 
 	'Host: www.esug.org:80', String crlf, 
 	'Accept: text/html', String crlfcrlf.
-Transcript cr; cr; show: 'Attempt to get a web page...'.
 serverAddress := NetNameResolver addressForName: 'www.esug.org'.
 clientSocket := Socket newTCP.
 [clientSocket 
@@ -243,21 +231,29 @@ clientSocket := Socket newTCP.
  htmlText  := clientSocket receiveDataTimeout: 5.
  Transcript cr; show: htmlText.
 ] ensure: [clientSocket closeAndDestroy].
-Transcript cr; show: '...Done'
 \end{script}
 
-To summarize all steps described so far, we use the example of getting a web page from a server in \Scrref{script:closeAndDestroy}.
-First, we retrieve the IP address of the \url{www.esug.org} server. \sd{does not look like this is the first thing we do.}
-Then, we create a TCP socket and connect it to the server.
-We use the IP address we get in the previous step and the default port for web servers: 80.
-Next we forge the HTTP\footnote{HyperText Transfer Protocol used for web communications.} query.
-The string corresponding  to our query starts with the \ct!GET! keyword, followed by a slash saying that we are requesting the root file of the server.
+To summarize all steps described so far, we use the example of getting a web page from a server in 
+\Scrref{script:closeAndDestroy}.
+First, we forge a HTTP\footnote{HyperText Transfer Protocol used for web communications.} query.
+The string corresponding to our query starts with the \ct!GET! keyword, followed by a slash saying that we are requesting the root file of the server.
 Follows the protocol version \ct!HTTP/1.1!.
-The second line recalls the host name and port.
+The second line includes the name of the web server and its port.
 The third and last line of the HTTP query refers to format accepted by our client. 
 Since, we intend to display the result of our query on the \ct!Transcript!, we state in the HTTP query (see line beginning with \ct!Accept:!) that our client accepts texts with html format.
-After sending the http query, we wait at most 5 seconds for the html text that we display on the \ct!Transcript!.
-Socket connection, query sending and html reception are inside a block which execution is ensured to end with cleaning up socket related resources, by means of the \ct!closeAndDestroy! message.
+
+Next, we retrieve the IP address of the \url{www.esug.org} server.
+Then, we create a TCP socket and connect it to the server.
+We use the IP address we get in the previous step and the default port for web servers: 80.
+The connection should be established in less than 10 seconds (\ct!waitForConnectionFor: 10!), otherwise we get a \ct!ConnectionTimedOut! exception.
+
+After sending the http query (\ct!clientSocket sendData: httpQuery!), we read form the socket the 
+received html text that we display on the \ct!Transcript!
+Note that the we ask the socket to wait at most 5 seconds for the answer of the server (\ct!clientSocket receiveDataTimeout: 5!).
+On timeout, the socket answers an empty socket.
+
+Finally, we  close the socket and free related resources (\ct!clientSocket closeAndDestroy!).
+We ensure the clean up by means of the \ct!ensure:! message sent to the block that performs socket connection and data exchange with the web server.
 
 \section{TCP Server}
 \label{sec:serverTcpSocket}
@@ -270,17 +266,16 @@ One socket is used for handling client connections, while the second serves for 
 \subsection{TCP Socket Server Life-cycle}
 The life-cycle of a TCP server has 5 steps:
 \begin{enumerate}
-\item Create a first TCP socket labelled \textit{socket$_{client}$}.
-\item Wait for a connection by making \textit{socket$_{client}$}  listen on a port.
-\item Accept a client request for connection. As a result, \textit{socket$_{client}$} will build a second socket labelled \textit{socket$_{interaction}$}.
-\item Exchange data with the client through \textit{socket$_{interaction}$}. In the meanwhile, \textit{socket$_{client}$} can continue to wait for a new connection, and possibly create new sockets to exchange data with other clients. 
-\item Close \textit{socket$_{interaction}$}.
-\item Close \textit{socket$_{client}$} when we decide to kill the server and stop accepting client connections.
+\item Create a first TCP socket labelled \textit{connectionSocket}.
+\item Wait for a connection by making \textit{connectionSocket}  listen on a port.
+\item Accept a client request for connection. As a result, \textit{connectionSocket} will build a second socket labelled \textit{interactionSocket}.
+\item Exchange data with the client through \textit{interactionSocket}. In the meanwhile, \textit{connectionSocket} can continue to wait for a new connection, and possibly create new sockets to exchange data with other clients. 
+\item Close \textit{interactionSocket}.
+\item Close \textit{connectionSocket} when we decide to kill the server and stop accepting client connections.
 \end{enumerate}
-
+\sd{add a picture about the different thread and sockets}
 Concurrency is implicit in this life-cycle.
-The server listens for incoming client connection requests through \textit{socket$_{client}$}, while exchanging data with some clients through \textit{socket$_{interaction}$}.
-The server can even simultaneously exchange data with multiple clients through different sockets.
+The server listens for incoming client connection requests through \textit{connectionSocket}, while exchanging data with possibly multiple clients through multiple \textit{interactionSockets} (one per client).
 In the following, we first illustrate the socket serving machinery.
 Then, we describe a complete server class and explain the server life-cycle and related concurrency issues.
 
@@ -342,7 +337,7 @@ clientSocket := Socket newTCP.
 
 You cannot test this script totally without having the client code running, for example in a different process or a second image. 
 \sd{It would be good to have that as a setup so that the guy can directly try. Or use a unix command line that you mention afetr. The idea is to get really concrete use.}
-We \sd{You should use - would be better} do use two different images, one that runs the server code and one for the client code. 
+You should use two different images, one that runs the server code and one for the client code. 
 Indeed, since we use the user interaction process, the \pharo UI will be frozen at some points, such as during the \ct!waitForAcceptFor:!.
 \Scrref{echoClient} provides the code to run on the client image.
 Note that you have to run the server code first.
@@ -368,7 +363,7 @@ We define here the \ct!EchoServer! class that deals with concurrency issues.
 It handles concurrent client queries and it does not freeze the UI.
 As we can see in the definition labelled \clsref{echoServerClassDef}, the \ct!EchoServer! declares three instance variables.
 The first one (\ct!connectionSocket!) refers to the socket used for listening to client connections.
-The two last instance variables (\ct!isRunning! \sd{holding a boolean} and \ct!isRunningLock! \sd{holding a Mutex}) are used to manage the server process life-cycle while dealing with synchronization issues. 
+The two last instance variables (\ct!isRunning! holding a boolean and \ct!isRunningLock! holding a \ct!Mutex!) are used to manage the server process life-cycle while dealing with synchronization issues. 
  
 \begin{classdef}[echoServerClassDef]{\ct!EchoServer! Class Definition}
 Object subclass: #EchoServer
@@ -462,8 +457,8 @@ EchoServer>>>interactOnConnection
 	[self interactUsing: interactionSocket] fork
 \end{method}
 
-Method \ct!EchoServer>>>serve! (see \mthref{meth:serve}) loop interacts with clients on connections \sd{unclear to me}.
-This interaction is handled in the \ct!EchoServer>>>interactOnConnection! method (see \mthref{meth:interactOnConnection}) .
+Method \ct!EchoServer>>>serve! (see \mthref{meth:serve}) triggers interactions with connected clients.
+This interaction is handled in the \ct!EchoServer>>>interactOnConnection! method (see \mthref{meth:interactOnConnection}).
 First, the connection socket waits for client connections for one second.
 If no client attempts to connect during this period we simply return.
 Otherwise, we get as result another socket dedicated to interaction.
@@ -487,7 +482,7 @@ It is worth noting that we ensure that the interaction socket is destroyed, whet
 \ct!SocketStream! is a read-write stream that encapsulates a TCP socket.
 It eases the data exchange by providing buffering together with a set of facility methods.
 
-\sd{would be good to have a pciture explaining socket stream and more importantly a API description of the most important methods}
+\sd{would be good to have a picture explaining socket stream and more importantly a API description of the most important methods}
 
 \subsection{SocketStream at Client Side}
 We illustrate socket stream use at client side with the following code snippet (\Scrref{script:streamGetLine}).
