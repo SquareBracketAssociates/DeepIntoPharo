@@ -103,6 +103,9 @@ Once loaded you should execute the following expression: \ct{NBInstaller install
 
 \section{Calling External Functions}
 
+
+\subsection{Starting Example}
+
 Suppose you want to know the amount of time the image has been running by calling the underlying OS function named \ct{clock}. 
 This function is part of the standard C library. Its C declaration is\footnote{According to man its return type is clock\_t instead of int, but we deliberately made it int for the sake of simplicity. \sd{how would we deal with that if we do not want/can change clock\_t into int?}}:
 
@@ -123,17 +126,19 @@ CExamples class>>ticksSinceStart
 \sd{Igor in 1.4 I get a vmVersion -> deprecated.}
 
 You can define this method in any class, on its instance or class side.
-It doesn't make any difference. In the above example, we defined a class named \ct{CExamples} and define the methos on its class side. This way it is easy to access it by sending a message to this class without creating unnecessary instances. 
+It doesn't make any difference. In the above example, we defined a class named \ct{CExamples} and define the method on its class side. This way it is easy to access it by sending a message to this class without creating unnecessary instances. 
 
 Then, to know the time since the program started you can execute and print it.
-But of course, these are just the native clock ticks, which aren't of much use. 
+Note that these are just the native clock ticks, which aren't of much use. 
 \begin{script}{Invoking a C binding}
 CExamples ticksSinceStart
 \end{script}
 
-What we have just done is usually called an FFI callout. 
-\ct{NBFFICallout} is the class that represents this behavior, which is essentially a call to an external function.
-We use the the  message \ct{#cdecl:module:} to describe this call. 
+
+\subsection{Analysis}
+\sd{I will refactor that text}
+What we have just done is usually called an FFI callout. \ct{NBFFICallout} is the class that represents this behavior, which is essentially a call to an external function.
+We use the  message \ct{#cdecl:module:} to describe this call. 
 This message has two arguments: the signature of the function that is about to be called and the module (or library) where to look for it which is the standard C library in this example. 
 The signature is described by an array whose first element is the C return type and the second is the name of the called function.
 The third and last element is also an array which describe the arguments of the function when there's any. 
@@ -146,8 +151,7 @@ So, when this message is executed, the return value will be a \ct{SmallInteger}.
 This conversion process for types from different languages is called \emph{marshaling}.
 We will see more examples of automatic conversions in this chapter. 
 
-As you will
-see later there are always three things to take into account when doing
+As you will see later there are always three things to take into account when doing
 callouts:
 
 \begin{description}
@@ -161,23 +165,21 @@ int clock (void)
 
 \begin{code}{}
 CExamples class>>ticksSinceStart
-
-<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
-	
-^ NBFFICallout cdecl: #( int clock () ) module: NativeBoost CLibrary
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	^ NBFFICallout cdecl: #( int clock () ) module: NativeBoost CLibrary
 \end{code}
 
 
-\item [Library access.] Finally, there is the code that sends the message to use the binded C function. In this case, 
+\item [Library access.] Finally, there is the code that sends the message to use the bounded C function. In this case, 
 
 \dothis{CExamples ticksSinceStart}
-
-
 
 \end{description}
 
 
-Now, lets look at another example, and to make it more interesting lets call the very well known \ct{strlen} function, which receives a string as argument and returns the amount of characters it has. 
+\subsection{Passing arguments to the function}
+The previous example was the simplest we could find: we asked for the execution of a function without parameters and got the results. Now let's look how we can execute function that requires arguments. 
+We want to call the very well known \ct{strlen} function. This function requires a string as argument and returns its number of characters. 
 
 
 \begin{description}
@@ -191,7 +193,6 @@ int strlen ( const char * str );
 
 \begin{code}{}
 CExamples class>>stringLength: aString
-
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
 	^ NBFFICallout cdecl: #( int strlen (char* aString) ) module: NativeBoost CLibrary
@@ -205,7 +206,7 @@ CExamples class>>stringLength: aString
 \end{description}
 
 
-
+\sd{here}
 Can you see the small differences with the previous example? 
 First of all, in this case we are specifying \ct{strlen}
 instead of clock, of course. But besides that, the only
@@ -213,7 +214,7 @@ change is that we have to specify the string passed
 as argument. That is, in the arguments array, we
 put the C type of the argument, and after that,
 the name of the Smalltalk variable we are going to send as 
-argument. This type-and-name pair will be repeated, separated 
+argument \ct{(char* aString)}. This type-and-name pair will be repeated, separated 
 by comma for each argument, as we will show in the next
 example. Now you can try printing this:
 
