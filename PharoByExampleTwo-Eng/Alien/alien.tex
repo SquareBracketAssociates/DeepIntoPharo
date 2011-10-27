@@ -121,16 +121,15 @@ CExamples class>>ticksSinceStart
 
 
 \sd{Igor in 1.4 I get a vmVersion -> deprecated.}
+
 You can define this method in any class, on its instance or class side.
-It doesn't make any difference. 
-In the above example, we place it on the class side of \ct{CExamples}. 
-This way it is easy to access it by sending a message to this class without creating a useless instance. 
+It doesn't make any difference. In the above example, we defined a class named \ct{CExamples} and define the methos on its class side. This way it is easy to access it by sending a message to this class without creating unnecessary instances. 
 
 Then, to know the time since the program started you can execute and print it.
 But of course, these are just the native clock ticks, which aren't of much use. 
-\begin{code}{}
+\begin{script}{Invoking a C binding}
 CExamples ticksSinceStart
-\end{code}
+\end{script}
 
 What we have just done is usually called an FFI callout. 
 \ct{NBFFICallout} is the class that represents this behavior, which is essentially a call to an external function.
