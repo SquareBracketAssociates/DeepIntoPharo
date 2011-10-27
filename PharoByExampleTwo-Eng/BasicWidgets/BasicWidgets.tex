@@ -380,8 +380,25 @@ Radio button in Pharo is sharing same classes with checkbox. Only difference is 
 
 Pharo has a model class that is for demonstrating radio buttons, named \ct{ExampleRadioButtonModel}.
 
+\begin{code}{}
+radioModel := ExampleRadioButtonModel new.r1 := (CheckboxMorph on: radioModel selected: #isLeft changeSelected: #beLeft)		label: 'left'.r2 := (CheckboxMorph on: radioModel selected: #isCenter changeSelected: #beCenter)		label: 'center'.r3 := (CheckboxMorph on: radioModel selected: #isRight changeSelected: #beRight)		label: 'right'.r1 openInWorld.r2 openInWorld.r3 openInWorld.r1 bounds: (440@10 extent: 80@30).r2 bounds: (440@40 extent: 80@30).r3 bounds: (440@70 extent: 80@30).
+\end{code}
+
+As explained earlier, we are using the same class \ct{CheckboxMorph}, but it works perfectly as radio buttons. Radio buttons are asking the model whether they should turn themselves	on with selectors \ct{#isLeft}, \ct{#isCenter}, \ct{#isRight}. And when the user press the radio button it send message like \ct{#beLeft}, \ct{#beCenter}, \ct{beRight} to the model. Then the model sends message back to the buttons so the they turned on and off property.
+
+Following codes will change their appearance, too.
+
+\begin{code}{}
+r1 beRadioButton.r2 beRadioButton.r3 beRadioButton.2 timesRepeat: [	r1 toggleEnabled.	r2 toggleEnabled.	r3 toggleEnabled.].
+\hjo{Hmm... Hope there is easier why to do this...}
+\end{code}
 
 
+Delete morphs after you are finished using them.
+
+\begin{code}{}
+r1 delete.r2 delete.r3 delete.
+\end{code}
 
 \section{Text fields}
 \subsection{get text}
