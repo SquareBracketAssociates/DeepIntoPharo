@@ -363,14 +363,25 @@ c selected: false. "turn off"
 If \ct{target}, and \ct{actionSelector} is set(setting \ct{arguments} is an option), checkbox can send message to its target.
 
 \begin{code}{}
-m := Morph new.m openInWorld.c :=  CheckboxButtonMorph new.c openInWorld.c target: m.c actionSelector: #toggleCornerRounding.  
+m := Morph new.
+m openInWorld.
+
+c :=  CheckboxButtonMorph new.
+c openInWorld.
+c target: m.
+c actionSelector: #toggleCornerRounding.  
 \end{code}
 
 
 
 \subsection{Radio button}
 
-Radio buttons in Pharo is sharing same classes with checkbox. Only difference is ...
+Radio button in Pharo is sharing same classes with checkbox. Only difference is that it draws a circle than square box if it is sent a message \ct{beRadioButton}. It does not implement any behavior(logic) of radio button, so it is our responsibility to write a good radio button model object that makes sure only one button is turned on, and at least one button is turned on.
+
+Pharo has a model class that is for demonstrating radio buttons, named \ct{ExampleRadioButtonModel}.
+
+
+
 
 \section{Text fields}
 \subsection{get text}
