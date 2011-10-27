@@ -37,13 +37,15 @@
 \newcommand{\Spock}[0]{Spock } %could be alius
 \chapter{Calling Foreign Code with Spock}\label{cha:alien}
 
-Despite of our aim of doing as much as possible directly in Smalltalk (as deeper as the virtual machine itself cf. ChapXX), it is still required in some special cases to call external code written in other languages and compiled in a binary library.
 
-Suppose you want to use OpenGL in Pharo. Then you will face a problem, because the OpenGL libraries
-only know about C and nothing about Smalltalk. To solve this kind of problems there is a
-standard solution, which is to make a \emph{binding} of each C library function to a Smalltalk method, 
-and then to call this methods from Smalltalk code. But the remaining question is, how does a binding call a 
-C function? and also, how do you write such binding? The libraries and mechanisms in charge of doing this kind of work are usually called FFI, for Foreign Function Interface. In this chapter we will help you to use this interface by exposing some practical examples of
+Interacting with the external world is a mandatory element of modern systems. Been able to call libraries is often a key success to business. In this chapter, we will explain you how to do that in Pharo using Foreign Function Interface. 
+
+%Despite of our aim of doing as much as possible directly in Smalltalk (as deeper as the virtual machine itself cf. ChapXX), it is still required in some special cases to call external code written in other languages and compiled in a binary library.
+
+Suppose you want to use OpenGL in Pharo. %Then you will face a problem, because the OpenGL libraries
+%only know about C and nothing about Smalltalk. 
+The solution is to make a \emph{binding} of each C library function to a Smalltalk method,  and then to call these methods from Smalltalk code. But we should answer several questions: how does a binding call a 
+C function? How do you write such binding? How do we pass heap allocated objects? The libraries and mechanisms in charge of doing this kind of work are usually called FFI, for Foreign Function Interface. In this chapter we will help you to use this interface by exposing some practical examples of
 how to solve common problems faced when communicating with other languages.
 
 %There are other possibilities: imagine that you want
@@ -55,20 +57,27 @@ how to solve common problems faced when communicating with other languages.
 %that case, you may ask, which is the way to communicate
 %the high-level smalltalk world with the low level one?
 
-Just to mention, there is another possible approach that would be to invoke C libraries by defining a specific plugin for the virtual machine, but its much more complex and it offers no important advantage compared to the results of using bindings in the same language and with the same constructions you are used to.
+Just to mention, there is another possible approach that would be to invoke C libraries by defining a specific plugin for the virtual machine, but it's more complex and it offers no important advantage compared to the results of using bindings in the same language and with the same constructions you are used to.
 
 We will start to show you how to use \Spock, a new foreign function library. \Spock is based on NativeBoost and previous FFI libraries.\luc{Alien and FFI. cite them here no?}
 
 
-\section{What you need before entering the beast}
+\section{Getting Started}
 
 \luc{Before the section ``calling Ext func'', I think we should first introduce the basics (part of the old ``What is a FFI and how it works?'' section). Because the reader will want to test while reading. And for that he probably will need a special VM (NativeBoost VM), an image with NativeBoost inside, ... }
 
-\begin{code}{}
-Gofer new
-	...
 
+Right now to run Spock, the new FFI library described in this chapter, you will need a vm that has the NativeBoost plugin and  you can find one at \url{https://ci.lille.inria.fr/pharo/job/NB-Cog-Mac-Carbon/}.  
+
+Then you should load in your image, the package \ct{NativeBoost-Installer} that you can load as follows:
+\begin{code}{}
+Gofer it
+        squeaksource: 'NativeBoost';
+        package: 'NativeBoost-Installer';
+        load.
 \end{code}
+
+Once loaded you should execute the following expression: \ct{NBInstaller install.}
 
 
 %\begin{description}
@@ -94,26 +103,24 @@ Gofer new
 
 \section{Calling External Functions}
 
-Some time ago, this wasn't an easy task, but the good news is that since Pharo 1.4, this has become really easy.
-
 Suppose you want to know the amount of time the image has been running by calling the underlying OS function named \ct{clock}. 
-This function is part of the standard C library. Its C declaration is\footnote{According to man its return type is clock\_t instead of int, but we deliberately made it int for the sake of simplicity}:
+This function is part of the standard C library. Its C declaration is\footnote{According to man its return type is clock\_t instead of int, but we deliberately made it int for the sake of simplicity. \sd{how would we deal with that if we do not want/can change clock\_t into int?}}:
 
 \begin{code}{}
 int clock (void)
 \end{code}
 
-To call \ct{clock} from the image, you will need to write a binding, which is a normal method with a \ct{<primitive:module:>}
-pragma, that describes the signature of the C function. Here is the definition. We will explain below the details.
+To call \ct{clock} from the image, you will write a binding, which is a normal method with a \ct{<primitive:module:>} pragma. This pragma describes the signature of the C function. Here is the definition. We  explain below the details.
 
 \begin{code}{}
 CExamples class>>ticksSinceStart
-
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
 	^ NBFFICallout cdecl: #( int clock () ) module: NativeBoost CLibrary
 \end{code}
 
+
+\sd{Igor in 1.4 I get a vmVersion -> deprecated.}
 You can define this method in any class, on its instance or class side.
 It doesn't make any difference. 
 In the above example, we place it on the class side of \ct{CExamples}. 
