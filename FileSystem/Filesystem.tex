@@ -166,6 +166,10 @@ working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' 
 working / 'foo.txt' readStreamDo: [ :stream | stream contents ].
 \end{code}
 
+
+\begin{code}{}
+FSFilesystem disk 	openFileStream: 'authors.txt' writable: true	(FSFilesystem disk workingDirectory / 'authors2.txt') 	writeStreamDo: [ :stream | stream nextPutAll: 'lkhklkjh']
+\end{code}
 Have a look at the streams protocol of FSReference for other convenience methods.
 
 \subsection{Renaming, Copying and Deleting Files and Directories}
