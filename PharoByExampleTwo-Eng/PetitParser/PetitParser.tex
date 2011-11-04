@@ -85,13 +85,13 @@ downloaded.\footnote{\url{http://hudson.lukas-renggli.ch/job/PetitParser/lastSuc
 To load PetitParser into an existing image evaluate the following
 Gofer expression:
 
-\begin{code}{}
+\begin{script}{Installing PetitParser}
 Gofer new
   renggli: 'petit';
   package: 'PetitParser';
   package: 'PetitTests';
   load.
-\end{code}
+\end{script}
 
 There are other packages in the same repository that provide
 additional features, for example PetitSmalltalk is a Smalltalk
@@ -112,31 +112,45 @@ code. For example to write a grammar  parsing identifiers that
 start with a letter followed by zero or more letter or digits is
 defined as follows. In a workspace we evaluate:
 
-\begin{code}{}
+\begin{script}{Creating our first parser to parse identifiers}
 identifier := #letter asParser , #word asParser star.  
-\end{code}
+\end{script}
 
 If you inspect the object identifier you'll notice that it is an
-instance of a PPSequenceParser. This is because the \#, operator
-(comma) created a sequence of a letter and a zero or more word
-character parser. If you dive further into the object you notice the
-following simple composition of different parser objects:
+instance of a \ct{PPSequenceParser}. If you dive further into the
+object you notice the following simple tree of different parser
+objects:
 
-\begin{code}{}
-PPSequenceParser (this parser accepts a sequence of parsers)
-    PPPredicateObjectParser (this parser accepts a single letter)
-    PPRepeatingParser (this parser accepts zero or more instances of another parser)
-       PPPredicateObjectParser (this parser accepts a single word character)  
-\end{code}
+\begin{script}{Composition of parsers used for the identifier parser}
+PPSequenceParser (accepts a sequence of parsers)
+    PPPredicateObjectParser (accepts a single letter)
+    PPPossessiveRepeatingParser (accepts zero or more instances of another parser)
+       PPPredicateObjectParser (accepts a single word character)  
+\end{script}
+
+The root parser is a sequence parser because the \#, operator (comma)
+created a sequence of a letter and zero or more word character
+parser. The first child of the root parser is a predicate object
+parser created by the \ct{#letter asParser} expression. This parser is
+capable of parsing a single letter as defined by the
+\clsmthind{Character}{isLetter} method. %
+The second child of the root parser is a repeating parser created by
+the \ct{star} call. This parser uses its child parser (another
+predicate object parser) as much as possible on the input (\ie{} it is
+a \emph{greedy} parser). Its child parser is a predicate object parser
+created by the \ct{#word asParser} expression. This parser is capable
+of parsing a single digit or letter as defined by the
+\clsmthind{Character}{isDigit} and \clsmthind{Character}{isLetter}
+methods.
 
 \subsection{Parsing Some Input}
 
 To actually parse a string (or stream) we can use the method \ct{#parse:}:
 
-\begin{code}{@Test}
+\begin{script}{Parsing some input strings with the identifier parser}
 identifier parse: 'yeah'.          --> #($y #($e $a $h))
 identifier parse: 'f123'.           --> #($f #($1 $2 $3))
-\end{code}
+\end{script}
 
 While it seems odd to get these nested arrays with characters as a
 return value, this is the default decomposition of the input into a
@@ -145,14 +159,15 @@ parse tree. We'll see in a while how that can be customized.
 If we try to parse something invalid we get an instance of
 \ct{PPFailure} as an answer:
 
-\begin{code}{@Test}
+\begin{script}{Parsing invalid input results in a failure}
 identifier parse: '123'.           --> letter expected at 0
-\end{code}
+\end{script}
 
-Instances of \ct{PPFailure} are the only objects in the system that
-answer with true when you send the message \ct{#isPetitFailure}.
-Alternatively you can also use \ct{#parse:onError:} to throw an
-exception in case of an error:
+This parsing results in a failure because the first character (\ct{1})
+is not a letter. Instances of \ct{PPFailure} are the only objects in
+the system that answer with true when you send the message
+\ct{#isPetitFailure}. Alternatively you can also use
+\ct{#parse:onError:} to throw an exception in case of an error:
 
 \begin{code}{}
 identifier
@@ -163,17 +178,44 @@ identifier
 If you are only interested if a given string (or stream) matches or
 not you can use the following constructs:
 
-\begin{code}{@Test}
-identifier matches: 'foo'.         --> true
+\begin{script}{Checking that some inputs are identifiers}
+identifier matches: 'foo'.        --> true
 identifier matches: '123'.        --> false
-\end{code}
+identifier matches: 'foo()'.      --> true
+\end{script}
 
-Furthermore to find all matches in a given input string (or stream)
-you can use:
+The last result can be quite surprising:%
+indeed, a parenthesis is neither a digit nor a letter as was specified
+by the \ct{#word asParser} expression. In fact, the \ct{identifier}
+parser matches ``aa'' and this is enough for the \ct{matches:} call to
+return \ct{true}. The result would be similar with the use of
+\ct{parse:} which would return \ct{#($f #($o $o))}. %$
+If you want to be sure that the complete input is matched, use
+\clsmthind{PPParser}{end}:
 
-\begin{code}{}
-identifier matchesIn: 'foo 123 bar12'.  
-\end{code}
+\begin{script}{Ensuring that the whole input is matched}
+identifier end matches: 'foo()'.   --> false
+\end{script}
+
+The \ct{end} call creates a new parser that matches the end of input.
+To be able to compose parsers easily, it is important that parsers do
+not match the end of input by default. Because of this, you might be
+interested to find all the places that a parser can match:
+
+\begin{script}{Finding all matches in an input}
+identifier matchesSkipIn: 'foo 123 bar12'.  
+\end{script}
+
+The \clsmthind{PPParser}{matchesSkipIn:} method returns a collection
+of arrays containing what has been matched (\eg{} \ct{#($f #($o $o))}
+and \ct{#($b #($a $r $1 $2))} in this case. This function avoids
+parsing the same character twice. The method
+\clsmthind{PPParser}{matchesIn:} does a similar job but returns a
+collection which also contains sub-parsed elements: \eg{} evaluating
+\ct{identifier matchesIn: 'foo 123 bar12'} returns a collection of 6
+elements: \ct{#($f #($o $o))}, \ct{#($o #($o))}, \ct{#($o #())},
+\ct{#($b #($a $r $1 $2))}, \ct{#($a #($r $1 $2))},%
+and \ct{#($r #($1 $2))}.
 
 Similarly, to find all the matching ranges in the given input string
 (or stream) you can use:
@@ -181,6 +223,8 @@ Similarly, to find all the matching ranges in the given input string
 \begin{code}{}
 identifier matchingRangesIn: 'foo 123 bar12'.  
 \end{code}
+
+
 
 \subsection{Different Kinds of Parsers}
 
