@@ -28,6 +28,15 @@
 \chapter{Lint Rules}
 \chalabel{lintRules}
 
+\begin{code}
+RBTransformationRule subclass: #RBEqualNilRule
+
+RBEqualNilRule>>initialize	super initialize.	self rewriteRule		replace: '``@object = nil' with: '``@object isNil';		replace: '``@object == nil' with: '``@object isNil';		replace: '``@object ~= nil' with: '``@object notNil';		replace: '``@object ~~ nil' with: '``@object notNil'
+
+RBEqualNilRule>>group	^ 'Transformations'
+
+RBEqualNilRule>>name	^ '= nil -> isNil AND ~= nil -> notNil'
+\end{code}
 
 \begin{center}\includegraphics[scale=0.4]{HierarchyRules}\end{center}
 
