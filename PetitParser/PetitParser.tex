@@ -39,8 +39,15 @@
 
 \chapterauthor{\authorlukas{}}
 
-Building parsers to analyse data is a common tasks in software development. In this chapter we present a powerful parser frameworks named PetitParser. And contrary to its name, PetitParser is a really powerful parsing framework combining several technologies (scannerless parsers, parser combinators..).
-PetitParser is written by Lukas Renggli  as part of his work on the Helvetia system but it can be used as a standalone tool.
+\newcommand{\ppmthind}[1]{\clsmthind{PPParser}{#1}}
+
+Building parsers to analyse data is a common tasks in software
+development. In this chapter we present a powerful parser frameworks
+named PetitParser. And contrary to its name, PetitParser is a really
+powerful parsing framework combining several technologies (scannerless
+parsers, parser combinators..). PetitParser is written by Lukas
+Renggli as part of his work on the Helvetia system but it can be used
+as a standalone tool.
 
 
 
@@ -191,7 +198,7 @@ parser matches ``aa'' and this is enough for the \ct{matches:} call to
 return \ct{true}. The result would be similar with the use of
 \ct{parse:} which would return \ct{#($f #($o $o))}. %$
 If you want to be sure that the complete input is matched, use
-\clsmthind{PPParser}{end}:
+\ppmthind{end}:
 
 \begin{script}{Ensuring that the whole input is matched}
 identifier end matches: 'foo()'.   --> false
@@ -204,27 +211,28 @@ interested to find all the places that a parser can match:
 
 \begin{script}{Finding all matches in an input}
 identifier matchesSkipIn: 'foo 123 bar12'.  
+identifier matchesIn: 'foo 123 bar12'.  
+identifier matchingSkipRangesIn: 'foo 123 bar12'.  
+identifier matchingRangesIn: 'foo 123 bar12'.  
 \end{script}
 
-The \clsmthind{PPParser}{matchesSkipIn:} method returns a collection
-of arrays containing what has been matched (\eg{} \ct{#($f #($o $o))}
-and \ct{#($b #($a $r $1 $2))} in this case. This function avoids
-parsing the same character twice. The method
-\clsmthind{PPParser}{matchesIn:} does a similar job but returns a
-collection which also contains sub-parsed elements: \eg{} evaluating
-\ct{identifier matchesIn: 'foo 123 bar12'} returns a collection of 6
-elements: \ct{#($f #($o $o))}, \ct{#($o #($o))}, \ct{#($o #())},
-\ct{#($b #($a $r $1 $2))}, \ct{#($a #($r $1 $2))},%
-and \ct{#($r #($1 $2))}.
+The \ppmthind{matchesSkipIn:} method returns a collection of arrays
+containing what has been matched (\eg{} \ct{#($f #($o $o))} and
+\ct{#($b #($a $r $1 $2))} in this case. This function avoids parsing
+the same character twice. The method \ppmthind{matchesIn:} does a
+similar job but returns a collection which also contains sub-parsed
+elements: \eg{} evaluating \ct{identifier matchesIn: 'foo 123 bar12'}
+returns a collection of 6 elements: \ct{#($f #($o $o))},%
+\ct{#($o #($o))}, \ct{#($o #())}, \ct{#($b #($a $r $1 $2))},%
+\ct{#($a #($r $1 $2))}, and \ct{#($r #($1 $2))}. Similarly, to find
+all the matching ranges (index of first character and index of last
+character) in the given input one can use either
+\ppmthind{matchingSkipRangesIn:} or \ppmthind{matchingRangesIn:}:
+\eg{} evaluating %
+\ct{identifier matchingSkipRangesIn: 'foo 123 bar12'} returns a
+collection with \ct{(1 to: 3)} and \ct{(9 to: 13)}.
 
-Similarly, to find all the matching ranges in the given input string
-(or stream) you can use:
-
-\begin{code}{}
-identifier matchingRangesIn: 'foo 123 bar12'.  
-\end{code}
-
-
+\dc{HERE}
 
 \subsection{Different Kinds of Parsers}
 
