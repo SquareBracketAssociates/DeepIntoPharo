@@ -9,7 +9,11 @@
 
 
 %=================================================================
-\ifx\wholebook\relax\else
+\ifx%
+\wholebook%
+\relax%
+\input{PetitParser/visual-grammar}%
+\else
 % --------------------------------------------
 % Lulu:
 	\documentclass[a4paper,10pt,twoside]{book}
@@ -28,7 +32,8 @@
 %	\usepackage{a4wide}
 % --------------------------------------------
     \graphicspath{{figures/} {../figures/}}
-	\begin{document}
+    \input{visual-grammar}
+    \begin{document}
 \fi
 %=================================================================
 %\renewcommand{\nnbb}[2]{} % Disable editorial comments
@@ -49,7 +54,13 @@ parsers, parser combinators..). PetitParser is written by Lukas
 Renggli as part of his work on the Helvetia system but it can be used
 as a standalone tool.
 
-
+Building parsers to analyse data is a common tasks in software
+development. In this chapter we present a powerful parser frameworks
+named PetitParser. And contrary to its name, PetitParser is a really
+powerful parsing framework combining several technologies (scannerless
+parsers, parser combinators..). PetitParser is written by Lukas
+Renggli as part of his work on the Helvetia system but it can be used
+as a standalone tool.
 
 \section{Writing Parsers with PetitParser}
 
@@ -115,13 +126,45 @@ project.\footnote{\url{http://scg.unibe.ch/research/helvetia/petitparser}}
 \subsection{Writing a Simple Grammar}
 
 Writing grammars with PetitParser is as simple as writing Smalltalk
-code. For example to write a grammar  parsing identifiers that
-start with a letter followed by zero or more letter or digits is
-defined as follows. In a workspace we evaluate:
+code. For example a grammar parsing identifiers that start with a
+letter followed by zero or more letters or digits is defined as
+follows:
 
-\begin{script}{Creating our first parser to parse identifiers}
+\begin{script}[identifier]{Creating our first parser to parse identifiers}
 identifier := #letter asParser , #word asParser star.  
 \end{script}
+
+\tikzgrammarfig{identifier}{
+  {
+    \node (identifier) [production] {identifier:}; \&
+    \node (p1)     [point]       {};           \& 
+    \node (letter) [terminal]    {letter};     \&
+    \node (p3a)    [point]       {};           \& 
+    \node (p3b)    [point]       {};           \& 
+    \node (word)   [terminal] {word};       \&
+    \node (p11a)    [point]       {};           \& 
+    \node (p11b)   [point]       {};           \& 
+    \node (p11c)    [point]       {};           \\
+  };
+  { [start chain]
+    \chainin (p1);
+    \chainin (letter) [join=by tip];
+    \chainin (word)  [join=by tip];
+    \chainin (p11c)     [join=by tip];
+    \chainin (p11b)   [join,join=with p3a by {skip loop=-5mm,tip}];
+    \chainin (p3b)    [join=with p11a by {skip loop=5mm,tip}];
+  }
+}
+
+\syntaxref{identifier} presents a graphical representation, called a
+syntax diagram, of the identifier parser. Such a syntax diagram
+contains squared boxes that represent non terminals (parsers composed
+of other parsers), round boxes that represent terminals (all other
+kinds of parsers), arrows between these boxes, some entry points and
+some exit points. The idea behind this representation is that if an
+input can go from the entry point to the exit point by following the
+arrows and being consumed by the boxes, this input is matched by the
+represented parser.
 
 If you inspect the object identifier you'll notice that it is an
 instance of a \ct{PPSequenceParser}. If you dive further into the
@@ -232,24 +275,30 @@ character) in the given input one can use either
 \ct{identifier matchingSkipRangesIn: 'foo 123 bar12'} returns a
 collection with \ct{(1 to: 3)} and \ct{(9 to: 13)}.
 
-\dc{HERE}
-
 \subsection{Different Kinds of Parsers}
 
 PetitParser provide a large set of ready-made parser that you can
 compose to consume and transform arbitrarily complex languages. The
 terminal parsers are the most simple ones. We've already seen a few of
-those:
+those, some more are defined in \tabref{terminal-parsers}.
 
-\begin{tabular}{ll}
-\textbf{Terminal Parsers} 	& \textbf{Description}\\
-\midrule
-\$a asParser      & 	Parses the character \$a.\\
-'abc' asParser   & 	Parses the string 'abc'.\\
-\#any asParser    &	Parses any character.\\
-\#digit asParser  & 	Parses the digits 0..9.\\
-\#letter asParser & 	Parses the letters a..z and A..Z.\\
-\end{tabular}
+\begin{table}
+  \centering
+  \begin{tabular}{ll}
+    \textbf{Terminal Parsers} & \textbf{Description}                                \\
+    \midrule
+    \$a asParser              & Parses the character \$a.                           \\
+    'abc' asParser            & Parses the string 'abc'.                            \\
+    \#any asParser            & Parses any character.                               \\
+    \#digit asParser          & Parses one digit (0..9).                            \\
+    \#letter asParser         & Parses one letter (a..z and A..Z).                  \\
+    \#word asParser           & Parses a digit or letter.                           \\
+    \#blank asParser          & Parses a space or a tabulation.                     \\
+    \#newline asParser        & Parses the carriage return or line feed characters. \\
+  \end{tabular}
+  \caption{PetitParser pre-defines a multitude of terminal parsers}
+  \label{tab:terminal-parsers}
+\end{table}
 
 The class side of \ct{PPPredicateObjectParser} provides a lot of other
 factory methods that can be used to build more complex terminal
@@ -257,49 +306,94 @@ parsers. To use them, send the message \ct{asParser} to a symbol
 containing the name of the factory method (such as \ct{#punctuation}
 \ct{asParser}).
 
-The next set of parsers are used to combine other parsers together:
+The next set of parsers are used to combine other parsers together and
+is defined in \tabref{parser-combinators}.
 
-\begin{tabular}{lp{.6\textwidth}}
-\textbf{Parser Combinators} & \textbf{Description}\\
-\midrule
-p1 , p2     & Parses p1 followed by p2 (sequence).\\
-p1 / p2     & Parses p1, if that doesn't work parses p2 (ordered choice).\\
-p star      & Parses zero or more p.\\
-p plus      & Parses one or more p.\\
-p optional  & Parses p if possible.\\
-p and 	    & Parses p but does not consume its input.\\
-p not       & Parses p and succeed when p fails, but does not consume its input.\\
-p end 	    & Parses p and succeed at the end of the input.  \\
-\end{tabular}
+\begin{table}
+  \centering
+  \begin{tabular}{lp{.6\textwidth}}
+    \textbf{Parser Combinators} & \textbf{Description}                                                \\
+    \midrule
+    p1 , p2                     & Parses p1 followed by p2 (sequence).                                \\
+    p1 / p2                     & Parses p1, if that doesn't work parses p2.                          \\
+    p star                      & Parses zero or more p.                                              \\
+    p plus                      & Parses one or more p.                                               \\
+    p optional                  & Parses p if possible.                                               \\
+    p and                       & Parses p but does not consume its input.                            \\
+    p negate                    & Parses p and succeeds when p fails.                                 \\
+    p not                       & Parses p and succeeds when p fails, but does not consume its input. \\
+    p end                       & Parses p and succeeds only at the end of the input.                 \\
+  \end{tabular}
+  \caption{PetitParser pre-defines a multitude of parser combinators}
+  \label{tab:parser-combinators}
+\end{table}
 
-So instead of using the \ct{#word} predicated we could have written
-our identifier parser like this:
+So instead of using the \ct{#word} predicate we could have written
+our identifier parser like this (see also \syntaxref{identifier2}):
 
-\begin{code}{}
-identifier := #letter asParser , (#letter asParser / #digit asParser) star.
-\end{code}
+\begin{script}[identifier2]{Another way of defining the identifier parser}
+identifier2 := #letter asParser , (#letter asParser / #digit asParser) star.
+\end{script}
 
-To attach an action or transformation to a parser we can use the following methods:
+\tikzgrammarfig{identifier2}{
+  {
+    \node (identifier2) [production] {identifier2:}; \&
+    \node (p1)     [point]       {};           \& 
+    \node (letter1) [terminal]    {letter};     \&
+    \node (p2a)    [point]       {};           \& 
+    \node (p2b)    [point]       {};           \& 
+    \node (letter2)   [terminal] {letter};       \&
+    \node (p3a)    [point]       {};           \& 
+    \node (p3b)   [point]       {};           \& 
+    \node (p3c)    [point]       {};           \\
 
-\begin{tabular}{ll}
-\textbf{Action Parsers} & 	\textbf{Description}\\
-\midrule
-p ==> aBlock & 	Performs the transformation given in aBlock.\\
-p flatten    & 	Creates a string from the result of p.\\
-p token      &	Creates a token from the result of p.\\
-p trim       &	Trims whitespaces before and after p.
-\end{tabular}
+
+    \& \& \& \& 
+    \node (p10)   [point]       {};           \& 
+    \node (digit)   [terminal] {digit};       \& 
+    \node (p11)   [point]       {};           \& \\
+  };
+  { [start chain]
+    \chainin (p1);
+    \chainin (letter1) [join=by tip];
+    \chainin (letter2)  [join=by tip];
+    \chainin (p3c)     [join=by tip];
+    \chainin (p2a)    [join=with p3b by {skip loop=5mm,tip}];
+    \chainin (p10)    [join=with p2b];
+    \chainin (digit)  [join=by tip];
+    \chainin (p11)  [join];
+    \chainin (p3a)    [join=with p11 by tip];
+  }
+}
+
+To attach an action or transformation to a parser we can use one of
+the methods defined in \tabref{action-parsers}.
+
+\begin{table}
+  \centering
+  \begin{tabular}{ll}
+    \textbf{Action Parsers} & 	\textbf{Description}                                                  \\
+    \midrule
+    p ==> aBlock            & Performs the transformation given in \lct{aBlock}.                          \\
+    p flatten               & Creates a string from the result of p.                                      \\
+    p token                 & Similar to \lct{flatten} but returns a \lct{PPToken} with more information. \\
+    p trim                  & Trims whitespaces before and after p.                                       \\
+  \end{tabular}
+  \caption{PetitParser pre-defines a multitude of action parsers}
+  \label{tab:action-parsers}
+\end{table}
 
 To return a string of the parsed identifier, we can modify our parser
 like this:
 
-\begin{code}{}
-identifier := (#letter asParser , (#letter asParser / #digit asParser) star) flatten.
-\end{code}
+\begin{script}{Using flatten so that the parsing result is a string}
+identifier3 := (#letter asParser , (#letter asParser / #digit asParser) star) flatten.
+\end{script}
 
 These are the basic elements to build parsers. There are a few more
-well documented and tested factory methods in the operations protocol
-of PPParser. If you want browse that protocol.
+well documented and tested factory methods in the \ct{operators}
+protocols of \ct{PPParser}. If you want to know more about these
+factory methods, browse these protocols.
 
 \subsection{Writing a More Complicated Grammar}
 
@@ -307,25 +401,155 @@ Now we are able to write a more complicated grammar for evaluating
 simple arithmetic expressions. Within a workspace we start with the
 grammar for a number (actually an integer):
 
-\begin{code}{@Test}
-number :=  #digit asParser plus token trim ==> [ :token | token value asNumber ].
+\begin{script}[number]{Parsing integers}
+number :=  #digit asParser plus trim ==> [ :string | string asNumber ].
 number parse: '123'             --> 123
-\end{code}
+\end{script}
 
-Then we define the productions for addition and multiplication in
-order of precedence. Note that we instantiate the productions as
-\ct{PPDelegateParser} upfront, because they recursively refer to each
-other. The method \ct{#setParser:} then resolves this recursion.
+\tikzgrammarfig{number}{
+  {
+    \node (number) [production] {number:}; \&
+    \node (p1a)     [point]       {};           \& 
+    \node (p1b)     [point]       {};           \& 
+    \node (digit) [terminal]    {digit};     \&
+    \node (p2a)    [point]       {};           \& 
+    \node (p2b)    [point]       {};           \\
+  };
+  { [start chain]
+    \chainin (p1a);
+    \chainin (digit) [join=by tip];
+    \chainin (p2b)     [join=by tip];
+    \chainin (p1b)    [join=with p2a by {skip loop=5mm,tip}];
+  }
+}
 
-\begin{code}{}
+The \ct{trim} call allows the parser to accept spaces before and after
+the number such as in \ct{' 123 '}. The action block asks the parser
+to convert any parsed string to a number using the
+\clsmthind{String}{asNumber} method.
+
+The next step is to define the productions for addition and
+multiplication in order of precedence. Note that we instantiate the
+productions as \ct{PPDelegateParser} upfront, because they recursively
+refer to each other. The method \ct{#setParser:} then resolves this
+recursion. The following script defines three parsers for the
+addition, multiplication and parenthesis (see \syntaxref{arithmetic}
+for the related syntax diagram):
+
+\begin{script}[arithmetic]{Parsing arithmetic expressions}
 term := PPDelegateParser new.
 prod := PPDelegateParser new.
 prim := PPDelegateParser new.
  
-term setParser: (prod , $+ asParser trim , term ==> [ :nodes | nodes first + nodes last ]) / prod.
-prod setParser: (prim , $* asParser trim , prod ==> [ :nodes | nodes first * nodes last ]) / prim.
-prim setParser: ($( asParser trim , term , $) asParser trim ==> [ :nodes | nodes second ]) / number.
-\end{code}
+term setParser: (prod , $+ asParser trim , term ==> [ :nodes | nodes first + nodes last ])
+                     / prod.
+prod setParser: (prim , $* asParser trim , prod ==> [ :nodes | nodes first * nodes last ])
+                     / prim.
+prim setParser: ($( asParser trim , term , $) asParser trim ==> [ :nodes | nodes second ])
+                     / number.
+\end{script}
+
+The term parser is defined as being either (1) a prod followed by '+',
+followed by another term or (2) a prod. In case (1), an action block
+asks the parser to compute the arithmetic addition of the value of the
+first node (a prod) and the last node (a term). The prod parser is
+similar to the term parser. The prim parser is interesting in that it
+accepts left and right parenthesis before and after a term and has an
+action block that simply ignores them.
+
+\begin{figure}
+  \centering
+\tikzgrammar{
+  {
+    \node (term) [production] {term:};           \&
+    \node (p1a)     [point]       {};           \& 
+    \node (p1b)     [point]       {};           \& 
+    \node (p1c)     [point]       {};           \& 
+    \node (prod1) [nonterminal]    {prod};      \&
+    \node (p2)     [point]       {};            \& 
+    \node (plus) [terminal]    {+};             \&
+    \node (p3)    [point]       {};             \\
+
+    \& 
+    \& 
+    \& 
+    \node (p10)     [point]       {};           \& 
+    \node (prod2) [nonterminal]    {prod};     \&
+    \&
+    \&
+    \&
+    \node (p11)    [point]       {};           \\
+    \\
+    \node (prod) [production] {prod:}; \&
+    \node (p21a)     [point]       {};           \& 
+    \node (p21b)     [point]       {};           \& 
+    \node (p21c)     [point]       {};           \& 
+    \node (prim1) [nonterminal]    {prim};     \&
+    \node (p22)     [point]       {};           \& 
+    \node (mult) [terminal]    {*};     \&
+    \node (p23)    [point]       {};           \\
+
+    \& 
+    \& 
+    \& 
+    \node (p30)     [point]       {};           \& 
+    \node (prim2) [nonterminal]    {prim};     \&
+    \&
+    \&
+    \&
+    \node (p31)    [point]       {};           \\
+    \\
+    \node (prim) [production] {prim:}; \&
+    \node (p41a)     [point]       {};           \& 
+    \node (p41b)     [point]       {};           \& 
+    \node (lpar) [terminal]    {(};     \&
+    \node (term4) [nonterminal]    {term};     \&
+    \node (p43)    [point]       {};         \&
+    \node (rpar) [terminal]    {)};     \&
+    \node (p44a)     [point]       {};           \& 
+    \node (p44b)     [point]       {};             \\
+    \&
+    \& 
+    \node (p51)     [point]       {};           \& 
+    \&
+    \node (number5) [nonterminal]    {number};     \&
+    \&
+    \&
+    \node (p52)     [point]       {};           \\
+  };
+    {[start chain]
+    \chainin (p1a);
+    \chainin (prod1) [join=by tip];
+    \chainin (plus) [join=by tip];
+    \chainin (p3)    [join];
+    \chainin (p1b)    [join=with p3 by {skip loop=5mm,tip}];
+    \chainin (p10)    [join=with p1c];
+    \chainin (prod2)    [join=by tip];
+    \chainin (p11)    [join=by tip];
+
+    \chainin (p21a);
+    \chainin (prim1) [join=by tip];
+    \chainin (mult) [join=by tip];
+    \chainin (p23)    [join];
+    \chainin (p21b)    [join=with p23 by {skip loop=5mm,tip}];
+    \chainin (p30)    [join=with p21c];
+    \chainin (prim2)    [join=by tip];
+    \chainin (p31)    [join=by tip];
+
+    \chainin (p41a);
+    \chainin (lpar) [join=by tip];
+    \chainin (term4) [join=by tip];
+    \chainin (rpar) [join=by tip];
+    \chainin (p44b)    [join=by tip];
+    \chainin (p51) [join=with p41b];
+    \chainin (number5) [join=by tip];
+    \chainin (p52) [join];
+    \chainin (p44a) [join=by tip];
+  }
+}
+  \caption{Syntax diagram representation for the term, prod, and prim parsers defined in \scrref{arithmetic}}
+  \label{fig:syntax-arithmetic}
+\end{figure}
 
 To make sure that our parser consumes all input we wrap it with the
 \ct{end} parser into the \ct{start} production:
@@ -334,7 +558,7 @@ To make sure that our parser consumes all input we wrap it with the
 start := term end.
 \end{code}
 
-That's it, now we can test our parser and evaluator:
+That's it, we can now test our parser:
 
 \begin{code}{@Test}
 start parse: '1 + 2 * 3'.       --> 7
@@ -567,7 +791,24 @@ ExpressionPrinterTest>>testNumber
   self assert: result equals: '123'
 \end{code}
 
-\subsection{Chapter Conclusion}
+\section{Debugging a Grammar}
+
+PetitParser comes with tools to help debug a grammar. These tools are
+mostly written by Tudor Girba using the Glamour framework (see
+\charef{glamour}).
+
+\section{Example Grammars}
+
+In this section we illustrate PetitParser through the presentation of
+various parsers.
+
+\subsection{Parsing Java annotations}
+
+% ask fabrizio
+
+\subsection{Parsing Smalltalk}
+
+\section{Chapter Conclusion}
 
 This concludes our tutorial of PetitParser. Please note that this
 tutorial is not meant to give an exhaustive overview of PetitParser,

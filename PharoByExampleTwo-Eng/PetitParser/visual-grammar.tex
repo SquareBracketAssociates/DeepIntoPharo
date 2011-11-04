@@ -1,0 +1,71 @@
+\usetikzlibrary{chains,positioning,matrix,scopes,decorations.shapes,arrows,shapes}
+
+
+% fuer Railroad-Diagramme
+\tikzset{
+  production/.style={
+    % The shape:
+    rectangle,
+    % The size:
+    minimum size=6mm,
+    % The border:
+    % very thin,
+    % draw=red!50!black!50,         % 50% red and 50% black,
+    %                               % and that mixed with 50% white
+    % % The filling:
+    % top color=white,              % a shading that is white at the top...
+    % bottom color=red!50!black!20, % and something else at the bottom
+    % Font
+    font=\sffamily
+  },
+  nonterminal/.style={
+    % The shape:
+    rectangle,
+    % The size:
+    minimum size=6mm,
+    % The border:
+    very thick,
+    draw=red!50!black!50,         % 50% red and 50% black,
+                                  % and that mixed with 50% white
+    % The filling:
+    top color=white,              % a shading that is white at the top...
+    bottom color=red!50!black!20, % and something else at the bottom
+    % Font
+    font=\ttfamily
+  },
+  terminal/.style={
+    % The shape:
+    rounded rectangle,
+    minimum size=6mm,
+    % The rest
+    very thick,draw=black!50,
+    top color=white,bottom color=black!20,
+    font=\ttfamily},
+  skip loop/.style={to path={-- ++(0,#1) -| (\tikztotarget)}}
+}
+{
+  \tikzset{terminal/.append style={text height=1.5ex,text depth=.25ex}}
+  \tikzset{nonterminal/.append style={text height=1.5ex,text depth=.25ex}}
+}
+
+\newcommand{\tikzgrammar}[1]{%
+    \begin{tikzpicture}[point/.style={coordinate},>=stealth',thick,draw=black!50,%
+      tip/.style={->,shorten >=0.007pt},every join/.style={},%
+      hv path/.style={to path={-| (\tikztotarget)}},%
+      vh path/.style={to path={|- (\tikztotarget)}},%
+      text height=1.5ex,text depth=.25ex]%
+      \matrix[ampersand replacement=\&,column sep=4mm, row sep=4mm]%
+      #1
+    \end{tikzpicture}%
+}
+
+\newcommand{\tikzgrammarfig}[2]{%
+  \begin{figure}
+    \centering
+    \tikzgrammar{#2}
+    \caption{Syntax diagram representation for the #1 parser defined in \scrref{#1}}
+\label{fig:syntax-#1}
+\end{figure}
+}
+
+\newcommand{\syntaxref}[1]{\figref{syntax-#1}}
