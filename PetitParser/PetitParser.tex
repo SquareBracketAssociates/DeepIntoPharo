@@ -167,7 +167,7 @@ arrows and being consumed by the boxes, this input is matched by the
 represented parser.
 
 If you inspect the object identifier you'll notice that it is an
-instance of a \ct{PPSequenceParser}. If you dive further into the
+instance of a \clsind{PPSequenceParser}. If you dive further into the
 object you notice the following simple tree of different parser
 objects:
 
@@ -195,7 +195,8 @@ methods.
 
 \subsection{Parsing Some Input}
 
-To actually parse a string (or stream) we can use the method \ct{#parse:}:
+To actually parse a string (or stream) we can use the method
+\ppmthind{parse:}:
 
 \begin{script}{Parsing some input strings with the identifier parser}
 identifier parse: 'yeah'.          --> #($y #($e $a $h))
@@ -207,17 +208,17 @@ return value, this is the default decomposition of the input into a
 parse tree. We'll see in a while how that can be customized.
 
 If we try to parse something invalid we get an instance of
-\ct{PPFailure} as an answer:
+\clsind{PPFailure} as an answer:
 
 \begin{script}{Parsing invalid input results in a failure}
 identifier parse: '123'.           --> letter expected at 0
 \end{script}
 
 This parsing results in a failure because the first character (\ct{1})
-is not a letter. Instances of \ct{PPFailure} are the only objects in
+is not a letter. Instances of \clsind{PPFailure} are the only objects in
 the system that answer with true when you send the message
 \ct{#isPetitFailure}. Alternatively you can also use
-\ct{#parse:onError:} to throw an exception in case of an error:
+\ppmthind{parse:onError:} to throw an exception in case of an error:
 
 \begin{code}{}
 identifier
@@ -300,7 +301,7 @@ those, some more are defined in \tabref{terminal-parsers}.
   \label{tab:terminal-parsers}
 \end{table}
 
-The class side of \ct{PPPredicateObjectParser} provides a lot of other
+The class side of \clsind{PPPredicateObjectParser} provides a lot of other
 factory methods that can be used to build more complex terminal
 parsers. To use them, send the message \ct{asParser} to a symbol
 containing the name of the factory method (such as \ct{#punctuation}
@@ -392,7 +393,7 @@ identifier3 := (#letter asParser , (#letter asParser / #digit asParser) star) fl
 
 These are the basic elements to build parsers. There are a few more
 well documented and tested factory methods in the \ct{operators}
-protocols of \ct{PPParser}. If you want to know more about these
+protocols of \clsind{PPParser}. If you want to know more about these
 factory methods, browse these protocols.
 
 \subsection{Writing a More Complicated Grammar}
@@ -402,7 +403,7 @@ simple arithmetic expressions. Within a workspace we start with the
 grammar for a number (actually an integer):
 
 \begin{script}[number]{Parsing integers}
-number :=  #digit asParser plus trim ==> [ :string | string asNumber ].
+number :=  #digit asParser plus token trim ==> [ :token | token value asNumber ].
 number parse: '123'             --> 123
 \end{script}
 
@@ -423,14 +424,16 @@ number parse: '123'             --> 123
   }
 }
 
-The \ct{trim} call allows the parser to accept spaces before and after
-the number such as in \ct{' 123 '}. The action block asks the parser
-to convert any parsed string to a number using the
+The \ct{token} call allows to get a token in the action block instead
+of an array. The \ct{trim} call allows the parser to accept spaces
+before and after the number such as in \ct{' 123 '}. The action block
+asks the parser to convert any parsed string (fetched from the token
+using \clsmthind{PPToken}{value}) to a number using the
 \clsmthind{String}{asNumber} method.
 
 The next step is to define the productions for addition and
 multiplication in order of precedence. Note that we instantiate the
-productions as \ct{PPDelegateParser} upfront, because they recursively
+productions as \clsind{PPDelegateParser} upfront, because they recursively
 refer to each other. The method \ct{#setParser:} then resolves this
 recursion. The following script defines three parsers for the
 addition, multiplication and parenthesis (see \syntaxref{arithmetic}
@@ -560,45 +563,44 @@ start := term end.
 
 That's it, we can now test our parser:
 
-\begin{code}{@Test}
+\begin{script}{Trying our arithmetic expressions evaluator}
 start parse: '1 + 2 * 3'.       --> 7
 start parse: '(1 + 2) * 3'.     --> 9
-\end{code}
+\end{script}
 
 \section{Composite Grammars with PetitParser}
 
 In the previous section we saw the basic principles of PetitParser and
 gave some introductory examples. In this section we are going to
 present a way to define more complicated grammars. We continue where
-we left off the last time, with the expression grammar.
+we left off with the arithmetic expression grammar.
 
 Writing parsers as a script as we did previously can be cumbersome,
-especially if grammar productions that are mutually recursive and
-refer to each other in complicated ways. Furthermore a grammar
-specified in a single script makes it unnecessary hard to reuse
-specific parts of that grammar. Luckily there is
-\ct{PPCompositeParser} to the rescue.
+especially when grammar productions are mutually recursive and refer
+to each other in complicated ways. Furthermore a grammar specified in
+a single script makes it unnecessary hard to reuse specific parts of
+that grammar. Luckily there is \clsind{PPCompositeParser} to the rescue.
 
 \section{Defining the Grammar}
 
 As an example let's create a composite parser using the same
 expression grammar we built in the last section:
 
-\begin{code}{}
+\begin{script}{Creating a class to hold our arithmetic expression grammar}
 PPCompositeParser subclass: #ExpressionGrammar
    instanceVariableNames: ''
    classVariableNames: ''
    poolDictionaries: ''
    category: 'PetitTutorial'
-\end{code}
+\end{script}
 
 Again we start with the grammar for an integer number. Define the
-method \ct{number} in \ct{ExpressionGrammar} as follows:
+method \clsmthind{ExpressionGrammar}{number} as follows:
 
-\begin{code}{}
+\begin{script}{Implementing our first parser as a method}
 ExpressionGrammar>>number
    ^ #digit asParser plus token trim ==> [ :token | token value asNumber ]
-\end{code}
+\end{script}
 
 Every production in \ct{ExpressionGrammar} is specified as a method
 that returns its parser. Next we define the productions \ct{term},
@@ -610,7 +612,7 @@ initialize them for you automatically. We let Pharo automatically add
 the necessary instance variables as we refer to them for the first
 time.
 
-\begin{code}{}
+\begin{script}{Defining more expression grammar parsers, this time with no associated action}
 ExpressionGrammar>>term
    ^ add / prod
 
@@ -628,33 +630,35 @@ ExpressionGrammar>>prim
 
 ExpressionGrammar>>parens
    ^ $( asParser trim , term , $) asParser trim
-\end{code}
+\end{script}
 
 Contrary to our previous implementation we do not define the
-production actions yet; and we factor out the parts for addition
-(\ct{add}), multiplication (\ct{mul}), and parenthesis (\ct{parens})
-into separate productions. This will give us better reusability later
-on. Usually, production methods are categorized in a protocol named
-\ct{grammar} (which can be refined into more specific protocol names
-when necessary such as \ct{grammar-literals}).
+production actions yet (what we previously did by using
+\ppmthind{==>}); and we factor out the parts for addition (\ct{add}),
+multiplication (\ct{mul}), and parenthesis (\ct{parens}) into separate
+productions. This will give us better reusability later on. Usually,
+production methods are categorized in a protocol named \ct{grammar}
+(which can be refined into more specific protocol names when necessary
+such as \ct{grammar-literals}).
 
 Last but not least we define the starting point of the expression
-grammar. This is done by overriding start in the
-\ct{ExpressionGrammar} class:
+grammar. This is done by overriding
+\clsmthind{PPCompositeParser}{start} in the \ct{ExpressionGrammar}
+class:
 
-\begin{code}{}
+\begin{script}{Defining the starting point of our expression grammar parser}
 ExpressionGrammar>>start
    ^ term end
-\end{code}
+\end{script}
 
 Instantiating the \ct{ExpressionGrammar} gives us an expression parser
 that returns a default abstract-syntax tree:
 
-\begin{code}{@Test}
+\begin{script}{Testing our parser on simple arithmetic expressions}
 parser := ExpressionGrammar new.
 parser parse: '1 + 2 * 3'.       --> #(1 $+ #(2 $* 3))
 parser parse: '(1 + 2) * 3'.     --> #(#($( #(1 $+ 2) $)) $* 3)
-\end{code}
+\end{script}
 
 \section{Defining the Evaluator}
 
@@ -662,18 +666,19 @@ Now that we have defined a grammar we can reuse this definition to
 implement an evaluator. To do this we create a subclass of
 \ct{ExpressionGrammar} called \ct{ExpressionEvaluator}.
 
-\begin{code}{}
+\begin{script}{Separating the grammar from the evaluator by creating a subclass}
 ExpressionGrammar subclass: #ExpressionEvaluator
    instanceVariableNames: ''
    classVariableNames: ''
    poolDictionaries: ''
    category: 'PetitTutorial'
-\end{code}
+\end{script}
 
 We then redefine the implementation of \ct{add}, \ct{mul} and
-\ct{parens} with our evaluation semantics:
+\ct{parens} with our evaluation semantics. This is accomplished by
+calling the super implementation and adapting the returned parser as follows:
 
-\begin{code}{}
+\begin{script}{Refining the definition of some parsers to evaluate arithmetic expressions}
 ExpressionEvaluator>>add
    ^ super add ==> [ :nodes | nodes first + nodes last ]
 
@@ -682,28 +687,20 @@ ExpressionEvaluator>>mul
 
 ExpressionEvaluator>>parens
    ^ super parens ==> [ :nodes | nodes second ]
-\end{code}
+\end{script}
 
 The evaluator is now ready to be tested:
 
-\begin{code}{@Test}
+\begin{script}{Testing our evaluator on simple arithmetic expressions}
 parser := ExpressionEvaluator new.
 parser parse: '1 + 2 * 3'.       --> 7
 parser parse: '(1 + 2) * 3'.     --> 9
-\end{code}
+\end{script}
 
 Similarly a pretty printer can be defined by subclassing
-\ct{ExpressionGrammar}:
+\ct{ExpressionGrammar} as follows:
 
-\begin{code}{@Test}
-parser := ExpressionPrinter new.
-parser parse: '1+2 *3'.          --> '1 + 2 * 3'
-parser parse: '(1+ 2 )* 3'.      --> '(1 + 2) * 3'
-\end{code}
-
-This is done with the following code:
-
-\begin{code}{}
+\begin{script}{Separating the grammar from the pretty printer by creating a subclass}
 ExpressionGrammar subclass: #ExpressionPrinter
   instanceVariableNames: ''
   classVariableNames: ''
@@ -721,41 +718,56 @@ ExpressionPrinter>>number
 
 ExpressionPrinter>>parens
   ^ super parens ==> [:node | '(', node second, ')']
-\end{code}
+\end{script}
+
+This pretty printer can be tried out as follows:
+
+\begin{script}{Testing our pretty printer on simple arithmetic expressions}
+parser := ExpressionPrinter new.
+parser parse: '1+2 *3'.          --> '1 + 2 * 3'
+parser parse: '(1+ 2 )* 3'.      --> '(1 + 2) * 3'
+\end{script}
 
 \section{Testing a Grammar}
 
-Testing a grammar is done by subclassing \ct{PPCompositeParserTest} as
-follows:
+The PetitParser contains a framework dedicated to testing your
+grammars. Testing a grammar is done by subclassing
+\clsind{PPCompositeParserTest} as follows:
 
-\begin{code}{}
+\begin{script}{Creating a class to hold the tests for our arithmetic expression grammar}
 PPCompositeParserTest subclass: #ExpressionGrammarTest
   instanceVariableNames: ''
   classVariableNames: ''
   poolDictionaries: ''
   category: 'PetitTutorial'
-\end{code}
+\end{script}
 
-Then, the parser class should be defined in the corresponding method:
+It is then important that the test case class references the parser
+class: this is done by overriding the
+\clsmthind{PPCompositeParserTest}{parserClass} method in
+\ct{ExpressionGrammarTest}:
 
-\begin{code}{}
+\begin{script}{Linking our test case class to our parser}
 ExpressionGrammarTest>>parserClass
   ^ ExpressionGrammar
-\end{code}
+\end{script}
 
-Tests can then be written in separate methods:
+Writing a test scenario can be done by implementing new methods in
+\ct{ExpressionGrammarTest}:
 
-\begin{code}{}
+\begin{script}{Implementing tests for our arithmetic expression grammar}
 ExpressionGrammarTest>>testNumber
   self parse: '123 ' rule: #number.
 
 ExpressionGrammarTest>>testAdd
   self parse: '123+77' rule: #add.
-\end{code}
+\end{script}
 
-Testing the evaluator and printer is similarly easy:
+These tests ensure that the \ct{ExpressionGrammar} parser can parse
+some expressions using a specified production rule. Testing the
+evaluator and pretty printer is similarly easy:
 
-\begin{code}{}
+\begin{script}{Testing the evaluator and pretty printer}
 ExpressionGrammarTest subclass: #ExpressionEvaluatorTest
   instanceVariableNames: ''
   classVariableNames: ''
@@ -789,7 +801,7 @@ ExpressionPrinterTest>>testAdd
 ExpressionPrinterTest>>testNumber
   super testNumber.
   self assert: result equals: '123'
-\end{code}
+\end{script}
 
 \section{Debugging a Grammar}
 
@@ -820,9 +832,12 @@ Renggli's PhD have a dedicated chapter dedicated.
 
 %=============================================================
 \ifx\wholebook\relax\else
-   \bibliographystyle{jurabib}
-   \nobibliography{scg}
-   \end{document}
+% To avoid warning message about undefined labels (that should be
+% defined by other chapters)
+\label{cha:glamour}
+\bibliographystyle{jurabib}
+\nobibliography{scg}
+\end{document}
 \fi
 %=============================================================
 
@@ -838,4 +853,4 @@ Renggli's PhD have a dedicated chapter dedicated.
 %%% TeX-PDF-mode: t
 %%% ispell-local-dictionary: "english"
 %%% End:
-% LocalWords:  subclassing
+% LocalWords:  subclassing PetitParser
