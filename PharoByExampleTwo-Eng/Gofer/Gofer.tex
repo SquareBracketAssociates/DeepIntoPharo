@@ -477,12 +477,28 @@ This message should be sent to a block giving a list of questions and their answ
 
 
 \section{Some useful scripts}
-Here is a script to fetch all the packages of a given project. This is useful to grab all your files and get a version locally.
+Gofer offers a nice facility to get all the packages in a given repository via the message \ct{allResolved}. 
 
-\begin{code}{}
+\begin{script}[]{Getting the number of package in a repository.}
+(Gofer new
+	squeaksource: 'Pharo';
+	allResolved) size
+\end{script}
+
+The following script groups the package versions by packages and returns a dictionary with. It can be handy to get some idea of the most committed package.
+\begin{script}[]{Grouping versions by package names.}
+(Gofer new
+	squeaksource: 'Pharo';
+	allResolved)
+	groupedBy: [:each | each packageName])
+\end{script}
+
+\subsection{Fetching packages}
+Here is a script to fetch all the packages of a given repository. This is useful to grab all your files and get a version locally.
+
+\begin{script}[]{Fetching all the packages of a repository}
 | go |
-go := Gofer new.
-go squeaksource: 'Pharo14'.
+go := Gofer new squeaksource: 'Pharo'.
 go allResolved
 	do: [:each |
 			self crLog: each packageName.
@@ -490,12 +506,16 @@ go allResolved
 				squeaksource: 'Pharo14';
 				package: each packageName;
 				fetch]
-\end{code}
+\end{script}
 
+
+	
+
+\subsection{Publishing local files}
 
 The following script publishes files from your local cache to a given repository.
 
-\begin{code}{}
+\begin{script}[]{How to publish package files to a new repository}
 | go |
 go := Gofer new.
 go repository: (MCHttpRepository
@@ -508,7 +528,7 @@ go repository: (MCHttpRepository
 	fileAndDirectoryNames
 		select: [:each | '*.mcz' match: each])
 					do: [:f | go version: ('.' join: (f findTokens: $.) allButLast); push]
-\end{code}
+\end{script}
 
 \section{Chapter Summary}
 Gofer provides a robust and stable implementation to script the
