@@ -140,29 +140,32 @@ Here is a typical Gofer script: it says that we want to load the package \ct{PBE
 
 \begin{code}{}
 Gofer new
-    url: 'http://www.squeaksource.com/PBE2GoferExample';
-    package:'PBE2GoferExample';
-    load
+    !\textbf{url:}! 'http://www.squeaksource.com/PBE2GoferExample';
+    !\textbf{package:}! 'PBE2GoferExample';
+    !\textbf{load}!
 \end{code}
 
-When the repository (HTTP or FTP) requires an identification, the message \ct{url:username:password:} is available.  The message \ct{directory:} supports the access to local files. 
+When the repository (HTTP or FTP) requires an identification, the message \ct{url:username:password:} is available. Pay attention this is a single message so do not put cascade in between.  The message \ct{directory:} supports the access to local files. 
 
 \begin{code}{}
 Gofer new
-    "we work on the project PBE2GoferExample"
+    !\textbf{url:}! 'http://www.squeaksource.com/PBE2GoferExample'	
+    !\textbf{username:}! 'pharoUser'
+    !\textbf{password:}! 'pharoPwd';   
+	package: 'PBE2GoferExample'; 		
+	load.	
+\end{code}
+
+\begin{code}{}
+"we work on the project PBE2GoferExample and provide credentials"
+Gofer new
     url: 'http://www.squeaksource.com/PBE2GoferExample'	
-    "we specify a user name"
     username: 'pharoUser'
-    "we specify a password" 
-    password: 'pharoPwd'; 
-    "we define the package to be loaded"
-    package:'PBE2GoferExample'; 
-    "we disable the lookup of package in the local cache"
-    disablePackageCache; 
-    "we stop the error raising"
-    disableRepositoryErrors; 
-    "we load the specified package"
-    load.
+    password: 'pharoPwd';     
+    package: 'PBE2GoferExample'; 						"define the package to be loaded"
+    !\textbf{disablePackageCache}!; 							"disable package lookup in local cache"
+    !\textbf{disableRepositoryErrors}!; 					"stop the error raising"
+    load.									"load the package"
 \end{code}
 
 
@@ -171,7 +174,7 @@ In such a case you do not need to specify the full path as shown with the next s
 
 \begin{code}{}
 Gofer new
-    squeaksource: 'PBE2GoferExample';
+    !\textbf{squeaksource:}! 'PBE2GoferExample';
     package: 'PBE2GoferExample'; 
     load
 \end{code}
@@ -196,7 +199,7 @@ The following example load the version 2 of the package.
 \begin{code}{}
 Gofer new
     squeaksource: 'PBE2GoferExample';
-    version: 'PBE2GoferExample-janniklaval.1';
+    !\textbf{version:}! 'PBE2GoferExample-janniklaval.1';
     load
 \end{code}
 
@@ -207,7 +210,8 @@ For example the following code will load the latest version of the package saved
 \begin{code}{}
 Gofer new
     squeaksource: 'PBE2GoferExample';
-    package: 'PBE2GoferExample' constraint: [ :version | version author = 'janniklaval' ];
+    !\textbf{package:}! 'PBE2GoferExample' 
+    !\textbf{constraint:}! [ :version | version author = 'janniklaval' ];
     load
 \end{code}
 
