@@ -643,7 +643,7 @@ Now we can now load \ct{CoolToolSet} like this:
 \end{code}
 
 
-\subsubsection{For unconventional projects}
+\subsection{For unconventional projects}
 
 Now if the project you depend on does not follow the default convention you will have to provide more information to identify
 the configuration. Let's also assume  that the class \ct{ConfigurationOfCoolBrowser} is stored in a Monticello package called \ct{CoolBrowser-Metacello} instead of the recommended \ct{ConfigurationOfCoolBrowser}. This will help us to understand the role of each parameter. 
@@ -677,8 +677,6 @@ If the Monticello repository is protected, then you should use the message: \ct{
 \ab{I've taken a guess at the meaning of \ct{file:}.  If I'm right, then the name of this message should be changed to \ct{package:}.}
 \sd{I agree. Dale could we change file: into package:?}
 
-Note that if the package name had followed the normal convention, and had been the same as the class name, then the \ct{file:} message could have been omitted.
-
 \item The \ct{versionString:} and \ct{loads:} messages specify which version of the project and which packages or groups to load.  The parameter of \ct{loads:} can be the name of a package, or the name of a group, or a collection of these things.
 
 \ab{So I could have said \ct{loads: 'ALL';} and that would have meant the same thing?  If so, why didn't I?  And why is this message \ct{loads:} rather than \ct{load:} like the others?}
@@ -697,7 +695,8 @@ Note that if the package name had followed the normal convention, and had been t
 
 
 
-\paragraph{Multiple entries.}
+\subsection{Multiple Entries}
+
 Using 'ALL' will cause the entire \ct{CoolBrowser} project to be loaded before \ct{'CoolToolSet-Core'}. 
 If we wanted to specify dependencies on CoolBrowser's test package separately from those on the core package, we might define this baseline:
 
@@ -710,12 +709,12 @@ ConfigurationOfCoolToolSet >>baseline02: spec
               spec project: 'CoolBrowser default' with: [
                             spec
                                    versionString: '0.6';
-                                   loads: #('default' );
+                                   loads: #('default' );  "defined in the previous section"
                                    repository: 'http://www.example.com/CoolBrowser' ];
                      project: 'CoolBrowser Tests' with: [
                             spec
                                    versionString: '0.6';
-                                   loads: #('Tests' );
+                                   !\textbf{loads:}! #('Tests' );
                                    repository: 'http://www.example.com/CoolBrowser' ].
               spec 
                      package: 'CoolToolSet-Core' with: [ spec requires: 'CoolBrowser default' ];
@@ -723,7 +722,8 @@ ConfigurationOfCoolToolSet >>baseline02: spec
                             spec requires: #('CoolToolSet-Core'  'CoolBrowser Tests'  ) ].].                     
 \end{code}
 
-This creates \emph{two} project references: the reference named \ct{'CoolBrowser default'} loads the 'default' group and the reference named 'CoolBrowser Tests'  loads the 'Tests' group of the configuration of Cool Browser. We declared that \ct{'CoolToolSet-Core'} require \ct{'CoolBrowser default'} and \ct{'CoolToolSet-Tests'} require \mbox{\ct{'CoolToolSet-Core'}} and \ct{'CoolBrowser Tests'}.
+
+This baseline creates \emph{two} project references: the reference named \ct{'CoolBrowser default'} loads the 'default' group and the reference named 'CoolBrowser Tests'  loads the 'Tests' group of the configuration of Cool Browser. We declared that \ct{'CoolToolSet-Core'} require \ct{'CoolBrowser default'} and \ct{'CoolToolSet-Tests'} require \mbox{\ct{'CoolToolSet-Core'}} and \ct{'CoolBrowser Tests'}.
 
 Now it is possible to load just the core packages:
 
@@ -731,13 +731,33 @@ Now it is possible to load just the core packages:
 (ConfigurationOfCoolToolSet project version: '0.2') load: 'CoolToolSet-Core'.
 \end{code}
 
-\sd{where 1.1 is coming from?}
 \noindent
 or the core including tests:
 \begin{code}{}
   (ConfigurationOfCoolToolSet project version: '0.2') load: 'CoolToolSet-Tests'.
 \end{code}
 
+
+In  \ct{baseline02}, and also in \ct{baseline01}, we did something that is not always useful: we put the version of the referenced projects (\ct{versionString: '0.6'}) in the baseline instead of in the version method. If the project on which you are depending changes often, and you want to follow the changes,  this will force you to update your baseline frequently, which is undesirable. So, depending on the context, it may be better to specify this version in the version method instead of in the baseline method using the message \mthind{project:with:}: 
+
+\begin{code}{}
+ConfigurationOfCoolToolSet>>version02: spec 
+       <version: '0.2' imports: #('0.2-baseline' )>
+       spec for: #common do: [
+              spec blessing: #beta.
+              spec 
+                     package: 'CoolToolSet-Core' with: 'CoolToolSet-Core-AlanJay.1';
+                     package: 'CoolToolSet-Tests' with: 'CoolToolSet-Tests-AlanJay.1';
+                     !\textbf{project:}! 'CoolBrowser default' !\textbf{with:}! '1.3';
+                     !\textbf{project:}! 'CoolBrowser Tests' !\textbf{with:}! '1.3'].
+\end{code}
+
+\ab{Why \ct{with:} and not \ct{versionString:}?  Elsewhere, \ct{with:} has been used for general overrides and takes a block.}
+
+If we don't define a version for the references \ct{'CoolBrowser default'}  and \ct{'CoolBrowser Tests'} in the version method, then the version specified in the baseline is used. If there is no version specified in the baseline method, then Metacello loads the most recent version of the project.
+
+
+\paragraph{Reusing information.}
 As you can see, in \ct{baseline02:} information is duplicated in the two project references. To remove that duplication, we can use the \ct{project:copyFrom:with:} method.  For example:
 
 \begin{code}{}
@@ -760,23 +780,7 @@ ConfigurationOfCoolToolSet >>baseline02: spec
                             spec requires: #('CoolToolSet-Core' 'CoolBrowser Tests') ].].                                   
 \end{code}
 
-In this baseline,  and also in \ct{baseline01}, we did something that is not always useful: we put the version of the referenced projects in the baseline instead of in the version method. If you look at \ct{baseline01} you can see that we used \ct{versionString: '0.6'}.  If the project on which you are depending changes often, and you want to follow the changes,  this will force you to update your baseline frequently, which is undesirable.  So, depending on the context, it may be better to specify this version in the version method instead of in the baseline method using the message \mthind{project:with:}: 
 
-\begin{code}{}
-ConfigurationOfCoolToolSet>>version02: spec 
-       <version: '0.2' imports: #('0.2-baseline' )>
-       spec for: #common do: [
-              spec blessing: #beta.
-              spec 
-                     package: 'CoolToolSet-Core' with: 'CoolToolSet-Core-AlanJay.1';
-                     package: 'CoolToolSet-Tests' with: 'CoolToolSet-Tests-AlanJay.1';
-                     !\textbf{project:}! 'CoolBrowser default' !\textbf{with:}! '1.3';
-                     !\textbf{project:}! 'CoolBrowser Tests' !\textbf{with:}! '1.3'].
-\end{code}
-
-\ab{Why \ct{with:} and not \ct{versionString:}?  Elsewhere, \ct{with:} has been used for general overrides and takes a block.}
-
-If we don't define a version for the references \ct{'CoolBrowser default'}  and \ct{'CoolBrowser Tests'} in the version method, then the version specified in the baseline is used. If there is no version specified in the baseline method, then Metacello loads the most recent version of the project.
 
 \section{Executing code before and after installation}
 \sd{skipped it for now.}
@@ -851,7 +855,7 @@ In this example, we added pre and post load scripts at project level. Again, the
 
 Suppose that we want to have different packages loaded depending on the platform the configuration is loaded in. In the context of our example our Cool Browser we can have a package called \ct{CoolBrowser-Platform}. There we can define abstract classes, APIs, etc. And then, we can have the following packages: \ct{CoolBrowser-PlatformPharo}, \ct{CoolBrowser-PlatformGemstone}, etc.
 
-Metacello automatically loads the package of the platform where we are loading the code. But to do that, we need to give Metacello  platform specific information using the method \ct{for:do:} as shown in the following example.
+Metacello automatically loads the package of the used platform. But to do that, we need to give Metacello platform specific information using the method \ct{for:do:} as shown in the following example.
 
 \begin{code}{} 
 ConfigurationOfCoolBrowser>>version09: spec 
@@ -867,8 +871,6 @@ ConfigurationOfCoolBrowser>>version09: spec
               spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformGemstone-BobJones.4'.].
        !\textbf{spec for: \#pharo do: [}!
               spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformPharo-JohnLewis.7'.].
-       !\textbf{spec for: \#squeak do: [}!
-              spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-JohnLewis-dkh.3'.].
 \end{code}
 
 You see that the version can handle different platform.
@@ -900,8 +902,6 @@ ConfigurationOfCoolBrowser>>baseline09: spec
               spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformGemstone'.].
        !\textbf{spec for: \#pharo do: [}!
               spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformPharo'.].
-       !\textbf{spec for: \#squeak do: [}!
-              spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformSqueak'.].
 \end{code}
 
 Notice that we add the package \ct{CoolBrowser-Platform} in the \ct{Core} group. As you can see, we can manage this package as any other and in a uniform way. Thus, we have a lot of flexibility. At runtime, when you load CoolBrowser, Metacello automatically detects in which dialect the load is happening and loads the specific package for that dialect.         
@@ -960,7 +960,7 @@ In addition, the addons and tests are not available for Gemstone, and thus, thos
 
 
 \section{Symbolic Versions}
-In any large evolving application relying on other applications and libraries, it is difficult to know which version of a configuration to use with a specific versions. This is especially true for Pharo applications where some people should maintained applications developed for a given version, while others are working on the latest build.
+In any large evolving application relying on other applications and libraries, it is difficult to know which version of a configuration to use with a specific version. This is especially true for Pharo applications where some people should maintained applications developed for a given version, while others are working on the latest build.
 
 \ct{ConfigurationOfOmniBrowser} provides a good example of the problem: 
 version 1.1.3 is used in the Pharo1.0 one-click image,  version 1.1.3 cannot be loaded into Pharo1.2,  version 1.2.3 is currently the latest \ct{development} version aimed at Pharo1.2, and version 1.2.3 cannot be loaded into Pharo1.0. 
