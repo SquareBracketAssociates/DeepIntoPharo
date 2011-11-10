@@ -960,14 +960,10 @@ In addition, the addons and tests are not available for Gemstone, and thus, thos
 
 
 \section{Symbolic Versions}
-In any large evolving application relying on other applications and libraries, it is difficult to know which version of a configuration to use with a specific version. This is especially true for Pharo applications where some people should maintained applications developed for a given version, while others are working on the latest build.
+In any large evolving application, it is difficult to know which version of a configuration to use with a specific version. 
+\ct{ConfigurationOfOmniBrowser} provides a good example of the problem: version 1.1.3 is used in the Pharo1.0 one-click image,  version 1.1.3 cannot be loaded into Pharo1.2, version 1.1.5 is for Pharo1.1, version 1.2.3 is for Pharo1.2, and it cannot load in Pharo1.0. 
 
-\ct{ConfigurationOfOmniBrowser} provides a good example of the problem: 
-version 1.1.3 is used in the Pharo1.0 one-click image,  version 1.1.3 cannot be loaded into Pharo1.2,  version 1.2.3 is currently the latest \ct{development} version aimed at Pharo1.2, and version 1.2.3 cannot be loaded into Pharo1.0. 
-
-Obviously version 1.1.3 should be used in Pharo1.0 and version 1.2.3 should be used in Pharo1.2. Now up until recently there is no way for a developer to communicate this information to his users using Metacello.
-
-The latest version of Metacello introduces \emph{symbolic versions} whose purpose is to provide a way to describe versions in terms of existing literal versions (like 1.1.3, 1.1.5 and 1.2.3). Symbolic versions are specified using the \ct{symbolicVersion:} pragma:
+Metacello introduces \emph{symbolic versions} to describe versions in terms of existing literal versions (like 1.1.3, 1.1.5, and 1.2.3). Symbolic versions are specified using the \ct{symbolicVersion:} pragma. Here we defined the stable versions for OmniBrowser for each version of Pharo.
 
 \begin{code}{}
 OmniBrowser>>stable: spec
@@ -982,80 +978,46 @@ to a project reference in a baseline version:
 
 \begin{code}{}
 baseline10: spec
-  <version: '1.0-baseline'>
-  spec for: #squeakCommon do: [
-     spec blessing: #baseline.
-     spec repository: 'http://seaside.gemstone.com/ss/GLASSClient'.
+     <version: '1.0-baseline'>
+     spec for: #squeakCommon do: [
+          spec blessing: #baseline.
+          spec repository: 'http://seaside.gemstone.com/ss/GLASSClient'.
      spec
-        project: 'OmniBrowser' with: [
+          project: 'OmniBrowser' with: [
           spec
-             className: 'OmniBrowser';
-             !\textbf{versionString: \#stable;}!
-             repository: 'http://www.squeaksource.com/MetacelloRepository' ].
+               className: 'OmniBrowser';
+               !\textbf{versionString: \#stable;}!
+               repository: 'http://www.squeaksource.com/MetacelloRepository' ].
      spec
          package: 'OB-SUnitGUI' with: [
-            spec requires: #( 'OmniBrowser') ];
+               spec requires: #('OmniBrowser') ];
          package: 'GemTools-Client' with: [
-            spec requires: #( 'OB-SUnitGUI'. ) ];
+               spec requires: #('OB-SUnitGUI') ];
          package: 'GemTools-Platform' with: [
-            spec requires: #( 'GemTools-Client'. ) ]].
-\end{code}
-Note that the \ct{#stable} here override the bleeding edge loading behavior that you would get if you would be (fool enough) to load a baseline (remeber loading a baseline loads bleeding edge versions). Here we make sure that the stable version of OmniBrowser for your platform will be loaded (and not the latest one).
-    
-%%version number
-%%stable = I do not care except that I want a certified version for the platform.
-%%development = I do not care except that I want a certified version for the platform but in dev mode.
-%%bleedingEdge = latest (file)
-
-    
-    
-    
-    
-    
-\subsection{Project Blessing and Loading}
-
-In software development it is very common that packages or projects pass through several stages or steps during the software development process or life cycle such as for example, development, alpha, beta,  release, release candidate, etc. Sometimes we want to refer also to the state of a project.
- %or sometimes we just want to use any other tag that may be useful. The blessing attribute can be used for all of these cases. --- would be better tohave separated tag: attributes.
-
-\sd{Not sure if the following is up to date}
-Blessings are taken into account by the load logic. The result of the following expression:
-\begin{code}{}
-ConfigurationOfCoolBrowser project latestVersion.
-\end{code}
-is not always the last version.  This is because \ct{latestVersion} answers the latest version whose blessing is {\em not} \ct{#development}, \ct{#broken}, or \ct{#blessing}. To find the latest \ct{#development} version for example, you should execute this expression:
-
-\begin{code}{}
-ConfigurationOfCoolBrowser project latestVersion: #development.
+               spec requires: #('GemTools-Client') ]].
 \end{code}
 
-Nevertheless, you can get the very last version independently of blessing using the \ct{lastVersion} method as illustrated below
-
-\begin{code}{}
-ConfigurationOfCoolBrowser project lastVersion.
-\end{code}
-
-In general, the \ct{#development} blessing should be used for any version that is unstable. Once a version has stabilized, a different blessing should be applied.
-
-The following expression will load the latest version of all of the packages for the latest \ct{#baseline} version:
- \begin{code}{}
-(ConfigurationOfCoolBrowser project latestVersion: #baseline) load.
-\end{code}
-
-Since the latest \ct{#baseline} version should reflect the most up-to-date project structure, executing the previous expression loads the absolute bleeding edge version of the project. 
-
+Note that the \ct{#stable} here override the bleeding edge loading behavior that you would get if you would be (fool enough) to load a baseline (remember loading a baseline loads bleeding edge versions). Here we make sure that the stable version of OmniBrowser for your platform will be loaded (and not the latest one). The next section is about the different symbolic versions.
+    
+   
+    
 
 
 \subsection{Standard Symbolic Versions}
+%%version number
+%%stable = I do not care except that I want a certified version for the platform.
+%%development = I do not care except that I want a certified version for the platform but in dev mode.
+%%bleedingEdge = latest (file) 
 
-A couple of standard symbolic versions have already been defined:
+A couple of standard symbolic versions are defined:
 
 \begin{description}
-\item [bleedingEdge.]  A symbolic version that specifies the latest mcz files and project versions. By default the \ct{bleedingEdge} symbolic version is defined as the latest baseline version available. The default specification for \ct{bleedingEdge} is defined for all projects. The \ct{bleedingEdge} version is primarily for developers who know what they are doing. There are no guarantees that the \ct{bleedingEdge} version will even load, let alone function correctly.
+\item [stable.] A symbolic version specifies the stable literal version for a particular platform. The stable version is the version that should be used for loading. With the exception of the \ct{bleedingEdge} version (which has a pre-defined default defined), you will need to edit your configuration to add the \ct{stable} or \ct{development} version information. \emph{I want a certified version for the platform.}
 
-\item [development.] A symbolic version that specifies the literal version to use under development (i.e., whose blessing is \ct{development}). Typically a \ct{development} version is used by developers for managing pre-release activities as the project transitions from \ct{bleedingEdge} to \ct{stable}. There are a number of \ct{MetacelloToolBox} methods that take advantage of the \ct{development} symbolic version.
+\item [development.] A symbolic version that specifies the literal version to use under development (i.e., whose blessing is \ct{development}). Typically a \ct{development} version is used by developers for managing pre-release activities as the project transitions from \ct{bleedingEdge} to \ct{stable}. There are a number of \ct{MetacelloToolBox} methods that take advantage of the \ct{development} symbolic version. \emph{I want a certified version for the platform but in development mode.}
 
-\item [stable.] A symbolic version specifies the stable literal version for a particular platform. The stable version is the version that should be used for loading.
-With the exception of the \ct{bleedingEdge} version (which has a pre-defined default defined), you will need to edit your configuration to add the \ct{stable} or \ct{development} version information.
+\item [bleedingEdge.]  A symbolic version that specifies the latest mcz files and project versions. By default the \ct{bleedingEdge} symbolic version is defined as the latest \emph{baseline} version available. The default specification for \ct{bleedingEdge} is defined for all projects. The \ct{bleedingEdge} version is primarily for developers who know what they are doing. There are no guarantees that the \ct{bleedingEdge} version will even load, let alone function correctly. \emph{I want the latest published file.}
+
 \end{description}
 
 \sd{I have the impression that this is not clear. it would be good to have an example from something stable and may from moose?}
@@ -1088,6 +1050,39 @@ development: spec
 
 Here this indicates that there are no version for the \ct{common} tag. 
 Using a symbolic version that resolves to \ct{notDefined} will result in a \ct{MetacelloSymbolicVersionNotDefinedError} being signaled.
+
+
+%%%%%%%%%    
+\subsection{Project Blessing and Loading}
+Packages or projects pass through several stages or steps during the software development process or life cycle such as for example, development, alpha, beta, release. Sometimes we want to refer also to the state of a project.
+
+\sd{Not sure if the following is up to date}
+Blessings are taken into account by the load logic. The result of the following expression:
+\begin{code}{}
+ConfigurationOfCoolBrowser project latestVersion.
+\end{code}
+is not always the last version.  This is because \ct{latestVersion} answers the latest version whose blessing is {\em not} \ct{#development}, \ct{#broken}, or \ct{#blessing}. To find the latest \ct{#development} version for example, you should execute this expression:
+
+\begin{code}{}
+ConfigurationOfCoolBrowser project latestVersion: #development.
+\end{code}
+
+Nevertheless, you can get the very last version independently of blessing using the \ct{lastVersion} method as illustrated below
+
+\begin{code}{}
+ConfigurationOfCoolBrowser project lastVersion.
+\end{code}
+
+In general, the \ct{#development} blessing should be used for any version that is unstable. Once a version has stabilized, a different blessing should be applied.
+
+The following expression will load the latest version of all of the packages for the latest \ct{#baseline} version:
+ \begin{code}{}
+(ConfigurationOfCoolBrowser project latestVersion: #baseline) load.
+\end{code}
+
+Since the latest \ct{#baseline} version should reflect the most up-to-date project structure, executing the previous expression loads the absolute bleeding edge version of the project. 
+
+
 
 The following is the definition for the \ct{bleedingEdge} symbolic version: \sd{not sure that it is ok to show here}
 
