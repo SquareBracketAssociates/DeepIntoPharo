@@ -310,7 +310,231 @@ array}
 
 As you should notice, this time Spock takes care of finding out the memory address where aByteArray lives and sends a pointer to it as the first argument. After executing the example you can see that the byte array elements were actually changed. This is an important difference with strings. The expertise user would notice that string functions in c language expects to receive a pointer to contiguos memory bytes ending with a null character to delimit its length. \Spock is responsible for copying the string to a bigger buffer and insterting this special end character. This means that strings are passed by-copy, while on the other hand byte arrays are passed by reference!. Also for expertise users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be carefull about this special behavior. At the moment this book is written the FFI library doesn't support asyncronics calls so strange behavior is not possible, but we have to be very carefull when facing with c pointer arguments to Smalltalk's memory.
 
-\subsection{More advanced examples}
+\subsection{More advanced example: wrapping Cairo library}
+
+Cairo is a drawing library written in C. Here we present
+the basis of writing a wrapper for it, which should be
+complete enough to write any wrapper for any C library.
+
+\subsubsection*{Small example}
+
+Whenever you want to start writing a wrapper, you should do
+it this way: find the smallest piece of code you can find 
+that uses that library, and wrap everything you need to make
+it work from Smalltalk. Then you can go on adding more and
+more to the wrapped functionality. 
+
+In this example we have a minimal program that uses Cairo
+library, taken from Cairo's FAQ \jp{Add url to it}.
+It creates a cairo surface, puts some text on it
+and renders everything to a PNG.
+
+\begin{code}{C}
+#include <cairo.h>
+
+int
+main (int argc, char *argv[])
+{
+        cairo_surface_t *surface =
+            cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 240, 80);
+        cairo_t *cr =
+            cairo_create (surface);
+
+        cairo_select_font_face (cr, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+        cairo_set_font_size (cr, 32.0);
+        cairo_set_source_rgb (cr, 0.0, 0.0, 1.0);
+        cairo_move_to (cr, 10.0, 50.0);
+        cairo_show_text (cr, "Hello, world");
+
+        cairo_destroy (cr);
+        cairo_surface_write_to_png (surface, "hello.png");
+        cairo_surface_destroy (surface);
+        return 0;
+}
+\end{code}
+
+The way we will work then is to wrap everything we find in
+our way from the first to the last line. In order to wrap a
+library, you should get its reference documentation, so that
+you know exactly which are its structures, and functions.
+We start by creating some classes for all Cairo structures
+that are going to be used here and there in the wrapper.
+
+We create a class for all the library's constants (we will
+fill them later):
+
+\begin{classdef}{}
+SharedPool subclass: #NBCairoConstants
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'NBCairo-Core'
+\end{classdef}
+
+and a class for all the library's typedefs and enums (we will
+also fill them later):
+
+\begin{classdef}{}
+SharedPool subclass: #NBCairoTypes
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'NBCairo-Core'
+\end{classdef}
+
+Notice that both of them are Shared Pools. We now create a base
+class for structures used in the wrapper, putting the shared pools,
+so that we can use all of them in the derived classes. 
+
+\begin{classdef}{}
+NBExternalObject subclass: #NBCairoHandle
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: 'NBCairoConstants NBCairoTypes'
+	category: 'NBCairo-Core'
+\end{classdef}
+
+Finally, to wrap the first line of main function we will create a
+class to represent a Cairo surface.
+
+\begin{classdef}{}
+NBCairoHandle subclass: #NBCairoSurface
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'NBCairo-Core'
+\end{classdef}
+
+With most well written libraries, the contents of the structures
+they declare is private to their internals. They are opaque, in the
+sense that you may not know nor care what bits they have inside,
+because you only change them through calls to the library.
+For that kind of structures, Spock has the NBExternalObject.
+Our wrapping classes inherit from NBExternalObject, which is
+made for this situation, where don't need to fill the fields
+of the structs.
+
+Now, NBCairoSurface is described as an abstract structure, 
+there are different concrete ones, like the image surface,
+so we add it as a subclass.
+
+
+\begin{classdef}{}
+NBCairoSurface subclass: #NBCairoImageSurface
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'NBCairo-Core'
+\end{classdef}
+
+Then we can finally create a factory method, to wrap the \verb|cairo_image_surface_create| function. We go to the class side and
+we enter:
+
+\begin{code}{}
+NBCairoImageSurface class>>create: aFormat width: aWidth height: aHeight
+
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ self call: #(NBCairoImageSurface !cairo\_image\_surface\_create! (int aFormat,
+                                                         int aWidth,
+                                                         int aHeight) )
+\end{code}
+
+and of course, we shouldn't forget to wrap the code that destroys the instance on the C side, but this time on the instance side of the NBCairoSurface class:
+
+\begin{code}{}
+NBCairoSurface>>destroy
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ self call: #(void !cairo\_surface\_destroy! (NBCairoSurface self) )
+
+\end{code}
+
+In the creation method, we declare the function as returning a
+NBCairoImageSurface, but actually it is returning a cairo\_surface\_t
+pointer. The same happens on the destroy method which is described
+as an NBCairoSurface, but actually is a cairo\_surface\_t pointer.
+In both cases, spock takes care of the conversion.
+
+
+
+
+This methods are almost working. To finish, we add some helper
+functions to the NBCairoHandle class, the one which was going
+to contain some useful configuration:
+
+\begin{code}{}
+NBCairoHandle class>>libraryHandle
+	^NativeBoost forCurrentPlatform loadModule: '/usr/lib/libcairo.so.2'
+
+NBCairoHandle>>libraryHandle
+	^self class libraryHandle
+	
+NBCairoHandle(both instance and class side)>>call: fnSpec
+	" you can override this method if you need to"
+
+	| sender |
+	
+	sender := thisContext sender.
+	^ NBFFICallout  
+		handleFailureIn: sender
+		nativeCode: [ :gen |
+			gen
+				sender: sender;
+				cdecl;
+				generateCall: fnSpec module: self libraryHandle]
+\end{code}
+\jp{we should change something in order to remove this last method}
+
+Now to be able to test a bit, we have to add some more things. We add 
+cairo\_status\_t (which is an enum) to the NBCairoTypes.
+
+   
+\begin{classdef}{}
+SharedPool subclass: #NBCairoTypes
+	instanceVariableNames: ''
+	classVariableNames: '!cairo\_status\_t!'
+	poolDictionaries: ''
+	category: 'NBCairo-Core'
+\end{classdef}
+
+\begin{code}{}
+NBCairoTypes class>>initialize
+
+	"self initialize"
+		
+	!cairo\_status\_t! := #int
+\end{code}
+
+and we doit:
+
+\dothis{NBCairoTypes initialize}.
+
+so that cairo\_status\_t gets initialized. The, we add a method to
+the NBCairoSurface class:
+
+\begin{code}{}
+NBCairoSurface>>status
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ self call: #(!cairo\_status\_t cairo\_surface\_status! (NBCairoSurface self) )
+\end{code}
+
+We are now ready to test just a bit. Take a second and save the
+image now. Remember that if you wrongly specify the parameters
+of an FFI call, you could crash the image.
+
+To test that everything is working do print this in a workspace:
+
+\dothis{
+surface := NBCairoImageSurface new.
+surface status
+}
+
+If everything is fine, status should be 0. Then don't forget
+to destroy the surface:
+
+\dothis{surface destroy}
 
 \subsubsection{Loading code from other libraries}
 
