@@ -542,6 +542,111 @@ to destroy the surface:
 
 \dothis{surface destroy}
 
+
+To make the example complete, let's add the final pieces needed.
+
+Here is how the original example will look after translating
+it to use the wrapper:
+
+\begin{code}{}
+CairoExamples>>minimalProgram
+	"
+	self new minimalProgram
+	"
+	
+	| surface context fileName |
+	surface := NBCairoImageSurface create: CAIRO_FORMAT_ARGB32 width: 240 height: 80.
+	context := surface createContext.
+	context selectFont: 'serif' slant: CAIRO_FONT_SLANT_NORMAL weight: CAIRO_FONT_WEIGHT_BOLD;
+			setFontSize: 32.0;
+			setSourceR: 0.0 G: 0.0 B: 1.0;
+			moveToX: 10.0 Y: 50.0;
+			showText: 'Hello, world';
+			destroy.
+	
+	fileName := (FileDirectory default / 'Hello.png') fullName.
+	surface writeToPng: fileName.
+	surface destroy.
+
+	Form openImageInWindow: fileName
+\end{code}
+
+
+but before it works we have to add some constants and types.
+\verb|CAIRO_FORMAT_ARGB32| is a constant defined on
+\verb|cairo_format_t|, and we are using constants for
+font slants and font weights too. For each enum we add
+a type on NBCairoTypes and its constants to NBCairoConstants:
+
+\begin{code}
+SharedPool subclass: #NBCairoConstants
+	instanceVariableNames: ''
+	classVariableNames: 'CAIRO_FONT_SLANT_ITALIC CAIRO_FONT_SLANT_NORMAL CAIRO_FONT_SLANT_OBLIQUE CAIRO_FONT_WEIGHT_BOLD CAIRO_FONT_WEIGHT_NORMAL CAIRO_FORMAT_A1 CAIRO_FORMAT_A8 CAIRO_FORMAT_ARGB32 CAIRO_FORMAT_INVALID CAIRO_FORMAT_RGB16_565 CAIRO_FORMAT_RGB24'
+	poolDictionaries: ''
+	category: 'NBCairo-Core'
+
+SharedPool subclass: #NBCairoTypes
+	instanceVariableNames: ''
+	classVariableNames: 'cairo_font_slant_t cairo_font_weight_t cairo_status_t'
+	poolDictionaries: ''
+	category: 'NBCairo-Core'
+\end{code}
+
+and then we add the code to initialize these variables:
+
+\begin{code}{}
+NBCairoTypes class>>initialize
+
+	"self initialize"
+		
+	cairo_status_t := cairo_font_slant_t := cairo_font_weight_t := #int
+
+
+NBCairoConstants class>>initialize
+
+	"enum cairo_format_t"
+	CAIRO_FORMAT_INVALID :=  -1.
+	CAIRO_FORMAT_ARGB32 :=  0.
+	CAIRO_FORMAT_RGB24 := 1.
+	CAIRO_FORMAT_A8 := 2.
+	CAIRO_FORMAT_A1 := 3.
+	CAIRO_FORMAT_RGB16_565 := 4
+	
+	"enum cairo_font_slant_t"
+    CAIRO_FONT_SLANT_NORMAL := 0.
+    CAIRO_FONT_SLANT_ITALIC := 1.
+    CAIRO_FONT_SLANT_OBLIQUE := 2
+    
+	"enum _cairo_font_weight_t"
+    CAIRO_FONT_WEIGHT_NORMAL := 0.
+    CAIRO_FONT_WEIGHT_BOLD := 1.
+\end{code}
+
+don't forget to \dothis{NBCairoConstants initialize}
+and \dothis{NBCairoTypes initialize}.
+
+As a last step, you need to wrap the remaining functions.
+We leave here a last example and the rest of them you can
+take the code from the NBCairo repository on squeaksource.
+
+\begin{classdef}{}
+NBCairoSurface subclass: #NBCairoImageSurface
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'NBCairo-Core'
+\end{classdef}
+
+\begin{code}{}
+CairoContext>>selectFont: aFamily slant: slant weight: aWeight
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ self call: #(void cairo_select_font_face (NBCairoContext self,
+                                                         String aFamily,
+                                                         cairo_font_slant_t slant,
+                                                         cairo_font_weight_t aWeight) )
+\end{code}
+
 \subsubsection{Loading code from other libraries}
 
 \subsubsection{Using C structures}
