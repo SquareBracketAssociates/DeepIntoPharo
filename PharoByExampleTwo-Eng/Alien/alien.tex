@@ -136,23 +136,29 @@ CExamples ticksSinceStart
 
 
 \subsection{Analysis}
-\sd{I will refactor that text}
-What we have just done is usually called an FFI callout. \ct{NBFFICallout} is the class that represents this behavior, which is essentially a call to an external function.
-We use the  message \ct{#cdecl:module:} to describe this call. 
-This message has two arguments: the signature of the function that is about to be called and the module (or library) where to look for it which is the standard C library in this example. 
-The signature is described by an array whose first element is the C return type and the second is the name of the called function.
-The third and last element is also an array which describe the arguments of the function when there's any. 
+Now that the call worked, let us look at the definition again:
 
-Notice that the return type is \ct{int} and not \ct{SmallInteger}. 
-This is the same with function arguments. 
-They are all describe in terms of C language.
-But you don't have to bother with this because the \Spock library does an automatic conversion between C types and Smalltalk types.
-So, when this message is executed, the return value will be a \ct{SmallInteger}. 
+\begin{code}{}
+CExamples class>>ticksSinceStart
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ NBFFICallout cdecl: #( int clock () ) module: NativeBoost CLibrary
+\end{code}
+
+\paragraph{Callout.}
+What we have just done is usually called an FFI \emph{callout}. \ct{NBFFICallout} is the class that defines behavior to perform such calls to external functions. We use the  message \ct{#cdecl:module:} to describe this call. 
+
+This message has two arguments: the \emph{signature of the function} that is about to be called and the \emph{module or library} where to look for it which is the standard C library in this example. 
+
+The signature is described by an array whose first element is the C return type and the second is the name of the called function.
+The third element is also an array which describes the arguments of the function when there's any. 
+
+\paragraph{About conversion.} The return type is \ct{int} and not \ct{SmallInteger}. This is the same with function arguments. They are all describe in terms of C language. But you don't have to bother with this because the \Spock library does an automatic conversion between C types and Smalltalk types. So, when this message is executed, the return value will be a \ct{SmallInteger}. 
 This conversion process for types from different languages is called \emph{marshaling}.
 We will see more examples of automatic conversions in this chapter. 
 
-As you will see later there are always three things to take into account when doing
-callouts:
+There are always three things to take into account when doing
+callouts: \sd{what are we describing? the method body or the ... NBFFICallout cdecl:  module: NativeBoost CLibrary}
 
 \begin{description}
 \item [C header.] The definition of the function from a C point of view. In the last example:
@@ -161,7 +167,7 @@ callouts:
 int clock (void)
 \end{code}
 
-\item [Pragma declaration.] The Smalltalk code that describes the C header and `binds' Smalltalk arguments to C arguments. In this case it was:
+\item [Pragma declaration.] The Smalltalk code that describes the C header and `binds' Smalltalk arguments to C arguments. In this case it was: \sd{is it the pragma primitive: primitiveNativeCall module: }
 
 \begin{code}{}
 CExamples class>>ticksSinceStart
@@ -310,7 +316,7 @@ array}
 
 As you should notice, this time Spock takes care of finding out the memory address where aByteArray lives and sends a pointer to it as the first argument. After executing the example you can see that the byte array elements were actually changed. This is an important difference with strings. The expertise user would notice that string functions in c language expects to receive a pointer to contiguos memory bytes ending with a null character to delimit its length. \Spock is responsible for copying the string to a bigger buffer and insterting this special end character. This means that strings are passed by-copy, while on the other hand byte arrays are passed by reference!. Also for expertise users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be carefull about this special behavior. At the moment this book is written the FFI library doesn't support asyncronics calls so strange behavior is not possible, but we have to be very carefull when facing with c pointer arguments to Smalltalk's memory.
 
-\subsection{More advanced example: wrapping Cairo library}
+\section{Wrapping Cairo library}
 
 Cairo is a drawing library written in C. Here we present
 the basis of writing a wrapper for it, which should be
