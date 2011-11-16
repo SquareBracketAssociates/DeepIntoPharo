@@ -158,16 +158,26 @@ This conversion process for types from different languages is called \emph{marsh
 We will see more examples of automatic conversions in this chapter. 
 
 There are always three things to take into account when doing
-callouts: \sd{what are we describing? the method body or the ... NBFFICallout cdecl:  module: NativeBoost CLibrary}
+callouts. First, of course, is the signature of the C function
+we are going to call, the definition of the function from a C
+point of view. Through this book we put in \emph{C header}
+box. We also have to think on the way we access this function
+from Smalltalk world, on the code that sends the message to
+use the bounded C function. We put that in \emph{Library access}.
+Finally, the complex part, is how we mix these two worlds,
+the C and the smalltalk worlds. That's the \emph{Pragma declaration}.
+This Pragma declaration is the code that describes
+the C header and `binds' Smalltalk arguments to C arguments.
+Let's look at a summary of our first example then:
 
 \begin{description}
-\item [C header.] The definition of the function from a C point of view. In the last example:
+\item [C header.] \ 
 
 \begin{code}{}
 int clock (void)
 \end{code}
 
-\item [Pragma declaration.] The Smalltalk code that describes the C header and `binds' Smalltalk arguments to C arguments. In this case it was: \sd{is it the pragma primitive: primitiveNativeCall module: }
+\item [Pragma declaration.] \ 
 
 \begin{code}{}
 CExamples class>>ticksSinceStart
@@ -176,7 +186,7 @@ CExamples class>>ticksSinceStart
 \end{code}
 
 
-\item [Library access.] Finally, there is the code that sends the message to use the bounded C function. In this case, 
+\item [Library access.] \
 
 \dothis{CExamples ticksSinceStart}
 
@@ -184,8 +194,106 @@ CExamples class>>ticksSinceStart
 
 
 \subsection{Passing arguments to the function}
-The previous example was the simplest we could find: we asked for the execution of a function without parameters and got the results. Now let's look how we can execute function that requires arguments. 
-We want to call the very well known \ct{strlen} function. This function requires a string as argument and returns its number of characters. 
+
+The previous example was the simplest we could find: we asked for the execution of a function without parameters and got the results. Now let's look how we can execute functions that require arguments. 
+
+\subsubsection{Passing an integer}
+
+Let's try with a really simple function, {\sffamily abs}, which takes
+an integer and returns its absolute value.
+
+\begin{description}
+\item [C header.] \ 
+
+\begin{code}{}
+int abs ( int n );
+\end{code}
+
+\item [Pragma declaration.] \ 
+
+\begin{code}{}
+CExamples class>>abs: anInteger
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ NBFFICallout cdecl: #( int abs (int anInteger) ) module: NativeBoost CLibrary
+\end{code}
+
+
+\item [Library access.] \ 
+ 
+\dothis{CExamples abs: -20}
+
+\end{description}
+
+\sd{here}
+Can you see the small differences with the previous example? 
+First of all, in this case we are specifying \ct{abs}
+instead of clock, of course. But besides that, the only
+change is that we added an argument. When functions have
+arguments you have to specify two things for each of them:
+its type and the object that you want to have sent to the C
+function. That is, in the arguments array, we put the type
+of the argument, and after that, the name of the Smalltalk
+variable we are going to send as argument. This type-and-name
+pair will be repeated, separated by comma for each argument,
+as we will show in the next examples. In this case, the
+argument is a C integer, so you put {\sffamily int}. As the
+object we want to pass is the same argument we received, we
+directly put its name there in the declaration.
+
+Now you can try printing this:
+
+\dothis{CExamples abs: -20.}
+
+
+Before getting into the next example, a little thing
+needs to be remarked. In the pragma declaration we
+are expressing not one but \emph{two} different aspects:
+the obvious one is the C function signature, the other
+is which objects we are passing as arguments to the
+C function when the method is invoked  to receive the
+expected result. In this second aspect there are many
+possibilities. In this case the argument of the C function
+comes directly as an argument of the method: {\sffamily anInteger}.
+But it is not always necessary to take the objects to
+send as arguments. You can also put constants, {\sffamily
+self} or any instance variable as an argument to the C
+function. Suppose you want to add this {\sffamily abs}
+wrapper to SmallInteger, so that you can do 
+
+\dothis{-50 absoluteValue}
+
+In that case you should add absoluteValue method to
+SmallInteger, but instead of passing an argument you
+directly pass {\sffamily self}!
+
+\begin{code}{}
+SmallInteger>>absoluteValue
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ NBFFICallout cdecl: #( int abs (int self) ) module: NativeBoost CLibrary
+\end{code}
+
+Or in other circunstance you may want to have a wrapper that always
+calls abs function with -45 value. Then you could directly
+write
+
+\begin{code}{}
+CExamples class>>absMinusFortyFive
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ NBFFICallout cdecl: #( int abs (-45) ) module: NativeBoost CLibrary
+\end{code}
+
+Notice that this time you don't put the type of the argument. It is
+is also possible to pass an instance variable. We let that as a
+really easy exercise.
+
+\subsubsection{Passing strings}
+
+Now we will call the very well known \ct{strlen} function.
+This function requires a string as argument and returns its
+number of characters. 
 
 
 \begin{description}
@@ -201,7 +309,7 @@ int strlen ( const char * str );
 CExamples class>>stringLength: aString
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
-	^ NBFFICallout cdecl: #( int strlen (char* aString) ) module: NativeBoost CLibrary
+	^ NBFFICallout cdecl: #( int strlen (String aString) ) module: NativeBoost CLibrary
 \end{code}
 
 
@@ -211,48 +319,34 @@ CExamples class>>stringLength: aString
 
 \end{description}
 
-
-\sd{here}
-Can you see the small differences with the previous example? 
-First of all, in this case we are specifying \ct{strlen}
-instead of clock, of course. But besides that, the only
-change is that we have to specify the string passed
-as argument. That is, in the arguments array, we
-put the C type of the argument, and after that,
-the name of the Smalltalk variable we are going to send as 
-argument \ct{(char* aString)}. This type-and-name pair will be repeated, separated 
-by comma for each argument, as we will show in the next
-example. Now you can try printing this:
-
-\dothis{CExamples stringLength: 'awesome!'.}
-
-Before getting into the next example, two little things
-needs to be clarified. The first is that there is a small
-difference between the C signature and the signature we are
-providing in the Smalltalk array. This difference is 
-the const keyword of the argument. For those not used to C, 
+In the signature department there are two small differences
+between the C signature and the one we are providing
+here in the Smalltalk array. The first difference is the const
+keyword of the argument. For those not used to C, 
 that's only a modifier keyword that the compiler take advantage
 of to make some static validations at compile time. It's has no
 value when describing the signature for calling a function at
-runtime.
-The second important thing to notice is that as argument we are providing
-the object {\sffamily aString}, the same as the one receive as Smalltalk argument.
-This is really necessary as we are not only describing the signature
-but we are also describing which objects we will send to the C 
-function as arguments so to receive the expected result.
-It is important to remark again that \Spock will take care of automagically
-doing the conversion of the arguments, which come from Smalltalk
-world, to C values. \emph{This means
-that the string passed in the example is going to be put in an
-external C \ct{char} array and that a null termination character will be
-added to it. Also, this array will be automatically released 
-after the call ends}. Conversely, Spock will take the C result
-value of calling the C function and convert it to a proper Smalltalk
-object, a String in this particular case.
+runtime. The second difference, an important one, is that as
+argument we are providing {\sffamily String aString} instead
+of {\sffamily char* aString}. It is important to remark again
+that \Spock will take care of automagically doing the conversion
+of the arguments, which come from Smalltalk world, to C values.
+But as this argument is not a common char pointer but a C string,
+then a null terminator has to be present at its end. To make \Spock
+know this is why you specify the argument as {\sffamily String}
+and not as {\sffamily char*}.
+\emph{This means that the string passed in the example is going
+to be put in an external C \ct{char} array and that a null
+termination character will be added to it (as Smalltalk strings
+are not null terminated). Also, this array will
+be automatically released after the call ends}. Conversely, Spock
+will take the C result value of calling the C function and convert
+it to a proper Smalltalk object, an Integer in this particular case.
 
 
-
-To continue with the examples we will call \ct{strcmp}, which takes two arguments and returns -1, 0 or 1 depending on the relationship between both strings.
+To continue with the examples we will call \ct{strcmp}, which takes
+two arguments and returns -1, 0 or 1 depending on the relationship
+between both strings.
 
 \begin{description}
 \item [C header.] \ 
@@ -268,7 +362,7 @@ stringCompare: aString with: anotherString
 
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
-	^ NBFFICallout cdecl: #( int strcmp (char* aString, char* anotherString) ) module: NativeBoost CLibrary
+	^ NBFFICallout cdecl: #( int strcmp (String aString, String anotherString) ) module: NativeBoost CLibrary
 \end{code}
 
 
@@ -280,8 +374,8 @@ stringCompare: aString with: anotherString
 
 Notice that you can add arguments by appending them to the arguments array,
 using a comma to separate them. Also notice that you have to explicitly tell
-which object is going to be send for each argument as already told. In this case, aString is
-the first one and anotherString is the second.
+which object is going to be sent for each argument, as already told. In this
+case, aString is the first one and anotherString is the second.
 
 The next example adds a bit more complexity: we are going to send a ByteArray
 to the memset function. 
@@ -314,7 +408,13 @@ array}
 
 \end{description}
 
-As you should notice, this time Spock takes care of finding out the memory address where aByteArray lives and sends a pointer to it as the first argument. After executing the example you can see that the byte array elements were actually changed. This is an important difference with strings. The expertise user would notice that string functions in c language expects to receive a pointer to contiguos memory bytes ending with a null character to delimit its length. \Spock is responsible for copying the string to a bigger buffer and insterting this special end character. This means that strings are passed by-copy, while on the other hand byte arrays are passed by reference!. Also for expertise users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be carefull about this special behavior. At the moment this book is written the FFI library doesn't support asyncronics calls so strange behavior is not possible, but we have to be very carefull when facing with c pointer arguments to Smalltalk's memory.
+As you should notice, this time Spock takes care of finding out the memory address where aByteArray lives and sends a pointer to it as the first argument. After executing the example you can see that the byte array elements were actually changed. This is an important difference with strings. The expertise user would notice that string functions in C language expects to receive a pointer to contiguous memory bytes ending with a null character to delimit its length. \Spock is responsible for copying the string to a bigger buffer and inserting this special end character. This means that strings are passed by-copy, while on the other hand byte arrays are passed by reference!. Also for expertise users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be careful about this special behaviour. At the moment this book is written the FFI library doesn't support asynchronous calls, so strange behaviour is not possible. But we have to be very careful when facing with C pointer arguments to Smalltalk's memory.
+
+
+\subsection{Using C structures}
+
+\subsection{Loading code from other libraries}
+
 
 \section{Wrapping Cairo library}
 
@@ -332,7 +432,7 @@ more to the wrapped functionality.
 
 In this example we have a minimal program that uses Cairo
 library, taken from Cairo's FAQ \jp{Add url to it}.
-It creates a cairo surface, puts some text on it
+It creates a Cairo surface, puts some text on it
 and renders everything to a PNG.
 
 \begin{code}{C}
@@ -647,10 +747,6 @@ CairoContext>>selectFont: aFamily slant: slant weight: aWeight
                                                          cairo_font_weight_t aWeight) )
 \end{code}
 
-\subsubsection{Loading code from other libraries}
-
-\subsubsection{Using C structures}
-
 % \section{The levels of native code}
 % 
 % In Pharo there are many levels where native code
@@ -680,8 +776,8 @@ CairoContext>>selectFont: aFamily slant: slant weight: aWeight
 % 
 % Next in the level of 
 
-
-\subsection{original FFI stuff}
+\newpage
+\subsection{Original FFI stuff}
 
 Thanks to a Foreign Function Interface (FFI), it is possible to achieve this and interact with third-party libraries.
 Multiple FFI libraries are available in Pharo such as FFI (\url{http://wiki.squeak.org/squeak/1414}) and Alien (\url{http://www.squeaksource.com/Alien}).
