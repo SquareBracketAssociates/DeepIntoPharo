@@ -74,7 +74,7 @@ view edgesFrom: [ :v | v * 2 ].
 \end{code}
 \begin{center}\includegraphics[scale=0.4]{picture2}\end{center}
 
-Each number is linked with its double. Not all the doubles are visible. For example, the double of 20 is 400, which is not part of the visualization. In that case, no edge is drawn. 
+Each number is linked with its double. Not all the doubles are visible. For example, the double of 20 is 40, which is not part of the visualization. In that case, no edge is drawn. 
 
 The message \ct{edgesFrom:} defines one edge per node, when possible. For each node that has been added in the visualization, an edge is defined between this node and a node lookup from the provided block.
 
@@ -223,10 +223,10 @@ view edgesFrom: #superclass.
 view treeLayout.
 \end{code}
 
-The produced visualization is given in \figref{abstractClasses}. It easily help identifying abstract classes that are not named as ``Abstract'' and the one that are abstract without having an abstract method.
+The produced visualization is given in \figref{arrayClasses}. It easily help identifying abstract classes that are not named as ``Array'' and the one that are abstract without having an abstract method.
 
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=\linewidth]{abstractClasses}}
+\centerline{\includegraphics[width=\linewidth]{arrayClasses}}
 \caption{Abstract classes are in gray and classes with the word ``Abstract'' in their name are in blue.}
 \label{fig:abstractClasses}
 \end{figure}
@@ -354,7 +354,7 @@ A node is a view in itself. This allows for a graph to be embedded in any node. 
 The following example approximates the dependencies between methods by linking methods that may call each other. A method \ct{m1} is connected to a method \ct{m2} if \ct{m1} contains a reference to the selector \ct{#m2}. This is a simple but effective way to see the dependencies between methods. Consider:
 
 \begin{code}{}
-view nodes: Collection withAllSubclasses forEach: [:cls |
+view nodes: MOShape withAllSubclasses forEach: [:cls |
 	view nodes: cls methods.
 	view edges: cls methods from: #yourself toAll: [ :cm | cls methods select: [ :rcm |  cm messages anySatisfy: [:s | rcm selector == s ] ] ].
 	view treeLayout
@@ -566,6 +566,9 @@ Mondrian enables any graph of objects to be visualized. This chapter has reviewe
 \item Events of a sub node is forwarded to its parent with \ct{forward} and \ct{forward:}.
 \item Highlighting is available with \ct{highlightWhenOver:}, which takes a one-arg block that has to return the list of nodes to highlight.
 \end{itemize}
+
+\paragraph{Acknowledgment}
+We are very grateful to Nicolas Rosselot Urrejola for his review of an early draft of the chapter.
 
 %Mondrian is a perpetual evolving application. This chapter intents to cover the features frequently used. If there is a topic you wish to see discussed here, send an email to alexandre@bergel.eu.
 %
