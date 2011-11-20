@@ -34,6 +34,11 @@
 \chapter{Zinc: The Pharo Network Library}
 \chalabel{Zinc}
 
+
+should be updated the latest release
+
+
+
 Zinc HTTP Components is an open-source Smalltalk framework to deal with the HTTP networking protocol. This is a new project (started September 1st 2010) that is currently under heavy development. Our long term goals are very ambitious: we want to reach the level of functionality, scope, architectural clarity and maturity of the Apache HTTP Components library. Our short term goal is to offer working HTTP client functionality to support fundamental features in a Smalltalk image. For the time being, Pharo is our reference platform.
 
 
@@ -41,7 +46,7 @@ Zinc HTTP Components is an open-source Smalltalk framework to deal with the HTTP
 
 \section{Clients}
 
-The primary HTTP client is currently available on the class side of ZnClient. It implements one-shot GET, PUT, POST, DELETE and HEAD requests with optional basic authentication. These methods return ZnResponse objects. There are also some special variants that retrieve and return parsed images of types GIF, JPEG and PNG. When they need data (as for PUT and POST requests) they expect a ZnEntity (actually, any object implementing #contentType, #contentLength and #writeOn: should do). Proxy support is handled transparently (see ZnUtils class>>#socketStreamToUrl:) and is using the settings in your Smalltalk image (HTTPSocket). There are also two more advanced clients: ZnHttpClient and ZnFixedClient. Here are some examples:
+The primary HTTP client is currently available on the class side of ZnClient. It implements one-shot GET, PUT, POST, DELETE and HEAD requests with optional basic authentication. These methods return ZnResponse objects. There are also some special variants that retrieve and return parsed images of types GIF, JPEG and PNG. When they need data (as for PUT and POST requests) they expect a ZnEntity (actually, any object implementing \ct{contentType}, \ct{contentLength} and \ct{writeOn:} should do). Proxy support is handled transparently (see ZnUtils class>>#socketStreamToUrl:) and is using the settings in your Smalltalk image (HTTPSocket). There are also two more advanced clients: ZnHttpClient and ZnFixedClient. Here are some examples:
 
 
 \begin{code}{}
@@ -267,6 +272,133 @@ Not all classes are documented here. Please have a look at: ZnFixedClient, ZnHtt
 %	\figlabel{exploreTimeStampNow2}
 %\end{minipage}
 %\end{figure}
+
+
+
+
+info here
+
+\url{http://homepage.mac.com/svc/Zinc-HTTP-Components/getting-started.html}
+
+
+\section{draft}
+ZnEasy a nice example to \ct{ZnEasy class>>getPng:}
+
+ ZnClient to replace all other HTTP clients (who became deprecated) this is an object to build, execute and process HTTP client requests,
+it has a rich protocol to construct requests and to access responses, it has various error handling options, it can reuse an existing connection to a specific host:port, it can handle sessions, cookies, redirects and authentication, it has many options (settings) with sensible defaults.
+here is the simplest example:
+
+
+
+
+\begin{code}
+    ZnClient new
+      get: 'http://zn.stfx.eu/zn/numbers.txt'
+and here is an example using some features to make a better HTTP request:
+    ZnClient new
+      systemPolicy;
+      accept: ZnMimeType textPlain;
+      http;
+      host: 'zn.stfx.eu';
+      path: 'zn/numbers.txt';
+      contentReader: [ :entity | entity contents lines collect: [ :each | each asNumber ] ];
+      ifFail: [ :exception | self inform: 'I am sorry: ', exception printString ];
+      get
+\end{code}      
+
+
+\section{Zodiac}      
+ added support so that HTTPS works out of the box if Zodiac is present.
+this should work when Zodiac is loaded and the necessary plugin is present:
+\begin{code}
+    ZnClient new
+      url: 'https://www.google.com/search';
+      queryAt: 'q' put: 'Pharo Smalltalk';
+      get
+\end{code}      
+      
+
+\section{Mapped urls}
+- added ZnDispatcherDelegate for straight-forward dispatching to mapped urls (thx Nick Ager)
+
+
+\section{MultiThreadedServer}      
+new subclass, ZnManagingMultiThreadedServer, that keeps track of open
+worker connections so that they can be properly closed when needed.
+to use this server with the Zn Seaside adaptor, you can do this:
+
+    ZnZincServerAdaptor new
+      port: 8080;
+      serverClass: ZnManagingMultiThreadedServer;
+      start
+      
+- refactored ZnNetworkingUtils, it is now (also) a factory for creating socket streams
+
+
+- fixed support for HTTP proxies (thx Alexandre Bergel for reporting)
+- localhost URLs are now excluded from being proxied
+- implemented support for proxies that require authorization
+
+- added support for dealing with certain defaults in ZnUrl
+
+
+\section{Rest client implementation}
+In the Ruby world they have rest-client (\url{https://github.com/archiloque/rest-client}) and in
+the Node.js world there is restler \url{https://github.com/danwrong/restler}. In Pharo, there is ZnClient
+It can do transparent encoding/decoding using the \ct{contentReader:} and \ct{contentWriter:} options, like this:
+
+\begin{code}
+ZnClient new
+	systemPolicy;
+	url: 'http://easy.t3-platform.net/rest/geo-ip';
+	queryAt: 'address' put: '81.83.7.35';
+	accept: ZnMimeType applicationJson;
+	contentReader: [ :entity | | parserClass |
+		parserClass := Smalltalk at: #JSJsonParser ifAbsent: [ ^ self ].
+		parserClass parse: entity contents ];
+	ifFail: [ ^ self error: 'Oops' ];
+	get.
+\end{code}	
+
+If you set a \ct{contentWriter:} to convert Smalltalk to your representation, you can provide put/post data using \ct{contents:} with Smalltalk objects as arguments. The same can be done for XML, or any other (custom) encoding.
+
+
+
+\section{in definitive regular HTTP response}
+Thanks for the actual code example, Andreas, that is what I meant by writing some loop. If that is indeed the answer, an 'indefinitive' but regular HTTP response, then that can be done with Zinc + Zodiac as well, through its streaming capabilities: 
+
+\begin{code}
+| stream |
+steream := ZnClient new
+	username: 'twitter_username' password: 'twitter_password';
+	streaming: true;
+	get: 'https://stream.twitter.com/1/statuses/sample.json'.
+\end{code}
+
+With error handling:
+
+\begin{code}
+| stream |
+stream := ZnClient new
+	username: 'twitter_username' password: 'twitter_password';
+	streaming: true;
+	enforceHttpSuccess: true; 
+	accept: ZnMimeType applicationJson;
+	enforceAcceptContentType: true; 
+	ifFail: [ :exception | ^ self error: 'Failed with: ', exception printString ]; 
+	get: 'https://stream.twitter.com/1/statuses/sample.json'.
+\end{code}
+
+Using JsJsonParser from Seaside's JavaScript-Core-JSON package, you could do streaming parsing, if the stream contains separate, independent JSON objects:
+
+\begin{code}
+| parser |
+parser := JsJsonParser on: stream.
+[ stream atEnd ] whileFalse: [ | nextObject |
+	nextObject := parser whitespace; parseValue ]
+\end{code}
+
+
 
 
 
