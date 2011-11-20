@@ -327,10 +327,10 @@ that's only a modifier keyword that the compiler take advantage
 of to make some static validations at compile time. It's has no
 value when describing the signature for calling a function at
 runtime. The second difference, an important one, is that as
-argument we are providing {\sffamily String aString} instead
-of {\sffamily char* aString}. It is important to remark again
+argument we are providing \ct{String aString} instead
+of \ct{char* aString}. It is important to remark again
 that \Spock will take care of automagically doing the conversion
-of the arguments, which come from Smalltalk world, to C values.
+of the arguments which come from Smalltalk world, to C values.
 But as this argument is not a common char pointer but a C string,
 then a null terminator has to be present at its end. To make \Spock
 know this is why you specify the argument as {\sffamily String}
@@ -342,6 +342,22 @@ are not null terminated). Also, this array will
 be automatically released after the call ends}. Conversely, Spock
 will take the C result value of calling the C function and convert
 it to a proper Smalltalk object, an Integer in this particular case.
+
+%Javier, the example with strlen() function where you having char*
+%argument type is not correct. One should use String type , instead of char* , because then NB will
+%convert string into null-terminated C string before passing to
+%function.
+%Otherwise it only passing a pointer to first string character , but
+%since in smalltalk string are not null terminated, the results can be
+%different. It will work only for strings, which by accident having 0 as last character.
+%So, you should use something like:
+%
+%CExamples stringLength: (someString copyWith: (Character value:0)
+%or change the signature to use String type, i.e:
+%
+%int strlen(String arg)
+%instead of
+%int strlen(char* arg)
 
 
 To continue with the examples we will call \ct{strcmp}, which takes
