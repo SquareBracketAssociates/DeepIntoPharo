@@ -94,17 +94,15 @@ Once loaded you should execute the following expression: \ct{NBInstaller install
 %\end{code}
 %
 %
-%\item [Library access.] \ 
+%\item [Callout grouping.] \ 
 % 
 %\dothis{ }
 %
 %\end{description}
 
 
-\section{Calling External Functions}
+\section{Calling External a Simple Function}
 
-
-\subsection{Starting Example}
 
 Suppose you want to know the amount of time the image has been running by calling the underlying OS function named \ct{clock}. 
 This function is part of the standard C library. Its C declaration is\footnote{According to man its return type is clock\_t instead of int, but we deliberately made it int for the sake of simplicity. \sd{how would we deal with that if we do not want/can change clock\_t into int?}}:
@@ -113,7 +111,7 @@ This function is part of the standard C library. Its C declaration is\footnote{A
 int clock (void)
 \end{code}
 
-To call \ct{clock} from the image, you will write a binding, which is a normal method with a \ct{<primitive:module:>} pragma. This pragma describes the signature of the C function. Here is the definition. We  explain below the details.
+To call \ct{clock} from the image, you should write a binding: a normal Smalltalk method annotated with the \ct{<primitive:module:>} pragma. This pragma specifies that a native call should be generated using the NativeBoostPlugin. The native class is described using the message \ct{cdecl:module:} message. Here is the full definition. We  explain the details below.
 
 \begin{code}{}
 CExamples class>>ticksSinceStart
@@ -135,7 +133,7 @@ CExamples ticksSinceStart
 \end{script}
 
 
-\subsection{Analysis}
+\subsection{Analysis of an FFI Callout}
 Now that the call worked, let us look at the definition again:
 
 \begin{code}{}
@@ -148,27 +146,26 @@ CExamples class>>ticksSinceStart
 \paragraph{Callout.}
 What we have just done is usually called an FFI \emph{callout}. \ct{NBFFICallout} is the class that defines behavior to perform such calls to external functions. We use the  message \ct{#cdecl:module:} to describe this call. 
 
-This message has two arguments: the \emph{signature of the function} that is about to be called and the \emph{module or library} where to look for it which is the standard C library in this example. 
+This message has two arguments: the \emph{signature of the function} that will be invoked and the \emph{module or library} where to look for it.  In this example we look this function in the standard C library. 
 
-The signature is described by an array whose first element is the C return type and the second is the name of the called function.
-The third element is also an array which describes the arguments of the function when there's any. 
+The signature is described by an array: here \ct{#(int clock ())}.
+\begin{itemize} 
+\item Its first element is the C return type, here \ct{int}.
+\item Its second is the name of the called function, here \ct{clock}.
+\item Its third element is also an array which describes the function parameters when there's any. 
+\end{itemize}
 
-\paragraph{About conversion.} The return type is \ct{int} and not \ct{SmallInteger}. This is the same with function arguments. They are all describe in terms of C language. But you don't have to bother with this because the \Spock library does an automatic conversion between C types and Smalltalk types. So, when this message is executed, the return value will be a \ct{SmallInteger}. 
+\paragraph{About marshaling.} The return type is \ct{int} and not \ct{SmallInteger}. This is the same with function arguments. They are all described in terms of C language. In general you don't have to worry too much about this because the \Spock library does an automatic conversion between C types and Smalltalk types. So, when this message is executed, the return value will be a \ct{SmallInteger}. 
 This conversion process for types from different languages is called \emph{marshaling}.
-We will see more examples of automatic conversions in this chapter. 
+We will see more examples of automatic conversions in this Chapter. 
 
-There are always three things to take into account when doing
-callouts. First, of course, is the signature of the C function
-we are going to call, the definition of the function from a C
-point of view. Through this book we put in \emph{C header}
-box. We also have to think on the way we access this function
-from Smalltalk world, on the code that sends the message to
-use the bounded C function. We put that in \emph{Library access}.
-Finally, the complex part, is how we mix these two worlds,
-the C and the smalltalk worlds. That's the \emph{Pragma declaration}.
-This Pragma declaration is the code that describes
-the C header and `binds' Smalltalk arguments to C arguments.
-Let's look at a summary of our first example then:
+\subsection{Presentation Conventions}
+
+There are always three things to take into account when doing callouts:  a C function, a specification of the binding between C and Smalltalk, and location for such declaration at the Smalltalk level. 
+
+\begin{enumerate}
+
+\item First, of course, is the signature of the C function we will call, this definition is the definition of the function from a C point of view. Through this book we describe it in a C header box as follows:
 
 \begin{description}
 \item [C header.] \ 
@@ -176,7 +173,12 @@ Let's look at a summary of our first example then:
 \begin{code}{}
 int clock (void)
 \end{code}
+\end{description}
 
+
+\item Second, how do we communicate between the C and Smalltalk worlds. That's the \emph{Pragma declaration}. It describes the C header and `binds' Smalltalk arguments to C arguments. 
+
+\begin{description}
 \item [Pragma declaration.] \ 
 
 \begin{code}{}
@@ -185,21 +187,25 @@ CExamples class>>ticksSinceStart
 	^ NBFFICallout cdecl: #( int clock () ) module: NativeBoost CLibrary
 \end{code}
 
-
-\item [Library access.] \
-
-\dothis{CExamples ticksSinceStart}
-
 \end{description}
 
+\item Third, we have to see how we organize the C calls from the Smalltalk side. Often we create a class that groups callout definitions. 
 
-\subsection{Passing arguments to the function}
+\begin{description}
+\item [Callout grouping.] \
+
+\dothis{CExamples ticksSinceStart}
+\end{description}
+
+\end{enumerate}
+
+\section{Passing arguments to a function}
 
 The previous example was the simplest we could find: we asked for the execution of a function without parameters and got the results. Now let's look how we can execute functions that require arguments. 
 
-\subsubsection{Passing an integer}
+\subsection{Passing an integer}
 
-Let's try with a really simple function, {\sffamily abs}, which takes
+Let's try with a really simple function, \ct{ abs}, which takes
 an integer and returns its absolute value.
 
 \begin{description}
@@ -219,53 +225,40 @@ CExamples class>>abs: anInteger
 \end{code}
 
 
-\item [Library access.] \ 
+\item [Callout grouping.] \ 
  
 \dothis{CExamples abs: -20}
 
 \end{description}
 
-\sd{here}
-Can you see the small differences with the previous example? 
-First of all, in this case we are specifying \ct{abs}
-instead of clock, of course. But besides that, the only
-change is that we added an argument. When functions have
-arguments you have to specify two things for each of them:
-its type and the object that you want to have sent to the C
-function. That is, in the arguments array, we put the type
-of the argument, and after that, the name of the Smalltalk
-variable we are going to send as argument. This type-and-name
-pair will be repeated, separated by comma for each argument,
-as we will show in the next examples. In this case, the
-argument is a C integer, so you put {\sffamily int}. As the
-object we want to pass is the same argument we received, we
-directly put its name there in the declaration.
+
+Compared with the previous example, we changed the name of the function and added an argument. 
+When functions have arguments you have to specify two things for each of them:
+their type and the object that you want to have sent to the C function. That is, in the arguments array, we put the type
+of the argument, and after that, the \emph{name of the Smalltalk variable} we pass as argument. 
+
+Here \ct{anInteger} in \ct{#(int abs (int anInteger)} means that the variable is bound to the \ct{abs:} method parameter and that will
+be a C int. 
+
+This type-and-name pair will be repeated, separated by comma for each argument,
+as we will show in the next examples. 
+
 
 Now you can try printing this:
 
 \dothis{CExamples abs: -20.}
 
+\paragraph{Example Analysis.}
+Before getting into the next example, a little thing needs to be remarked. In the pragma declaration we
+are expressing not one but \emph{two} different aspects: the obvious one is the C function signature, the other
+is which objects we are passing as arguments to the C function when the method is invoked  to receive the
+expected result. In this second aspect there are many possibilities. In this case the argument of the C function
+comes directly as an argument of the method: \ct{anInteger}.
 
-Before getting into the next example, a little thing
-needs to be remarked. In the pragma declaration we
-are expressing not one but \emph{two} different aspects:
-the obvious one is the C function signature, the other
-is which objects we are passing as arguments to the
-C function when the method is invoked  to receive the
-expected result. In this second aspect there are many
-possibilities. In this case the argument of the C function
-comes directly as an argument of the method: {\sffamily anInteger}.
-But it is not always necessary to take the objects to
-send as arguments. You can also put constants, {\sffamily
-self} or any instance variable as an argument to the C
-function. Suppose you want to add this {\sffamily abs}
-wrapper to SmallInteger, so that you can do 
+But it is not always necessary to take the objects to send as arguments. You can also put constants, \ct{self} or any instance variable as an argument to the C function. Suppose you want to add this \ct{abs} wrapper to SmallInteger, so that you can do \ct{-50 absoluteValue}
 
-\dothis{-50 absoluteValue}
-
-In that case you should add absoluteValue method to
-SmallInteger, but instead of passing an argument you
-directly pass {\sffamily self}!
+In that case you should add absoluteValue method to SmallInteger, but instead of passing an argument you
+directly pass \ct{self}!
 
 \begin{code}{}
 SmallInteger>>absoluteValue
@@ -289,7 +282,7 @@ Notice that this time you don't put the type of the argument. It is
 is also possible to pass an instance variable. We let that as a
 really easy exercise.
 
-\subsubsection{Passing strings}
+\subsection{Passing strings}
 
 Now we will call the very well known \ct{strlen} function.
 This function requires a string as argument and returns its
@@ -313,7 +306,7 @@ CExamples class>>stringLength: aString
 \end{code}
 
 
-\item [Library access.] \ 
+\item [Callout grouping.] \ 
  
 \dothis{CExamples stringLength: 'awesome!'}
 
@@ -333,8 +326,8 @@ that \Spock will take care of automagically doing the conversion
 of the arguments which come from Smalltalk world, to C values.
 But as this argument is not a common char pointer but a C string,
 then a null terminator has to be present at its end. To make \Spock
-know this is why you specify the argument as {\sffamily String}
-and not as {\sffamily char*}.
+know this is why you specify the argument as \ct{ String}
+and not as \ct{ char*}.
 \emph{This means that the string passed in the example is going
 to be put in an external C \ct{char} array and that a null
 termination character will be added to it (as Smalltalk strings
@@ -382,7 +375,7 @@ stringCompare: aString with: anotherString
 \end{code}
 
 
-\item [Library access.] \ 
+\item [Callout grouping.] \ 
  
 \dothis{CExamples stringCompare: 'awesome!' with: 'awesome'}
 
@@ -415,7 +408,7 @@ memorySet: aByteArray with: anInteger for: aByteCount
 \end{code}
 
 
-\item [Library access.] \ 
+\item [Callout grouping.] \ 
  
 \dothis{ 
 \\array := ByteArray new: 10.\\
@@ -427,9 +420,9 @@ array}
 As you should notice, this time Spock takes care of finding out the memory address where aByteArray lives and sends a pointer to it as the first argument. After executing the example you can see that the byte array elements were actually changed. This is an important difference with strings. The expertise user would notice that string functions in C language expects to receive a pointer to contiguous memory bytes ending with a null character to delimit its length. \Spock is responsible for copying the string to a bigger buffer and inserting this special end character. This means that strings are passed by-copy, while on the other hand byte arrays are passed by reference!. Also for expertise users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be careful about this special behaviour. At the moment this book is written the FFI library doesn't support asynchronous calls, so strange behaviour is not possible. But we have to be very careful when facing with C pointer arguments to Smalltalk's memory.
 
 
-\subsection{Using C structures}
+\section{Using C structures}
 
-\subsection{Loading code from other libraries}
+\section{Loading code from other libraries}
 
 
 \section{Wrapping Cairo library}
