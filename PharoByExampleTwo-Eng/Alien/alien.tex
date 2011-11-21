@@ -189,7 +189,7 @@ CExamples class>>ticksSinceStart
 
 \end{description}
 
-\item Third, we have to see how we organize the C calls from the Smalltalk side. Often we create a class that groups callout definitions. 
+\item Third, we have to see how we organize the C calls from the Smalltalk side. Often we create a class that groups callout definitions. Such a class can then be used as an entry point to perform callouts.
 
 \begin{description}
 \item [Callout grouping.] \
@@ -248,17 +248,14 @@ Now you can try printing this:
 
 \dothis{CExamples abs: -20.}
 
-\paragraph{Example Analysis.}
-Before getting into the next example, a little thing needs to be remarked. In the pragma declaration we
-are expressing not one but \emph{two} different aspects: the obvious one is the C function signature, the other
-is which objects we are passing as arguments to the C function when the method is invoked  to receive the
-expected result. In this second aspect there are many possibilities. In this case the argument of the C function
-comes directly as an argument of the method: \ct{anInteger}.
+\subsubsection{About arguments}
 
-But it is not always necessary to take the objects to send as arguments. You can also put constants, \ct{self} or any instance variable as an argument to the C function. Suppose you want to add this \ct{abs} wrapper to SmallInteger, so that you can do \ct{-50 absoluteValue}
+In the pragma declaration we are expressing not one but \emph{two} different aspects: the obvious one is the C function signature, the other
+is which objects we are passing as arguments to the C function when the method is invoked. In this second aspect there are many possibilities. In our example the argument of the C is  the method argument: \ct{anInteger}. But it is not always necessary the case.
 
-In that case you should add absoluteValue method to SmallInteger, but instead of passing an argument you
-directly pass \ct{self}!
+You can also put constants, \ct{self} or any instance variable as arguments to a C call. Suppose you want to add this \ct{abs} wrapper (let us call it \ct{absoluteValue}) to the class \ct{SmallInteger}, so that we can execute \ct{-50 absoluteValue}.
+
+In that case we simply add the \ct{absoluteValue} method to \ct{SmallInteger}, and we directly pass \ct{self} as illustrated below.
 
 \begin{code}{}
 SmallInteger>>absoluteValue
@@ -267,9 +264,7 @@ SmallInteger>>absoluteValue
 	^ NBFFICallout cdecl: #( int abs (int self) ) module: NativeBoost CLibrary
 \end{code}
 
-Or in other circunstance you may want to have a wrapper that always
-calls abs function with -45 value. Then you could directly
-write
+Imagine that we want to have a wrapper that always calls the absolute function with the number -45. Then we directly define it as follows:
 
 \begin{code}{}
 CExamples class>>absMinusFortyFive
@@ -278,14 +273,10 @@ CExamples class>>absMinusFortyFive
 	^ NBFFICallout cdecl: #( int abs (-45) ) module: NativeBoost CLibrary
 \end{code}
 
-Notice that this time you don't put the type of the argument. It is
-is also possible to pass an instance variable. We let that as a
-really easy exercise.
+Note that this time we don't put the type of the argument. It is is also possible to pass an instance variable, but we let you do it as an exercise.
 
 \subsection{Passing strings}
-
-Now we will call the very well known \ct{strlen} function.
-This function requires a string as argument and returns its
+As you may know strings in C are sequences of characters terminated with a special character \ct{\0}. It is then interesting to see how \Spock deals with them since they are an important data structure in C. For this, we will call the very well known \ct{strlen} function. This function requires a string as argument and returns its
 number of characters. 
 
 
@@ -309,25 +300,26 @@ CExamples class>>stringLength: aString
 \item [Callout grouping.] \ 
  
 \dothis{CExamples stringLength: 'awesome!'}
-
 \end{description}
 
-In the signature department there are two small differences
-between the C signature and the one we are providing
-here in the Smalltalk array. The first difference is the const
-keyword of the argument. For those not used to C, 
-that's only a modifier keyword that the compiler take advantage
-of to make some static validations at compile time. It's has no
+
+\paragraph{Example analysis.} You may have noticed that the callout description is not exactly the same as the C function header. 
+
+In the signature \ct{#( int strlen (String aString) )} there are two differences with the C signature. 
+\begin{itemize}
+\item  The first difference is the const keyword of the argument. For those not used to C, 
+that's only a modifier keyword that the compiler take advantage of to make some static validations at compile time. It's has no
 value when describing the signature for calling a function at
-runtime. The second difference, an important one, is that as
-argument we are providing \ct{String aString} instead
-of \ct{char* aString}. It is important to remark again
-that \Spock will take care of automagically doing the conversion
+runtime.
+
+\item \sd{here: bed now} The second difference, an important one, is that as argument we are providing \ct{String aString} instead of \ct{char * aString}. 
+With \ct{String aString}, \Spock will automatic do the conversion
 of the arguments which come from Smalltalk world, to C values.
-But as this argument is not a common char pointer but a C string,
-then a null terminator has to be present at its end. To make \Spock
-know this is why you specify the argument as \ct{ String}
-and not as \ct{ char*}.
+
+But as this argument is not a common char pointer but a C string, then a null terminator has to be present at its end. 
+
+To make \Spock know this is why you specify the argument as \ct{String} and not as \ct{ char*}.
+
 \emph{This means that the string passed in the example is going
 to be put in an external C \ct{char} array and that a null
 termination character will be added to it (as Smalltalk strings
@@ -335,6 +327,10 @@ are not null terminated). Also, this array will
 be automatically released after the call ends}. Conversely, Spock
 will take the C result value of calling the C function and convert
 it to a proper Smalltalk object, an Integer in this particular case.
+
+\end{itemize}
+
+%
 
 %Javier, the example with strlen() function where you having char*
 %argument type is not correct. One should use String type , instead of char* , because then NB will
