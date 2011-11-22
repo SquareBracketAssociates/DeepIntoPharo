@@ -105,7 +105,7 @@ Once loaded you should execute the following expression: \ct{NBInstaller install
 
 
 Suppose you want to know the amount of time the image has been running by calling the underlying OS function named \ct{clock}. 
-This function is part of the standard C library. Its C declaration is\footnote{According to man its return type is clock\_t instead of int, but we deliberately made it int for the sake of simplicity. \sd{how would we deal with that if we do not want/can change clock\_t into int?}}:
+This function is part of the standard C library. Its C declaration is\footnote{According to man its return type is clock\_t instead of int, but we deliberately made it int for the sake of simplicity. We will see how to deal with typedefs in the following sections}:
 
 \begin{code}{}
 int clock (void)
@@ -392,12 +392,11 @@ array}
 
 \end{description}
 
-As you should notice, this time Spock takes care of finding out the memory address where aByteArray lives and sends a pointer to it as the first argument. After executing the example you can see that the byte array elements were actually changed. This is an important difference with strings. 
+As you should notice, this time Spock takes care of finding out the memory address where aByteArray lives and sends a pointer to it as the first argument. After executing the example you can see that the byte array elements were actually changed. 
 
+Then, there is an important difference between passing arrays and passing strings. The expert user would notice that string functions in C language expects to receive a pointer to contiguous memory bytes ending with a null character to delimit its length.  \Spock is responsible for copying the string to a bigger buffer and inserting this special end character. This means that strings are passed by-copy, while on the other hand byte arrays are passed by reference!.
 
-The expert user would notice that string functions in C language expects to receive a pointer to contiguous memory bytes ending with a null character to delimit its length. 
-
-\Spock is responsible for copying the string to a bigger buffer and inserting this special end character. This means that strings are passed by-copy, while on the other hand byte arrays are passed by reference!. Also for expertise users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be careful about this special behaviour. At the moment this book is written the FFI library doesn't support asynchronous calls, so strange behaviour is not possible. But we have to be very careful when facing with C pointer arguments to Smalltalk's memory.
+Also for expertise users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be careful about this special behaviour. At the moment this book is written the FFI library doesn't support asynchronous calls, so strange behaviour is not possible. But we have to be very careful when facing with C pointer arguments to Smalltalk's memory.
 
 \subsection{Default primitives types}
 \sd{What are the default C primitives type and how do they are mapped in native boost}
