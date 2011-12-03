@@ -46,14 +46,14 @@ Zinc HTTP Components is an open-source Smalltalk framework to deal with the HTTP
 
 \section{Clients}
 
-The primary HTTP client is currently available on the class side of ZnClient. It implements one-shot GET, PUT, POST, DELETE and HEAD requests with optional basic authentication. These methods return ZnResponse objects. There are also some special variants that retrieve and return parsed images of types GIF, JPEG and PNG. When they need data (as for PUT and POST requests) they expect a ZnEntity (actually, any object implementing \ct{contentType}, \ct{contentLength} and \ct{writeOn:} should do). Proxy support is handled transparently (see ZnUtils class>>#socketStreamToUrl:) and is using the settings in your Smalltalk image (HTTPSocket). There are also two more advanced clients: ZnHttpClient and ZnFixedClient. Here are some examples:
+The primary HTTP client is currently available on the class side of ZnClient. It implements one-shot GET, PUT, POST, DELETE and HEAD requests with optional basic authentication. These methods return ZnResponse objects. There are also some special variants that retrieve and return parsed images of types GIF, JPEG and PNG. When they need data (as for PUT and POST requests) they expect a ZnEntity (actually, any object implementing \ct{contentType}, \ct{contentLength} and \ct{writeOn:} should do). Proxy support is handled transparently (see ZnUtils class>>socketStreamToUrl:) and is using the settings in your Smalltalk image (HTTPSocket). There are also two more advanced clients: ZnHttpClient and ZnFixedClient. Here are some examples:
 
 
 \begin{code}{}
 ZnClient get: 'http://caretaker.wolf359.be/small.html'.
 ZnClient getPng: 'http://www.pharo-project.org/images/pharo.png'.
 
-ZnClient put: 'http://myserver.com:8080/myresource/1' data: (ZnEntity with: #(1 2 3 4)).
+ZnClient put: 'http://myserver.com:8080/myresource/1' data: (ZnEntity with:  #(1 2 3 4)).
 ZnClient head: 'http://myserver.com:8080/myresource/1'.
 ZnClient delete: 'http://myserver.com:8080/myresource/1' username: 'john' password: 'secret'.
 \end{code}
@@ -84,7 +84,7 @@ ZnClient post: 'http://somewhere.com/login' data: entity.
 
 The primary HTTP server is currently implemented in the class ZnServer. On its own, this server responds with a welcome page on /, has a debug handler for all paths starting with /echo and responds with file not found for everything else.
 
-The server can do basic authentication: just supply an object that responds to #authenticateRequest:do: to accept or reject requests to #authenticator:. See for example ZnBasicAuthenticator. To extend the server, you can set its delegate: this is an object that responds to #handleRequest: that you pass to #delegate:. The argument is a ZnRequest, the result should be a ZnResponse. The current server is quite simple and does not yet handle multiple request/response cycles on the same connection.
+The server can do basic authentication: just supply an object that responds to \ct{authenticateRequest:do:} to accept or reject requests to \ct{authenticator:}. See for example ZnBasicAuthenticator. To extend the server, you can set its delegate: this is an object that responds to \ct{handleRequest:} that you pass to \ct{delegate:}. The argument is a ZnRequest, the result should be a ZnResponse. The current server is quite simple and does not yet handle multiple request/response cycles on the same connection.
 
 Although simple, the current server already handles three use cases quite elegantly: static web file serving (through ZnStaticWebServerDelegate), monticello repository serving (through ZnMonticelloServerDelegate) and Seaside 3 (through ZnZincServerAdaptor, use the Seaside Control Panel). Starting a server is simple, here are some examples:
 
@@ -175,7 +175,7 @@ Accept: */*
 User-Agent: Zinc HTTP Components 0.1
 Host: caretaker.wolf359.be
 \end{code}
-As a subclass of ZnMessage, ZnRequest can be written to a stream using #writeOn: (like in the example above) or can be parsed from a stream using #readFrom:. The most frequently used response in its simplest form is an OK (code 200) response with a static buffered entity containing an HTML page as body or payload. Here is some code a server might use to set up a response:
+As a subclass of ZnMessage, ZnRequest can be written to a stream using \ct{writeOn:} (like in the example above) or can be parsed from a stream using \ct{readFrom:}. The most frequently used response in its simplest form is an OK (code 200) response with a static buffered entity containing an HTML page as body or payload. Here is some code a server might use to set up a response:
 
 \begin{code}{}
 | entity response |
@@ -222,19 +222,19 @@ Inspect the above code and if all is well, you should see a 200 OK response, wit
 
 The above code is the essense of client side HTTP: open a connection, write a request, flush, read a response, close (or repeat). Similary, the essense of server side HTTP is: open a server socket, accept an incoming connection, read a request, generate and write a response, flush and close (or repeat).
 
-HTTP headers (ZnHeaders) are a collection of key - value pairs, much like a Dictionary. The standard access protocol is available: #at:, #at:ifAbsent:, #at:put:. Keys are stored and compared in a canonical format (capitalized subparts) to deal with the fact that HTTP headers keys are case insensitive.
+HTTP headers (ZnHeaders) are a collection of key - value pairs, much like a Dictionary. The standard access protocol is available: \ct{at:}, \ct{at:ifAbsent:}, \ct{at:put:}. Keys are stored and compared in a canonical format (capitalized subparts) to deal with the fact that HTTP headers keys are case insensitive.
 
-Most of the time, there is only one key - value combination per key. Certain keys can have multiple values that are merged together, for these there is #at:ifPresentMerge:. Certain keys can occur more than once, these are dealt with using #at:add. The getters will then return an Array. The enumeration protocol will handle them transparently.
+Most of the time, there is only one key - value combination per key. Certain keys can have multiple values that are merged together, for these there is \ct{at:ifPresentMerge:}. Certain keys can occur more than once, these are dealt with using  at:add. The getters will then return an Array. The enumeration protocol will handle them transparently.
 
-ZnEntity is an abstract superclass that holds something described by a content type (#contentType) and content length (#contentLength) that is capable of writing itself on a stream (#writeOn:) or reading itself from a stream (#readFrom:).
+ZnEntity is an abstract superclass that holds something described by a content type ( contentType) and content length ( contentLength) that is capable of writing itself on a stream ( writeOn:) or reading itself from a stream ( readFrom:).
 
-The most straight forward concrete entity subclasses are ZnStringEntity and ZnByteArrayEntity. These hold static buffered contents of type String and ByteArray respectively. The distinction is made either explicitely or derived from the mime type (ZnMimeType>>#isBinary). These entities are repeatable (you can access their contents multiple times). Like all Zinc HTTP Components' base objects, entities are used in two directions: to receive or to send data. ZnStringEntities use an encoder to convert from Unicode characters to bytes and vice versa. The default encoder is UTF-8 (ZnUTF8Encoder).
+The most straight forward concrete entity subclasses are ZnStringEntity and ZnByteArrayEntity. These hold static buffered contents of type String and ByteArray respectively. The distinction is made either explicitely or derived from the mime type (ZnMimeType>>isBinary). These entities are repeatable (you can access their contents multiple times). Like all Zinc HTTP Components' base objects, entities are used in two directions: to receive or to send data. ZnStringEntities use an encoder to convert from Unicode characters to bytes and vice versa. The default encoder is UTF-8 (ZnUTF8Encoder).
 
 A more advanced type of entity is ZnStreamingEntity. Such an entity holds its contents in a read stream. This can be more efficient since no unneeded copies are made and held into memory. These entities are not repeatable (their stream can be read only once).
 
-When you read an response from a stream, you can use #readStreamingFrom: instead of #readFrom:. The response will then hold a streaming entity (provided there is an entity of course). As a user, you must then read the actual bytes or characters from the embedded stream. You must not close this embedded stream. This reading must take place before the original socket stream is closed. In the rare case that you did not read all content, you should call #consumeContent.
+When you read an response from a stream, you can use  readStreamingFrom: instead of  readFrom:. The response will then hold a streaming entity (provided there is an entity of course). As a user, you must then read the actual bytes or characters from the embedded stream. You must not close this embedded stream. This reading must take place before the original socket stream is closed. In the rare case that you did not read all content, you should call  consumeContent.
 
-Similary, when providing an entity to be written on a stream using #writeOn: you set the streaming entity's stream to an open read stream that you create. At the same time you have to set the content length and type, as with any entity. When the entity is written, your read stream will be copied efficiently to the socket stream and will then be closed.
+Similary, when providing an entity to be written on a stream using  writeOn: you set the streaming entity's stream to an open read stream that you create. At the same time you have to set the content length and type, as with any entity. When the entity is written, your read stream will be copied efficiently to the socket stream and will then be closed.
 
 Certain special content might be handled by special purpose entities. One such entity is ZnApplicationFormUrlEncodedEntity which holds a collection of key - value fields. This entity class is used to deal with POST form data. ZnMultiPartFormDataEntity will do the same for a more complicated type of POST form data.
 
@@ -273,8 +273,20 @@ Not all classes are documented here. Please have a look at: ZnFixedClient, ZnHtt
 %\end{minipage}
 %\end{figure}
 
+Can Zinc do this easily (e.g. automatically handle hidden fields)? If not, is
+it planned? Where can I find an example?
 
+Sure, have a look at \ct{ZnClientTests>>testPostForm} (and possibly \ct{testPostMultipart}).
+The API you are looking for is in \ct{ZnClient>>formAt:put:} (or \ct{formAdd:}) and friends.
+This would be an example:
 
+\begin{code}{}
+ZnClient new
+	url: 'http://myserver.com/login';
+	formAt: 'username' put: 'john';
+	formAdd: 'password' -> 'secret';
+	post.
+\end{code}
 
 info here
 
@@ -354,7 +366,7 @@ ZnClient new
 	queryAt: 'address' put: '81.83.7.35';
 	accept: ZnMimeType applicationJson;
 	contentReader: [ :entity | | parserClass |
-		parserClass := Smalltalk at: #JSJsonParser ifAbsent: [ ^ self ].
+		parserClass := Smalltalk at:  JSJsonParser ifAbsent: [ ^ self ].
 		parserClass parse: entity contents ];
 	ifFail: [ ^ self error: 'Oops' ];
 	get.
