@@ -482,6 +482,7 @@ Groups are useful because they let you name sets of items for various purposes. 
 
 
 To define a group we use the method \mbox{\ct{group: groupName with: group elements}.} The \ct{with:} argument can be a package name, a project, another group, or a collection of those things.  Here is the code correspondiong to \figref{version06}.
+
  
 \begin{code}{}
 ConfigurationOfCoolBrowser>>baseline06: spec 
@@ -505,13 +506,15 @@ ConfigurationOfCoolBrowser>>baseline06: spec
                ].
 \end{code}
 
+ 
+ \mmp{be careful because right now, this piece of code is split between to pages and the figure 1.5 in the middle. It is ugly!!!  we cannot do that.}
 
-
+\mmp{hahahahha you couldn't express in the diagram that CoolBrowser-AddonsTests also depends on CoolBrowser-Tests hahah :) }
 
 
 
  
-We are defining the groups in the baseline version, since a group is a structural component. Note that the default group will be used in the subsequent sections. Here the default group mentions that the two packages 'CoolBrowser-Core' and 'CoolBrowser-Addons' will be loaded.
+We are defining the groups in the baseline version, since a group is a structural component. Note that the default group will be used in the subsequent sections. Here the default group mentions that the two packages 'CoolBrowser-Core' and 'CoolBrowser-Addons' will be loaded when the method \ct{load} is used.
 
 Using this baseline, we can now define version \ct{0.6} to be the same as version\ct{0.5}, except for the addition of the new package \ct{CoolBrowser-AddonsTests}.
  
@@ -527,6 +530,8 @@ ConfigurationOfCoolBrowser>>version06: spec
                   package: 'CoolBrowser-Addons' with: 'CoolBrowser-Addons-JohnLewis.6' ;
                   package: 'CoolBrowser-AddonsTests' with: 'CoolBrowser-AddonsTests-JohnLewis.1' ].
 \end{code}
+
+\mmp{notice that it is the first time you include \#bleessing for a version method. And you don't explain what \#development is. Are you sure it was on purpose? I vote for removing the blessing from this example}
  
 
 \paragraph{Examples.} Once you have defined a group, you can use its name anywhere you would use the name of a project or package. The \ct{load:}  method takes as parameter the name of a package, a project, a group, or a collection of those items.  So all of the following statements are possible:
@@ -561,7 +566,7 @@ ConfigurationOfCoolBrowser>>version06: spec
 
 \paragraph{The groups \lct{'default'} and \lct{'ALL'}.} 
 The \ct{'default'} group is special one.  The \ct{load} message loads the members of the \ct{'default'} groups while the group \ct{'ALL'} 
-will load all the packages. 
+will load all the packages. Moreoever, by default, 'default' loads 'ALL'!
 
     
 \begin{code}{}
