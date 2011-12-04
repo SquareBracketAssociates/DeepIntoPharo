@@ -971,9 +971,26 @@ ConfigurationOfCoolBrowser>>baseline09: spec
               spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformPharo'.].
 \end{code}
 
-Notice that we add the package \ct{CoolBrowser-Platform} in the \ct{Core} group. As you can see, we can manage this package as any other and in a uniform way. Thus, we have a lot of flexibility. At runtime, when you load CoolBrowser, Metacello automatically detects in which dialect the load is happening and loads the specific package for that dialect.         
+Notice that we add the package \ct{CoolBrowser-Platform} in the \ct{Core} group. As you can see, we can manage this package as any other and in a uniform way. Thus, we have a lot of flexibility. At runtime, when you load CoolBrowser, Metacello automatically detects in which dialect the load is happening and loads the specific package for that dialect. The \ct{for:do:} is not only for dialects but also for specific versions of those dialects. For example, we can have:
 
-Finally, note that the method \ct{for:do:} is not only used to specify a platform specific package, but also for anything that has to do with different dialects. You can put whatever you want from the configuration inside that block. So, for example, you can define groups, packages, repositories, etc, that are dependent on a dialect. For example, you can do this:
+\begin{code}{}
+ConfigurationOfCoolBrowser>>baseline09: spec 
+       <version: '0.9-baseline'>
+
+       ...
+                     
+       !\textbf{spec for: \#gemstone do: [}!
+              spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformGemstone'.].
+       !\textbf{spec for: '\#pharo1.3.x' do: [}!
+              spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformPharo13'.].          
+       !\textbf{spec for: '\#pharo1.2.x' do: [}!
+              spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformPharo12'.].          
+      
+\end{code}
+
+    
+
+Finally, note that the method \ct{for:do:} is not only used to specify a platform specific package, but also for anything that has to do with different dialects. You can put whatever you want from the configuration inside that block. So, for example, you can define, change and customize groups, packages, repositories, etc, for each dialect dialect. For example, you can do this:
 
 
   \begin{code}{}
