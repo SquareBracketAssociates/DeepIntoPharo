@@ -648,9 +648,10 @@ ConfigurationOfCoolToolSet >>baseline01: spec
 
 We've named the project reference 'CoolBrowser ALL' and in the specification for the 'CoolToolSet-Core' package, we've specified that 'CoolBrowser ALL' is required. The name of the project reference is arbitrary, you can select the name you want, although is recommended to put a name that make sense to that project reference. 
 \sd{How can I say that I should load a specific version of another configurations?}
+\mmp{ I didn't understand. Using versionString: from the baseline or using project:with: from a version. }
 As explained later, the message \ct{project:with:} allows one to specify the exact version of the project you want to load.
 \sd{dale it would be nice to change the api because with: is strange and it would be good to have the same than (the replacement of) versionString:}
-
+\mmp{but at the same time, for the packages, you use with: so in such case at least it is uniform. Otherwise, change also for packages.}
 
 %Now if the project you depend on does not follow the default convention you will have to provide more information to identify
 %the configuration. Let's also assume  that the class \ct{ConfigurationOfCoolBrowser} is stored in a Monticello package called \ct{CoolBrowser-Metacello} instead of the recommended \ct{ConfigurationOfCoolBrowser}. This will help us to understand the role of each parameter. 
@@ -665,6 +666,7 @@ What we did here in \ct{baseline0.1} was to create a \emph{project reference} fo
 If the Monticello repository is protected, then you should use the message: \ct{repository:username:password:} instead.
 \ab{I've taken a guess at the meaning of \ct{file:}.  If I'm right, then the name of this message should be changed to \ct{package:}.}
 \sd{I agree. Dale could we change file: into package:?}
+\mmp{I have already asked this one year ago. You can read the answer here: http://forum.world.st/I-think-file-is-quite-confusing-td1471992.html}
 In this example, it is mandatory to specify the package name with \ct{file:} because \ct{'ConfigurationOfCoolBrowser'} is not placed according to the convention (it is in a package called 'CoolBrowser-Metacello' rather than 'ConfigurationOfCoolBrowser'). If you follow the convention, then it is not necessary to specify it using \ct{file:}.
 
 \item The message \ct{loads:} specify which packages or groups to load.  The parameter of \ct{loads:} can be the same as \ct{load}, \ie name of a package, or the name of a group, or a collection of these things. Notice that \ct{loads:} is optional, you only need it if you want to load something different from the default. 
@@ -802,6 +804,7 @@ ConfigurationOfCoolToolSet >>baseline02: spec
 
 \section{Executing code before and after installation}
 \sd{skipped it for now.}
+\mmp{I didn't understand}
 Occasionally, you may find that you need to execute some code either before or after a package or project is loaded. For example, if you are installing a System Browser it would be a good idea to register it as default after it is loaded. Or maybe you want to open some workspaces after the installation. 
 
 Metacello provides this feature by means of the messages \ct{preLoadDoIt:} and \ct{postLoadDoIt:}.  The arguments to these messages are selectors of methods defined on the configuration class as shown below. For the moment, these pre- and post-scripts can be defined for a single package or for an entire project. 
