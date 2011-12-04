@@ -633,7 +633,7 @@ ConfigurationOfCoolToolSet >>baseline01: spec
 We've named the project reference 'CoolBrowser ALL' and in the specification for the 'CoolToolSet-Core' package, we've specified that 'CoolBrowser ALL' is required. The name of the project reference is arbitrary, you can select the name you want, although is recommended to put a name that make sense to that project reference. 
 \sd{How can I say that I should load a specific version of another configurations?}
 As explained later, the message \ct{project:with:} allows one to specify the exact version of the project you want to load.
-\sd{dale it would be nice to change the api because with: is strange and it would be good to have the same than (the replacement of) versionString:}
+\sd{dale it would be nice to change the api because with: is strange and it would be good to have the same than (the replacement of) versionString:} \sd{mariano I do not know why I lost your comment. Here we are talking about the version not the full file name?}
 
 
 Now if the project you depend on does not follow the default convention you will have to provide more information to identify the configuration. Let's also assume  that the class \ct{ConfigurationOfCoolBrowser} is stored in a Monticello package called \ct{CoolBrowser-Metacello} instead of the recommended \ct{ConfigurationOfCoolBrowser}. This will help us to understand the role of each parameter. 
@@ -672,7 +672,7 @@ ConfigurationOfCoolToolSet >>baseline01: spec
 
 We've named the project reference 'CoolBrowser ALL' and in the specification for the 'CoolToolSet-Core' package, we've specified that 'CoolBrowser ALL' is required. The name of the project reference is arbitrary, you can select the name you want, although is recommended to put a name that make sense to that project reference. 
 \sd{How can I say that I should load a specific version of another configurations?}
-\mmp{ I didn't understand. Using versionString: from the baseline or using project:with: from a version. }
+\mmp{ I didn't understand. Using versionString: from the baseline or using project:with: from a version. } \sd{I hate that: why two obscure messages.}
 As explained later, the message \ct{project:with:} allows one to specify the exact version of the project you want to load.
 
 
@@ -819,7 +819,7 @@ ConfigurationOfCoolToolSet >>baseline011: spec
                      package: 'CoolToolSet-Tests' with: [ spec requires: 'CoolToolSet-Core' ]].
 \end{code}       
 
-If we don't define a version for the references \ct{'CoolBrowser default'}  and \ct{'CoolBrowser Tests'} in the version method, then the version specified in the baseline (using \ct{versionString:}) is used. If there is no version specified in the baseline method, then Metacello loads the most recent version of the project.
+If we don't define a version for the references \ct{'CoolBrowser default'}  and \ct{'CoolBrowser Tests'} in the version method, then the version specified in the baseline (using \ct{versionString:}) is used. \sd{I do not get it} If there is no version specified in the baseline method, then Metacello loads the most recent version of the project.
 
 
 \paragraph{Reusing information.}
@@ -850,7 +850,7 @@ ConfigurationOfCoolToolSet >>baseline02: spec
 
 \section{Executing code before and after installation}
 \sd{skipped it for now.}
-\mmp{I didn't understand}
+\mmp{I didn't understand}\sd{when I rewrote I did not read this part}
 Occasionally, you may find that you need to execute some code either before or after a package or project is loaded. For example, if you are installing a System Browser it would be a good idea to register it as default after it is loaded. Or maybe you want to open some workspaces after the installation. 
 
 Metacello provides this feature by means of the messages \ct{preLoadDoIt:} and \ct{postLoadDoIt:}.  The arguments to these messages are selectors of methods defined on the configuration class as shown below. For the moment, these pre- and post-scripts can be defined for a single package or for an entire project. 
