@@ -241,6 +241,38 @@ Certain special content might be handled by special purpose entities. One such e
 Not all classes are documented here. Please have a look at: ZnFixedClient, ZnHttpClient, and the support classes ZnCookie, ZnCookieJar, ZnCredentials hierarchy, ZnUserAgentSettins and ZnUserAgentSession. The unit tests are also a good place to learn how to use them.
 
 
+
+\section{Secure mails}
+ two small examples, ZdcSecurePOP3Client and ZdcSecureSMTPClient. These are subclasses from the POP3Client and SMTPClient already present, but open a ZdcSecureSocketStream to the POP3/SMTP server and connect it at the SSL level. This means you can now receive and/or send email securely over SSL, to GMail for example:
+
+"Retrieve (but not delete) your last 5 messages"
+
+\begin{code}{}
+ZdcSecurePOP3Client
+	retrieveMessagesFromGMailAccount: '<your-name>@gmail.com'
+	password: '<your-password>'
+	limit: 5.
+\end{code}
+(Note that you have to enable POP3 access in your GMail account)
+
+"Send a message"
+\begin{code}{}
+| mailMessage |
+mailMessage := MailMessage empty.
+mailMessage setField: 'subject' toString: 'ZdcSecureSMTPClient Test'.
+mailMessage body: (MIMEDocument contentType: 'text/plain' content: 'This is test from Pharo Smalltalk').
+ZdcSecureSMTPClient
+	sendUsingGMailAccount: '<your-name>@gmail.com' 
+	password: '<your-password>'
+	to: '<email-address>' 
+	message: mailMessage
+\end{code}
+The code is in the 'Zodiac-Extra' package in the http://www.squeaksource.com/Zodiac repository.
+Of course, you also have to install Zodiac and a plugin, see http://zdc.stfx.eu/ for more details.
+
+Sven
+
+
 %\begin{figure}[htbp]
 %   \centering
 %   \ifluluelse
