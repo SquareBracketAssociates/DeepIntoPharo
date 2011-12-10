@@ -308,6 +308,7 @@ If you want to simulate the loading of a configuration, without actually loading
 		'CoolBrowser-Addons' }) !\textbf{loadDirective}!.
 \end{code} 
 
+Apart from \ct{load:} and \ct{record:}, there is also another useful method  which is \ct{fetch}. As explained, \ct{record:} simply records which Monticello files should be downloaded and in which order. \ct{fetch:}  accesses and downloads all the needed Monticello files. Just for the record, in the implementation \ct{load:} first does a \ct{fetch:} and then a \ct{doLoad}. 
 
 \section{Managing Dependencies between Packages}
 
@@ -1045,7 +1046,7 @@ In addition, the addons and tests are not available for Gemstone, and thus, thos
 
 \section{Symbolic Versions}
 In any large evolving application, it is difficult to know which version of a configuration to use with a specific version. 
-\ct{ConfigurationOfOmniBrowser} provides a good example of the problem: version 1.1.3 is used in the Pharo1.0 one-click image,  version 1.1.3 cannot be loaded into Pharo1.2, version 1.1.5 is for Pharo1.1, version 1.2.3 is for Pharo1.2, and it cannot load in Pharo1.0. 
+\ct{ConfigurationOfOmniBrowser} provides a good example of the problem: version 1.1.3 is used in the Pharo1.0 one-click image,  version 1.1.3 cannot be loaded into Pharo1.2, version 1.1.5 is for Pharo1.1, version 1.2.3 is for Pharo1.2, and it cannot load in Pharo1.0, etc. 
 
 Metacello introduces \emph{symbolic versions} to describe versions in terms of existing literal versions (like 1.1.3, 1.1.5, and 1.2.3). Symbolic versions are specified using the \ct{symbolicVersion:} pragma. Here we defined the stable versions for OmniBrowser for each version of Pharo.
 
@@ -1057,7 +1058,12 @@ OmniBrowser>>stable: spec
      spec for: #'pharo1.2.x' version: '1.2.3'.
 \end{code}
 
-Symbolic versions can be used anywhere that a literal version can be used. From a load expressions such as \ct{(ConfigurationOfOmniBrowser project version: #stable) load}
+Symbolic versions can be used anywhere that a literal version can be used. From a load expressions such as 
+
+\begin{code}{}
+(ConfigurationOfOmniBrowser project version: #stable) load
+\end{code}
+
 to a project reference in a baseline version:
 
 \begin{code}{}
@@ -1096,9 +1102,12 @@ Note that the \ct{#stable} here override the bleeding edge loading behavior that
 A couple of standard symbolic versions are defined:
 
 \begin{description}
-\item [stable.] A symbolic version specifies the stable literal version for a particular platform. The stable version is the version that should be used for loading. With the exception of the \ct{bleedingEdge} version (which has a pre-defined default defined), you will need to edit your configuration to add the \ct{stable} or \ct{development} version information. \emph{I want a certified version for the platform.}
+\item [stable.] A symbolic version that specifies the stable literal version for a particular platform and version of such a platform. The stable version is the version that should be used for loading. With the exception of the \ct{bleedingEdge} version (which has a pre-defined default defined), you will need to edit your configuration to add the \ct{stable} or \ct{development} version information. \emph{I want a certified version for the platform.}
 
 \item [development.] A symbolic version that specifies the literal version to use under development (i.e., whose blessing is \ct{development}). Typically a \ct{development} version is used by developers for managing pre-release activities as the project transitions from \ct{bleedingEdge} to \ct{stable}. There are a number of \ct{MetacelloToolBox} methods that take advantage of the \ct{development} symbolic version. \emph{I want a certified version for the platform but in development mode.}
+
+\mmp{did we speak already about MetacelloToolBox?}
+
 
 \item [bleedingEdge.]  A symbolic version that specifies the latest mcz files and project versions. By default the \ct{bleedingEdge} symbolic version is defined as the latest \emph{baseline} version available. The default specification for \ct{bleedingEdge} is defined for all projects. The \ct{bleedingEdge} version is primarily for developers who know what they are doing. There are no guarantees that the \ct{bleedingEdge} version will even load, let alone function correctly. \emph{I want the latest published file.}
 
@@ -1106,6 +1115,8 @@ A couple of standard symbolic versions are defined:
 
 \sd{I have the impression that this is not clear. it would be good to have an example from something stable and may from moose?}
 \sd{How do I say that default is load stable? should I say it? same question for the other ones like bleedingEdge}
+\mmp{default for what EXACTLY? The only 'default' we talked so far is just to now which packages to load by default, that is, when using load. But that is to an especific version. But this (bleedingEdge, stable, etc) is about which version to load. There is no default. I mean...what do you want to do it exactly?  Lets say I have ConfigurationOfProject project version: xxx.  Where is the default? what do you want to do? ConfigurationOfProject load  ??   I dont understand....  }
+
 
 
 When specifying a symbolic version with a \ct{symbolicVersion:} pragma it is legal to use another symbolic version like the following definition for the symbolic version \ct{stable}:
@@ -1132,7 +1143,7 @@ development: spec
        spec for: #'pharo1.2.x' version: '1.6'.
 \end{code}
 
-Here this indicates that there are no version for the \ct{common} tag. 
+Here this indicates that there is no version for the \ct{common} tag. 
 Using a symbolic version that resolves to \ct{notDefined} will result in a \ct{MetacelloSymbolicVersionNotDefinedError} being signaled.
 
 
@@ -1141,6 +1152,7 @@ Using a symbolic version that resolves to \ct{notDefined} will result in a \ct{M
 Packages or projects pass through several stages or steps during the software development process or life cycle such as for example, development, alpha, beta, release. Sometimes we want to refer also to the state of a project.
 
 \sd{Not sure if the following is up to date}
+\mmp{from what I could see, it is.}
 Blessings are taken into account by the load logic. The result of the following expression:
 \begin{code}{}
 ConfigurationOfCoolBrowser project latestVersion.
@@ -1169,6 +1181,7 @@ Since the latest \ct{#baseline} version should reflect the most up-to-date proje
 
 
 The following is the definition for the \ct{bleedingEdge} symbolic version: \sd{not sure that it is ok to show here}
+\mmp{yes, I wouldn't show it...too much internal detail..}
 
 \begin{code}{}
 bleedingEdge
