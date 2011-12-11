@@ -1641,12 +1641,13 @@ ConfigurationOfCoolToolSet >>project
 
 
 \section{Conditional loading}
-When loading a project, usually the user wants to decide whether to load or not certain packages depending on a specific condition, for example, the existence of certain other packages in the image. Suppose you want to load Seaside (or any other web framework) in your image. Seaside has a tool that depends on OmniBrowser and it is used for managing instances of web servers. What can be done with this little tool can also be done by code. If you want to load such tool you need OmniBrowser. However, other users may not need such package. An alternative could be to provide different groups, one that includes such package and one that does not. The problem is that the final user should be aware of this and load different groups in different situations.  With conditional loading you can, for example, load that Seaside tool only if OmniBrowser is present in the image. This will be done automatically by Metacello and there is no need to explicitly load a particular group. 
+When loading a project, usually the user wants to decide whether to load or not certain packages depending on a specific condition, for example, the existence of certain other packages in the image. Suppose you want to load Seaside in your image. Seaside has a tool that depends on OmniBrowser and it is used for managing instances of web servers. What can be done with this little tool can also be done by code. If you want to load such tool you need OmniBrowser. However, other users may not need such package. An alternative could be to provide different groups, one that includes such package and one that does not. The problem is that the final user should be aware of this and load different groups in different situations.  With conditional loading you can, for example, load that Seaside tool only if OmniBrowser is present in the image. This will be done automatically by Metacello and there is no need to explicitly load a particular group. 
 
 Suppose that our CoolToolSet starts to provide much more features. We first split the core in two packages: 'CoolToolSet-Core' and 'CoolToolSet-CB'. CoolBrowser can be present in one image but not in another one. We want to load the package 'CoolToolSet-CB' by default only and if CoolBrowser is present. 
 
 The mentioned conditionals are achieved in Metacello by using the \emph{project attributes} we saw in the previous section. They are defined in the \ct{project} method. 
 \sd{to me it looks really bad and I'm sure that we want to document that}
+\mmp{We should not put things under the carpet. The only way to improve is to understand the current limitations and think how to make them better. }
 Example:
 
 
@@ -1659,9 +1660,9 @@ ConfigurationOfCoolBrowser >>project
               "Construct Metacello project"
               constructor := (Smalltalk at: #MetacelloVersionConstructor) on: self.
               project := constructor project.
-              projectAttributes :=  ((Smalltalk at: #CBNode ifAbsent: []) == nil
-                     ifTrue: [ #( #'CBNotPresent' ) ]
-                     ifFalse: [ #( #'CBPresent' ) ]).
+              !\textbf{projectAttributes :=  ((Smalltalk at: \#CBNode ifAbsent: []) == nil}!
+                    !\textbf{ifTrue: [ \#( \#'CBNotPresent' ) ]}!
+                    !\textbf{ifFalse: [ \#( \#'CBPresent' ) ]).}!              
               project projectAttributes:  projectAttributes.
               project loadType: #linear.
               project ]
@@ -1670,7 +1671,7 @@ ConfigurationOfCoolBrowser >>project
 
 As you can see in the code, we check if CBNode class (a class from CoolBrowser) is present and depending on that we set an specific project attribute.
 This is flexible enough to let you define your own conditions and set the amount of project attributes you wish (you can define an array of attributes).  
-Now the questions is how to use these project attributes. In the following baseline we see an example:
+Now the question is how to use these project attributes. In the following baseline we see an example:
 
 \begin{code}{}
 ConfigurationOfCoolToolSet >>baseline02: spec 
@@ -1693,12 +1694,14 @@ ConfigurationOfCoolToolSet >>baseline02: spec
                      package: 'CoolToolSet-Core';
                      package: 'CoolToolSet-Tests' with: [ 
                             spec requires: #('CoolToolSet-Core') ];
-                     package: 'CoolToolSet-CB';                     
-              spec for: #CBPresent do: [
+                     package: 'CoolToolSet-CB';       
+                     
+             !\textbf{spec for: \#CBPresent do: [}!   
                      spec
                             group: 'default' with: #('CoolToolSet-CB' )
                             yourself ].
-              spec for: #CBNotPresent do: [
+              
+             !\textbf{spec for: \#CBNotPresent do: [}!                 
                      spec 
                             package: 'CoolToolSet-CB' with: [ spec requires: 'CoolBrowser default' ];
                             yourself ].
@@ -1738,8 +1741,8 @@ We will describe each attribute in detail:
 \begin{description}
 
 \item[ Description:] a textual description of the version. This may include a list of bug fixes or new features, changelog, etc.
-\item[  Author:] the name of the author who created the version. When using the OB-Metacello tools the author field is automatically updated to reflect the current author as defined in the image.
-\item[  Timestamp:] the date and time when the version was completed. When using the OB-Metacello tools the timestamp field is automatically updated to reflect the current date and time. Note that the timestamp must be a String.
+\item[  Author:] the name of the author who created the version. When using the OB-Metacello tools or MetacelloToolbox, the author field is automatically updated to reflect the current author as defined in the image.
+\item[  Timestamp:] the date and time when the version was completed. When using the OB-Metacello tools or MetacelloToolbox, the timestamp field is automatically updated to reflect the current date and time. Note that the timestamp must be a String.
 
 \end{description}
 
@@ -1754,7 +1757,7 @@ To end this section, we show you can query this information. This illustrates th
 
 
 \section{Conclusion}
-Metacello is an important part of Pharo. It will allow your project to scale. It allow you to control when you want to migrate to new version and for which packages. It is an important architectural backbone.
+Metacello is an important part of Pharo. It will allow your project to scale. It allows you to control when you want to migrate to new version and for which packages. It is an important architectural backbone.
 
 
 \newpage
@@ -1764,8 +1767,8 @@ Metacello is an important part of Pharo. It will allow your project to scale. It
 \begin{footnotesize}
 \begin{code}{}
 ConfigurationOfCoolToolSet>>baseline06: spec 						!\emph{"could be called differently just a convention"}!
-       <version: '0.6-baseline'> 						                        !\emph{"could be called differently just a convention"}!
-       
+      
+       <version: '0.6-baseline'> 						                        !\emph{"could be called differently just a convention. This pragma is used for the version: method"}!
        spec for: !\textbf{\#common}! do: [                                    !\emph{"\#common/\#pharo/\#gemstone/\#pharo'1.4'"}!     
               spec blessing: !\textbf{\#baseline}!.				                       !\emph{"Important: identifies a baseline"}!  
               spec repository: 'http://www.example.com/CoolToolSet'.
