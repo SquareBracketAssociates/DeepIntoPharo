@@ -1617,7 +1617,7 @@ A problem with this happens also with methods override. If a package overrides a
 
 When using atomic loading the package order is lost and we have the mentioned problems. However, if we use the linear mode, then each package is loaded in order. Moreover, the methods override should be preserved too. 
 
-A possible problem with linear mode is the following: suppose project \emph{A} depends has dependencies on other two projects \emph{B} and \emph{C}. \emph{B} depends on the project \emph{D} version 1.1 and \emph{C} depends on project \emph{D} version 1.2 (the same project but another version). First question, which \emph{D} version does \emph{A} have at the end?  By default (you can change this using the method \ct{operator:} in the \ct{project} method), Metacello will finally load version 1.2.
+A possible problem with linear mode is the following: suppose project \emph{A} depends on other two projects \emph{B} and \emph{C}. \emph{B} depends on the project \emph{D} version 1.1 and \emph{C} depends on project \emph{D} version 1.2 (the same project but another version). First question, which \emph{D} version does \emph{A} have at the end?  By default (you can change this using the method \ct{operator:} in the \ct{project} method), Metacello will finally load version 1.2, \ie the latest one.
 
 However, and here is the relation with load types, in atomic loading \emph{only} 1.2 is loaded. In linear loading, \emph{both} versions may (depending on the dependency order) be loaded, although 1.2 will be finally loaded. But this means that 1.1 may be loaded first and then 1.2. Sometimes this can be a problem because an older version of a package or project may not even load in the Pharo image we are using. 
 
@@ -1634,7 +1634,7 @@ ConfigurationOfCoolToolSet >>project
               "Construct Metacello project"
               constructor := (Smalltalk at: #MetacelloVersionConstructor) on: self.
               project := constructor project.
-              project loadType: #linear. '"or #atomic'"
+              !\textbf{project loadType: \#linear. '"or \#atomic'"}!
               project ]
 
 \end{code}
