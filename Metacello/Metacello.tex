@@ -1285,7 +1285,7 @@ In this section we'll take a walk through a typical development cycle and provid
 
 \subsection{Example Setup}
 
-When you are developing your project and are building your configuration for the first time, you already have the packages that make up your project loaded and correctly running on your image. In this example, it is necessary to load a set of packages to simulate a image that will be used to build the first configuration of the project. We'll cheat here an use an existing configuration (ConfigurationOfGemTools) to download and install in our image all the packages and dependencies needed (just as we would have to do by hand if we were the maintainers of the project). So, don't pay much attention to this step and only focus on the fact that after evaluating it, you'll have loaded in your image all the packages needed to build the example configuration:
+When you are developing your project and building your configuration for the first time, you already have the packages that make up your project loaded and correctly running on your image. In this example, it is necessary to load a set of packages to simulate a image that will be used to build the first configuration of the project. We'll cheat here an use an existing configuration (ConfigurationOfGemTools) to download and install in our image all the packages and dependencies needed (just as we would have to do by hand if we were the maintainers of the project). So, don't pay much attention to this step and only focus on the fact that after evaluating it, you'll have loaded in your image all the packages needed to build the example configuration:
 
 \begin{code}{}
 Gofer new
@@ -1326,7 +1326,7 @@ Here we use the toolbox API to create the initial baseline version by specifying
         {('default' -> #('OB-SUnitGUI' 'GemTools-Client' 'GemTools-Platform' 'GemTools-Help'))}.
 \end{code}                
                 
-The \ct{createBaseline:...} message copies the class \ct{MetacelloConfigTemplate} to \ct{ConfigurationOfGemToolsExample} and creates a \ct{#baseline10:} method that looks like the following:
+The \ct{createBaseline:...} message copies the class \ct{MetacelloConfigTemplate} to \ct{ConfigurationOfGemToolsExample} (this class is called like this because we have specified in the parameter \ct{for:} that the name of the project was GemToolsExample)  and creates a \ct{#baseline10:} method that looks like the following:
 
 \begin{code}{}
 ConfigurationOfGemToolsExample>>baseline10: spec
@@ -1370,7 +1370,9 @@ ConfigurationOfGemToolsExample>>baseline10: spec
 
 
 
-Note that for the 'FFI' project the versionString is \ct{#bleedingEdge}, while the versionString for the other projects is \ct{#stable}. At the time of this writing the FFI project did not have a \ct{#stable} symbolic version defined, so the default versionString is set to \ct{#bleedingEdge}. If a \ct{#stable} symbolic version is defined for the project, the the default versionString is \ct{#stable}. There are no special version dependencies for the GemTools project so the defaults will work just fine.
+Note that for the 'FFI' project the versionString is \ct{#bleedingEdge}, while the versionString for the other projects is \ct{#stable}. At the time of this writing the FFI project did not have a \ct{#stable} symbolic version defined, so the default versionString is set to \ct{#bleedingEdge}. If a \ct{#stable} symbolic version is defined for the project, then the default versionString is \ct{#stable}. There are no special version dependencies for the GemTools project so the defaults will work just fine. 
+
+%Notice also that it puts the MetacelloRepository by default and this is because of the stablished conventions. Nonetheless, you can change it if there are projects whose configuration classes are not there but in a different repository. In addition, since it does not specify \ct{file:} for every project reference, it also expects that the configuration class is placed in a  package with the same name (a convention we have mentioned different times in the chapter).
 
 
 
@@ -1419,7 +1421,7 @@ ConfigurationOfGemToolsExample>>development: spec
 
 \subsection{Validation}
 
-Whenever you finish editing a configuration you should validate it to check for mistakes that may cause problems later on. The Metacello ToolBox provides the validation via the message \ct{validateConfiguration:}. The following expression show you possible errors: \ct{(MetacelloToolBox validateConfiguration: ConfigurationOfGemToolsExample) explore}
+Whenever you finish editing a configuration you should validate it to check for mistakes that may cause problems later on. The Metacello ToolBox provides validations via the message \ct{validateConfiguration:}. The following expression show you possible errors: \ct{(MetacelloToolBox validateConfiguration: ConfigurationOfGemToolsExample) explore}
 
 If the list comes back empty then you are clean. Otherwise you should address the validation issues that show up. Validation issues are divided into three categories:
 
@@ -1474,7 +1476,7 @@ Gofer new
 Now this is the moment to run the unit tests. Note that for the GemTools unit tests you need to have GemStone installed.
 
 \subsubsection{Release}
-Once you are satisfied that the configuration loads correctly on your target platforms, you can release the \ct{#development} into production using the following expression:
+Once you are sure that your configuration loads correctly on your target platforms, and your project has reached the desired status, you can release the \ct{#development} into production using the following expression:
 
 \begin{code}{}
   MetacelloToolBox
@@ -1563,7 +1565,7 @@ MetacelloToolBox
   
 \subsection{Update Project Structure}
 
-In the course of development it is sometimes necessary to add a new package or reference and addition project. In this case let's add a package to the project called 'GemTools-Overrides' ('GemTools-Overrides' is actually part of the GemTools project already and we just left it out of the previous example). To add a new package a project you need to:
+In the course of development it is sometimes necessary to add a new package or project. In this case let's add a package to the project called 'GemTools-Overrides' ('GemTools-Overrides' is actually part of the GemTools project already and we just left it out of the previous example). To add a new package to a project you need to:
 
 \begin{itemize}
 \item (1) create a new baseline version to reflect the new package and dependencies, 
@@ -1571,10 +1573,10 @@ In the course of development it is sometimes necessary to add a new package or r
 \item (3) include the explicit version for the new package.
 \end{itemize}
 
-You can do that manually by using a class browser to manually:
+You can do that manually by using a class browser to manually
 copy and edit the old baseline version to reflect the new structure
-edit the existing \ct{#development} version method
-Or you can use the Metacello Toolbox API (not finished/tested yet):
+edit the existing \ct{#development} version method. 
+You can also use the Metacello Toolbox API (not finished/tested yet):
 
 \begin{code}{}
 | toolbox |
@@ -1597,6 +1599,9 @@ toolbox
         false ];
   commitMethod.
 \end{code}
+
+
+\mmp{this looks complicated and difficult to understand what he really wants to do.}
 
 
 \section{Load types}
