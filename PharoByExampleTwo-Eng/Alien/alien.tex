@@ -448,12 +448,22 @@ As you should notice, this time Spock takes care of finding out the memory addre
 
 Then, there is an important difference between passing arrays and passing strings. The expert user would notice that string functions in C language expects to receive a pointer to contiguous memory bytes ending with a null character to delimit its length.  \Spock is responsible for copying the string to a bigger buffer and inserting this special end character. This means that strings are passed by-copy, while on the other hand byte arrays are passed by reference!.
 
-Also for expertise users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be careful about this special behaviour. At the moment this book is written the FFI library doesn't support asynchronous calls, so strange behaviour is not possible. But we have to be very careful when facing with C pointer arguments to Smalltalk's memory.
+Also for expertise users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be careful about this special behavior. At the moment this book is written the FFI library doesn't support asynchronous calls, so strange behavior is not possible. But we have to be very careful when facing with C pointer arguments to Smalltalk's memory.
 
 \subsection{Default primitives types}
-\sd{What are the default C primitives type and how do they are mapped in native boost}
 
-float, double, boolean,.....
+\Spock automatically converts the object passed as argument based on the signature declaration. 
+For example if function takes float/double argument you specify it in signature:
+
+\begin{code}{}
+CExamples class>>mymethod: anArg
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ NBFFICallout cdecl: #( int foo ( double anArg) )
+\end{code}
+
+and then you can use this method as follows: \ct{self mymethod: 4.5}
+
 
 
 
