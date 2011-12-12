@@ -1767,8 +1767,7 @@ Metacello is an important part of Pharo. It will allow your project to scale. It
 \begin{footnotesize}
 \begin{code}{}
 ConfigurationOfCoolToolSet>>baseline06: spec 						!\emph{"could be called differently just a convention"}!
-      
-       <version: '0.6-baseline'> 						                        !\emph{"could be called differently just a convention. This pragma is used for the version: method"}!
+       <version: '0.6-baseline'> 						                        !\emph{"Convention. Used in the version: method"}!
        spec for: !\textbf{\#common}! do: [                                    !\emph{"\#common/\#pharo/\#gemstone/\#pharo'1.4'"}!     
               spec blessing: !\textbf{\#baseline}!.				                       !\emph{"Important: identifies a baseline"}!  
               spec repository: 'http://www.example.com/CoolToolSet'.
@@ -1776,14 +1775,14 @@ ConfigurationOfCoolToolSet>>baseline06: spec 						!\emph{"could be called diffe
               !\emph{"When we depend on other projects"}!
               spec !\textbf{project:}! 'CoolBrowser default' !\textbf{with:}! [
                         spec
-                            className: 'ConfigurationOfCoolBrowser';  "optional if convention followed"
-                            !\textbf{versionString:}! #bleedingEdge;			   !\emph{Required field could be \#stable/\#edge/specific version}!
-                            loads: #('default');				!\emph{which group to load}!
-                            file: 'CoolBrowser-Metacello'; !\emph{optional when same as class name}!
+                            className: 'ConfigurationOfCoolBrowser';           !\emph{"Optional if convention followed"}!
+                            !\textbf{versionString:}! #bleedingEdge;	!\emph{"Optional. Could be \#stable/\#bleedingEdge/specific version"}!
+                            loads: #('default');			           	!\emph{"which packages or groups to load"}!
+                            file: 'CoolBrowser-Metacello';               !\emph{"Optional when same as class name"}!
                             repository: 'http://www.example.com/CoolBrowser' ];
-                     !\textbf{project:}! 'CoolBrowser Tests' 
-                            !\textbf{copyFrom:}! 'CoolBrowser default' 
-                            !\textbf{with:}! [ spec loads: #('Tests').].
+                     !\textbf{project:}! 'CoolBrowser Tests'         
+                            !\textbf{copyFrom:}! 'CoolBrowser default'       !\emph{"Just to reuse information"}!
+                            !\textbf{with:}! [ spec loads: #('Tests').].             !\emph{"Just to reuse information"}!
              
              !\emph{"Our internal package dependencies"}!
               spec 
@@ -1806,7 +1805,7 @@ ConfigurationOfCoolToolSet>>baseline06: spec 						!\emph{"could be called diffe
 \begin{footnotesize}
 \begin{code}{}
 ConfigurationOfCoolBrowser>>version07: spec 					!\emph{"could be called differently just a convention"}!
-       <version: '0.7' imports: #('0.6-baseline')>				!\emph{"could be called differently just a convention: no baseline so this is version"}!
+       <version: '0.7' imports: #('0.6-baseline')>				!\emph{"Convention. No baseline so this is version"}!
 															!\emph{"do not import baseline from other baselines"}!
     
        spec for: !\textbf{\#common}! do: [                            !\emph{"\#common/\#pharo/\#gemstone/\#pharo'1.4'"}! 
@@ -1822,6 +1821,7 @@ ConfigurationOfCoolBrowser>>version07: spec 					!\emph{"could be called differe
 \end{code}
 \end{footnotesize} 
 
+\mmp{what do you mean by ``do not import baseline from other baselines'' ?}
 
 \newpage
 \begin{footnotesize}
@@ -1839,18 +1839,18 @@ ConfigurationOfGemToolsExample>>development: spec        !\emph{"note that the s
 ConfigurationOfGemToolsExample>>baseline10: spec
   <version: '1.0-baseline'>
   spec for: #common do: [
-     spec blessing: #'baseline'.                 !\emph{required see above}!
+     spec blessing: #'baseline'.                 !\emph{"required see above"}!
      spec repository: 'http://seaside.gemstone.com/ss/GLASSClient'.
      spec
         !\textbf{project:}! 'FFI' !\textbf{with:}! [
           spec
              className: 'ConfigurationOfFFI';
-             !\textbf{versionString:}! #bleedingEdge;					!\emph{\#stable/\#development/\#bleedingEdge}!
+             !\textbf{versionString:}! #bleedingEdge;					!\emph{"Optional. \#stable/\#development/\#bleedingEdge/specific version"}!
              repository: 'http://www.squeaksource.com/MetacelloRepository' ];
         project: 'OmniBrowser' with: [
           spec
              className: 'ConfigurationOfOmniBrowser';
-             versionString: #stable;									!\emph{\#stable/\#development/\#bleedingEdge}!
+             versionString: #stable;									!\emph{"Optional. \#stable/\#development/\#bleedingEdge/specific version"}!
              repository: 'http://www.squeaksource.com/MetacelloRepository' ];
         project: 'Shout' with: [
           spec
@@ -1900,8 +1900,7 @@ ConfigurationOfGemToolsExample>>version10: spec
 \end{code}
 \end{footnotesize} 
 
-\paragraph{Loading.} \ct{load}, \ct{load:}
-The \ct{load:}  method takes as parameter the name of a package, a project, a group, or a collection of those items.
+\paragraph{Loading.} \ct{load}, \ct{load:} The \ct{load} method loads the default group and if there is no default group defined, then all packages are loaded. The \ct{load:}  method takes as parameter the name of a package, a project, a group, or a collection of those items.
 
 \begin{code}{}
 (ConfigurationOfCoolBrowser project version: '0.1') load.
@@ -1909,7 +1908,7 @@ The \ct{load:}  method takes as parameter the name of a package, a project, a gr
 \end{code}
 
 \paragraph{Debugging.}
-\ct{record}, \ct{record:} \ct{loadDirectives}
+\ct{record}, \ct{record:} \ct{loadDirectives} The message \ct{record} does the record for the default group and if you want a specific group of items, you can use \ct{record:}, just as it is for \ct{load}.
 
 \begin{code}{}
 ((ConfigurationOfCoolBrowser project version: '0.2') !\textbf{record:}! 
@@ -1921,15 +1920,16 @@ The \ct{load:}  method takes as parameter the name of a package, a project, a gr
 \paragraph{Proposed development process.}
 Using metacello we suggest the following development steps.
 
+
 \begin{code}{}
 Baseline						"first we define a baseline"
 Version development			"Then a version tagged as development"
-Validate the map				"Once it is validated"
+Validate the map				"Once it is validated and the project status arrives to the desired status"
 Version release				"We are ready to tag a version as release"	
 
 Version development			"Since development continue we create a new version"
-...							"Tagged as development. It will be tagged as release and so one"
-Baseline 					"When architecture changes, a new baseline will appear"
+...							"Tagged as development. It will be tagged as release and so on"
+Baseline 					"When architecture or structure changes, a new baseline will appear"
 Version development			"and the story will continue"
 Version release
 
