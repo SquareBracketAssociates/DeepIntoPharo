@@ -159,7 +159,7 @@ The signature is described by an array: here \ct{#(int clock ())}.
 
 NativeBoost provides a convenience method named \ct{CLibrary}
 to obtain a handle of the standard C library. In other cases (suppose you want to use some standalone library), you must specify either a library name, or full path to it, or handle to already loaded library. You can use
-NativeBoost methods \sd{which ones} to load external library (and hence obtain handle of it) before making any calls to it.
+NativeBoost methods  to load external library (and hence obtain handle of it) before making any calls to it. For example: \ct{NativeBoost forCurrentPlatform loadModule: 'nameOfModule'} loads the module \ct{'nameOfModule'}.
 
 
 \paragraph{About marshaling.} The return type is \ct{int} and not \ct{SmallInteger}. This is the same with function arguments. They are all described in terms of C language. In general you don't have to worry too much about this because the \Spock library does an automatic conversion between C values and Smalltalk objects. So, when this message is executed, the return value will be a \ct{SmallInteger}. 
@@ -260,19 +260,21 @@ Now you can try printing this:
 In the   callout code/declaration (using the pragma declaration), we are expressing not one but \emph{two} different aspects: the obvious one is the C function signature, the other
 is which objects we are passing as arguments to the C function when the method is invoked. In this second aspect there are many possibilities. In our example the argument of the C is  the method argument: \ct{anInteger}. But it is not always necessary the case.
 
-\sd{igor says:
-Note that this time we don’t put the type of the argument. This is
-because for integer constants a NativeBoost automatically using 'int'
-C type.
+Note that there is no need to specify the type of the argument. This is
+because for integer constants NativeBoost automatically uses 'int' C type.
+The type for integer constants are int. There is no need to use: \ct{int abs (int -45)}
+when you can use \ct{int abs (-45)}. 
+
+
+\subsubsection{About constants}
 Often some functions in C libraries taking an options or flags, and
 have a number of them declared using \#define in C header.
-You can, of course take these contant values from header and put then
+You can, of course take these constant values from header and put then
 into your callout. But it is preferable to use a symbolic names for
-constants,
-which much less confusing than just bare numbers.
+constants, which much less confusing than just bare numbers.
 For using symbolic constants you can create a class variable or
 variable in shared pool, and then use the constant name as argument in
-your callout.}
+your callout.
 
 
 For example, imagine that we always passing a MyConstant value to our
