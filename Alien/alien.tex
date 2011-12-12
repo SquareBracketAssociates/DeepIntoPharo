@@ -101,7 +101,7 @@ Once loaded you should execute the following expression: \ct{NBInstaller install
 %\end{description}
 
 
-\section{Calling External a Simple Function}
+\section{Calling a Simple External Function}
 
 
 Suppose you want to know the amount of time the image has been running by calling the underlying OS function named \ct{clock}. 
@@ -111,7 +111,7 @@ This function is part of the standard C library. Its C declaration is\footnote{A
 int clock (void)
 \end{code}
 
-To call \ct{clock} from the image, you should write a binding: a normal Smalltalk method annotated with the \ct{<primitive:module:>} pragma. This pragma specifies that a native call should be generated using the NativeBoostPlugin. The native class is described using the message \ct{cdecl:module:} message. Here is the full definition. We  explain the details below.
+To call \ct{clock} from the image, you should write a binding: a normal Smalltalk method annotated with the \ct{<primitive:module:>} pragma. This pragma specifies that a native call should be generated using the NativeBoost plugin. The native call is described using the message \ct{cdecl:module:} message. Here is the full definition. We  explain the details below.
 
 \begin{code}{}
 CExamples class>>ticksSinceStart
@@ -144,9 +144,11 @@ CExamples class>>ticksSinceStart
 \end{code}
 
 \paragraph{Callout.}
-What we have just done is usually called an FFI \emph{callout}. \ct{NBFFICallout} is the class that defines behavior to perform such calls to external functions. We use the  message \ct{#cdecl:module:} to describe this call. 
+What we have just done is usually named an FFI \emph{callout}. \ct{NBFFICallout}  is the class that responsible for generating code to
+perform calls to external functions. We use the  message \ct{#cdecl:module:} to describe this call. 
 
 This message has two arguments: the \emph{signature of the function} that will be invoked and the \emph{module or library} where to look for it.  In this example we look this function in the standard C library. 
+
 
 The signature is described by an array: here \ct{#(int clock ())}.
 \begin{itemize} 
@@ -155,7 +157,12 @@ The signature is described by an array: here \ct{#(int clock ())}.
 \item Its third element is also an array which describes the function parameters when there's any. 
 \end{itemize}
 
-\paragraph{About marshaling.} The return type is \ct{int} and not \ct{SmallInteger}. This is the same with function arguments. They are all described in terms of C language. In general you don't have to worry too much about this because the \Spock library does an automatic conversion between C types and Smalltalk types. So, when this message is executed, the return value will be a \ct{SmallInteger}. 
+NativeBoost provides a convenience method named \ct{CLibrary}
+to obtain a handle of the standard C library. In other cases (suppose you want to use some standalone library), you must specify either a library name, or full path to it, or handle to already loaded library. You can use
+NativeBoost methods \sd{which ones} to load external library (and hence obtain handle of it) before making any calls to it.
+
+
+\paragraph{About marshaling.} The return type is \ct{int} and not \ct{SmallInteger}. This is the same with function arguments. They are all described in terms of C language. In general you don't have to worry too much about this because the \Spock library does an automatic conversion between C values and Smalltalk objects. So, when this message is executed, the return value will be a \ct{SmallInteger}. 
 This conversion process for types from different languages is called \emph{marshaling}.
 We will see more examples of automatic conversions in this Chapter. 
 
@@ -250,8 +257,50 @@ Now you can try printing this:
 
 \subsubsection{About arguments}
 
-In the pragma declaration we are expressing not one but \emph{two} different aspects: the obvious one is the C function signature, the other
+In the   callout code/declaration (using the pragma declaration), we are expressing not one but \emph{two} different aspects: the obvious one is the C function signature, the other
 is which objects we are passing as arguments to the C function when the method is invoked. In this second aspect there are many possibilities. In our example the argument of the C is  the method argument: \ct{anInteger}. But it is not always necessary the case.
+
+\sd{igor says:
+Note that this time we don’t put the type of the argument. This is
+because for integer constants a NativeBoost automatically using 'int'
+C type.
+Often some functions in C libraries taking an options or flags, and
+have a number of them declared using \#define in C header.
+You can, of course take these contant values from header and put then
+into your callout. But it is preferable to use a symbolic names for
+constants,
+which much less confusing than just bare numbers.
+For using symbolic constants you can create a class variable or
+variable in shared pool, and then use the constant name as argument in
+your callout.}
+
+
+For example, imagine that we always passing a MyConstant value to our
+function. For this we can define it as a class variable in our class:
+
+\begin{code}{}
+Object subclass: #MyClass
+	...
+	classVariables: 'MyConstant'
+..
+\end{code}
+Then don't forget to initialize it properly:
+
+\begin{code}{}
+MyClass>>initialize
+	MyConstant := -45.
+\end{code}
+
+And so, in callout code, we can use it like following:
+
+\begin{code}{}
+MyClass class>>absMinusFortyFive
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	^ NBFFICallout cdecl: #( int abs (MyConstant) ) module: NativeBoost CLibrary
+\end{code}
+
+
+
 
 You can also put constants, \ct{self} or any instance variable as arguments to a C call. Suppose you want to add this \ct{abs} wrapper (let us call it \ct{absoluteValue}) to the class \ct{SmallInteger}, so that we can execute \ct{-50 absoluteValue}.
 
@@ -308,7 +357,8 @@ CExamples class>>stringLength: aString
 In the signature \ct{#( int strlen (String aString) )} there are two differences with the C signature. 
 \begin{itemize}
 \item  The first difference is the const keyword of the argument. For those not used to C, 
-that's only a modifier keyword that the compiler take advantage of to make some static validations at compile time. It's has no
+that’s only a modifier keyword that the compiler takes into account to
+make some static validations at compile time. It's has no
 value when describing the signature for calling a function at
 runtime.
 
@@ -363,7 +413,7 @@ So far we only used either objects that were allocated on the heap or available 
 With the next example we will show how \Spock supports the access to object that are allocated on the heap.
 \sd{here}
 The next example adds a bit more complexity: we are going to send a ByteArray
-to the \ct{memset} function. \sd{explain what memset does}
+to the \ct{memset} function. memset fills an array with one value (literally man defines it as: "fill a byte string with a byte value").
 
 \begin{description}
 \item [C header.] \ 
@@ -403,6 +453,9 @@ Also for expertise users, you may notice that in this last example, as sending a
 
 float, double, boolean,.....
 
+
+
+how to access "objects" in external memory: for example you call from smalltalk malloc for that you get an external pointer.
 
 \section{Using C structures}
 
