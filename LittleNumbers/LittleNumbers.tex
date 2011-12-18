@@ -78,7 +78,7 @@ Using a sequence of power of 2 we can encode numbers.  For example, how can we e
 Smalltalk has a syntax for representing numbers in different bases. We write \ct{2r1101} where 2 indicates the base or radix, here 2, and the rest the number expressed in this base. Note that we could also write \ct{2r01101} or \ct{2r0001101} since the leading zeroes do not change the number.
 This notation follows the convention that the least significant bit is the rigthmost one. 
 
-\begin{code}{}
+\begin{code}{@TEST}
 2r1101
 	--> 13
 13 printStringBase: 2
@@ -87,24 +87,24 @@ Integer readFrom: '1101' base: 2
 	--> 13
 \end{code}
 
+
 Note that the last two messages \ct{printStringBase:} and \ct{readFrom:base:} do not handle well the internal encoding of negative numbers as we will see later. \ct{-2 printStringBase: 2} returns -10 but this is not the internal number representation known as two's complement. These messages just print/read the number in a given base. 
 
 The radix notation can be use to specify numbers in different bases. Obviously 15 written in decimal base (10r15) returns 15, while 15 in base 16 returns $16 + 5 = 21@$ as illustrated by the following expressions. 
 
-\begin{code}{}
+\begin{code}{@TEST}
 10r15 
     -->15
-
 16r15 
 	--> 21
 \end{code}
 
-\section{Bit shifting is multiplying by 2 powers}
 
+
+\section{Bit shifting is multiplying by 2 powers}
 Since integers are represented as sequences of bits, if we shift all the bits from a given amount we obtain another integer. Shifting bit is equivalent to perform a multiplication/division by two. Figure~\ref{bitshiftmult} illustrates this point. Smalltalk offers three messages to shift bits: \ct{>> aPositiveInteger}, \ct{<< aPositiveInteger} and \ct{bitShift: anInteger}. \ct{>>} divides the receiver, while \ct{<<} multiply it by a power of two.
 
 The following examples show how to use them.
-
 
 \begin{code}{Using \ct{>>} and \ct{<<}}
 2r000001000 
@@ -128,27 +128,25 @@ The message \ct{bitShift:} is equivalent to \ct{>>} and \ct{<<}, but it uses neg
 
 \begin{code}{Using \ct{bitShift:}}
 2r000001000 
-	returns 8
+	--> 8
 2r000001000 bitShift: -1
-	returns 4
+	--> 4
 2r000001000 bitShift: 1
-	returns 16
+	--> 16
 \end{code}
 
 Of course we can shift by more than one bit at a time. 
 
 \begin{code}{Using \ct{>>} and \ct{<<}}
 2r000001000 
-	returns 8
+	--> 8
 2r000001000 >> 2					"we divide by four"
-	returns 2
+	--> 2
 (2r000001000 >> 2) printStringBase: 2 
-	returns '10'	
+	--> '10'	
 2r000001000 << 2					"we multiply by four"
-	returns 32
+	--> 32
 \end{code}
-
-
 
 
 The previous examples only show bit shifting numbers with one or two bits but there is no constraint at this level.
@@ -156,11 +154,11 @@ The complete sequence of bits can be shifted as shown with \ct{2r000001100} belo
 
 \begin{code}{}
 (2 raisedTo: 8) + (2 raisedTo: 10) 
-	returns 1280
+	--> 1280
 2r010100000000
-	returns 1280
+	--> 1280
 2r010100000000 >> 8
-	returns	2r0101
+	-->	2r0101
 	returns 5
 \end{code}
 
@@ -188,30 +186,74 @@ The complete sequence of bits can be shifted as shown with \ct{2r000001100} belo
 So far nothing really special. You should have learned that in any basic math lecture, but this is always good 
 to walk on a hill before climbing a mountain.  
 
+\section{Bit Manipulation and Access}
+
+Pharo offers common boolean operations for bit manipulation. Hence you can send the messages \ct{bitAnd:}, \ct{bitOr:}, and \ct{bitXor:} to numbers. 
+They will apply bit by bit the associated Boolean operation.
 
 
-\section{Bit Access and Manipulation}
+\begin{code}{bitAnd:}
+2r000001101 bitAnd: 2r01
+	--> 1 
+2r000001100 bitAnd: 2r01
+	--> 0 	
+2r000001101 bitAnd: 2r1111
+	--> 1101 
+\end{code}
+
+\ct{bitAnd:} can then be used to select part of a number. For example, \ct{bitAnd: 2r111} selects the three first bits. 
+
+
+\begin{code}{bitAnd:}
+2r000001101 bitAnd: 2r111
+	--> 5
+2r000001101 bitAnd: 2r0
+	--> 0 	
+2r0001001101 bitAnd: 2r1111
+	--> 13			"1101"
+2r000001101 bitAnd: 2r111000
+	--> 8 			"1000"
+2r000101101 bitAnd: 2r111000
+   --> 40 			"101000"
+\end{code}
+
+Using \ct{bitAnd:} combined with a \ct{bitShift:} we can select part of a number.
+Imagine that we encode three numbers on 10 bits: let's say one number encoded on 3 bits (a number between 0 and 7 --- noted as XXX in ZZZYYYYXXX), one number encoded on 4 bits (0 to 15 --- noted as YYYY in ZZZYYYYXXX), and finally the third one is encoded on 3 bits noted as ZZZ in ZZZYYYYXXX. The following expressions are handy to manipulate them.
+
+Accessing the second number cannot simply be done with a bitShift: because we will still have the third number present. We get \ct{(2r1001111001 bitShift: -3)} returns 79, while we would like to get 15. The solution is either to use a \ct{bitAnd:} to clear the third number and to do a \ct{bitShift:} or to do a \ct{bitShift:} and to clear the third number. The \ct{bitAnd:} argument has to be adapted to select the right part of the encoding.
+
+\begin{code}{bitAnd:}
+(2r1001111001 bitShift: -3)
+	--> 79
+(2r1001111001 bitAnd: 2r0001111000)
+    --> 120
+(2r1001111001 bitAnd: 2r0001111000) bitShift: -3
+   --> 15
+(2r1001111001 bitShift: -3) bitAnd: 2r0001111   
+	--> 15   
+\end{code}
+
+\paragraph*{Bit Access.}
 Smalltalk lets you access bit information. The message \ct{bitAt:} returns the value of the bit at a given position. It follows the Smalltalk convention that collections' indexes start with one. 
-
 
 \begin{code}{}
 2r000001101 bitAt: 1
-	returns 1 
+	--> 1 
 	
 2r000001101 bitAt: 2
-	returns 0 
+	--> 0 
 			
 2r000001101 bitAt: 3
-	returns 1
+	--> 1
 	
 2r000001101 bitAt: 4
-	returns 1
+	--> 1
 	 
 2r000001101 bitAt: 5
-	returns 0 	 
+	--> 0 	 
 \end{code}
 
-Here is the implementation of \ct{bitAt:}. 
+This is interesting to learn from the system itself. Here is the implementation of the method \ct{bitAt:} on the Integer class. 
 
 \begin{code}{}
 Integer>>bitAt: anInteger
@@ -225,21 +267,12 @@ Integer>>bitAt: anInteger
 	^(self bitShift: 1 - anInteger) bitAnd: 1
 \end{code}
 
-We shift to the right from an integer minus one (hence \ct{1 - anInteger})
-and with a \ct{bitAnd:} we know whether there is a one or zero in the location.
-
-\sd{mmp: show an example, otherwise it is difficult to understand. Use for example 2r000001101 bitAt: 5 -> returns 0. Do the drawing you always do and it will be much clear. }\sd{ok later}\alex{I feel a drawing is not necessary, we give plenty of examples later on. We could maybe say that we will understand this formula with the two complement.}
-
-
-Pharo offers common boolean operations for bit manipulation. Hence you can send the messages \ct{bitAnd:}, \ct{bitOr:}, and \ct{bitXor:} to numbers. 
-
-\begin{code}{bitAnd:}
-2r000001101 bitAnd: 2r11
-	returns 1 
-\end{code}
+We shift to the right from an integer minus one (hence \ct{1 - anInteger}) and with a \ct{bitAnd:} we know whether there is a one or zero in the location. Imagine that we have \ct{2r000001101}, when we do \ct{2r000001101 bitAt: 5} we will shift it from 4 and doing a \ct{bitAnd: 1} with select that bits (\ie returns 1 if it was at 1 and zero otherwise, so its value).   Doing a \ct{bitAnd: 1} is equivalent to tell whether there is a 1 in the least significant bit.
 
 Again, nothing really special but this was to refresh our memories. Now we will see how numbers are internally encoded in Pharo using two's complement. 
 
+
+\sd{up to here}
 \section{Ten's complement of a number}
 
 To fully understand 2's complement it is interesting to see how it works with decimal numbers. There is no obvious usage for 10's complement but here the point we want to show is that a complement is the replacement of addition with subtraction (\ie adding the complement of A to B is equivalent to subtracting A from B).
