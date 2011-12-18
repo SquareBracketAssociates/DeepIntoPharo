@@ -43,8 +43,8 @@ integers are mapped to their binary representations. We will open the box and ta
 
 We will start with some simple reminders on math that are the basics of our digital world. Then we will have a look at how integers and in particular small integers are encoded. This is a typical simple knowledge that people can forget over time and our goal is simply to refresh it. 
 
-\section{Power of 2}
-Let's start with some simple maths. In digital world, information is encoded as powers of 2. Nothing really new. In Smalltalk raising a number to a power is performed by the method \ct{raisedTo:}. Here are some examples.
+\section{Power of 2 and Numbers}
+Let's start with some simple maths. In digital world, information is encoded as powers of 2. Nothing really new. In Smalltalk raising a number to a power is performed by sending the message \ct{raisedTo:} to a number. Here are some examples. Figure~\ref{power} shows the powers of 2. 
 
 \begin{code}{Basics}
 2 raisedTo: 0
@@ -55,7 +55,8 @@ Let's start with some simple maths. In digital world, information is encoded as 
 	--> 256
 \end{code}
 
-Figure~\ref{power} shows the powers of 2. 
+
+
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=0.65\textwidth]{16bits-number}
@@ -63,31 +64,40 @@ Figure~\ref{power} shows the powers of 2.
 \end{center}
 \end{figure}
 
-Using a sequence of bits we can encode numbers. How to encode 13? It cannot be higher than $2^{4}$ because $2^{4}$ = 16. So it should be $8 + 4 + 1$, $2^{3} + 2^{2} + 2^{0}$. So 13 is encoded as 1101.  Figure~\ref{16bits-number13} illustrates it.
+Using a sequence of power of 2 we can encode numbers.  For example, how can we encode the number 13? It cannot be higher than $2^{4}$ because $2^{4}$ = 16. So it should be $8 + 4 + 1$, $2^{3} + 2^{2} + 2^{0}$. Now when we order the powers of two as a sequence as shown in Figure~\ref{16bits-number13}, we see that 13 is encoded as 1101.  So we can encode a number with a sequence of powers of 2. An element of this sequence is called a bit. 13 is encoded with 4 bits, corresponding to  $1*2^{3} + 1*2^{2} + 0*2^{1}+ 1*2^{0}$. This sequence of bits represents a binary notation for numbers. The most significant bit is located on the left of  a bit sequence and the least on the right ($2^{0}$ is the rightmost bit).
 
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=0.65\textwidth]{16bits-number13}
-\caption{13 = $2^{3} + 2^{2} + 2^{0}$.\label{16bits-number13}}
+\caption{13 = $1*2^{3} + 1*2^{2} + 0*2^1 +1*2^{0}$.\label{16bits-number13}}
 \end{center}
 \end{figure}
 
+
 \subsection*{Binary notation}
-Smalltalk has a format for representing numbers in different bases. We write \ct{2r1101} where 2 indicates the base or radix, here 2, and the rest the number expressed in this base. Note that we could also write \ct{2r01101} or \ct{2r0001101} since the leading zeroes do not change the number.
+Smalltalk has a syntax for representing numbers in different bases. We write \ct{2r1101} where 2 indicates the base or radix, here 2, and the rest the number expressed in this base. Note that we could also write \ct{2r01101} or \ct{2r0001101} since the leading zeroes do not change the number.
+This notation follows the convention that the least significant bit is the rigthmost one. 
+
 \begin{code}{}
 2r1101
-	returns 13
-
+	--> 13
 13 printStringBase: 2
-	returns '1101'
-	
+	--> '1101'	
 Integer readFrom: '1101' base: 2 	
-	returns 13
+	--> 13
 \end{code}
 
 Note that the last two messages \ct{printStringBase:} and \ct{readFrom:base:} do not handle well the internal encoding of negative numbers as we will see later. \ct{-2 printStringBase: 2} returns -10 but this is not the internal number representation known as two's complement. These messages just print/read the number in a given base. 
 
+The radix notation can be use to specify numbers in different bases. Obviously 15 written in decimal base (10r15) returns 15, while 15 in base 16 returns $16 + 5 = 21@$ as illustrated by the following expressions. 
 
+\begin{code}{}
+10r15 
+    -->15
+
+16r15 
+	--> 21
+\end{code}
 
 \section{Bit shifting is multiplying by 2 powers}
 
