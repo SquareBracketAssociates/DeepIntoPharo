@@ -446,6 +446,30 @@ parser := JsJsonParser on: stream.
 
 
 
+\section{Manipulating URLs}
+
+And this would be some equivalent manipulations using \ct{ZnUrl}:
+
+\begin{code}{}
+| url |
+url := 'http://www.google.com/?one=1&two=2' asZnUrl.
+url queryAt: 'three' put: '3'.
+url queryRemoveKey: 'one'.
+url
+\returns http://www.google.com/?two=2&three=3
+\end{code}
+
+\begin{code}{}
+| url |
+url := 'http://www.google.com' asZnUrl.
+url addPathSegment: 'some encoding here'.
+url queryAt: 'and some encoding' put: 'here, too'.
+url 
+http://www.google.com/some%20encoding%20here?and%20some%20encoding=here%2C%20too
+\end{code}
+
+
+
 
 %=================================================================
 \ifx\wholebook\relax\else\end{document}\fi
