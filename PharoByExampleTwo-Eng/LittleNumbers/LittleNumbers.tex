@@ -309,16 +309,17 @@ Some books propose another equivalent way to compute the 10's complement. Comput
 The key point of complement techniques is to convert subtractions into additions. Let's check that.
 
 \paragraph{Examples.}
-\ins{Suppose we want to turn the subtraction $8 - 3 = 5$ into an addition}. The 10's complement of 3 is $9 - 3 + 1 = 7$. We add 7 to 8 and get 15. 
-We drop the carry we obtained when from the addition. So we obtain 5. (Note that when using binary representation as we will show later, the carry results in overflow because there will be not enough bits to represent it. Therefore implementors should use tricks to determine if the subtraction is correct - usually the trick is to perform a bitXor on the last two digits).
+Suppose we want to perform the subtraction $8 - 3 = 5$. We will transform such subtraction into an addition using the 10's complement. The 10's complement of 3 is $9 - 3 + 1 = 7$. We add 7 to 8 and get 15. 
+We drop the carry we obtained when from the addition and we obtain 5. In fact, the idea is that $8-3=8-(10-7)=8+7-10=15-10=5$.
 
-Now $98-60$. The 10's complement of 60 is $9-6$, $9-0$ \ie $39 + 1$ \ie 40. 
- $98-60 = 98 + 40 - 100 = 138 - 100 = 38$. Note that the 100 subtraction is a way to show that we drop the carry. 
- We could have written $98-60 = 98 + 40 = 138 = 38$ \ugh{but this is an incorrect use of the $=$ mathematical operator}\ins{do you want to say that 138 is equal to 38 modulo 100?}.
+%(Note that when using binary representation as we will show later, the carry results in overflow because there will be not enough bits to represent it. Therefore implementors should use tricks to determine if the subtraction is correct - usually the trick is to perform a bitXor on the last two digits).
+
+Now let's compute $98-60$. The 10's complement of 60 is $9-6$, $9-0$ \ie $39 + 1$ \ie 40. $98-60 = 98 + 40 - 100 = 138 - 100 = 38$. 
+Therefore we could say that $98-60=98+40=(1)38$ and we drop the carry. 
+
+Now to perform $-98+60$ we compute the 10's complement of 98, then the sum, then the 10's complement of the sum and negate. \ie$-98+60$ becomes $2+60=62$, $62$ 10's complement is 38 therefore $-98+60=-38$.
 
 
-Now performing $60-80$ works too. 80 10's complement is $9-8$, $9-0$, so 19 + 1, so 20.
-$60 - 80 = -20$. Again $60-80$ just requires to compute the complement and perform one addition.
 
 
 \paragraph{Another look at it.} 
