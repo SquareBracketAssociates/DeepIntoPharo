@@ -218,9 +218,7 @@ They will apply bit by bit the associated Boolean operation.
 \end{code}
 
 Using \ct{bitAnd:} combined with a \ct{bitShift:} we can select part of a number.
-Imagine that we encode three numbers on 10 bits: let's say one number encoded on 3 bits (a number between 0 and 7 --- noted as XXX in ZZZYYYYXXX), one number encoded on 4 bits (0 to 15 --- noted as YYYY in ZZZYYYYXXX), and finally the third one is encoded on 3 bits noted as ZZZ in ZZZYYYYXXX. The following expressions are handy to manipulate them.
-
-Accessing the second number cannot simply be done with a bitShift: because we will still have the third number present. We get \ct{(2r1001111001 bitShift: -3)} returns 79, while we would like to get 15. The solution is either to use a \ct{bitAnd:} to clear the third number and to do a \ct{bitShift:} or to do a \ct{bitShift:} and to clear the third number. The \ct{bitAnd:} argument has to be adapted to select the right part of the encoding.
+Imagine that we encode three numbers on 10 bits: let's say one number encoded on 3 bits (a number between 0 and 7 --- noted as XXX in ZZZYYYYXXX), one number encoded on 4 bits (0 to 15 --- noted as YYYY in ZZZYYYYXXX), and finally the third one is encoded on 3 bits noted as ZZZ in ZZZYYYYXXX. The following expressions are handy to manipulate them. Accessing the second number cannot simply be done using only \ct{bitShift:} because we will still have the third number present. We get \ct{(2r1001111001 bitShift: -3)} returns 79, while we would like to get 15. The solution is either to use a \ct{bitAnd:} to clear the third number and to do a \ct{bitShift:} or to do a \ct{bitShift:} and to clear the third number. The \ct{bitAnd:} argument has to be adapted to select the right part of the encoding.
 
 \begin{code}{bitAnd:}
 (2r1001111001 bitShift: -3)
@@ -269,16 +267,14 @@ Integer>>bitAt: anInteger
 
 We shift to the right from an integer minus one (hence \ct{1 - anInteger}) and with a \ct{bitAnd:} we know whether there is a one or zero in the location. Imagine that we have \ct{2r000001101}, when we do \ct{2r000001101 bitAt: 5} we will shift it from 4 and doing a \ct{bitAnd: 1} with select that bits (\ie returns 1 if it was at 1 and zero otherwise, so its value).   Doing a \ct{bitAnd: 1} is equivalent to tell whether there is a 1 in the least significant bit.
 
-Again, nothing really special but this was to refresh our memories. Now we will see how numbers are internally encoded in Pharo using two's complement. 
+Again, nothing really special but this was to refresh our memories. Now we will see how numbers are internally encoded in Pharo using two's complement. We will start by understanding the 10's complement and look at 2's complement. 
 
-
-\sd{up to here}
 \section{Ten's complement of a number}
 
 To fully understand 2's complement it is interesting to see how it works with decimal numbers. There is no obvious usage for 10's complement but here the point we want to show is that a complement is the replacement of addition with subtraction (\ie adding the complement of A to B is equivalent to subtracting A from B).
 
 
-The 10's complement of a positive decimal integer $n$ is 10 to the power of $k$ + 1, minus $n$, where $k$ is the number of digits in the \ins{textual} decimal representation of $n$. $Complement_{10}(n) = 10^{k+1} - n$.
+The 10's complement of a positive decimal integer $n$ is 10 to the power of $k$ + 1, minus $n$, where $k$ is the number of digits in the decimal representation of $n$. $Complement_{10}(n) = 10^{k+1} - n$.
 For example $Complement_{10}(8)= 10^1-8$, $Complement_{10}(1968)=10^{5}-1968=8032$
 
 
@@ -289,13 +285,6 @@ It can be calculated in the following way:
 \item add one to the resulting number.
 \end{enumerate}
 
-This two steps rule is equivalent to the following one which looks more complex. Computer scientists will probably prefer the first way since it is more regular and adding 1 is cheaper than making more tests.
-
-\begin{enumerate}
-\item All the zeros at the right-hand end of the number remain as zeros. 
-\item The rightmost non-zero digit $d$ of the number is replaced by $10 - d$. 
-\item Each other digit $d$ is replaced by $9 - d$. 
-\end{enumerate}
 
 \paragraph{Examples.}
 The 10's complement of 1968 is $9-1$, $9-9$, $9-6$, $9-8$ + 1 \ie $8031 + 1$ \ie 8032. 
@@ -303,7 +292,18 @@ Using the rule two we compute $9-1$, $9-9$, $9-6$, $10-8$ \ie 8032. So our 10's 
 
 The 10's complement of 190680 is then $9-1$, $9-9$, $9-0$, $9-6$, $9-8$, $9-0$ + 1 \ie $809319 + 1$ \ie 809320. Let's verify: $190680 + 809320 = 1000000$.
  
-So to compute the 10's complement of a number, it is enough to perform \ct{9-d} for each digit and add one to the result.
+To compute the 10's complement of a number, it is enough to perform \ct{9-d} for each digit and add one to the result.
+
+
+Some books propose another equivalent way to compute the 10's complement. Computer scientists will probably prefer the first way since it is more regular and adding 1 is cheaper than making more tests.
+\begin{enumerate}
+\item All the zeros at the right-hand end of the number remain as zeros. 
+\item The rightmost non-zero digit $d$ of the number is replaced by $10 - d$. 
+\item Each other digit $d$ is replaced by $9 - d$. 
+\end{enumerate}
+
+
+
 
 \subsection{Subtraction at work}
 The key point of complement techniques is to convert subtractions into additions. Let's check that.
