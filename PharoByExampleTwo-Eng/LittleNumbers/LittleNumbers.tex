@@ -410,16 +410,16 @@ Note that the two's complement of a negative number is the corresponding positiv
 
 \begin{code}{}
 -2 bitString 
-	'1111111111111111111111111111110'
+	--> '1111111111111111111111111111110'
 	
 -2 bitInvert bitString  
-	'0000000000000000000000000000001'
+	--> '0000000000000000000000000000001'
 	
 (-2 bitInvert + 1) bitString   
-	'0000000000000000000000000000010'
+	--> '0000000000000000000000000000010'
 
 2 bitString 
-	'0000000000000000000000000000010'
+ 	--> '0000000000000000000000000000010'
 \end{code}
 
 As you see negating a number and computing the two's complement gives the same binary representation.
@@ -505,8 +505,18 @@ Note that the overflowing carry is dropped.
 %\end{code}
 
 
+
+
+
+\section{SmallIntegers in Pharo}
+
+Smalltalk small integers use a two's complement arithmetic on 31 bits.  A N-bit two's-complement numeral system can represent every integer in the range $-1 * 2^{N-1}\ to\ 2^{N-1}-1$. So for 31 bits Smalltalk systems small integers values are the range -1 073 741 824 to  1 073 741 823.  Remember in Smalltalk integers are special objects and this marking requires one bit, therefore on 32 bits we have 31 bits for small signed integers. Of course since we also have automatic coercion this is not really a concern for the end programmer. Here we take a language implementation perspective.
+ Let's check that a bit (this is the occasion to say it). 
+
+
+
 \paragraph{SmallInteger Maximum value encoding.}		
-As we will show in a subsequent section, Pharo's small integers are encoded on 31 bits (because their internal representation requires one bit) and the smallest (small integer) negative integer is \ct{SmallInteger maxVal negated - 1}. Here we see the exception of the most negative integer. 
+Pharo's small integers are encoded on 31 bits (because their internal representation requires one bit) and the smallest (small integer) negative integer is \ct{SmallInteger maxVal negated - 1}. Here we see the exception of the most negative integer. 
 
 
 \begin{code}{} 
@@ -550,10 +560,7 @@ SmallInteger>>bitInvert
 \end{code}
 
 
-\section{SmallIntegers in Pharo}
 
-Smalltalk small integers use a two's complement arithmetic on 31 bits.  A N-bit two's-complement numeral system can represent every integer in the range $-1 * 2^{N-1}\ to\ 2^{N-1}-1$. So for 31 bits Smalltalk systems small integers values are the range -1 073 741 824 to  1 073 741 823.  Remember in Smalltalk integers are special objects and this marking requires one bit, therefore on 32 bits we have 31 bits for small signed integers. Of course since we also have automatic coercion this is not really a concern for the end programmer. Here we take a language implementation perspective.
- Let's check that a bit (this is the occasion to say it). 
 
 If you want to know the number of bits used to represent a
 SmallInteger, just evaluate:
@@ -572,35 +579,41 @@ Let us explore a bit.
 
 \begin{code}{}
 2 raisedTo: 29 
-	returns 536870912 
+	--> 536870912 
 
 536870912 class
-	returns SmallInteger
+	--> SmallInteger
 
 2 raisedTo: 30 
-	returns 1073741824
+	--> 1073741824
 
 1073741824 class
-	returns LargePositiveInteger
+	--> LargePositiveInteger
 	
 (1073741824 - 1) class
-	returns SmallInteger
+	--> SmallInteger
 
 -1073741824 class 
-	returns SmallInteger
+	--> SmallInteger
 
 2 class maxVal 
 	returns 1073741823
 
 -1 * (2 raisedTo: (31-1)) 
-	returns -1073741824
+	--> -1073741824
 	
 (2 raisedTo: 30) - 1
-	returns 1073741823
+	--> 1073741823
 	
 (2 raisedTo: 30) - 1 = SmallInteger maxVal	
-	returns true
+	--> true
 \end{code}
+
+
+
+
+
+
 
 \section{Hexadecimal}
 We cannot finish this Chapter without talking about hexadecimal. In Smalltalk, the same syntax than for binary is used for hexadecimal. \ct{16rF} indicates that \ct{F} is encoded in 16 base. 
