@@ -488,21 +488,18 @@ Note that the overflowing carry is dropped.
 %In Pharo, you can experiment to confirm the fact that the two's complement is the negative version of a number.
 % 
 
-%Now the case where the result is a negative number is also well handled. For example, if we want to compute $5-15$, we should get -10 and this is what we get.
-% this does not work like that: probably that the -15 + 5 should be turned into 15' + 5
+Now the case where the result is a negative number is also well handled. For example, if we want to compute $15-35$, we should get -20 and this is what we get. Let us have a look
+15 is encoded as 0000 1111 and 35 as 0010 0011. Now the two's complement of 35 is 1101 1101.
+	
+\begin{code}{}
+          0011111	 (carry)
+	     0000 1111  
+	     1101 1101 
+-----------------
+1111111101100
+\end{code}
 
-
-%
-%\begin{code}{}
-%-15 bitString 
-%	returns '1111111111111111111111111110001'
-%
-%5 bitString 
-%	returns '0000000000000000000000000000101'
-%	
-%-10 bitString 
-%	returns '1111111111111111111111111110110'
-%\end{code}
+There for we get well -20. 
 
 
 
