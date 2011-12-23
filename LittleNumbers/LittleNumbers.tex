@@ -222,13 +222,13 @@ Imagine that we encode three numbers on 10 bits: let's say one number encoded on
 
 \begin{code}{bitAnd:}
 (2r1001111001 bitShift: -3)
-	--> 79
+   --> 79
 (2r1001111001 bitAnd: 2r0001111000)
-    --> 120
+   --> 120
 (2r1001111001 bitAnd: 2r0001111000) bitShift: -3
    --> 15
 (2r1001111001 bitShift: -3) bitAnd: 2r0001111   
-	--> 15   
+   --> 15   
 \end{code}
 
 \paragraph*{Bit Access.}
@@ -295,12 +295,12 @@ The 10's complement of 190680 is then $9-1$, $9-9$, $9-0$, $9-6$, $9-8$, $9-0$ +
 To compute the 10's complement of a number, it is enough to perform \ct{9-d} for each digit and add one to the result.
 
 
-Some books propose another equivalent way to compute the 10's complement. Computer scientists will probably prefer the first way since it is more regular and adding 1 is cheaper than making more tests.
-\begin{enumerate}
-\item All the zeros at the right-hand end of the number remain as zeros. 
-\item The rightmost non-zero digit $d$ of the number is replaced by $10 - d$. 
-\item Each other digit $d$ is replaced by $9 - d$. 
-\end{enumerate}
+Some books propose another equivalent way to compute the 10's complement: 
+(1) All the zeros at the right-hand end of the number remain as zeros, 
+(2) The rightmost non-zero digit $d$ of the number is replaced by $10 - d$, and
+(3) Each other digit $d$ is replaced by $9 - d$. 
+
+Computer scientists will probably prefer the first way since it is more regular and adding 1 is cheaper than making more tests.
 
 
 
@@ -433,12 +433,11 @@ As you see negating a number and computing the two's complement gives the same b
 There is one exception. On a given number of bits, let's say 8 bits as in Figure~\ref{negativePositive},
 we compute the negative of a number but computing its two's complement (flipping all the bits and adding 1), except for the most negative number. On a 8 bits representation, the most negative number is -128 (1000 0000), inverting it is (0111 1111), and adding one results in itself (1000 0000). We cannot encode 128 on 8 bits signed convention. Here the carry is "eaten" by the sign bit. 
 
-
 \paragraph{Subtracting.}
 To subtract a number to another one, we just add the second number's two complement to the first one.
 
-When we want to compute $110110 - 101$, we will compute the 2's completement and add it. 
-So we will add 110110 and 111011, and get 110001. This is correct: $54 - 5 = 49$.
+When we want to compute $110110 - 101$, we  compute the 2's complement of 101 and add it. 
+We add 110110 and 111011, and get 110001. This is correct: $54 - 5 = 49$.
 
 
 \begin{code}{}
@@ -449,16 +448,16 @@ So we will add 110110 and 111011, and get 110001. This is correct: $54 - 5 = 49$
    110001
 \end{code}
 
-Let us test this in Pharo
+Let us test this in Pharo.
 \begin{code}{}
 (2r110110 - 2r101) bitString	
-	returns '0000000000000000000000000110001'
+	--> '0000000000000000000000000110001'
 (2r110110 bitString) 	
-	returns '0000000000000000000000000110110'
+	--> '0000000000000000000000000110110'
 2r101 bitString
-	returns '0000000000000000000000000000101'		
+	--> '0000000000000000000000000000101'		
 2r101 negated bitString
-	returns '1111111111111111111111111111011'	
+	--> '1111111111111111111111111111011'	
 \end{code}
 	
 Posing the addition using only 8 bits we see the following:
@@ -488,65 +487,43 @@ Note that the overflowing carry is dropped.
 %	
 %In Pharo, you can experiment to confirm the fact that the two's complement is the negative version of a number.
 % 
+
+%Now the case where the result is a negative number is also well handled. For example, if we want to compute $5-15$, we should get -10 and this is what we get.
+% this does not work like that: probably that the -15 + 5 should be turned into 15' + 5
+
+
+%
 %\begin{code}{}
-%2 bitString
-%    returns  '0000000000000000000000000000010'
-%   
-%'0000000000000000000000000000010' 
-%    collect: [:each | $0 = each ifTrue: [$1] ifFalse: [$0]]
-%    returns '1111111111111111111111111111101' 
-%    
-%-2 bitString
-%	returns '1111111111111111111111111111110'
-%\end{code}	
+%-15 bitString 
+%	returns '1111111111111111111111111110001'
+%
+%5 bitString 
+%	returns '0000000000000000000000000000101'
 %	
-%	
-%Creating a two complement version of a number equals negating the number bits and adding one\ab{I have the impression we are repeating ourselves}.
-%\begin{code}{Calculating two complement of 3}
-%3 bitString 
-%	returns '0000000000000000000000000000011'
-%3 bitInvert bitString 
-%	returns '1111111111111111111111111111100'
-%(3 bitInvert + 1) bitString 
-%	returns '1111111111111111111111111111101'
-%-3 bitString 
-%	returns '1111111111111111111111111111101'
+%-10 bitString 
+%	returns '1111111111111111111111111110110'
 %\end{code}
 
 
-Now the case where the result is a negative number is also well handled. For example, if we want to compute $-15 + 5$, we should get -10 and this is what we get.
-
-\begin{code}{}
--15 bitString 
-	returns '1111111111111111111111111110001'
-
-5 bitString 
-	returns '0000000000000000000000000000101'
-	
--10 bitString 
-	returns '1111111111111111111111111110110'
-\end{code}
-
-
-\paragraph{Maximum value encoding.}		
-As we will show in a subsequent section, Pharo's small integers are encoded on 31 bits (because their internal representation requires one bit) and the smallest (small integer) negative integer is \ct{SmallInteger maxVal negated - 1}. Here we see the exception of the most negative integer.
+\paragraph{SmallInteger Maximum value encoding.}		
+As we will show in a subsequent section, Pharo's small integers are encoded on 31 bits (because their internal representation requires one bit) and the smallest (small integer) negative integer is \ct{SmallInteger maxVal negated - 1}. Here we see the exception of the most negative integer. 
 
 
 \begin{code}{} 
 "we negate the maximum number encoded on a small integer"
 SmallInteger maxVal negated	 
-	  	returns -1073741823
+	  	--> -1073741823
 "we still obtain a small integer"		
 SmallInteger maxVal negated class
-		returns SmallInteger
+		--> SmallInteger
 "adding one to the maximum number encoded on a small integer gets a large positive integer"
 (SmallInteger maxVal + 1) class
-		returns LargePositiveInteger		
+		--> LargePositiveInteger		
 "But the smallest negative is one less than the negated largest positive small integer"		
 (SmallInteger maxVal negated - 1) 
-		returns -1073741824 
+		--> -1073741824 
 (SmallInteger maxVal negated - 1) class 
-		returns SmallInteger 		 
+		--> SmallInteger 		 
 \end{code}
 
 
@@ -563,14 +540,13 @@ SmallInteger>>bitInvert
 
 \begin{code}{}
 2 bitString
-	returns '0000000000000000000000000000010'
+	--> '0000000000000000000000000000010'
 2 bitInvert.
-	returns '1111111111111111111111111111101'
-	
+	--> '1111111111111111111111111111101'
 -1 bitString
-	returns '1111111111111111111111111111111'
+	--> '1111111111111111111111111111111'
 2 negated (two complement)
-	returns '1111111111111111111111111111110'
+	--> '1111111111111111111111111111110'
 \end{code}
 
 
@@ -689,9 +665,8 @@ To get the encoded value, we shift out the 8 first ones and clear all the others
 
 \section{Conclusion}
 
-Smalltalk uses two's complement encoding for its internal number representation and supports  bit manipulation of their internal representation. This is useful when we want to speed up algorithms using simple encoding. We have reviewed the following points:
+Smalltalk uses two's complement encoding for its internal small integer representation and supports  bit manipulation of their internal representation. This is useful when we want to speed up algorithms using simple encoding. We have reviewed the following points:
 
-\alex{I inserted the following}
 \begin{itemize}
 \item Numerical values use complement to encode their negative value.
 \item Shifting a bit to the left multiple is equivalent to multiply it by 2, modulo the maximum value of its encoding size.
@@ -701,6 +676,7 @@ Smalltalk uses two's complement encoding for its internal number representation 
 \item SmallInteger are coded on 31 bits on Pharo.
 \end{itemize}
 
+Note that Pharo supports large numbers whose limit in size is mainly the memory you have at your disposal. 
 %=========================================================
 \ifx\wholebook\relax\else
    \bibliographystyle{jurabib}
