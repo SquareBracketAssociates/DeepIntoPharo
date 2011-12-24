@@ -469,27 +469,54 @@ and then you can use this method as follows: \ct{self mymethod: 4.5}
 
 how to access "objects" in external memory: for example you call from smalltalk malloc for that you get an external pointer.
 
+
+
+
+
+\section{Todo}
+
+\begin{itemize}
+\item instance variables as argument in C-function signature declaration including self.
+\item default options
+\item returned null value as nil
+\item external object (automatically has a handle)
+CairoSurface inherits from NBExternalObject (which manages the opaque handle to the CairoSurface C structure then 
+
+\begin{code}{}
+create  
+	<>
+	call: CairoSurface	fct 
+\end{code}	
+
+
+\item	
+	NBExternalObjectType is responsible for the generation of the code
+	
+\end{itemize}
+
+
 \section{Using C structures}
 
 \section{Loading code from other libraries}
 
 
+\section{NativeBoost Executive Summary}
+
+Here we say everything again but in a  concise way.
+
 \section{Wrapping Cairo library}
 
-Cairo is a drawing library written in C. Here we present
-the basis of writing a wrapper for it, which should be
+Cairo is a drawing library written in C. Here we present the basis of writing a wrapper for it, which should be
 complete enough to write any wrapper for any C library.
+
 
 \subsubsection*{Small example}
 
-Whenever you want to start writing a wrapper, you should do
-it this way: find the smallest piece of code you can find 
-that uses that library, and wrap everything you need to make
-it work from Smalltalk. Then you can go on adding more and
+Whenever you want to start writing a wrapper, you should do it this way: find the smallest piece of code you can find 
+that uses that library, and wrap everything you need to make it work from Smalltalk. Then you can go on adding more and
 more to the wrapped functionality. 
 
-In this example we have a minimal program that uses Cairo
-library, taken from Cairo's FAQ \jp{Add url to it}.
+In this example we have a minimal program that uses Cairo library, taken from Cairo's FAQ \jp{Add url to it}.
 It creates a Cairo surface, puts some text on it
 and renders everything to a PNG.
 
@@ -803,6 +830,22 @@ CairoContext>>selectFont: aFamily slant: slant weight: aWeight
                                                          String aFamily,
                                                          cairo_font_slant_t slant,
                                                          cairo_font_weight_t aWeight) )
+\end{code}
+
+
+Now as a general principle it is better not to manipulate all the variables in your program. Why first because the call out will be slowler and second because it is better to encapsulate all these constants.
+
+So the solution is to do something like
+@@@to be fixed@@
+\begin{code}{}
+AthensCairoSurface>>primWidth: aWidth height: aHeight
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ self nbCall: #(AthensCairoSurface cairo_image_surface_create(
+				CAIRO_FORMAT_ARGB32,
+					int aWidth,
+					int aHeight) )
+	
 \end{code}
 
 % \section{The levels of native code}
