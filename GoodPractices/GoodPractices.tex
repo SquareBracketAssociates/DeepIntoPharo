@@ -42,20 +42,37 @@
 In this chapter we present some simple and good practices that make your code often more efficient and 
 avoid generating unnecessary garbage. 
 
-\section*{String concatenation}
+\section{Avoid unnecessary string concatenations}
 
-In Smalltalk, the message \ct{,} \mthindex{String}{,} concatenates two strings. It is handy but this message is really costly since it copies the receiver. Therefore avoid it as much as possible. 
+In Smalltalk, the message \ct{,} \mthindex{String}{,} concatenates two strings. It is handy but this message is really costly since it copies the receiver. Therefore avoid it as much as possible and especially in loop since it multiplies the effect. 
 
 Prefer to use \ct{streamContents:} \mthindex{String}{streamContents:}, \ct{nextPut:} and \ct{nextPutAll:} since they avoid the duplication. The method \ct{streamContents:} expects a block would argument is a stream on the receiver. 
-Such argument 
+
+Let us have a look at the following code snippet. 
+\begin{code}{}
+String streamContents: [:s | #('Pharo''s' 'goal' 'is' 'to' 'deliver' 'a' 'clean,' 'innovative,' 'free' 'open-source' 'Smalltalk' 'environment.' 'By' 'providing' 'a' 'stable' 'and' 'small' 'core' 'system,' 'excellent' 'dev' 'tools,' 'and' 'maintained' 'releases,' 'Pharo' 'is' 'an' 'attractive' 'platform' 'to' 'build' 'and' 'deploy' 'mission' 'critical' 'Smalltalk' 'applications.') 	do: [:each | s nextPutAll: each; nextPut: Character space].	s contents] 
+\end{code}
+
+Note that we took an example with many strings to stress the effect, but the bench results shows already a 4 factor. 
 
 \begin{code}{}
-String streamContents: [:s |
-	s nextPutAll: 'aa'; nextPutAll: 'bb'.
-	s contents]
+[String streamContents: [:s | #('Pharo''s' 'goal' 'is' 'to' 'deliver' 'a' 'clean,' 'innovative,' 'free' 'open-source' 'Smalltalk' 'environment.' 'By' 'providing' 'a' 'stable' 'and' 'small' 'core' 'system,' 'excellent' 'dev' 'tools,' 'and' 'maintained' 'releases,' 'Pharo' 'is' 'an' 'attractive' 'platform' 'to' 'build' 'and' 'deploy' 'mission' 'critical' 'Smalltalk' 'applications.') 	do: [:each | s nextPutAll: each; nextPut: Character space].	s contents]] bench 
+	--> '110,000 per second.'[| s| s := ''. #('Pharo''s' 'goal' 'is' 'to' 'deliver' 'a' 'clean,' 'innovative,' 'free' 'open-source' 'Smalltalk' 'environment.' 'By' 'providing' 'a' 'stable' 'and' 'small' 'core' 'system,' 'excellent' 'dev' 'tools,' 'and' 'maintained' 'releases,' 'Pharo' 'is' 'an' 'attractive' 'platform' 'to' 'build' 'and' 'deploy' 'mission' 'critical' 'Smalltalk' 'applications.') 	do: [:each | s := s , each , Character space asString].	s ] bench 
+	--> '31,500 per second.'\end{code}
+
+
+
+Another example that may be a bit draft and fuzzy but gives an idea of the cost that you may gain. 
+
+\begin{code}{}
+[String streamContents: [:s |	Smalltalk globals allClasses do: [:each | 									s nextPutAll: each name].	s contents]] bench 
+	--> '246 per second.'| s |s := ''.[Smalltalk globals allClasses 
+	do: [:each | s := s, each name]] bench 
+	--> '2.01 per second.'
 \end{code}
 
 
+\paragraph{Preallocate when possible.}
 Preallocate when possible the string used with\ct{new:streamContents:}. For example, the following method does not take advantage that the result is always a 8 characters string. 
 
 \begin{code}{}
@@ -73,9 +90,8 @@ Time>>print24
 		self print24: true on: aStream ]
 \end{code}		
 
-\paragraph{Avoid }
-
-When you can use \ct{nextPut:} use it instead of \ct{nextPutAll:}. Indeed \ct{nextPutAll:} requires that the argument is a container of elements. When you have already the element, no need to create an extra container.
+\paragraph{Use \ct{nextPut:} when possible.}
+When you can, use \ct{nextPut:} use it instead of \ct{nextPutAll:}. Indeed \ct{nextPutAll:} requires that the argument is a container of elements. When you have already the element, no need to create an extra container.
 
 For example better use the second form.
 \begin{code}{}
@@ -87,7 +103,7 @@ stream nextPut: $0
 \end{code}
 
 
-\section*{Avoid creating temporary objects}
+\section{Avoid creating temporary objects}
 
 The computation of minute in Time could be written as \ct{asDuration minutes}. However, this solution
 creates a duration object that is only used to get the minutes. 
@@ -114,12 +130,11 @@ Time>>minute
 \section{Avoid several iterations on the same collection}
 It may seem obvious but it is better to iterate once than two on the same collection, when we can do what we want in a single pass. 
 
-For example, the following code creates a first string then creates another one where the character $: is removed.  
+For example, the following code creates a first string then creates another one where the character \$: is removed.  
 
 \begin{code}{}
 Time>>hhmm24
  	"Return a string of the form 1123 (for 11:23 am), 2154 (for 9:54 pm), of exactly 4 digits"
- 
  	^(String streamContents: 
  		[ :aStream | self print24: true showSeconds: false on: aStream ])
  			copyWithout: $:
@@ -131,7 +146,6 @@ Better implement it as
 \begin{code}{}
 Time>>hhmm24
  	"Return a string of the form 1123 (for 11:23 am), 2154 (for 9:54 pm), of exactly 4 digits"
- 
  	^ String new: 4 streamContents: [ :aStream | 
 		self hour printOn: aStream base: 10 length: 2 padded: true.
 		self minute printOn: aStream base: 10 length: 2 padded: true ]
