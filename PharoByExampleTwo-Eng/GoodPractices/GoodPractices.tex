@@ -50,23 +50,43 @@ Prefer to use \ct{streamContents:} \mthindex{String}{streamContents:}, \ct{nextP
 
 Let us have a look at the following code snippet. 
 \begin{code}{}
-String streamContents: [:s | #('Pharo''s' 'goal' 'is' 'to' 'deliver' 'a' 'clean,' 'innovative,' 'free' 'open-source' 'Smalltalk' 'environment.' 'By' 'providing' 'a' 'stable' 'and' 'small' 'core' 'system,' 'excellent' 'dev' 'tools,' 'and' 'maintained' 'releases,' 'Pharo' 'is' 'an' 'attractive' 'platform' 'to' 'build' 'and' 'deploy' 'mission' 'critical' 'Smalltalk' 'applications.') 	do: [:each | s nextPutAll: each; nextPut: Character space].	s contents] 
+String streamContents: [:s |
+ #('Pharo''s' 'goal' 'is' 'to' 'deliver' 'a' 'clean,' 'innovative,' 'free' 'open-source' 'Smalltalk' 'environment.' 'By' 'providing' 'a' 'stable' 'and' 'small' 'core' 'system,' 'excellent' 'dev' 'tools,' 'and' 'maintained' 'releases,' 'Pharo' 'is' 'an' 'attractive' 'platform' 'to' 'build' 'and' 'deploy' 'mission' 'critical' 'Smalltalk' 'applications.')
+ 	do: [:each | s nextPutAll: each; nextPut: Character space].
+	s contents] 
 \end{code}
 
 Note that we took an example with many strings to stress the effect, but the bench results shows already a 4 factor. 
 
 \begin{code}{}
-[String streamContents: [:s | #('Pharo''s' 'goal' 'is' 'to' 'deliver' 'a' 'clean,' 'innovative,' 'free' 'open-source' 'Smalltalk' 'environment.' 'By' 'providing' 'a' 'stable' 'and' 'small' 'core' 'system,' 'excellent' 'dev' 'tools,' 'and' 'maintained' 'releases,' 'Pharo' 'is' 'an' 'attractive' 'platform' 'to' 'build' 'and' 'deploy' 'mission' 'critical' 'Smalltalk' 'applications.') 	do: [:each | s nextPutAll: each; nextPut: Character space].	s contents]] bench 
-	--> '110,000 per second.'[| s| s := ''. #('Pharo''s' 'goal' 'is' 'to' 'deliver' 'a' 'clean,' 'innovative,' 'free' 'open-source' 'Smalltalk' 'environment.' 'By' 'providing' 'a' 'stable' 'and' 'small' 'core' 'system,' 'excellent' 'dev' 'tools,' 'and' 'maintained' 'releases,' 'Pharo' 'is' 'an' 'attractive' 'platform' 'to' 'build' 'and' 'deploy' 'mission' 'critical' 'Smalltalk' 'applications.') 	do: [:each | s := s , each , Character space asString].	s ] bench 
-	--> '31,500 per second.'\end{code}
+[String streamContents: [:s |
+ #('Pharo''s' 'goal' 'is' 'to' 'deliver' 'a' 'clean,' 'innovative,' 'free' 'open-source' 'Smalltalk' 'environment.' 'By' 'providing' 'a' 'stable' 'and' 'small' 'core' 'system,' 'excellent' 'dev' 'tools,' 'and' 'maintained' 'releases,' 'Pharo' 'is' 'an' 'attractive' 'platform' 'to' 'build' 'and' 'deploy' 'mission' 'critical' 'Smalltalk' 'applications.')
+ 	do: [:each | s nextPutAll: each; nextPut: Character space].
+	s contents]] bench 
+	--> '110,000 per second.'
+
+[| s| 
+s := ''.
+ #('Pharo''s' 'goal' 'is' 'to' 'deliver' 'a' 'clean,' 'innovative,' 'free' 'open-source' 'Smalltalk' 'environment.' 'By' 'providing' 'a' 'stable' 'and' 'small' 'core' 'system,' 'excellent' 'dev' 'tools,' 'and' 'maintained' 'releases,' 'Pharo' 'is' 'an' 'attractive' 'platform' 'to' 'build' 'and' 'deploy' 'mission' 'critical' 'Smalltalk' 'applications.')
+ 	do: [:each | s := s , each , Character space asString].
+	s ] bench 
+	--> '31,500 per second.'
+\end{code}
 
 
 
 Another example that may be a bit draft and fuzzy but gives an idea of the cost that you may gain. 
 
 \begin{code}{}
-[String streamContents: [:s |	Smalltalk globals allClasses do: [:each | 									s nextPutAll: each name].	s contents]] bench 
-	--> '246 per second.'| s |s := ''.[Smalltalk globals allClasses 
+[String streamContents: [:s |
+	Smalltalk globals allClasses do: [:each | 
+									s nextPutAll: each name].
+	s contents]] bench 
+	--> '246 per second.'
+
+| s |
+s := ''.
+[Smalltalk globals allClasses 
 	do: [:each | s := s, each name]] bench 
 	--> '2.01 per second.'
 \end{code}
@@ -151,6 +171,9 @@ Time>>hhmm24
 		self minute printOn: aStream base: 10 length: 2 padded: true ]
 \end{code}
 
+
+have a look at: 
+http://www.slideshare.net/esug/design-principlesbehindpatagonia
 
 
 
