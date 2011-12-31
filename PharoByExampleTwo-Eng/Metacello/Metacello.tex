@@ -298,8 +298,6 @@ the names of the packages that you are interested in as an argument to the \ct{l
 
 
 \paragraph{Debugging Configuration.}
-\sd{May be move to another place}
-
 If you want to simulate the loading of a configuration, without actually loading it, you should use \ct{record:} instead of \ct{load:}. Then to get the result of the simulation, you should send it the message \mthind{loadDirective}{loadDirective} as follows:
 
 \begin{code}{}
@@ -1177,26 +1175,6 @@ The following expression will load the latest version of all of the packages for
 \end{code}
 
 Since the latest \ct{#baseline} version should reflect the most up-to-date project structure, executing the previous expression loads the absolute bleeding edge version of the project. 
-
-
-
-The following is the definition for the \ct{bleedingEdge} symbolic version: \sd{not sure that it is ok to show here}
-\mmp{yes, I wouldn't show it...too much internal detail..}
-
-\begin{code}{}
-bleedingEdge
-       <defaultSymbolicVersion: #bleedingEdge>
-
-       | bleedingEdgeVersion |
-       bleedingEdgeVersion := (self project map values select: [ :version |
-version blessing == #baseline ])
-              detectMax: [ :version | version ].
-       bleedingEdgeVersion ifNil: [ bleedingEdgeVersion := self project
-latestVersion ].
-       bleedingEdgeVersion
-              ifNil: [ self versionDoesNotExistError: #bleedingEdge ].
-       ^ bleedingEdgeVersion versionString
-\end{code}
 
 
 \subsubsection{Hints.}
