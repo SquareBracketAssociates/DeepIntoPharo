@@ -507,7 +507,6 @@ ConfigurationOfCoolBrowser>>version06: spec
        <!\textbf{version: '0.6' imports: \#('0.6-baseline')}!>
 !\vspace{-0.7ex}!
       spec for: #common do: [
-            spec blessing: #development.
             spec 
                   package: 'CoolBrowser-Core' with: 'CoolBrowser-Core-BobJones.20';
                   package: 'CoolBrowser-Tests' with: 'CoolBrowser-Tests-JohnLewis.8';
@@ -515,7 +514,6 @@ ConfigurationOfCoolBrowser>>version06: spec
                   package: 'CoolBrowser-AddonsTests' with: 'CoolBrowser-AddonsTests-JohnLewis.1' ].
 \end{code}
 
-\mmp{notice that it is the first time you include \#bleessing for a version method. And you don't explain what \#development is. Are you sure it was on purpose? I vote for removing the blessing from this example} \sd{ok for me}
  
 
 \paragraph{Examples.} Once you have defined a group, you can use its name anywhere you would use the name of a project or package. The \ct{load:}  method takes as parameter the name of a package, a project, a group, or a collection of those items.  So all of the following statements are possible:
@@ -797,7 +795,7 @@ ConfigurationOfCoolToolSet>>version02: spec
                      !\textbf{project:}! 'CoolBrowser Tests' !\textbf{with:}! '1.3'].
 \end{code}
 
-\ab{Why \ct{with:} and not \ct{versionString:}?  Elsewhere, \ct{with:} has been used for general overrides and takes a block.}
+%\ab{Why \ct{with:} and not \ct{versionString:}?  Elsewhere, \ct{with:} has been used for general overrides and takes a block.}
 
 As we saw at the beginning, nothing prevents you from specifying versions from baselines. The same happens with project references. So, in addition to messages like \ct{file:}, \ct{className:}, \ct{repository:}, etc., there is a message called \ct{versionString:} which lets you specify the version of the project directly in the project reference. Example:
 
