@@ -756,7 +756,7 @@ ConfigurationOfCoolToolSet>>version02: spec
                      !\textbf{project:}! 'CoolBrowser Tests' !\textbf{with:}! '1.3'].
 \end{code}
 
-\paragraph{Loading specific packages.}
+\subsection{Loading specific packages}
 Now even if you do not specified references in the baseline, in the version you can also specify which 
 packages of the project you depend on to load. Here in the \ct{ConfigurationOfSoup}, we say that 
 we want to load in the version 1.2 the packages  'XML-Parser' and 'XML-Tests-Parser'.
@@ -778,6 +778,27 @@ ConfigurationOfCoolToolSet>>version10: spec
 			package: 'Soup-Tests-Core' with: 'Soup-Tests-Core-sd.3';
 			package: 'Soup-Help' with: 'Soup-Help-StephaneDucasse.2' ].
 \end{code}
+
+
+What you can also do is to use the \ct{loads:} message in the project reference to specify which packages of the project you want to load. Such solution is nice because you factor the information in the project reference and you do not have to duplicate it in all the versions.
+
+\begin{code}{}
+ConfigurationOfCoolToolSet>>version10: spec 
+	<version: '1.0' imports:  #('1.0-baseline')>
+	 
+	spec for: #pharo do: [	
+		spec project: 'XMLSupport' with: [
+                       spec className: 'ConfigurationOfXMLSupport';
+                       versionString: #stable;
+                       !\textbf{loads:}! #('XML-Parser' 'XML-Tests-Parser') 
+                       repository: 'http://www.squeaksource.com/XMLSupport' ].
+
+	spec 
+			package: 'Soup-Core' with: 'Soup-Core-sd.11'; 
+			package: 'Soup-Tests-Core' with: 'Soup-Tests-Core-sd.3';
+			package: 'Soup-Help' with: 'Soup-Help-StephaneDucasse.2' ].
+\end{code}
+
 
 
 \paragraph{Version in Baselines.} Even if this is not recommended. Nothing prevents you from specifying versions from baselines. The same happens with project references. So, in addition to messages like \ct{file:}, \ct{className:}, \ct{repository:}, etc., there is a message called \ct{versionString:} which lets you specify the version of the project directly in the project reference. Example:
