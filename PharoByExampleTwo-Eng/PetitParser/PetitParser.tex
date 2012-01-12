@@ -460,6 +460,12 @@ similar to the term parser. The prim parser is interesting in that it
 accepts left and right parenthesis before and after a term and has an
 action block that simply ignores them.
 
+To understand the precedence of productions, see
+Figure~\ref{fig:expression-precedence}. The root of the tree in this
+figure (\ct{term}), is the production that is tried first. A \ct{term}
+is either a $+$ or a \ct{prod}. The \ct{term} production comes first
+because $+$ as the lowest priority in mathematics.
+
 \begin{figure}
   \centering
 \tikzgrammar{
@@ -554,6 +560,30 @@ action block that simply ignores them.
   \label{fig:syntax-arithmetic}
 \end{figure}
 
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    [ level distance=.7cm, growth parent anchor=south, sibling distance=2cm,
+     thick]
+    \node (term) [nonterminal] {term}
+    child{ node [terminal] {$+$} }
+    child{
+      node [nonterminal] {prod}
+      child{ node [terminal] {$*$} }
+      child{ node [nonterminal] {prim} 
+        child { node (parens) [nonterminal] {parens} }
+        child { node [nonterminal] {number} }
+      }
+    };
+    % \draw[->] (parens) -- (term)
+    % ;
+  \end{tikzpicture}
+
+  \caption{Explains how to understand the precedence of productions}
+  \label{fig:expression-precedence}
+\end{figure}
+
+
 To make sure that our parser consumes all input we wrap it with the
 \ct{end} parser into the \ct{start} production:
 
@@ -581,7 +611,7 @@ to each other in complicated ways. Furthermore a grammar specified in
 a single script makes it unnecessary hard to reuse specific parts of
 that grammar. Luckily there is \clsind{PPCompositeParser} to the rescue.
 
-\section{Defining the Grammar}
+\subsection{Defining the Grammar}
 
 As an example let's create a composite parser using the same
 expression grammar we built in the last section:
@@ -660,7 +690,7 @@ parser parse: '1 + 2 * 3'.       --> #(1 $+ #(2 $* 3))
 parser parse: '(1 + 2) * 3'.     --> #(#($( #(1 $+ 2) $)) $* 3)
 \end{script}
 
-\section{Defining the Evaluator}
+\subsection{Defining the Evaluator}
 
 Now that we have defined a grammar we can reuse this definition to
 implement an evaluator. To do this we create a subclass of
@@ -696,6 +726,8 @@ parser := ExpressionEvaluator new.
 parser parse: '1 + 2 * 3'.       --> 7
 parser parse: '(1 + 2) * 3'.     --> 9
 \end{script}
+
+\subsection{Defining the Pretty-Printer}
 
 Similarly a pretty printer can be defined by subclassing
 \ct{ExpressionGrammar} as follows:
@@ -803,22 +835,337 @@ ExpressionPrinterTest>>testNumber
   self assert: result equals: '123'
 \end{script}
 
-\section{Debugging a Grammar}
+\section{Case Study: A JSON Parser}
 
-PetitParser comes with tools to help debug a grammar. These tools are
-mostly written by Tudor Girba using the Glamour framework (see
-\charef{glamour}).
+In this section we illustrate PetitParser through the development of a
+JSON parser. JSON is a lightweight data-interchange format defined in
+\url{http://www.json.org}. We are going to use the specification on
+this website to define our own JSON parser.
 
-\section{Example Grammars}
+An example of JSON is provided by
+Wikipedia:\footnote{\url{http://en.wikipedia.org/wiki/JSON}}
 
-In this section we illustrate PetitParser through the presentation of
-various parsers.
+\begin{script}{An example of JSON}
+{
+  "firstName": "John",
+  "lastName" : "Smith",
+  "age"      : 25,
+  "address"  :
+  {
+    "streetAddress": "21 2nd Street",
+    "city"         : "New York",
+    "state"        : "NY",
+    "postalCode"   : "10021"
+  },
+  "phoneNumber":
+  [
+  {
+    "type"  : "home",
+    "number": "212 555-1234"
+  },
+  {
+    "type"  : "fax",
+    "number": "646 555-4567"
+  }
+  ]
+}
+\end{script}
 
-\subsection{Parsing Java annotations}
 
-% ask fabrizio
+\tikzgrammarfig{object}{
+  {
+    \node (object) [production] {object:}; \&
+    \node (openparen) [terminal]    {\{};     \&
+    \node (p2a)    [point]       {};           \& 
+    \node (p2b)    [point]       {};           \&
+    \node (string) [nonterminal]    {string};     \&
+    \node (colon) [terminal]    {:};     \&
+    \node (value) [nonterminal]    {value};     \&
+    \node (p5a)    [point]       {};           \& 
+    \node (p5b)    [point]       {};           \&
+    \node (closeparen) [terminal]    {\}};   \&
+    \node (p6a) [point]    {};     \\
 
-\subsection{Parsing Smalltalk}
+    \& \& \& 
+    \node (p10)    [point]       {};           \& \&
+    \node (comma) [terminal]    {,};     \& \&
+    \node (p11)    [point]       {};           \\
+  };
+  { [start chain]
+    \chainin (openparen);
+    \chainin (string) [join=by tip];
+    \chainin (colon)     [join=by tip];
+    \chainin (value)     [join=by tip];
+    \chainin (closeparen) [join=by tip];
+    \chainin (p6a) [join=by tip];
+    \chainin (p5b)    [join=with p2a by {skip loop=5mm,tip}];
+    \chainin (p11)    [join=with p5a];
+    \chainin (comma) [join=by tip];
+    \chainin (p10) [join];
+    \chainin (p2b) [join=by tip];
+  }
+}
+
+\tikzgrammarfig{array}{
+  {
+    \node (array) [production] {array:}; \&
+    \node (openbracket) [terminal]    {\{};     \&
+    \node (p2a)    [point]       {};           \& 
+    \node (p2b)    [point]       {};           \&
+    \&
+    \node (value) [nonterminal]    {value};     \&
+    \&
+    \node (p5a)    [point]       {};           \& 
+    \node (p5b)    [point]       {};           \&
+    \node (closebracket) [terminal]    {\}};   \&
+    \node (p6a) [point]    {};     \\
+
+    \& \& \& 
+    \node (p10)    [point]       {};           \& \&
+    \node (comma) [terminal]    {,};     \& \&
+    \node (p11)    [point]       {};           \\
+  };
+  { [start chain]
+    \chainin (openbracket);
+    \chainin (value) [join=by tip];
+    \chainin (closebracket) [join=by tip];
+    \chainin (p6a) [join=by tip];
+    \chainin (p5b)    [join=with p2a by {skip loop=5mm,tip}];
+    \chainin (p11)    [join=with p5a];
+    \chainin (comma) [join=by tip];
+    \chainin (p10) [join];
+    \chainin (p2b) [join=by tip];
+  }
+}
+
+\tikzgrammarfig{value}{
+  {
+    \node (value) [production] {value:}; \&
+    \node (p01a)    [point]       {};           \& 
+    \node (p01b)    [point]       {};           \& 
+    \node (string) [nonterminal]    {string};  \&
+    \node (p02a)    [point]       {};           \&
+    \node (p02b)    [point]       {};           \\
+
+    \& \&
+    \node (p11a)    [point]       {};           \& 
+    \node (number) [nonterminal]    {number};  \&
+    \node (p12a)    [point]       {};           \&    \\
+
+    \& \&
+    \node (p21a)    [point]       {};           \& 
+    \node (object) [nonterminal]    {object};  \&
+    \node (p22a)    [point]       {};           \&    \\
+
+    \& \&
+    \node (p31a)    [point]       {};           \& 
+    \node (array) [nonterminal]    {array};  \&
+    \node (p32a)    [point]       {};           \&    \\
+
+    \& \&
+    \node (p41a)    [point]       {};           \& 
+    \node (true) [terminal]    {true};  \&
+    \node (p42a)    [point]       {};           \&    \\
+
+    \& \&
+    \node (p51a)    [point]       {};           \& 
+    \node (false) [terminal]    {false};  \&
+    \node (p52a)    [point]       {};           \&    \\
+
+    \& \&
+    \node (p61a)    [point]       {};           \& 
+    \node (null) [terminal]    {null};  \&
+    \node (p62a)    [point]       {};           \&    \\
+  };
+  { [start chain]
+    \chainin (p01a);
+    \chainin (string) [join=by tip];
+    \chainin (p02b) [join=by tip];
+
+    \chainin (p11a) [join=with p01b];
+    \chainin (number) [join=by tip];
+    \chainin (p12a) [join];
+    \chainin (p02a) [join=by tip];
+
+    \chainin (p21a) [join=with p01b];
+    \chainin (object) [join=by tip];
+    \chainin (p22a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p31a) [join=with p01b];
+    \chainin (array) [join=by tip];
+    \chainin (p32a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p41a) [join=with p01b];
+    \chainin (true) [join=by tip];
+    \chainin (p42a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p51a) [join=with p01b];
+    \chainin (false) [join=by tip];
+    \chainin (p52a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p61a) [join=with p01b];
+    \chainin (null) [join=by tip];
+    \chainin (p62a) [join];
+    \chainin (p02a) [join];
+  }
+}
+
+\tikzgrammarfig{string}{
+  {
+    \node (string) [production] {string:}; \&
+    \node (p00a)    [point]       {};           \& 
+    \node (quote1) [terminal]    {"};  \&
+    \node (p01a)    [point]       {};           \& 
+    \node (p01b)    [point]       {};           \& 
+    \node (p01c)    [point]       {};           \& 
+    \node [point]       {};           \& 
+    \node [point]       {};           \& 
+    \node (char) [nonterminal, align=center, style={text height=3.5ex}]    {Any character\\ except " or \textbackslash};  \&
+    \node (p02a)    [point]       {};           \&
+    \node (p02b)    [point]       {};           \&
+    \node (p02c)    [point]       {};         \&
+    \node (quote2) [terminal]    {"};  \&
+    \node (p03a)    [point]       {}; \\
+
+    \& \& \& \& \&
+    \node (p10a) [point] {}; \&
+    \node (backslash) [terminal]    {\textbackslash};  \&
+    \node (p11a) [point] {}; \&
+    \node (innerquote) [terminal] {" \textrm{(quotation mark)}}; \&
+    \node (p12a) [point] {}; \& \\
+
+    \& \& \& \& \& \& \&
+    \node (p21a) [point] {}; \&
+    \node (innerbackslash) [terminal] {\textbackslash{} \textrm{(backslash)}}; \&
+    \node (p22a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p31a) [point] {}; \&
+    \node (/) [terminal] {/ \textrm{(slash)}}; \&
+    \node (p32a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p41a) [point] {}; \&
+    \node (b) [terminal] {b \textrm{(backspace)}}; \&
+    \node (p42a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p51a) [point] {}; \&
+    \node (f) [terminal] {f \textrm{(formfeed)}}; \&
+    \node (p52a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p61a) [point] {}; \&
+    \node (n) [terminal] {n \textrm{(newline)}}; \&
+    \node (p62a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p71a) [point] {}; \&
+    \node (r) [terminal] {r \textrm{(carr return)}}; \&
+    \node (p72a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p81a) [point] {}; \&
+    \node (t) [terminal] {t \textrm{(tabulation)}}; \&
+    \node (p82a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p91a) [point] {}; \&
+    \node (u) [terminal] {u \textrm{+ 4 hexa dig.}}; \&
+    \node (p92a) [point] {}; \\
+  };
+  { [start chain]
+    \chainin (p00a);
+    \chainin (quote1) [join=by tip];
+    \chainin (char) [join=by tip];
+    \chainin (quote2) [join=by tip];
+    \chainin (p03a) [join=by tip];
+
+    \chainin (p02c) [join=with p01a by {skip loop=6.5ex,tip}];
+
+    \chainin (p01b) [join=with p02b by {skip loop=4.5ex,tip}];
+
+    \chainin (p10a) [join=with p01c];
+    \chainin (backslash) [join=by tip];
+    \chainin (innerquote) [join=by tip];
+    \chainin (p12a) [join];
+    \chainin (p02a) [join=by tip];
+
+    \chainin (p21a) [join=with p11a];
+    \chainin (innerbackslash) [join=by tip];
+    \chainin (p22a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p31a) [join=with p11a];
+    \chainin (/) [join=by tip];
+    \chainin (p32a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p41a) [join=with p11a];
+    \chainin (b) [join=by tip];
+    \chainin (p42a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p51a) [join=with p11a];
+    \chainin (f) [join=by tip];
+    \chainin (p52a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p61a) [join=with p11a];
+    \chainin (n) [join=by tip];
+    \chainin (p62a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p71a) [join=with p11a];
+    \chainin (r) [join=by tip];
+    \chainin (p72a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p81a) [join=with p11a];
+    \chainin (t) [join=by tip];
+    \chainin (p82a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p91a) [join=with p11a];
+    \chainin (u) [join=by tip];
+    \chainin (p92a) [join];
+    \chainin (p02a) [join];
+  }
+}
+
+\tikzgrammarfig{number}{
+  {
+    \node (number) [production] {number:}; \&
+    \node (p01a) [point] {}; \&
+    \node [point] {}; \&
+    \node (p01b) [point] {}; \&
+    \node (p01c) [point] {}; \&
+    \node (0) [terminal] {0}; \&
+    \node [point] {}; \&
+    \node (p02a) [point] {}; \&
+    \node (p02b) [point] {}; \&
+    \node (.) [terminal] {.}; \&
+    \node (p03a) [point] {}; \&
+    \node (digit1) [nonterminal] {digit}; \&
+    \node (p04a) [point] {}; \&
+    \node (p04b) [point] {}; \&
+    \node (p04c) [point] {}; \&
+    \node [point] {}; \&
+    \node [point] {}; \&
+    \node [point] {}; \&
+    \node [point] {}; \& 
+    \node [point] {}; \& 
+    \node (p05a) [point] {}; 
+    \\
+  };
+  { [start chain]
+    \chainin (p2b) [join=by tip];
+  }
+}
 
 \section{Chapter Conclusion}
 
@@ -832,9 +1179,11 @@ Renggli's PhD have a dedicated chapter dedicated.
 
 %=============================================================
 \ifx\wholebook\relax\else
+
 % To avoid warning message about undefined labels (that should be
 % defined by other chapters)
 \label{cha:glamour}
+
 \bibliographystyle{jurabib}
 \nobibliography{scg}
 \end{document}
@@ -853,4 +1202,5 @@ Renggli's PhD have a dedicated chapter dedicated.
 %%% TeX-PDF-mode: t
 %%% ispell-local-dictionary: "english"
 %%% End:
-% LocalWords:  subclassing PetitParser
+
+% LocalWords:  subclassing PetitParser JSON Wikipedia hexa
