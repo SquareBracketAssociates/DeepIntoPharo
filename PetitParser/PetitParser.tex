@@ -1024,7 +1024,7 @@ Wikipedia:\footnote{\url{http://en.wikipedia.org/wiki/JSON}}
     \node (p01c)    [point]       {};           \& 
     \node [point]       {};           \& 
     \node [point]       {};           \& 
-    \node (char) [nonterminal, align=center, style={text height=3.5ex}]    {Any character\\ except " or \textbackslash};  \&
+    \node (char) [terminal, align=center, style={text height=3.5ex}]    {Any character\\ except " or \textbackslash};  \&
     \node (p02a)    [point]       {};           \&
     \node (p02b)    [point]       {};           \&
     \node (p02c)    [point]       {};         \&
@@ -1137,36 +1137,99 @@ Wikipedia:\footnote{\url{http://en.wikipedia.org/wiki/JSON}}
   }
 }
 
-\tikzgrammarfig{number}{
+\begin{figure}
+  \centering
+  \tikzgrammar{
   {
     \node (number) [production] {number:}; \&
     \node (p01a) [point] {}; \&
-    \node [point] {}; \&
     \node (p01b) [point] {}; \&
+    \&
     \node (p01c) [point] {}; \&
-    \node (0) [terminal] {0}; \&
-    \node [point] {}; \&
+    \node (p01d) [point] {}; \&
+    \node (0) [terminal] {0}; \& 
+    \&
     \node (p02a) [point] {}; \&
     \node (p02b) [point] {}; \&
     \node (.) [terminal] {.}; \&
     \node (p03a) [point] {}; \&
-    \node (digit1) [nonterminal] {digit}; \&
+    \node (digit1) [terminal] {digit}; \&
     \node (p04a) [point] {}; \&
     \node (p04b) [point] {}; \&
     \node (p04c) [point] {}; \&
-    \node [point] {}; \&
-    \node [point] {}; \&
-    \node [point] {}; \&
-    \node [point] {}; \& 
-    \node [point] {}; \& 
-    \node (p05a) [point] {}; 
-    \\
+    \node (p04d) [point] {}; \\
+
+    \& \&
+    \node (p11a) [point] {}; \&
+    \node (-) [terminal] {-}; \&
+    \node (p12a) [point] {}; \&
+    \node (p12b) [point] {}; \&
+    \node (digit2) [terminal, align=center, style={text height=3.5ex}] {digit\\1--9}; \&
+    \node (p13a) [point] {}; \&
+    \node (p13b) [point] {}; \&
+    \node (digit3) [terminal] {digit}; \&
+    \node (p14a) [point] {}; \\
+
+    \&
+    \node (p21a)  [point] {}; 
+    \& \& \& \& \& \& \& \& \& \& \& \& \& \& 
+    \node (p22a) [point] {}; \&
+    \node (p23a) [point] {}; \\
+
+    \&
+    \node (p31a)  [point] {}; \&
+    \node (p31b) [point] {}; \&
+    \node (ee) [terminal] {e / E}; \&
+    \node (p32a) [point] {}; \&
+    \node (p32b) [point] {}; \&
+    \node (+-) [terminal] {+ /  -}; \&
+    \node (p33a) [point] {}; \&
+    \node (p33b) [point] {}; \&
+    \node (digit4) [terminal] {digit}; \&
+    \node (p34a) [point] {}; \&
+    \node (p34b) [point] {}; \&
+    \& \& \& 
+    \node (p35a) [point] {}; \&
+    \&
+    \node (p35b) [point] {};\\
   };
   { [start chain]
-    \chainin (p2b) [join=by tip];
+    \chainin (p01a) [join=by tip];
+    \chainin (0) [join=by tip];
+    \chainin (.) [join=by tip];
+    \chainin (digit1) [join=by tip];
+    \chainin (p04d) [join];
+    \chainin (p23a) [join];
+    \chainin (p21a) [join];
+    \chainin (p31a) [join];
+    \chainin (ee) [join=by tip];
+    \chainin (+-) [join=by tip];
+    \chainin (digit4) [join=by tip];
+    \chainin (p35b) [join=by tip];
+
+    \chainin (p04b) [join=with p02b by {skip loop=2.5ex,tip}];
+    \chainin (p03a) [join=with p04a by {skip loop=-2.5ex,tip}];
+    \chainin (p32a) [join=with p31b by {skip loop=2.5ex, tip}];
+    \chainin (p33a) [join=with p32b by {skip loop=2.5ex, tip}];
+    \chainin (p33b) [join=with p34a by {skip loop=-2.5ex, tip}];
+
+    \chainin (p11a) [join=with p01b];
+    \chainin (-) [join=by tip];
+    \chainin (p12a) [join];
+    \chainin (p01c) [join=by tip];
+
+    \chainin (p12b) [join=with p01d];
+    \chainin (digit2) [join=by tip];
+    \chainin (digit3) [join=by tip];
+    \chainin (p14a) [join];
+    \chainin (p13a) [join=by {skip loop=-3.5ex,tip}];
+    \chainin (p13b) [join];
+    \chainin (p02a) [join=by tip];
   }
 }
-
+  \caption{Syntax diagram representation for the number parser defined in \scrref{number}}
+  \label{fig:syntax-number}
+\end{figure}
 \section{Chapter Conclusion}
 
 This concludes our tutorial of PetitParser. Please note that this
