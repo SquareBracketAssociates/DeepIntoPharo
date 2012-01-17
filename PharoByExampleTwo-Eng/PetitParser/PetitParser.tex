@@ -865,7 +865,9 @@ ExpressionPrinterTest>>testNumber
 }
 
 In this section we illustrate PetitParser through the development of a
-JSON parser. JSON is a lightweight data-interchange format defined in
+JSON parser.\footnote{Written by Lukas Renggli and available for
+  download at \url{http://source.lukas-renggli.ch/petit/}} JSON is a
+lightweight data-interchange format defined in
 \url{http://www.json.org}. We are going to use the specification on
 this website to define our own JSON parser.
 
@@ -900,11 +902,26 @@ Wikipedia:\footnote{\url{http://en.wikipedia.org/wiki/JSON}}
 
 JSON consists of object definitions (between curly braces ``{}'') and
 arrays (between square brackets ``[]''). An object definition is a set
-of key/value pairs whereas an array is a list of values.
+of key/value pairs whereas an array is a list of values. The previous
+JSON example then represents an object (a person) with several
+key/value pairs (\eg{} for the first name). The address of the person
+is represented by another object while the phone number is represented
+by an array of objects.
+
+To define our \ct{PPJsonGrammar}, we first need to create a class:
+
+\begin{script}{Defining the JSON grammar class}
+PPCompositeParser subclass: #PPJsonGrammar
+  instanceVariableNames: ''
+  classVariableNames: 'CharacterTable'
+  poolDictionaries: ''
+  category: 'PetitJson-Core'
+\end{script}
+
+We will use the \ct{CharacterTable} class variable later to parse
+strings.
 
 \subsection{Parsing Objects and Arrays}
-
-\dc{revoir les fleches dessus/dessous}
 
 The syntax diagrams for JSON objects and arrays are in
 Figures~\syntaxjsonref{object} and~\syntaxjsonref{array}.
@@ -912,11 +929,11 @@ Figures~\syntaxjsonref{object} and~\syntaxjsonref{array}.
 A PetitParser can be defined for JSON objects with the following code:
 
 \begin{jsonscript}{object}
-PPJSONGrammar>>object
+PPJsonGrammar>>object
   ^ ${ asParser token trim , members optional , $} asParser token trim
-PPJSONGrammar>>elements
+PPJsonGrammar>>elements
   ^ value separatedBy: $, asParser token trim
-PPJSONGrammar>>pair
+PPJsonGrammar>>pair
   ^ stringToken , $: asParser token trim , value
 \end{jsonscript}
 
@@ -987,7 +1004,7 @@ comma here).
 Arrays are much simpler to parse as depicted in the following code:
 
 \begin{jsonscript}{array}
-PPJSONGrammar>>array
+PPJsonGrammar>>array
   ^ $[ asParser token trim ,
         (value separatedBy: $, asParser token trim) optional ,
     $] asParser token trim
@@ -1035,7 +1052,7 @@ Boolean (\ct{true} or \ct{false}), or \ct{null}. The \ct{value} parser
 is defined as below and represented in~\syntaxjsonref{value}:
 
 \begin{jsonscript}{value}
-PPJSONGrammar>>value
+PPJsonGrammar>>value
   ^ stringToken / numberToken / object / array /
       trueToken / falseToken / nullToken
 \end{jsonscript}
@@ -1117,22 +1134,255 @@ PPJSONGrammar>>value
 }
 
 A string requires quite some work to parse. A string starts and end
-with double-quotes. What is inside these double-quotes is either an
-escape character, an octal character, or a normal character.
+with double-quotes. What is inside these double-quotes is a sequence
+of characters. Any character can either be an escape character, an
+octal character, or a normal character. An escape character is
+composed of a backslash immediately followed by a special character
+(\eg{} \ct{'\n'} to get a new line in the string). An octal character
+is composed of a backslash, immediately followed by the letter
+\ct{'u'}, immediately followed by 4 hexadecimal digits. Finally, a
+normal character is any character except a double quote (used to end
+the string) and a backslash (used to introduce an escape character).
 
-\begin{figure}
-  \centering
-  \tikzgrammar{
+\begin{jsonscript}{string}
+PPJsonGrammar>>stringToken
+  ^ string token trim
+PPJsonGrammar>>string
+  ^ $" asParser , char star , $" asParser
+PPJsonGrammar>>char
+  ^ charEscape / charOctal / charNormal
+PPJsonGrammar>>charEscape
+  ^ $\ asParser , (PPPredicateObjectParser anyOf: (String withAll: CharacterTable keys))
+PPJsonGrammar>>charOctal
+  ^ '\u' asParser , (#hex asParser min: 4 max: 4)
+PPJsonGrammar>>Normal
+  ^ PPPredicateObjectParser anyExceptAnyOf: '\"'
+\end{jsonscript}
+\dc{some parts of previous script are in italic, no idea why}
+% $ <-- to cancel previous one for Emacs highlighting
+
+Special characters allowed after a slash and their meanings are
+defined in the \ct{CharacterTable} dictionary:
+
+\begin{script}{Defining the JSON special characters and their meaning}
+PPJsonGrammar class>>initialize
+  CharacterTable := Dictionary new.
+  CharacterTable
+  at: $\ put: $\;
+  at: $/ put: $/;
+  at: $" put: $";
+  at: $b put: Character backspace;
+  at: $f put: Character newPage;
+  at: $n put: Character lf;
+  at: $r put: Character cr;
+  at: $t put: Character tab
+\end{script}
+% $ <-- to cancel previous one for Emacs highlighting
+
+\tikzgrammarjsonfig{string}{
+  {
+    \node (string) [production] {string:}; \&
+    \node (p01a) [point] {}; \&
+    \node (openquote) [terminal] {"}; \&
+    \node (p02a) [point] {}; \&
+    \node (p02b) [point] {}; \&
+    \node (char) [nonterminal] {char}; \&
+    \node (p03a) [point] {}; \&
+    \node (p03b) [point] {}; \&
+    \node (closequote) [terminal] {"}; \&
+    \node (p04a) [point] {}; \\
+
+    \& \& \& \&
+    \node (p11a) [point] {}; \& 
+    \node (charEscape) [nonterminal] {charEscape}; \& 
+    \node (p12a) [point] {}; \\
+
+    \node (charp) [production] {char:}; \&
+    \node (p21a) [point] {}; \& \& \&
+    \node (p21b) [point] {}; \& 
+    \node (charOctal) [nonterminal] {charOctal}; \& 
+    \node (p22a) [point] {}; \& \& \&
+    \node (p22b) [point] {}; \\
+
+    \& \& \& \&
+    \node (p31a) [point] {}; \& 
+    \node (charNormal) [nonterminal] {charNormal}; \& 
+    \node (p32a) [point] {}; \\
+
+    \node (charEscapep) [production] {charEscape:}; \&
+    \node (p40a) [point] {}; \&
+    \node (backslash) [terminal]    {\textbackslash};  \& 
+    \node (p41a) [point] {}; \& \&
+    \node (quote) [terminal] {" \textrm{(quotation mark)}}; \&
+    \node (p42a) [point] {}; \& \& \&
+    \node (p42b) [point] {}; \\
+
+    \& \& \&
+    \node (p50a) [point] {}; \& \&
+    \node (innerbackslash) [terminal] {\textbackslash{} \textrm{(backslash)}}; \&
+    \node (p51a) [point] {}; \\
+
+    \& \& \&
+    \node (p60a) [point] {}; \& \&
+    \node (/) [terminal] {/ \textrm{(slash)}}; \&
+    \node (p61a) [point] {}; \\
+
+    \& \& \&
+    \node (p70a) [point] {}; \& \&
+    \node (b) [terminal] {b \textrm{(backspace)}}; \&
+    \node (p71a) [point] {}; \\
+
+    \& \& \&
+    \node (p80a) [point] {}; \& \&
+    \node (f) [terminal] {f \textrm{(formfeed)}}; \&
+    \node (p81a) [point] {}; \\
+
+    \& \& \&
+    \node (p90a) [point] {}; \& \&
+    \node (n) [terminal] {n \textrm{(newline)}}; \&
+    \node (p91a) [point] {}; \\
+
+    \& \& \&
+    \node (p100a) [point] {}; \& \&
+    \node (r) [terminal] {r \textrm{(carr return)}}; \&
+    \node (p101a) [point] {}; \\
+
+    \& \& \&
+    \node (p110a) [point] {}; \& \&
+    \node (t) [terminal] {t \textrm{(tabulation)}}; \&
+    \node (p111a) [point] {}; \\
+
+    \node (charOctalp) [production] {charOctal:}; \&
+    \node (p120a) [point] {}; \&
+    \node (backslashu) [terminal] {\textbackslash{}u}; \& \& \&
+    \node (4hexdigits) [nonterminal] {4 hex digits [0--9a--fA--F]}; \& \& \&
+    \node (p121a) [point] {}; \\
+
+    \node (charNormalp) [production] {charNormal:}; \&
+    \node (p130a) [point] {}; \&
+    \& \& \&
+    \node (anycharacter) [nonterminal] {Any character except " and \textbackslash}; \& \& \&
+    \node (p131a) [point] {}; \\
+  };
+  { [start chain]
+    \chainin (p01a);
+    \chainin (openquote) [join=by tip];
+    \chainin (char) [join=by tip];
+    \chainin (closequote) [join=by tip];
+    \chainin (p04a) [join=by tip];
+
+    \chainin (p02b) [join=with p03a by {skip loop=5mm,tip}];
+    \chainin (p03b) [join=with p02a by {skip loop=-5mm,tip}];
+
+    \chainin (p21a);
+    \chainin (charOctal) [join=by tip];
+    \chainin (p22b) [join=by tip];
+
+    \chainin (p21b);
+    \chainin (p11a) [join];
+    \chainin (charEscape) [join=by tip];
+    \chainin (p12a) [join];
+    \chainin (p22a) [join=by tip];
+
+    \chainin (p21b);
+    \chainin (p31a) [join];
+    \chainin (charNormal) [join=by tip];
+    \chainin (p32a) [join];
+    \chainin (p22a) [join=by tip];
+
+    \chainin (p40a);
+    \chainin (backslash) [join=by tip];
+    \chainin (quote) [join=by tip];
+    \chainin (p42b) [join=by tip];    
+
+    \chainin (p41a);
+    \chainin (p50a) [join];
+    \chainin (innerbackslash) [join=by tip];
+    \chainin (p51a) [join];
+    \chainin (p42a) [join=by tip];
+
+    \chainin (p50a);
+    \chainin (p60a) [join];
+    \chainin (/) [join=by tip];
+    \chainin (p61a) [join];
+    \chainin (p51a) [join];
+
+    \chainin (p60a);
+    \chainin (p70a) [join];
+    \chainin (b) [join=by tip];
+    \chainin (p71a) [join];
+    \chainin (p61a) [join];
+
+    \chainin (p70a);
+    \chainin (p80a) [join];
+    \chainin (f) [join=by tip];
+    \chainin (p81a) [join];
+    \chainin (p71a) [join];
+
+    \chainin (p80a);
+    \chainin (p90a) [join];
+    \chainin (n) [join=by tip];
+    \chainin (p91a) [join];
+    \chainin (p81a) [join];
+
+    \chainin (p90a);
+    \chainin (p100a) [join];
+    \chainin (r) [join=by tip];
+    \chainin (p101a) [join];
+    \chainin (p91a) [join];
+
+    \chainin (p100a);
+    \chainin (p110a) [join];
+    \chainin (t) [join=by tip];
+    \chainin (p111a) [join];
+    \chainin (p101a) [join];
+
+    \chainin (p120a);
+    \chainin (backslashu) [join=by tip];
+    \chainin (4hexdigits) [join=by tip];
+    \chainin (p121a) [join=by tip];
+
+    \chainin (p130a);
+    \chainin (anycharacter) [join=by tip];
+    \chainin (p131a) [join=by tip];
+  }
+}
+
+Parsing numbers is only slightly simpler as a number can be positive
+or negative and integral or decimal. Additionally, a decimal number
+can be expressed with a floating number syntax.
+
+\begin{jsonscript}{number}
+PPJsonGrammar>>numberToken
+  ^ number token trim
+PPJsonGrammar>>number
+  ^ $- asParser optional ,
+  ($0 asParser / #digit asParser plus) ,
+  ($. asParser , #digit asParser plus) optional , 
+  (($e asParser / $E asParser) , ($- asParser / $+ asParser) optional , #digit asParser plus) optional
+\end{jsonscript}
+% $ <-- to cancel previous one for Emacs highlighting
+
+The attentive reader will have noticed a small difference between the
+syntax diagram in \syntaxjsonref{number} and the code in
+\scrref{json-number}. Numbers in JSON can not contain leading zeros:
+\ie{} strings such as \ct{"01"} do not represent valid numbers. The
+syntax diagram makes that particularly explicit by allowing either a 0
+or a digit between 1 and 9. In the above code, the rule is made
+implicit by relying on the fact that the parser combinator \ct{$/} is
+ordered: the parser on the right of \ct{$/} is only tried if the
+parser on the left fails.
+
+\tikzgrammarjsonfig{number}{
   {
     \node (number) [production] {number:}; \&
     \node (p01a) [point] {}; \&
     \node (p01b) [point] {}; \&
-    \&
+    \node (-) [terminal] {-}; \&
     \node (p01c) [point] {}; \&
     \node (p01d) [point] {}; \&
     \node (0) [terminal] {0}; \& 
-    \&
-    \node (p02a) [point] {}; \&
+    \node (p02a) [point] {}; \& \&
     \node (p02b) [point] {}; \&
     \node (.) [terminal] {.}; \&
     \node (p03a) [point] {}; \&
@@ -1142,10 +1392,7 @@ escape character, an octal character, or a normal character.
     \node (p04c) [point] {}; \&
     \node (p04d) [point] {}; \\
 
-    \& \&
-    \node (p11a) [point] {}; \&
-    \node (-) [terminal] {-}; \&
-    \node (p12a) [point] {}; \&
+    \& \& \& \& \&
     \node (p12b) [point] {}; \&
     \node (digit2) [terminal, align=center, style={text height=3.5ex}] {digit\\1--9}; \&
     \node (p13a) [point] {}; \&
@@ -1178,6 +1425,7 @@ escape character, an octal character, or a normal character.
   };
   { [start chain]
     \chainin (p01a) [join=by tip];
+    \chainin (-) [join=by tip];
     \chainin (0) [join=by tip];
     \chainin (.) [join=by tip];
     \chainin (digit1) [join=by tip];
@@ -1190,38 +1438,51 @@ escape character, an octal character, or a normal character.
     \chainin (digit4) [join=by tip];
     \chainin (p35b) [join=by tip];
 
-    \chainin (p04b) [join=with p02b by {skip loop=2.5ex,tip}];
-    \chainin (p03a) [join=with p04a by {skip loop=-2.5ex,tip}];
-    \chainin (p32a) [join=with p31b by {skip loop=2.5ex, tip}];
-    \chainin (p33a) [join=with p32b by {skip loop=2.5ex, tip}];
-    \chainin (p33b) [join=with p34a by {skip loop=-2.5ex, tip}];
+    \chainin (p04b) [join=with p02b by {skip loop=-2.5ex,tip}];
+    \chainin (p03a) [join=with p04a by {skip loop=2.5ex,tip}];
+    \chainin (p33a) [join=with p32b by {skip loop=-2.5ex, tip}];
+    \chainin (p33b) [join=with p34a by {skip loop=2.5ex, tip}];
+    \chainin (p01c) [join=with p01b by {skip loop=-2.5ex, tip}];
 
-    \chainin (p11a) [join=with p01b];
-    \chainin (-) [join=by tip];
-    \chainin (p12a) [join];
-    \chainin (p01c) [join=by tip];
+    % Float expressions starting with e/E are optional:
+    \chainin (p34b) [join=with p31b by {skip loop=-3.5ex, tip}];
 
     \chainin (p12b) [join=with p01d];
     \chainin (digit2) [join=by tip];
     \chainin (digit3) [join=by tip];
     \chainin (p14a) [join];
-    \chainin (p13a) [join=by {skip loop=-3.5ex,tip}];
-    \chainin (p13b) [join];
+    \chainin (p13b) [join=by {skip loop=2.5ex,tip}];
+    \chainin (p13a) [join];
     \chainin (p02a) [join=by tip];
   }
 }
-  \caption{Syntax diagram representation for the number parser defined in \scrref{number}}
-  \label{fig:syntax-number}
-\end{figure}
+
+The other parsers are fairly trivial:
+
+\begin{script}{Defining missing JSON parsers}
+PPJsonGrammar>>falseToken
+  ^ 'false' asParser token trim
+PPJsonGrammar>>nullToken
+  ^ 'null' asParser token trim
+PPJsonGrammar>>trueToken
+  ^ 'true' asParser token trim
+\end{script}
+
+The only piece missing is the \ct{start} parser:
+
+\begin{script}{Defining the JSON start parser}
+PPJsonGrammar>>start
+  ^ value end
+\end{script}
+
 \section{Chapter Conclusion}
 
 This concludes our tutorial of PetitParser. Please note that this
 tutorial is not meant to give an exhaustive overview of PetitParser,
-but is merely intended to introduce the reader to the usage and to our
-intent for our approach. For a more extensive view of PetitParser, its
-concepts and implementation, the Moose
-book\footnote{\url{http://www.themoosebook.org/book}} and Lukas
-Renggli's PhD have a dedicated chapter dedicated.
+but is merely intended to introduce the reader to its usage. For a
+more extensive view of PetitParser, its concepts and implementation,
+the Moose book\footnote{\url{http://www.themoosebook.org/book}} and
+Lukas Renggli's PhD have a dedicated chapter dedicated.
 
 %=============================================================
 \ifx\wholebook\relax\else
@@ -1249,4 +1510,4 @@ Renggli's PhD have a dedicated chapter dedicated.
 %%% ispell-local-dictionary: "english"
 %%% End:
 
-% LocalWords:  subclassing PetitParser JSON Wikipedia hexa
+% LocalWords:  subclassing PetitParser JSON Wikipedia hexa combinator
