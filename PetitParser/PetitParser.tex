@@ -575,8 +575,13 @@ because $+$ as the lowest priority in mathematics.
         child { node [nonterminal] {number} }
       }
     };
-    % \draw[->] (parens) -- (term)
-    % ;
+    % \node (p1) at ($(parens) + (0,-1)$) {};
+    % \node (p2) at ($(p1) + (-4,0)$) {};
+    % \node (p3) at ($(p2) + 1*(1,0)$) {};
+    % {[start chain]
+    %   \chainin (parens);
+    %   \chainin (term) [join=by {skip loop=10}];
+    % }
   \end{tikzpicture}
 
   \caption{Explains how to understand the precedence of productions}
@@ -837,6 +842,28 @@ ExpressionPrinterTest>>testNumber
 
 \section{Case Study: A JSON Parser}
 
+\lstnewenvironment{jsonscript}[2][defaultlabel]{%
+\renewcommand{\lstlistingname}{Script}%
+	\lstset{
+		% frame=lines,
+		frame=single,
+		framerule=0pt,
+		mathescape=false,
+		name={Script},
+		caption={\emph{Defining the JSON parser for #2 as represented in \syntaxjsonref{#2}}},
+		label={scr:json-#2}
+	}
+}{}
+\newcommand{\syntaxjsonref}[1]{\figref{syntax-json-#1}}
+\newcommand{\tikzgrammarjsonfig}[2]{%
+  \begin{figure}
+    \centering
+    \tikzgrammar{#2}
+    \caption{Syntax diagram representation for the JSON #1 parser defined in \scrref{json-#1}}
+\label{fig:syntax-json-#1}
+\end{figure}
+}
+
 In this section we illustrate PetitParser through the development of a
 JSON parser. JSON is a lightweight data-interchange format defined in
 \url{http://www.json.org}. We are going to use the specification on
@@ -859,91 +886,166 @@ Wikipedia:\footnote{\url{http://en.wikipedia.org/wiki/JSON}}
   },
   "phoneNumber":
   [
-  {
-    "type"  : "home",
-    "number": "212 555-1234"
-  },
-  {
-    "type"  : "fax",
-    "number": "646 555-4567"
-  }
+    {
+      "type"  : "home",
+      "number": "212 555-1234"
+    },
+    {
+      "type"  : "fax",
+      "number": "646 555-4567"
+    }
   ]
 }
 \end{script}
 
+JSON consists of object definitions (between curly braces ``{}'') and
+arrays (between square brackets ``[]''). An object definition is a set
+of key/value pairs whereas an array is a list of values.
 
-\tikzgrammarfig{object}{
+\subsection{Parsing Objects and Arrays}
+
+\dc{revoir les fleches dessus/dessous}
+
+The syntax diagrams for JSON objects and arrays are in
+Figures~\syntaxjsonref{object} and~\syntaxjsonref{array}.
+
+A PetitParser can be defined for JSON objects with the following code:
+
+\begin{jsonscript}{object}
+PPJSONGrammar>>object
+  ^ ${ asParser token trim , members optional , $} asParser token trim
+PPJSONGrammar>>elements
+  ^ value separatedBy: $, asParser token trim
+PPJSONGrammar>>pair
+  ^ stringToken , $: asParser token trim , value
+\end{jsonscript}
+
+The only new thing here is the call to the \ppmthind{separatedBy:}
+convenience method which answers a new parser that parses the receiver
+(a value here) one or more times, separated by its parameter parser (a
+comma here).
+
+\tikzgrammarjsonfig{object}{
   {
     \node (object) [production] {object:}; \&
-    \node (openparen) [terminal]    {\{};     \&
-    \node (p2a)    [point]       {};           \& 
-    \node (p2b)    [point]       {};           \&
-    \node (string) [nonterminal]    {string};     \&
-    \node (colon) [terminal]    {:};     \&
-    \node (value) [nonterminal]    {value};     \&
-    \node (p5a)    [point]       {};           \& 
-    \node (p5b)    [point]       {};           \&
-    \node (closeparen) [terminal]    {\}};   \&
-    \node (p6a) [point]    {};     \\
+    \node (p01a) [point] {}; \&
+    \node (openbrace) [terminal] {\{}; \&
+    \node (p02a) [point] {}; \&
+    \node (members) [nonterminal] {members}; \&
+    \node (p03a) [point] {}; \&
+    \node (closebrace) [terminal] {\}}; \&
+    \node (p04a) [point] {}; \\
 
-    \& \& \& 
-    \node (p10)    [point]       {};           \& \&
-    \node (comma) [terminal]    {,};     \& \&
-    \node (p11)    [point]       {};           \\
+    \node (p11a) [point] {}; \&
+    \& \&
+    \node (p12a) [point] {}; \&
+    \node (comma) [terminal] {,}; \&
+    \node (p13a) [point] {}; \\
+
+    \node (pmembers) [production] {members:}; \&
+    \node (p21a) [point] {}; \& \& 
+    \node (p21b) [point] {}; \&
+    \node (pair) [nonterminal] {pair}; \&
+    \node (p22a) [point] {}; \& \&
+    \node (p22b) [point] {}; \\
+
+    \node (ppair) [production] {pair:}; \&
+    \node (p31a) [point] {}; \& \& 
+    \node (stringToken) [nonterminal, align=center, style={text height=3.5ex}] {string \\ Token}; \&
+    \node (comma2) [terminal] {,}; \&
+    \node (value) [nonterminal] {value}; \&
+    \& \&
+    \node (p32a) [point] {}; \\
   };
   { [start chain]
-    \chainin (openparen);
-    \chainin (string) [join=by tip];
-    \chainin (colon)     [join=by tip];
-    \chainin (value)     [join=by tip];
-    \chainin (closeparen) [join=by tip];
-    \chainin (p6a) [join=by tip];
-    \chainin (p5b)    [join=with p2a by {skip loop=5mm,tip}];
-    \chainin (p11)    [join=with p5a];
+    \chainin (p01a);
+    \chainin (openbrace) [join=by tip];
+    \chainin (members) [join=by tip];
+    \chainin (closebrace) [join=by tip];
+    \chainin (p04a) [join=by tip];
+
+    \chainin (p03a) [join=with p02a by {skip loop=-5mm, tip}];
+
+    \chainin (p21a);
+    \chainin (pair) [join=by tip];
+    \chainin (p22b) [join=by tip];
+
+    \chainin (p22a);
+    \chainin (p13a) [join];
     \chainin (comma) [join=by tip];
-    \chainin (p10) [join];
-    \chainin (p2b) [join=by tip];
+    \chainin (p12a) [join];
+    \chainin (p21b) [join=by tip];
+
+    \chainin (p31a);
+    \chainin (stringToken) [join=by tip];
+    \chainin (comma2) [join=by tip];
+    \chainin (value) [join=by tip];
+    \chainin (p32a) [join=by tip];
   }
 }
 
-\tikzgrammarfig{array}{
-  {
-    \node (array) [production] {array:}; \&
-    \node (openbracket) [terminal]    {\{};     \&
-    \node (p2a)    [point]       {};           \& 
-    \node (p2b)    [point]       {};           \&
-    \&
-    \node (value) [nonterminal]    {value};     \&
-    \&
-    \node (p5a)    [point]       {};           \& 
-    \node (p5b)    [point]       {};           \&
-    \node (closebracket) [terminal]    {\}};   \&
-    \node (p6a) [point]    {};     \\
+Arrays are much simpler to parse as depicted in the following code:
 
-    \& \& \& 
-    \node (p10)    [point]       {};           \& \&
-    \node (comma) [terminal]    {,};     \& \&
-    \node (p11)    [point]       {};           \\
+\begin{jsonscript}{array}
+PPJSONGrammar>>array
+  ^ $[ asParser token trim ,
+        (value separatedBy: $, asParser token trim) optional ,
+    $] asParser token trim
+\end{jsonscript}
+
+% $ <-- to cancel previous one for Emacs highlighting
+
+\tikzgrammarjsonfig{array}{
+  {
+    \& \& \& \&
+    \node (p01a) [point] {}; \& 
+    \node (comma) [terminal] {,}; \& 
+    \node (p02a) [point] {}; \\
+
+    \node (array) [production] {array:}; \&
+    \node (p11a) [point] {}; \&
+    \node (openbracket) [terminal] {\{}; \&
+    \node (p12a) [point] {}; \& 
+    \node (p12b) [point] {}; \& 
+    \node (value) [nonterminal] {value}; \&
+    \node (p13a)    [point]       {};           \& 
+    \node (p13b)    [point]       {};           \&
+    \node (closebracket) [terminal]    {\}};   \&
+    \node (p14a) [point]    {};     \\
   };
   { [start chain]
-    \chainin (openbracket);
+    \chainin (p11a);
+    \chainin (openbracket) [join=by tip];
     \chainin (value) [join=by tip];
     \chainin (closebracket) [join=by tip];
-    \chainin (p6a) [join=by tip];
-    \chainin (p5b)    [join=with p2a by {skip loop=5mm,tip}];
-    \chainin (p11)    [join=with p5a];
+    \chainin (p14a) [join=by tip];
+    \chainin (p13b)    [join=with p12a by {skip loop=-5mm,tip}];
+    \chainin (p13a);
+    \chainin (p02a)  [join];
     \chainin (comma) [join=by tip];
-    \chainin (p10) [join];
-    \chainin (p2b) [join=by tip];
+    \chainin (p01a)  [join];
+    \chainin (p12b)  [join=by tip];
   }
 }
 
-\tikzgrammarfig{value}{
+\subsection{Parsing Values}
+
+In JSON, a value is either a string, a number, an object, an array, a
+Boolean (\ct{true} or \ct{false}), or \ct{null}. The \ct{value} parser
+is defined as below and represented in~\syntaxjsonref{value}:
+
+\begin{jsonscript}{value}
+PPJSONGrammar>>value
+  ^ stringToken / numberToken / object / array /
+      trueToken / falseToken / nullToken
+\end{jsonscript}
+
+\tikzgrammarjsonfig{value}{
   {
     \node (value) [production] {value:}; \&
     \node (p01a)    [point]       {};           \& 
     \node (p01b)    [point]       {};           \& 
-    \node (string) [nonterminal]    {string};  \&
+    \node (string) [nonterminal, align=center, style={text height=3.5ex}] {string \\ Token};  \&
     \node (p02a)    [point]       {};           \&
     \node (p02b)    [point]       {};           \\
 
@@ -1014,128 +1116,9 @@ Wikipedia:\footnote{\url{http://en.wikipedia.org/wiki/JSON}}
   }
 }
 
-\tikzgrammarfig{string}{
-  {
-    \node (string) [production] {string:}; \&
-    \node (p00a)    [point]       {};           \& 
-    \node (quote1) [terminal]    {"};  \&
-    \node (p01a)    [point]       {};           \& 
-    \node (p01b)    [point]       {};           \& 
-    \node (p01c)    [point]       {};           \& 
-    \node [point]       {};           \& 
-    \node [point]       {};           \& 
-    \node (char) [terminal, align=center, style={text height=3.5ex}]    {Any character\\ except " or \textbackslash};  \&
-    \node (p02a)    [point]       {};           \&
-    \node (p02b)    [point]       {};           \&
-    \node (p02c)    [point]       {};         \&
-    \node (quote2) [terminal]    {"};  \&
-    \node (p03a)    [point]       {}; \\
-
-    \& \& \& \& \&
-    \node (p10a) [point] {}; \&
-    \node (backslash) [terminal]    {\textbackslash};  \&
-    \node (p11a) [point] {}; \&
-    \node (innerquote) [terminal] {" \textrm{(quotation mark)}}; \&
-    \node (p12a) [point] {}; \& \\
-
-    \& \& \& \& \& \& \&
-    \node (p21a) [point] {}; \&
-    \node (innerbackslash) [terminal] {\textbackslash{} \textrm{(backslash)}}; \&
-    \node (p22a) [point] {}; \\
-
-    \& \& \& \& \& \& \&
-    \node (p31a) [point] {}; \&
-    \node (/) [terminal] {/ \textrm{(slash)}}; \&
-    \node (p32a) [point] {}; \\
-
-    \& \& \& \& \& \& \&
-    \node (p41a) [point] {}; \&
-    \node (b) [terminal] {b \textrm{(backspace)}}; \&
-    \node (p42a) [point] {}; \\
-
-    \& \& \& \& \& \& \&
-    \node (p51a) [point] {}; \&
-    \node (f) [terminal] {f \textrm{(formfeed)}}; \&
-    \node (p52a) [point] {}; \\
-
-    \& \& \& \& \& \& \&
-    \node (p61a) [point] {}; \&
-    \node (n) [terminal] {n \textrm{(newline)}}; \&
-    \node (p62a) [point] {}; \\
-
-    \& \& \& \& \& \& \&
-    \node (p71a) [point] {}; \&
-    \node (r) [terminal] {r \textrm{(carr return)}}; \&
-    \node (p72a) [point] {}; \\
-
-    \& \& \& \& \& \& \&
-    \node (p81a) [point] {}; \&
-    \node (t) [terminal] {t \textrm{(tabulation)}}; \&
-    \node (p82a) [point] {}; \\
-
-    \& \& \& \& \& \& \&
-    \node (p91a) [point] {}; \&
-    \node (u) [terminal] {u \textrm{+ 4 hexa dig.}}; \&
-    \node (p92a) [point] {}; \\
-  };
-  { [start chain]
-    \chainin (p00a);
-    \chainin (quote1) [join=by tip];
-    \chainin (char) [join=by tip];
-    \chainin (quote2) [join=by tip];
-    \chainin (p03a) [join=by tip];
-
-    \chainin (p02c) [join=with p01a by {skip loop=6.5ex,tip}];
-
-    \chainin (p01b) [join=with p02b by {skip loop=4.5ex,tip}];
-
-    \chainin (p10a) [join=with p01c];
-    \chainin (backslash) [join=by tip];
-    \chainin (innerquote) [join=by tip];
-    \chainin (p12a) [join];
-    \chainin (p02a) [join=by tip];
-
-    \chainin (p21a) [join=with p11a];
-    \chainin (innerbackslash) [join=by tip];
-    \chainin (p22a) [join];
-    \chainin (p02a) [join];
-
-    \chainin (p31a) [join=with p11a];
-    \chainin (/) [join=by tip];
-    \chainin (p32a) [join];
-    \chainin (p02a) [join];
-
-    \chainin (p41a) [join=with p11a];
-    \chainin (b) [join=by tip];
-    \chainin (p42a) [join];
-    \chainin (p02a) [join];
-
-    \chainin (p51a) [join=with p11a];
-    \chainin (f) [join=by tip];
-    \chainin (p52a) [join];
-    \chainin (p02a) [join];
-
-    \chainin (p61a) [join=with p11a];
-    \chainin (n) [join=by tip];
-    \chainin (p62a) [join];
-    \chainin (p02a) [join];
-
-    \chainin (p71a) [join=with p11a];
-    \chainin (r) [join=by tip];
-    \chainin (p72a) [join];
-    \chainin (p02a) [join];
-
-    \chainin (p81a) [join=with p11a];
-    \chainin (t) [join=by tip];
-    \chainin (p82a) [join];
-    \chainin (p02a) [join];
-
-    \chainin (p91a) [join=with p11a];
-    \chainin (u) [join=by tip];
-    \chainin (p92a) [join];
-    \chainin (p02a) [join];
-  }
-}
+A string requires quite some work to parse. A string starts and end
+with double-quotes. What is inside these double-quotes is either an
+escape character, an octal character, or a normal character.
 
 \begin{figure}
   \centering

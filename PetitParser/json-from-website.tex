@@ -1,0 +1,160 @@
+% Diagram created from json.org website.
+% Not used in the book but backed up here just in case
+
+\tikzgrammarjsonfig{object}{
+  {
+    \node (object) [production] {object:}; \&
+    \node (openparen) [terminal]    {\{};     \&
+    \node (p2a)    [point]       {};           \& 
+    \node (p2b)    [point]       {};           \&
+    \node (string) [nonterminal]    {string};     \&
+    \node (colon) [terminal]    {:};     \&
+    \node (value) [nonterminal]    {value};     \&
+    \node (p5a)    [point]       {};           \& 
+    \node (p5b)    [point]       {};           \&
+    \node (closeparen) [terminal]    {\}};   \&
+    \node (p6a) [point]    {};     \\
+
+    \& \& \& 
+    \node (p10)    [point]       {};           \& \&
+    \node (comma) [terminal]    {,};     \& \&
+    \node (p11)    [point]       {};           \\
+  };
+  { [start chain]
+    \chainin (openparen);
+    \chainin (string) [join=by tip];
+    \chainin (colon)     [join=by tip];
+    \chainin (value)     [join=by tip];
+    \chainin (closeparen) [join=by tip];
+    \chainin (p6a) [join=by tip];
+    \chainin (p5b)    [join=with p2a by {skip loop=5mm,tip}];
+    \chainin (p11)    [join=with p5a];
+    \chainin (comma) [join=by tip];
+    \chainin (p10) [join];
+    \chainin (p2b) [join=by tip];
+  }
+}
+
+
+\tikzgrammarfig{string}{
+  {
+    \node (string) [production] {string:}; \&
+    \node (p00a)    [point]       {};           \& 
+    \node (quote1) [terminal]    {"};  \&
+    \node (p01a)    [point]       {};           \& 
+    \node (p01b)    [point]       {};           \& 
+    \node (p01c)    [point]       {};           \& 
+    \node [point]       {};           \& 
+    \node [point]       {};           \& 
+    \node (char) [terminal, align=center, style={text height=3.5ex}]    {Any character\\ except " or \textbackslash};  \&
+    \node (p02a)    [point]       {};           \&
+    \node (p02b)    [point]       {};           \&
+    \node (p02c)    [point]       {};         \&
+    \node (quote2) [terminal]    {"};  \&
+    \node (p03a)    [point]       {}; \\
+
+    \& \& \& \& \&
+    \node (p10a) [point] {}; \&
+    \node (backslash) [terminal]    {\textbackslash};  \&
+    \node (p11a) [point] {}; \&
+    \node (innerquote) [terminal] {" \textrm{(quotation mark)}}; \&
+    \node (p12a) [point] {}; \& \\
+
+    \& \& \& \& \& \& \&
+    \node (p21a) [point] {}; \&
+    \node (innerbackslash) [terminal] {\textbackslash{} \textrm{(backslash)}}; \&
+    \node (p22a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p31a) [point] {}; \&
+    \node (/) [terminal] {/ \textrm{(slash)}}; \&
+    \node (p32a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p41a) [point] {}; \&
+    \node (b) [terminal] {b \textrm{(backspace)}}; \&
+    \node (p42a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p51a) [point] {}; \&
+    \node (f) [terminal] {f \textrm{(formfeed)}}; \&
+    \node (p52a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p61a) [point] {}; \&
+    \node (n) [terminal] {n \textrm{(newline)}}; \&
+    \node (p62a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p71a) [point] {}; \&
+    \node (r) [terminal] {r \textrm{(carr return)}}; \&
+    \node (p72a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p81a) [point] {}; \&
+    \node (t) [terminal] {t \textrm{(tabulation)}}; \&
+    \node (p82a) [point] {}; \\
+
+    \& \& \& \& \& \& \&
+    \node (p91a) [point] {}; \&
+    \node (u) [terminal] {u \textrm{+ 4 hexa dig.}}; \&
+    \node (p92a) [point] {}; \\
+  };
+  { [start chain]
+    \chainin (p00a);
+    \chainin (quote1) [join=by tip];
+    \chainin (char) [join=by tip];
+    \chainin (quote2) [join=by tip];
+    \chainin (p03a) [join=by tip];
+
+    \chainin (p02c) [join=with p01a by {skip loop=6.5ex,tip}];
+
+    \chainin (p01b) [join=with p02b by {skip loop=4.5ex,tip}];
+
+    \chainin (p10a) [join=with p01c];
+    \chainin (backslash) [join=by tip];
+    \chainin (innerquote) [join=by tip];
+    \chainin (p12a) [join];
+    \chainin (p02a) [join=by tip];
+
+    \chainin (p21a) [join=with p11a];
+    \chainin (innerbackslash) [join=by tip];
+    \chainin (p22a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p31a) [join=with p11a];
+    \chainin (/) [join=by tip];
+    \chainin (p32a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p41a) [join=with p11a];
+    \chainin (b) [join=by tip];
+    \chainin (p42a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p51a) [join=with p11a];
+    \chainin (f) [join=by tip];
+    \chainin (p52a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p61a) [join=with p11a];
+    \chainin (n) [join=by tip];
+    \chainin (p62a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p71a) [join=with p11a];
+    \chainin (r) [join=by tip];
+    \chainin (p72a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p81a) [join=with p11a];
+    \chainin (t) [join=by tip];
+    \chainin (p82a) [join];
+    \chainin (p02a) [join];
+
+    \chainin (p91a) [join=with p11a];
+    \chainin (u) [join=by tip];
+    \chainin (p92a) [join];
+    \chainin (p02a) [join];
+  }
+}
