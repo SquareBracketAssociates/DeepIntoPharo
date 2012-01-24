@@ -51,17 +51,6 @@ Then, we introduce \ct!SocketStream! and how to use it.
 In practice, one is likely to use \ct!SocketStream! instead of plain sockets.
 The chapter ends with a description of some unix networking utilities that are useful for experimenting.
 
-\begin{itemize}
-\item second 
-	for the server: a picture about the different thread and sockets
-
-\item third: Better API description of SocketStream
-	adding a table would help to get the big picture.
-	
-\item would be nice to always be able to execute code snippets and describe a set so that we can always experiment.
-\end{itemize}
-
-
 \section{Basic Concepts}
 \subsection{Socket}
 A remote communication involves at least two system processes exchanging some data bytes through a network. Each process accesses the network through at least one socket (see Figure~\ref{fig:socketConcept}).
@@ -69,7 +58,7 @@ A socket can then be defined as a \textit{plug on a communication network}.
 
 \begin{figure}[ht]\centering
 	\includegraphics[width=.75\linewidth]{socketConcept}
-	\caption{Inter-Process Remote Communication Through Sockets \sd{would be good to have another representation for processes.}.\noury{you mean a different box?}}
+	\caption{Inter-Process Remote Communication Through Sockets}
 	\label{fig:socketConcept}
 \end{figure}
 
@@ -267,14 +256,21 @@ One socket is used for handling client connections, while the second serves for 
 The life-cycle of a TCP server has 5 steps:
 \begin{enumerate}
 \item Create a first TCP socket labelled \textit{connectionSocket}.
-\item Wait for a connection by making \textit{connectionSocket}  listen on a port.
+\item Wait for a connection by making \textit{connectionSocket} listen on a port.
 \item Accept a client request for connection. As a result, \textit{connectionSocket} will build a second socket labelled \textit{interactionSocket}.
 \item Exchange data with the client through \textit{interactionSocket}. In the meanwhile, \textit{connectionSocket} can continue to wait for a new connection, and possibly create new sockets to exchange data with other clients. 
 \item Close \textit{interactionSocket}.
 \item Close \textit{connectionSocket} when we decide to kill the server and stop accepting client connections.
 \end{enumerate}
-\sd{add a picture about the different thread and sockets}
-Concurrency is implicit in this life-cycle.
+
+
+\begin{figure}[ht]\centering
+	\includegraphics[width=.75\linewidth]{tcpSocketServerLifeCycle}
+	\caption{Socket Server Concurrently Servers Multiple Clients}
+	\label{fig:socketServerLifeCycle}
+\end{figure}
+
+Concurrency of this life-cycle is made explicit on~Figure \ref{fig:socketServerLifeCycle}.
 The server listens for incoming client connection requests through \textit{connectionSocket}, while exchanging data with possibly multiple clients through multiple \textit{interactionSockets} (one per client).
 In the following, we first illustrate the socket serving machinery.
 Then, we describe a complete server class and explain the server life-cycle and related concurrency issues.
