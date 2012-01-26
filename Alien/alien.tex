@@ -105,7 +105,7 @@ Once loaded you should execute the following expression: \ct{NBInstaller install
 
 
 Suppose you want to know the amount of time the image has been running by calling the underlying OS function named \ct{clock}. 
-This function is part of the standard C library. Its C declaration is\footnote{According to man its return type is clock\_t instead of int, but we deliberately made it int for the sake of simplicity. We will see how to deal with typedefs in the following sections}:
+This function is part of the standard C library. Its C declaration is\footnote{According to man its return type is \ct{clock\_t} instead of \ct{int}, but we deliberately made it \ct{int} for the sake of simplicity. We will see how to deal with typedefs in the following sections}:
 
 \begin{code}{}
 int clock (void)
@@ -212,7 +212,7 @@ The previous example was the simplest we could find: we asked for the execution 
 
 \subsection{Passing an integer}
 
-Let's try with a really simple function, \ct{ abs}, which takes
+Let's try with a really simple function, \ct{abs()}, which takes
 an integer and returns its absolute value.
 
 \begin{description}
@@ -359,7 +359,7 @@ CExamples class>>stringLength: aString
 In the signature \ct{#( int strlen (String aString) )} there are two differences with the C signature. 
 \begin{itemize}
 \item  The first difference is the const keyword of the argument. For those not used to C, 
-that’s only a modifier keyword that the compiler takes into account to
+that's only a modifier keyword that the compiler takes into account to
 make some static validations at compile time. It's has no
 value when describing the signature for calling a function at
 runtime.
