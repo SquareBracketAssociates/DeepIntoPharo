@@ -314,7 +314,7 @@ The block implementation needs to keep referenced variables in a structure that 
 
 
 \section{Returning from inside a block}
-It is not a really good idea to have return statement in a block that you pass or or that store into instance variables and we will explain why in this section.
+It is not really a good idea to have return statement in a block that you pass or store into instance variables and we will explain why in this section.
 
 \subsection{Basics on Return}
 A return statement allows one to return a different value than the receiver of the message.
@@ -323,23 +323,15 @@ Now a return expression behaves also like an escape mechanism since the executio
 \begin{code}{}
 BExp>>foo
 	
-	#(1 2 3 4) do: [:each | self traceCr: each printString. 
-						each = 3 
-							ifTrue: [^ 3]].						
+	#(1 2 3 4) do: [:each | 
+					self traceCr: each printString. 
+					each = 3 
+						ifTrue: [^ 3]].						
 	^ 42
 \end{code}
 
 Now to see that a return is really escaping the current execution. 
-We define 
-
-\begin{code}{}
-Foo>>start
-	| res |
-	self traceCr: 'start start'.
-	res := self defineBlock.
-	self traceCr: 'start end'.
-	^ res
-\end{code}
+We define \sd{should finish}
 
 \begin{code}{}
 Foo>>defineBlock
@@ -351,6 +343,18 @@ Foo>>defineBlock
 	self traceCr: 'defineBlock end'.
 	^ res
 \end{code}
+
+
+
+\begin{code}{}
+Foo>>start
+	| res |
+	self traceCr: 'start start'.
+	res := self defineBlock.
+	self traceCr: 'start end'.
+	^ res
+\end{code}
+
 
 \begin{code}{}
 Foo>>arg: aBlock
