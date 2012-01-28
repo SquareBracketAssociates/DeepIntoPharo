@@ -101,16 +101,16 @@ Here are some examples of \mthind{BlockClosure}{cull:} and  valueWithPossibleArg
 	~->leads to an error because nil is passed as arguments.	
 \end{code}
 
-The message \mthind{BlockClosure}{once} is another extension that caches the results and interned it until the receiver is uncached. A typical usage is the following one:
+The message \mthind{BlockClosure}{once} is another extension that caches the results until the receiver is uncached. A typical usage is the following one:
 
 \begin{method}{Example for resources caching using once}
 myResourceMethod
 	^ [expression] once
 \end{method}
 
-The table below lists some of the messages available on the class \ct{BlockClosure} whose blocks are instance of. 
+Blocks are instances of class \ct{BlockClosure}. The table below lists some of the messages available on this class. 
  
-\begin{tabular}{p{2cm}|p{8cm}}
+\begin{tabular}{p{2.5cm}|p{8cm}}
 \textsf{silentlyValue}&Execute the receiver but avoiding progress bar notifications to show up.\\
 \textsf{once}&Answer and remember the receiver value, answering exactly the same object in any further sends
 	 of once or value. The expression will be evaluated once and its result returned for any subsequent evaluations.\\
@@ -118,27 +118,26 @@ The table below lists some of the messages available on the class \ct{BlockClosu
 
 Some messages are useful to profile execution (more information on Chapter~\ref{cha:Profiler}: 
 
-\begin{tabular}{p{2cm}|p{8cm}}
-\textsf{bench}&Returns how many times the receiver can get executed in 5 seconds. \\
-\textsf{durationToRun}& Answer the duration taken to execute the receiver block.\\
+\begin{tabular}{p{2.5cm}|p{8cm}}
+\textsf{bench}&Return how many times the receiver can get executed in 5 seconds. \\
+\textsf{durationToRun}&Answer the duration (instance of Duration) taken to execute the receiver block.\\
 \textsf{timeToRun}&Answer the number of milliseconds taken to execute this block.\\
 \end{tabular}
 
-Some messages are related to error handling as explain in the Exception Chapter~\ref{cha:exception}.
+Some messages are related to error handling (as explained in the Exception Chapter~\ref{cha:exception}).
 
-\begin{tabular}{p{2cm}|p{8cm}}
+\begin{tabular}{p{2.5cm}|p{8cm}}
 \textsf{ensure: aBlock}&Execute a termination block after evaluating the receiver, regardless of whether the receiver's evaluation completes.  \\
 \textsf{ifCurtailed: aBlock}& Evaluate the receiver with an abnormal termination action. Evaluate aBlock only if execution is unwound during execution of the receiver. If execution of the receiver finishes normally do not evaluate aBlock. \\
-\textsf{on: exception do: handlerAction}&Evaluate the receiver in the scope of an exception handler.\\
-\textsf{on: exception fork: handlerAction}\ja{need a better display. Maybe a paragraph for each and an example}&Activate the receiver. In case of exception, fork a new process, which will handle an error.
-An original process will continue running as if receiver evaluation finished and answered nil,	\ie  an expression like: \textsf{[ self error: 'some error'] on: Error fork: [:ex |  123 ]} will always answer nil for original process, not 123. The context stack, starting from context which sent this message to receiver and up to the top of the stack will be transferred to forked process, with handlerAction on top. When the forked process is resuming, it will enter the handlerAction).\\
+\textsf{on: exception do: aBlock}&Evaluate the receiver. If an exception \textsf{exception} is raised, executes the block \textsf{aBlock}.\\
+\textsf{on: exception fork: aBlock}&Execute the receiver. In case of exception, fork a new process, which will handle the error. The original process will continue running as if receiver evaluation finished and answered nil,\ie  an expression like: \textsf{[ self error: 'some error'] on: Error fork: [:ex |  123 ]} will always answer nil to the original process, not 123. The context stack, starting from context which sent this message to the receiver and up to the top of the stack will be transferred to the forked process, with handlerAction on top. When the forked process will resume, it will enter the block \textsf{aBlock}).\\
 \end{tabular}
 
 
 Some messages are related to process scheduling. We list the most important ones. Since this Chapter is not about concurrent programming in Pharo we will not go deep into them.
 
-\begin{tabular}{p{2cm}|p{8cm}}
-\textsf{fork}&ECreate and schedule a Process running the code in the receiver.\\
+\begin{tabular}{p{2.5cm}|p{8cm}}
+\textsf{fork}&Create and schedule a Process running the code in the receiver.\\
 \textsf{forkAt: aPriority}& Create and schedule a Process running the code in the receiver at the given priority. Answer the newly created process. \\
 \textsf{newProcess}&Answer a Process running the code in the receiver. The process is not scheduled.\\
 \end{tabular}
@@ -146,62 +145,78 @@ Some messages are related to process scheduling. We list the most important ones
 
 \section{Variables and Blocks}
 In Smalltalk, private variables (such as self, instance variables, temporaries and arguments) are 
-lexically scoped. These variables are bound in the context in which the block that contains them is defined, rather than the context in which the block is executed.  We call the context (set of bindings) in which a block is defined, the \emph{block home context}.
+lexically scoped. These variables are bound (get a value associated to them) in the context in which the block that contains them is defined, rather than the context in which the block is executed.  We call the context (a set of bindings) in which a block is defined, the \emph{block home context}.
 
 
 Let's have fun and experiment a bit to understand. 
 Define a class named \ct{BExp} (for BlockExperience) and the following methods:
 
+\paragraph{Experience one.}\ 
+
 \begin{code}{}
-BExp>>testScope 
-	| t | 
-	t := 42. 
-	self testBlock: [self crLog: t printString] 
-	
 BExp>>testBlock: aBlock 
 	| t | 
 	t := nil. 
 	aBlock value 
-\end{code}
-
-Execute \ct{BExp new testScope}. Executing the \ct{testScope} message will print 42 in the Transcript. What you see is that the value of the temporary variable \ct{t} defined in method testScope is the one used and that t inside \ct{[self crLog: t printString]} is not looked up in the context of the executing method \ct{testBlock:} but in the context of the testScope the method defining the block.
-
-\begin{code}{}
-BExp>>testScope2 
+	
+BExp>>testScope 
 	| t | 
 	t := 42. 
-	self testBlock: [t := 33.
-					self crLog: t printString] 	
-	
+	self testBlock: [self traceCr: t printString] 
+\end{code}
+
+Execute \ct{BExp new testScope}. Executing the \ct{testScope} message will print 42 in the Transcript. The value of the temporary variable \ct{t} defined in method \ct{testScope} is the one used rather than the one of t defined inside \ct{testBlock:}.
+The variable \ct{t} is not looked up in the context of the executing method \ct{testBlock:} but in the context of the method \ct{testScope} which defined the block.
+
+\paragraph{Experience two.}\ 
+\begin{code}{}
 BExp>>testBlock: aBlock
 	| t | 
 	t := nil. 
 	aBlock value 
+	
+BExp>>testScope2 
+	| t | 
+	t := 42. 
+	self testBlock: [t := 33.
+					self traceCr: t printString] 	
 \end{code}
 
-This experience shows that a block is not only an anonymous method but one with an execution context or environment. In this environment temporary variables are bound with the values they hold when the block 
-is defined. Naturally we can expect that method arguments are also bound and also self and instance variables of the class in which the method defining a block is. Let's illustrate these points now. 
+Executing \ct{BExp new testScope2} prints 33. This experience shows that a block is not only an anonymous method but one with an execution context or environment. In this environment temporary variables are bound with the values they hold when the block 
+is defined. 
 
-\ja{I have a display bug here}
-\paragraph{For method arguments.}
+If we redefine \ct{testScope2} as follows: 
 
 \begin{code}{}
-BExp>>testScopeArg: arg
-	"self new testScopeArg: 'foo'"
-	
-	self testScopeArgValue: [self crLog: arg ; cr]
+testScope2 	|t|	t := 42.	self testBlock: [t := 33. self traceCr: t printString].	self testBlock: [t := 66. self traceCr: t printString].	self testBlock: [ self traceCr: t printString]
+\end{code}
 
+We will get 33, 66 and 66 printed.
+
+
+
+
+\paragraph{For method arguments.}\
+Naturally we can expect that method arguments as well as self and instance variables are bound 
+in the context of defining method. Let's illustrate these points now. 
+
+\begin{code}{}
 BExp>>testScopeArgValue: aBlock
 	| arg | 
 	arg := 'zork'.
 	aBlock value
+	
+BExp>>testScopeArg: arg
+	"self new testScopeArg: 'foo'"
+	
+	self testScopeArgValue: [self traceCr: arg ; cr]
 \end{code}
 
-Now executing \ct{self new testScopeArg: 'foo'} prints foo even if in the method \ct{testScopeArgValue:} the temporary arg is redefined.
+Now executing \ct{BExp new testScopeArg: 'foo'} prints 'foo' even if in the method \ct{testScopeArgValue:} the temporary arg is redefined.
  
 
 \paragraph{self binding.}
-For binding of self, we can simply define a new class and a couple of methods. 
+For binding of self, we simply define a new class and a couple of methods. 
 Add the instance variable x to the class \ct{BExp} and define the initialize method as follows:
 
 \begin{code}{}
@@ -212,13 +227,12 @@ Object subclass: #BExp
 	category: 'BlockExperiment'
 \end{code}
 
-
 \begin{code}{}
 BExp>>initialize
-	x := 666.
+	x := 123.
 \end{code}	
 
-Define another class named \ct{BExp2} (subclass of \ct{BExp} but inheritance is orthogonal to what we want to show).
+Define another class named \ct{BExp2} (it can be a subclass of \ct{BExp} since inheritance is orthogonal to what we want to show).
 
 
 \begin{code}{}
@@ -232,20 +246,20 @@ BExp2>>testScopeSelf: aBlock
 
 Then define the methods that will invoke  methods defined in \ct{BExp2}.
 \begin{code}{}	
+BExp>>testScopeSelf: aBlock
+	"Here we ask another class to execute the block"
+	BEXp2 new testScopeSelf: aBlock
+	
 BExp>>testScopeSelf
 	"self new testScopeSelf"
-	self testScopeSelf: [self crLog: self printString ; logCr: x]
-
-BExp>>testScopeSelf: aBlock
-	BEXp2 new testScopeSelf: aBlock
+	self testScopeSelf: [self traceCr: self printString ; traceCr: x]
 \end{code}	
 
-Now when we execute \ct{BExp new testScopeSelf} and we see that \ct{a BExp666} gets printed, showing that a block captures self too. 
+Now when we execute \ct{BExp new testScopeSelf}. You get \ct{a BExp123} printed, showing that a block captures self too, since an instance of BExp2 executed the block but the printed object was the original BExp instance. 
 
 \paragraph{An example of sharing.}
 
-Variables referred to by a block continue to be accessible and shared with other expressions. Let us 
-take some examples. 
+Variables referred to by a block continue to be accessible and shared with other expressions. Let us  take some examples. Define the following method \ct{foo} which defines a temporary variable \ct{a}.
 
 \begin{code}{}
 BExp>>foo
@@ -254,6 +268,7 @@ BExp>>foo
 	^ a
 \end{code}
 
+When we execute \ct{BExp new foo}, we get 0 and not nil. 
 Here what you see is that the value is shared between the method body and the block. Inside the method body we can access the variable whose value was set by the block execution. 
 Both the method  and block bodies access to the temporary variable \ct{a}.
 
@@ -266,33 +281,33 @@ BExp>>foo
 	^ {[ a := 2] . [a]} 
 \end{code}
 
-The method \ct{foo} defines a temporary variable \ct{a}. It sets the value to \ct{a}
-to zero and returns an array whose first element is a block setting the value to 2 and second element just returns the value of the temporary variable. 
+The method \ct{foo} defines a temporary variable \ct{a}. It sets the value of \ct{a}
+to zero and returns an array whose first element is a block setting the value to 2 and second element is a block just returning the value of the temporary variable. 
 
 \begin{code}{}
 | res | 
 res := BExp new foo.
 res second value.
-     !\emph{returns 0}!. 
-res first 
+     --> 0
+res first value.
 res second
-     !\emph{returns 2}!. 
+     --> 2
 \end{code}
 
 You can also define the code as follows and open a transcript to see the results.
 
-
 \begin{code}
 | res |
 res := BExp new foo.
-res second value crLog.
+res second value traceCr.
 res first value.
-res second value crLog.
+res second value traceCr.
 \end{code}
 
-Notice that when the expression \ct{res second value} and \ct{res first value} are executed, the method \ct{foo} has already finished its execution - as such it is not on the execution stack anymore.  Still the temporary variable \ct{a} can be accessed and set to new value. It means that the variables referred to by a block may live longer than the methods that created the block that refers to them. We said that the variables outlive their defining context. 
+Let us step back and look at an important point. 
+In the previous code snippet when the expressions \ct{res second value} and \ct{res first value} are executed, the method \ct{foo} has already finished its execution - as such it is not on the execution stack anymore.  Still the temporary variable \ct{a} can be accessed and set to new value. It means that the variables referred to by a block may live longer than the methods which created the block that refers to them. We say that the variables outlive their defining context. 
 
-There the block implementation will have to keep the variable in a structure that is not linked to the execution stack but lives in the heap. We will go in more details in a following section. 
+The block implementation needs to keep referenced variables in a structure that is not linked to the execution stack but lives in the heap. We will go in more details in a following section. 
 
 
 
@@ -308,7 +323,7 @@ Now a return expression behaves also like an escape mechanism since the executio
 \begin{code}{}
 BExp>>foo
 	
-	#(1 2 3 4) do: [:each | self crLog: each printString. 
+	#(1 2 3 4) do: [:each | self traceCr: each printString. 
 						each = 3 
 							ifTrue: [^ 3]].						
 	^ 42
@@ -320,38 +335,38 @@ We define
 \begin{code}{}
 Foo>>start
 	| res |
-	self logCr: 'start start'.
+	self traceCr: 'start start'.
 	res := self defineBlock.
-	self logCr: 'start end'.
+	self traceCr: 'start end'.
 	^ res
 \end{code}
 
 \begin{code}{}
 Foo>>defineBlock
 	| res |
-	self logCr: 'defineBlock start'.
-	res := self arg: [ self logCr: 'block start'. 
+	self traceCr: 'defineBlock start'.
+	res := self arg: [ self traceCr: 'block start'. 
                             1 isZero ifFalse: !\textbf{[ \^{} 33 ]}!.
-                            self logCr: 'block end'. ].
-	self logCr: 'defineBlock end'.
+                            self traceCr: 'block end'. ].
+	self traceCr: 'defineBlock end'.
 	^ res
 \end{code}
 
 \begin{code}{}
 Foo>>arg: aBlock
 	| res |
-	self logCr: 'arg start'. 
+	self traceCr: 'arg start'. 
 	res := self arg2: aBlock.
-	self logCr: 'arg end'. 
+	self traceCr: 'arg end'. 
 	^ res 
 \end{code}
 
 \begin{code}{}
 Foo>>arg2: aBlock
 	| res |
-	self logCr: 'arg2 start'. 
+	self traceCr: 'arg2 start'. 
 	res := self arg2: aBlock value.
-	self logCr: 'arg2 end'. 
+	self traceCr: 'arg2 end'. 
 	^ res		
 \end{code}
 
@@ -362,9 +377,9 @@ Foo>>arg2: aBlock
 %testExplicitReturn
 %	"self new testExplicitReturn"
 %	
-%	self crLog: 'one'.
-%	0 isZero ifTrue: [ self crLog: 'two'. ^ self].
-%	self crLog: ' not printed'
+%	self traceCr: 'one'.
+%	0 isZero ifTrue: [ self traceCr: 'two'. ^ self].
+%	self traceCr: ' not printed'
 %-> one two
 %\end{code}
 
@@ -373,9 +388,9 @@ Foo>>arg2: aBlock
 In Pharo \ct{^} should be the last statement of a block body. You should get a compile error if you type and compile the following expression. 
 
 %\begin{code}{}
-%[ self crLog: 'two'.
+%[ self traceCr: 'two'.
 %  ^ self.  
-%  self crLog: 'not printed' ]
+%  self traceCr: 'not printed' ]
 %\end{code}
 
 
