@@ -10,6 +10,7 @@
 % 2011-08-09 - Stef doing another pass
 % 2011-09-11 - Migrated to PharoBox: svn checkout https://XXX@scm.gforge.inria.fr/svn/pharobooks/PharoByExampleTwo-Eng
 % todo for stef explaining blockClosure environment representation + explaining the trick with the bytecodes
+% 2012-01-27 - Integrated Ben Coman feedback
 
 %=================================================================
 \ifx\wholebook\relax\else
@@ -43,28 +44,25 @@
 
 
 Blocks (lexical closures) are a powerful and essential feature of Smalltalk. Without them it
-would be difficult to have a so small and compact syntax. The use of blocks in Smalltalk
-is the key to get conditional and loops not hardcoded in the language syntax but just 
-simple messages -- Simple messages having blocks as arguments. This is why we can say that 
+would be difficult to have such a small and compact syntax. The use of blocks in Smalltalk
+is the key to get conditionals and loops not hardcoded in the language syntax but just 
+simple messages having blocks as arguments. This is why we can say that 
 blocks work extremely well with the message passing syntax of Smalltalk.
 
 In addition blocks are  effective to improve the readability, reusability and efficiency of code. 
-However the dynamic runtime semantics of Smalltalk is often not well documented. Blocks in presence of
-return statements behave like an escaping mechanism and while this can lead to ugly code when use to its extreme, it is important to understand it. 
+However the dynamic runtime semantics of Smalltalk are often not well documented. Blocks in the presence of return statements behave like an escaping mechanism and while this can lead to ugly code when used to its extreme, it is important to understand it. 
 
-In this chapter we will discuss some basic block behavior such as the notion of a static environment 
-defined at block compiled time. Then we will present some deeper issues. But let us first recall some basics.
+In this chapter we will discuss some basic block behavior such as the notion of a static environment defined at block compile-time. Then we will present some deeper issues. But let us first recall some basics.
 
-
-We presented blocks in Pharo by Example for normal users. Here we just will focus on deeper aspects and their run time behavior.
-Note that their escaping behavior is shown here to describe the big picture 
+We already presented blocks in Pharo by Example. This presentation was simple and showing simply how to define blocks and to use them. Here we just will focus on deeper aspects and their run time behavior. 
 
 \section{Basics}
-What is a block? Historically, it's a Lambda expression, or an anonymous function. A block is a piece of code whose execution is frozen and kicked in using a specific protocol.  Blocks are defined by square brackets. 
+What is a block? Historically, it's a Lambda expression, or an anonymous function. A block is a piece of code whose execution is frozen and kicked in using  specific messages.  Blocks are defined by square brackets. 
 
 If you execute and print the result of the following block you will not get 3 but a block. 
 \begin{code}[Block definition]{Block Definition}
 [ 1 + 2 ]
+    --> [ 1 + 2 ]
 \end{code}
 
  A block is evaluated by sending the \mthind{BlockClosure}{value} message to it. More precisely blocks can be executed using \ct{value} (when no argument is mandatory), \ct{value:} (when one argument), \ct{value:value:}, \ct{value:value:value:}  and \ct{valueWithArguments: anArray}...). These messages are the basic and historical API for block execution. They were presented in Pharo by Example. 
@@ -98,9 +96,9 @@ Here are some examples of \mthind{BlockClosure}{cull:} and  valueWithPossibleArg
 [ :x :y | 1 + y + x ] cull: 5 cull: 2 
 	--> 8
 [ :x :y | 1 + y + x ] cull: 5 
-	raises an error mentioning that the block requires two arguments.
+	~->raises an error mentioning that the block requires two arguments.
 [ :x :y | 1 + y + x ] valueWithPossibleArgs: #(5) 
-	leads to an error because nil is passed as arguments.	
+	~->leads to an error because nil is passed as arguments.	
 \end{code}
 
 The message \mthind{BlockClosure}{once} is another extension that caches the results and interned it until the receiver is uncached. A typical usage is the following one:
@@ -320,19 +318,41 @@ Now to see that a return is really escaping the current execution.
 We define 
 
 \begin{code}{}
-Foo>>start	| res |	self logCr: 'start start'.	res := self defineBlock.	self logCr: 'start end'.	^ res
+Foo>>start
+	| res |
+	self logCr: 'start start'.
+	res := self defineBlock.
+	self logCr: 'start end'.
+	^ res
 \end{code}
 
 \begin{code}{}
-Foo>>defineBlock	| res |	self logCr: 'defineBlock start'.	res := self arg: [ self logCr: 'block start'.                             1 isZero ifFalse: !\textbf{[ \^{} 33 ]}!.                            self logCr: 'block end'. ].	self logCr: 'defineBlock end'.	^ res
+Foo>>defineBlock
+	| res |
+	self logCr: 'defineBlock start'.
+	res := self arg: [ self logCr: 'block start'. 
+                            1 isZero ifFalse: !\textbf{[ \^{} 33 ]}!.
+                            self logCr: 'block end'. ].
+	self logCr: 'defineBlock end'.
+	^ res
 \end{code}
 
 \begin{code}{}
-Foo>>arg: aBlock	| res |	self logCr: 'arg start'. 	res := self arg2: aBlock.	self logCr: 'arg end'. 	^ res 
+Foo>>arg: aBlock
+	| res |
+	self logCr: 'arg start'. 
+	res := self arg2: aBlock.
+	self logCr: 'arg end'. 
+	^ res 
 \end{code}
 
 \begin{code}{}
-Foo>>arg2: aBlock	| res |	self logCr: 'arg2 start'. 	res := self arg2: aBlock value.	self logCr: 'arg2 end'. 	^ res		
+Foo>>arg2: aBlock
+	| res |
+	self logCr: 'arg2 start'. 
+	res := self arg2: aBlock value.
+	self logCr: 'arg2 end'. 
+	^ res		
 \end{code}
 
 
@@ -649,6 +669,8 @@ These variables are bound in the context in which the block is defined and not i
 
 \section{Chapter conclusion}
 
+
+We want to thank Ben Coman for his english corrections.
 %=========================================================
 \ifx\wholebook\relax\else
    \bibliographystyle{jurabib}
