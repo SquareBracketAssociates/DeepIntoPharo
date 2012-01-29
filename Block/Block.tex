@@ -314,7 +314,7 @@ The block implementation needs to keep referenced variables in a structure that 
 
 
 \section{Returning from inside a block}
-It is really not a good idea to have return statement in a block that you pass or store into instance variables and we will explain why in this section. 
+It is really not a good idea to have return statement in a block such as \ct{[^ 33]} that you pass or store into instance variables and we will explain why in this section. A block with explicit return statement is called a  non-local return block. 
 
 \subsection{Basics on Return}
 A return statement allows one to return a different value than the receiver of the message.
@@ -342,7 +342,7 @@ In Smalltalk, \ct{^} should be the last statement of a block body. You should ge
 
 
 \subsection{Escape with Return}
-Now a return expression behaves also like an escape mechanism since the execution flow will jump out to the current caller and not just one level up. For example, the following code will return 3 and 42 will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels. This is why it is important to avoid to use this style and use Exception when just behavior is needed. Some old code in Pharo predates Exception introduction and returning blocks are passed around leading to complex flow and difficult to maintain code. 
+A return expression behaves also like an escape mechanism since the execution flow will jump out to the current caller and not just one level up. For example, the following code will return 3 and 42 will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels and returns \emph{from} its definition context. This is why it is important to avoid to use this style and use Exception when such behavior is needed. Some old code in Pharo predates Exception introduction and returning blocks are passed around leading to complex flow and difficult to maintain code. 
 
 \begin{code}{}
 BExp>>foo
@@ -398,26 +398,64 @@ Executing \ct{BExp new start}  prints
 \begin{code}{}start startdefineBlock startarg startexecuteBlock startblock startstart end
 \end{code}
 
-What we see is that the calling method \ct{start} is fully executed. The method \ct{defineBlock} is not completely executed. Indeed its escaping block \ct{[^33]} is executed two calls away in \ct{executeBlock:}. The execution of the block escape will return from the home context of the block (the method that defines the block, here \ct{defineBlock:}. 
+What we see is that the calling method \ct{start} is fully executed. The method \ct{defineBlock} is not completely executed. Indeed its escaping block \ct{[^33]} is executed two calls away in \ct{executeBlock:}. The execution of the block  returns from the home context of the block. Here when the block is executed in method \ct{executeBlock:}, the execution discards the pending computation and returns from the method that defines the block, here \ct{defineBlock:}. This is why 
+the rest of the computation in the block itself, the \ct{defineMethod} method as well as \ct{arg:} are discarded. 
+
+
+
+The following examples shows that escaping blocks jumped to their home context but do not unwind the stack after this point. For example the previous example shows that the method \ct{start} was fully executed. 
+\ct{valueWithExit} is defined on the class BlockClosure as follows.
+
+\begin{code}{}
+BlockClosure>>valueWithExit 	  self value: [ ^nil ]
+\end{code}
+
+\begin{code}{}
+BExp>>assert: aBoolean	aBoolean ifFalse: [Error signal]
+
+BExp>>testValueWithExitBreak
+	| val |
+	[ :break |
+	    1 to: 10 do: [ :i |
+			val := i.
+			i = 4 ifTrue: [break value].
+		] 
+	] valueWithExit.
+	self assert: val = 4.
+\end{code}
+
+The method \ct{testValueWithExitBreak} shows that the block \ct{break} is created and activated once and as effect it cancels the rest of the computation. 
+
+The following method \ct{testValueWithExitContinue} shows that just the computation left from the block activation is skipped (here \ct{val := val + 1.	last := i}, when i = 4) and this is why the value of \ct{val} is 9 and not 10. 
+In this example, a new block is created 
+
+
+\begin{code}{}
+BExp>>testValueWithExitContinue
+	| val last |	
+	val := 0. 
+	1 to: 10 do: [ :i |
+		[ :continue |
+			i = 4 ifTrue: [continue value].
+			val := val + 1.
+			last := i
+		] valueWithExit.
+	].
+	self assert: val = 9.
+	self assert: last = 10.	
+\end{code}
+
+Pay attention here \ct{valueWithExit} is not equivalent to \ct{value: [^nil]} because it changes the home context of the block. 
+In the first case the homeContext of the block is not the method \ct{testValueWithExitContinue} while in the second it is.
+Put a self halt before the assert: to convince you. In one case, you will reach the halt while in the other not. 
 
 
 
 
+\subsection{Different blocks} 
 
 
-
-
-
-
-
-
-\subsection{Different blocks} \ja{need to be improved and code explained}
-
-We can classify blocks based on their usage or not of return statement. 
-
-\paragraph{Simple block.} \ct{[:x :y| x*x. x+y]} returns the value of the last statement to the method that sends it the message value. Here the first expression is useless.
-
-\paragraph{Continuation blocks.} \ct{[:x :y| x*x. ^ x + y]} returns the value to the method that activated its homeContext. As a block is always evaluated in its homeContext, it is possible to attempt to return from a method which has already returned using other return. This runtime error condition is trapped by the VM.
+\paragraph{Non-local return blocks.} \ct{[:x :y| x*x. ^ x + y]} returns the value to the method that activated its homeContext. As a block is always evaluated in its homeContext, it is possible to attempt to return from a method which has already returned using other return. This runtime error condition is trapped by the VM.
 
 \begin{code}{}
 Object>>returnBlock
@@ -501,7 +539,7 @@ blockLocalTemp
 		^collection collect: [:each | each value].
 \end{code}
 
-Let's \ja{too much let's} comment the code, we create a loop the store the arg value, in a temporary variable created in the loop (then local) and change it in the loop. We store a block containing the simply temp read access in a collection. And after the loop, we evaluate each block and return the collection of value.
+Let's comment the code, we create a loop the store the arg value, in a temporary variable created in the loop (then local) and change it in the loop. We store a block containing the simply temp read access in a collection. And after the loop, we evaluate each block and return the collection of value.
 If we evaluate this method that will return \#(1 2 3). What's happen? At each loop we create a variable existing locally and bind it to a block. Then at the end evaluate block, we evaluate each block with this contextual \emph{temp}. \ja{should be redone}
 
 \begin{figure}[htbp]
@@ -571,116 +609,26 @@ and this is why it returns 4 and not 0 because.
 
 
 \section{To sort}
+\sd{restarted here}
+Block temporary variables are local to the blocks. For example
 
-
-
-
-I have a method that takes OBCommands and returns Actions \ja{what is OBCommands and Actions? In the code I see GLMAction}:
 
 \begin{code}{}
-actionsFrom: aCollectionOfOBCommandClasses on: aTarget for: aRequestor
-	| command |
-	^ aCollectionOfOBCommandClasses collect: [ :each |
-		command := each on: aTarget for: aRequestor.
-		GLMAction new
-			icon: command icon;
-			title: command label;
-			action: [:presentation | command execute ];
-			yourself
-		]
-	\end{code}
-
-These actions have a block that will be executed at a later time. The  
-problem here was that the command in the action block was always  
-pointing to the same command object, even at each point the command  
-variable was populated correctly. \ja{I do not see the problem, should be more explicit}
-
-However, when the command is defined inside the block, everything  
-works as expected.
-
-\begin{code}{}
-actionsFrom: aCollectionOfOBCommandClasses on: aTarget for: aRequestor
-	^ aCollectionOfOBCommandClasses collect: [ :each |
-		| command |
-		command := each on: aTarget for: aRequestor.
-		GLMAction new
-			icon: command icon;
-			title: command label;
-			action: [:presentation | command execute ];
-			yourself
-		]
-	\end{code}
-
-
-
-
-The semantics change in various ways. The trivial example that everyone 
-knows is this \ja{everyone knows ??? are you sure ? You are saying to reader that if he does not know these 5 lines, he is an idiot !}:
-\begin{code}{}
-factorial := [ :n |
-	n > 1
-		ifTrue: [ n * (factorial value: n - 1) ]
-		ifFalse: [ 1 ] ].
-factorial value: 10.
-\end{code}
-Without closures you get an error, with closures you get the expected 
-result. \ja{you affirms that but as a reader, I do not know why.}
-
-Another significant change is the existence of local variables in blocks. 
-Without closures blocks don't have local variables, with closures they do: \ja{do not understand this sentence}
-
-\begin{code}{}
-b := [ :p |
-	| t |
-	t ifNil: [ t := p ] ].
-{ b value: 1. b value: 2 }
+|b|b := [ :p |	| t |	t ifNil: [ t := p ].	t ].{ b value: 1. b value: 2 }.
+   -->  #(1 2)
 \end{code}
 
-In a non-closure image you get \#(1 1) as result, because t is not a block 
-local variable even if it looks like one. In a closure image you get \#(1 2)
-because t is a block local variable. \ja{same as before, I see the result, but I do not understand why}
+You get \ct{#(1 2)} because \ct{t} is a block local variable. Its value is initialized during each block execution.
 
-\ja{what is this source code ?}
-\begin{code}{}
-testValueWithExitBreak
+\sd{until here}
 
-	| val |	
-	[ :break |
-	    1 to: 10 do: [ :i |
-			val := i.
-			i = 4 ifTrue: [break value].
-		] 
-	] valueWithExit.
-	self assert: val = 4.
-
-
-
-testValueWithExitContinue
-
-	| val last |	
-	val := 0. 
-	1 to: 10 do: [ :i |
-		[ :continue |
-			i = 4 ifTrue: [continue value].
-			val := val + 1.
-			last := i
-		] valueWithExit.
-	].
-	self assert: val = 9.
-	self assert: last = 10.	
-
-BlockClosure>>valueWithExit 
-	  self value: [ ^nil ]
-\end{code}
 
 
 \section{Blocks and Contexts}
 
-\ja{have to be written}
 
-VM represents the state of execution as Context objects
-for method MethodContext
-for block BlockContext
+The Virtual Machine represents the state of execution as Context objects, one per method or block currently executed (or activated). In Pharo method activation are represented by MethodContext
+for block BlockClosure
 
 aContext contains a reference to the context from which it is invoked, the receiver arguments, temporaries in the Context
 
