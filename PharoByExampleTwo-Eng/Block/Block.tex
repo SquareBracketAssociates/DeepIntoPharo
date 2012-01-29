@@ -341,7 +341,7 @@ In Smalltalk, \ct{^} should be the last statement of a block body. You should ge
 \end{code}
 
 
-\subsection{Escape with Return}
+\subsection{Escape with Non Local Return}
 A return expression behaves also like an escape mechanism since the execution flow will jump out to the current caller and not just one level up. For example, the following code will return 3 and 42 will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels and returns \emph{from} its definition context. This is why it is important to avoid to use this style and use Exception when such behavior is needed. Some old code in Pharo predates Exception introduction and returning blocks are passed around leading to complex flow and difficult to maintain code. 
 
 \begin{code}{}
@@ -451,10 +451,12 @@ Put a self halt before the assert: to convince you. In one case, you will reach 
 
 
 
+\sd{up until here}
+
 
 \subsection{Different blocks} 
 
-
+\sd{should say something about that.}
 \paragraph{Non-local return blocks.} \ct{[:x :y| x*x. ^ x + y]} returns the value to the method that activated its homeContext. As a block is always evaluated in its homeContext, it is possible to attempt to return from a method which has already returned using other return. This runtime error condition is trapped by the VM.
 
 \begin{code}{}
@@ -468,6 +470,58 @@ Object new returnBlock
 \end{code}	
 	
 	
+
+
+What you see is that the lambda expression is sharing the binding (index 0) with expression \ct{(begin...)}
+therefore when this binding is modify from the body of the begin expression, the lambda expression sees its impact
+and this is why it returns 4 and not 0 because. 
+
+
+
+\sd{restarted here}
+Block temporary variables are local to the blocks. For example
+
+
+\begin{code}{}
+|b|b := [ :p |	| t |	t ifNil: [ t := p ].	t ].{ b value: 1. b value: 2 }.
+   -->  #(1 2)
+\end{code}
+
+You get \ct{#(1 2)} because \ct{t} is a block local variable. Its value is initialized during each block execution.
+
+\sd{until here}
+
+
+
+\section{Blocks and Contexts}
+
+
+The Virtual Machine represents the state of execution as Context objects, one per method or block currently executed (or activated). In Pharo method and block activations are represented by MethodContext.
+
+aContext contains a reference to the context from which it is invoked, the receiver arguments, temporaries in the Context
+
+We call the home context, the activation record or context in which a block is defined.
+
+Arguments, temporaries, instance variables are lexically scoped in Smalltalk. These variables are bound in the context in which the block is defined and not in the context in which the block is evaluated.
+
+
+
+
+\section{Block Scope Optimization}
+
+
+
+
+
+
+
+\section{Chapter conclusion}
+
+
+We want to thank Ben Coman for his english corrections.
+
+\section{To be treated}
+
 \begin{code}{}
 |b| 
 b:= [:x| Transcript show: x. x].
@@ -476,7 +530,7 @@ b:= [:x| Transcript show: x. ^x].
 b value: a. b value: b.
 \end{code}
  
-Continuation blocks cannot be executed several times!
+Non local returning blocks cannot be executed several times!
 
 \begin{code}{}
 Test>>testScope
@@ -602,54 +656,6 @@ evaluated. It returns then the value of the
  0)
 \end{code}
 
-
-What you see is that the lambda expression is sharing the binding (index 0) with expression \ct{(begin...)}
-therefore when this binding is modify from the body of the begin expression, the lambda expression sees its impact
-and this is why it returns 4 and not 0 because. 
-
-
-\section{To sort}
-\sd{restarted here}
-Block temporary variables are local to the blocks. For example
-
-
-\begin{code}{}
-|b|b := [ :p |	| t |	t ifNil: [ t := p ].	t ].{ b value: 1. b value: 2 }.
-   -->  #(1 2)
-\end{code}
-
-You get \ct{#(1 2)} because \ct{t} is a block local variable. Its value is initialized during each block execution.
-
-\sd{until here}
-
-
-
-\section{Blocks and Contexts}
-
-
-The Virtual Machine represents the state of execution as Context objects, one per method or block currently executed (or activated). In Pharo method activation are represented by MethodContext
-for block BlockClosure
-
-aContext contains a reference to the context from which it is invoked, the receiver arguments, temporaries in the Context
-
-We call home context the context in which a block is defined
-
-
-\paragraph{}
-Arguments, temporaries, instance variables are lexically scoped in Smalltalk
-These variables are bound in the context in which the block is defined and not in the context in which the block is evaluated
-
-
-
-
-\section{Block Scope Optimization}
-
-\ja{have to be written}
-
-\section{Chapter conclusion}
-
-
-We want to thank Ben Coman for his english corrections.
 %=========================================================
 \ifx\wholebook\relax\else
    \bibliographystyle{jurabib}
