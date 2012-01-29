@@ -314,11 +314,35 @@ The block implementation needs to keep referenced variables in a structure that 
 
 
 \section{Returning from inside a block}
-It is not really a good idea to have return statement in a block that you pass or store into instance variables and we will explain why in this section.
+It is really not a good idea to have return statement in a block that you pass or store into instance variables and we will explain why in this section. 
 
 \subsection{Basics on Return}
 A return statement allows one to return a different value than the receiver of the message.
-Now a return expression behaves also like an escape mechanism since the execution flow will jump out to the current caller and not just one level up. For example, the following code will return 3 and 42 will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels.
+
+\begin{code}{}
+BExp>>testExplicitReturn
+	"self new testExplicitReturn"
+	
+	self traceCr: 'one'.
+	0 isZero ifTrue: [ self traceCr: 'two'. ^ self].
+	self traceCr: 'not printed'
+\end{code}
+
+Executing \ct{BExp new testExplicitReturn} will print one and two. But not \ct{not printed}.
+
+In Smalltalk, \ct{^} should be the last statement of a block body. You should get a compile error if you type and compile the following expression. 
+
+\begin{code}{}
+[ self traceCr: 'two'.
+  ^ self.  
+  self traceCr: 'not printed' ]
+  
+    ~-> End of block expected ->
+\end{code}
+
+
+\subsection{Escape with Return}
+Now a return expression behaves also like an escape mechanism since the execution flow will jump out to the current caller and not just one level up. For example, the following code will return 3 and 42 will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels. This is why it is important to avoid to use this style and use Exception when just behavior is needed. Some old code in Pharo predates Exception introduction and returning blocks are passed around leading to complex flow and difficult to maintain code. 
 
 \begin{code}{}
 BExp>>foo
@@ -330,24 +354,38 @@ BExp>>foo
 	^ 42
 \end{code}
 
-Now to see that a return is really escaping the current execution. 
-We define \sd{should finish}
+Now to see that a return is really escaping the current execution. Let us build a slightly more call flow. 
+We define four methods among which one creates and escaping block \ct{defineBlock} and one execute this block (\ct{arg2:}).
+
 
 \begin{code}{}
-Foo>>defineBlock
+Bexp>>executeBlock: aBlock	| res |	self traceCr: 'executeBlock start'.	res := self executeBlock: aBlock value. 	self traceCr: 'executeBlock loop so should never print that one'.	^  res
+\end{code}
+
+
+\begin{code}{}
+Bexp>>arg: aBlock
+	| res |
+	self traceCr: 'arg start'. 
+	res := self executeBlock: aBlock.
+	self traceCr: 'arg end'. 
+	^ res 
+\end{code}
+
+\begin{code}{}
+BExp>>defineBlock
 	| res |
 	self traceCr: 'defineBlock start'.
 	res := self arg: [ self traceCr: 'block start'. 
-                            1 isZero ifFalse: !\textbf{[ \^{} 33 ]}!.
+                            1 isZero ifFalse: !\textbf{[}! ^ 33 !\textbf{]}!.
                             self traceCr: 'block end'. ].
 	self traceCr: 'defineBlock end'.
 	^ res
 \end{code}
 
 
-
 \begin{code}{}
-Foo>>start
+BExp>>start
 	| res |
 	self traceCr: 'start start'.
 	res := self defineBlock.
@@ -355,47 +393,21 @@ Foo>>start
 	^ res
 \end{code}
 
+Executing \ct{BExp new start}  prints
 
-\begin{code}{}
-Foo>>arg: aBlock
-	| res |
-	self traceCr: 'arg start'. 
-	res := self arg2: aBlock.
-	self traceCr: 'arg end'. 
-	^ res 
+\begin{code}{}start startdefineBlock startarg startexecuteBlock startblock startstart end
 \end{code}
 
-\begin{code}{}
-Foo>>arg2: aBlock
-	| res |
-	self traceCr: 'arg2 start'. 
-	res := self arg2: aBlock value.
-	self traceCr: 'arg2 end'. 
-	^ res		
-\end{code}
+What we see is that the calling method \ct{start} is fully executed. The method \ct{defineBlock} is not completely executed. Indeed its escaping block \ct{[^33]} is executed two calls away in \ct{executeBlock:}. The execution of the block escape will return from the home context of the block (the method that defines the block, here \ct{defineBlock:}. 
 
 
 
 
-%\begin{code}{}
-%testExplicitReturn
-%	"self new testExplicitReturn"
-%	
-%	self traceCr: 'one'.
-%	0 isZero ifTrue: [ self traceCr: 'two'. ^ self].
-%	self traceCr: ' not printed'
-%-> one two
-%\end{code}
 
 
 
-In Pharo \ct{^} should be the last statement of a block body. You should get a compile error if you type and compile the following expression. 
 
-%\begin{code}{}
-%[ self traceCr: 'two'.
-%  ^ self.  
-%  self traceCr: 'not printed' ]
-%\end{code}
+
 
 
 
