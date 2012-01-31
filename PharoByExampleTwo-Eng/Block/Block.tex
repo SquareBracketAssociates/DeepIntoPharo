@@ -145,7 +145,7 @@ Some messages are related to process scheduling. We list the most important ones
 
 \section{Variables and Blocks}
 In Smalltalk, private variables (such as self, instance variables, temporaries and arguments) are 
-lexically scoped. These variables are bound (get a value associated to them) in the context in which the block that contains them is defined, rather than the context in which the block is executed.  We call the context (a set of bindings) in which a block is defined, the \emph{block home context}.
+lexically scoped. These variables are bound (get a value associated to them) in the context in which the block that contains them is defined, rather than the context in which the block is executed.  We call the context (an activation record representing a smalltalk execution stack element) in which a block is defined, the \emph{block home context}.
 
 
 Let's have fun and experiment a bit to understand. 
@@ -178,8 +178,7 @@ BExp>>testBlock: aBlock
 BExp>>testScope2 
 	| t | 
 	t := 42. 
-	self testBlock: [t := 33.
-					self traceCr: t printString] 	
+	self testBlock: [t := 33. self traceCr: t printString] 	
 \end{code}
 
 Executing \ct{BExp new testScope2} prints 33. This experience shows that a block is not only an anonymous method but one with an execution context or environment. In this environment temporary variables are bound with the values they hold when the block 
@@ -188,7 +187,12 @@ is defined.
 If we redefine \ct{testScope2} as follows: 
 
 \begin{code}{}
-testScope2 	|t|	t := 42.	self testBlock: [t := 33. self traceCr: t printString].	self testBlock: [t := 66. self traceCr: t printString].	self testBlock: [ self traceCr: t printString]
+testScope2 
+	|t|
+	t := 42.
+	self testBlock: [t := 33. self traceCr: t printString].
+	self testBlock: [t := 66. self traceCr: t printString].
+	self testBlock: [ self traceCr: t printString]
 \end{code}
 
 We will get 33, 66 and 66 printed.
@@ -311,8 +315,6 @@ The block implementation needs to keep referenced variables in a structure that 
 
 
 
-
-
 \section{Returning from inside a block}
 It is really not a good idea to have return statement in a block such as \ct{[^ 33]} that you pass or store into instance variables and we will explain why in this section. A block with explicit return statement is called a  non-local return block. 
 
@@ -342,7 +344,7 @@ In Smalltalk, \ct{^} should be the last statement of a block body. You should ge
 
 
 \subsection{Escape with Non Local Return}
-A return expression behaves also like an escape mechanism since the execution flow will jump out to the current caller and not just one level up. For example, the following code will return 3 and 42 will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels and returns \emph{from} its definition context. This is why it is important to avoid to use this style and use Exception when such behavior is needed. Some old code in Pharo predates Exception introduction and returning blocks are passed around leading to complex flow and difficult to maintain code. 
+A return expression behaves also like an escape mechanism since the execution flow will jump out to the current caller and not just one level up. For example, the following code will return 3 and 42 will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels and returns \emph{from} the method that defines it. This is why it is important to avoid to use this style and use Exception when such behavior is needed. Some old code in Pharo predates Exception introduction and returning blocks are passed around leading to complex flow and difficult to maintain code. 
 
 \begin{code}{}
 BExp>>foo
@@ -354,12 +356,17 @@ BExp>>foo
 	^ 42
 \end{code}
 
-Now to see that a return is really escaping the current execution. Let us build a slightly more call flow. 
+Now to see that a return is really escaping the current execution. Let us build a slightly more complex call flow. 
 We define four methods among which one creates and escaping block \ct{defineBlock} and one execute this block (\ct{arg2:}).
 
 
 \begin{code}{}
-Bexp>>executeBlock: aBlock	| res |	self traceCr: 'executeBlock start'.	res := self executeBlock: aBlock value. 	self traceCr: 'executeBlock loop so should never print that one'.	^  res
+Bexp>>executeBlock: aBlock
+	| res |
+	self traceCr: 'executeBlock start'.
+	res := self executeBlock: aBlock value. 
+	self traceCr: 'executeBlock loop so should never print that one'.
+	^  res
 \end{code}
 
 
@@ -393,25 +400,40 @@ BExp>>start
 	^ res
 \end{code}
 
-Executing \ct{BExp new start}  prints
+Executing \ct{BExp new start}  prints:
 
-\begin{code}{}start startdefineBlock startarg startexecuteBlock startblock startstart end
+\begin{code}{}
+start start
+defineBlock start
+arg start
+executeBlock start
+block start
+start end
 \end{code}
 
-What we see is that the calling method \ct{start} is fully executed. The method \ct{defineBlock} is not completely executed. Indeed its escaping block \ct{[^33]} is executed two calls away in \ct{executeBlock:}. The execution of the block  returns from the home context of the block. Here when the block is executed in method \ct{executeBlock:}, the execution discards the pending computation and returns from the method that defines the block, here \ct{defineBlock:}. This is why 
-the rest of the computation in the block itself, the \ct{defineMethod} method as well as \ct{arg:} are discarded. 
+What we see is that the calling method \ct{start} is fully executed. The method \ct{defineBlock} is not completely executed. Indeed its escaping block \ct{[^33]} is executed two calls away in \ct{executeBlock:}. The execution of the block returns to the method that created the home context of the block. Here when the block is executed in method \ct{executeBlock:}, the execution discards the pending computation and returns from the method that defines the block, here \ct{defineBlock}. This is why the rest of the computation in the block itself, the \ct{defineMethod} method as well as \ct{arg:} are discarded. 
+
+As shown by Figure~\ref{nonLocalReturn}, \ct{[^3]} will return to the method that activated its home context \ct{unclear what does it mean activated}. \ct{[^33]} home context is the context that represents the execution of the method \ct{defineBlock}, therefore it will return its result to the method \ct{start}.
+
+\begin{figure}[!h]
+\begin{center}\includegraphics[width=9cm]{nonLocalReturn}
+\caption{A block with non local return execution returns to the method that activated the block home context.\label{nonLocalReturn}}
+\end{center}
+\end{figure}
 
 
-
+\paragraph{Couple more examples.}
 The following examples shows that escaping blocks jumped to their home context but do not unwind the stack after this point. For example the previous example shows that the method \ct{start} was fully executed. 
 \ct{valueWithExit} is defined on the class BlockClosure as follows.
 
 \begin{code}{}
-BlockClosure>>valueWithExit 	  self value: [ ^nil ]
+BlockClosure>>valueWithExit 
+	  self value: [ ^nil ]
 \end{code}
 
 \begin{code}{}
-BExp>>assert: aBoolean	aBoolean ifFalse: [Error signal]
+BExp>>assert: aBoolean
+	aBoolean ifFalse: [Error signal]
 
 BExp>>testValueWithExitBreak
 	| val |
@@ -472,18 +494,18 @@ Object new returnBlock
 	
 
 
-What you see is that the lambda expression is sharing the binding (index 0) with expression \ct{(begin...)}
-therefore when this binding is modify from the body of the begin expression, the lambda expression sees its impact
-and this is why it returns 4 and not 0 because. 
-
-
 
 \sd{restarted here}
 Block temporary variables are local to the blocks. For example
 
 
 \begin{code}{}
-|b|b := [ :p |	| t |	t ifNil: [ t := p ].	t ].{ b value: 1. b value: 2 }.
+|b|
+b := [ :p |
+	| t |
+	t ifNil: [ t := p ].
+	t ].
+{ b value: 1. b value: 2 }.
    -->  #(1 2)
 \end{code}
 
@@ -495,8 +517,8 @@ You get \ct{#(1 2)} because \ct{t} is a block local variable. Its value is initi
 
 \section{Blocks and Contexts}
 
-
-The Virtual Machine represents the state of execution as Context objects, one per method or block currently executed (or activated). In Pharo method and block activations are represented by MethodContext.
+The Virtual Machine represents the state of execution as context objects, one per method or block currently executed (or activated). In Pharo method and block activations are represented by MethodContext.
+Contexts are first-class activation record.
 
 aContext contains a reference to the context from which it is invoked, the receiver arguments, temporaries in the Context
 
@@ -656,6 +678,11 @@ evaluated. It returns then the value of the
  0)
 \end{code}
 
+
+What you see is that the lambda expression is sharing the binding (index 0) with expression \ct{(begin...)}
+therefore when this binding is modify from the body of the begin expression, the lambda expression sees its impact
+and this is why it returns 4 and not 0 because. 
+
 %=========================================================
 \ifx\wholebook\relax\else
    \bibliographystyle{jurabib}
@@ -676,3 +703,67 @@ evaluated. It returns then the value of the
 %%% TeX-PDF-mode: t
 %%% ispell-local-dictionary: "english"
 %%% End:
+
+
+%| last |
+%last := thisContext.
+%thisContext runSimulated: [#(1 2 3) detect: [:e| e even]] contextAtEachStep: [:c| c ~~ last ifTrue: [Transcript print: c; cr; flush. last := c]]
+%
+%=>
+%
+%[] in UndefinedObject>>DoIt
+%Array(Collection)>>detect:
+%Array(Collection)>>detect:ifNone:
+%Array(SequenceableCollection)>>do:
+%[] in Array(Collection)>>detect:ifNone:
+%[] in [] in UndefinedObject>>DoIt
+%SmallInteger>>even
+%[] in [] in UndefinedObject>>DoIt
+%[] in Array(Collection)>>detect:ifNone:
+%Array(SequenceableCollection)>>do:
+%[] in Array(Collection)>>detect:ifNone:
+%[] in [] in UndefinedObject>>DoIt
+%SmallInteger>>even
+%[] in [] in UndefinedObject>>DoIt
+%[] in Array(Collection)>>detect:ifNone:
+%Array(Collection)>>detect:
+%[] in UndefinedObject>>DoIt
+% 
+%
+%or...
+%
+%
+%| last home indent |
+%last := nil.
+%home := thisContext.
+%indent := 0.
+%thisContext
+%	runSimulated: [#(1 2 3) detect: [:e| e even]]
+%	contextAtEachStep:
+%		[:c| | ctxt |
+%		c ~~ last ifTrue:
+%			[last := c.
+%			 indent := 0. ctxt := c sender.
+%			 [ctxt ~~ home] whileTrue:
+%				[ctxt := ctxt sender. indent := indent + 1].
+%			Transcript crtab: indent; print: c; flush]]
+%
+%[] in UndefinedObject>>DoIt
+%	Array(Collection)>>detect:
+%		Array(Collection)>>detect:ifNone:
+%			Array(SequenceableCollection)>>do:
+%				[] in Array(Collection)>>detect:ifNone:
+%					[] in [] in UndefinedObject>>DoIt
+%						SmallInteger>>even
+%					[] in [] in UndefinedObject>>DoIt
+%				[] in Array(Collection)>>detect:ifNone:
+%			Array(SequenceableCollection)>>do:
+%				[] in Array(Collection)>>detect:ifNone:
+%					[] in [] in UndefinedObject>>DoIt
+%						SmallInteger>>even
+%					[] in [] in UndefinedObject>>DoIt
+%				[] in Array(Collection)>>detect:ifNone:
+%	Array(Collection)>>detect:
+%[] in UndefinedObject>>DoIt
+%
+
