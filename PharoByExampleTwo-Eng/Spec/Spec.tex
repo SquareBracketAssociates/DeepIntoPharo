@@ -388,9 +388,10 @@ Then, each model has to define its own entry and exit points used to bind them t
 
 \subsection{Basic Models}
 
-There is an widget model for each basic UI widget \ben{now only list, text and button} with their entry points for each customizable behavior of the widget and exit point for information you want to retrieve.  \ben{not yet full coverage}
+There is an widget model for each basic UI widget \ben{now only list, text, button, radiobutton, checkbox and, droplist} with their entry points for each customizable behavior of the widget and exit point for information you want to retrieve.  \ben{almost full covered}
 
 \paragraph{ListComposableModel} is the model lists.
+
 The entry points are:
 \begin{itemize}
 	\item items: set the list of items to be displayed.
@@ -402,8 +403,9 @@ My exit point is:
 	\item selectedIndex: the index of the currently selected item (\verb+0+ if none).
 	\item selectionItem: the currently selected item (\verb+nil+ if none).
 \end{itemize}
-You can communicate with this widget through:
+You can communicate with this widget using:
 \begin{itemize}
+\item resetSelection: to reset the selection of the widget.
 \item setSelectedIndex: : to manually set the index of the item you want to be selected.
 \item setSelectedItem: : to manually set the item you want to be selected. 
 \item updateList: to manually ask the list to refresh its own display.
@@ -411,6 +413,7 @@ You can communicate with this widget through:
 
 
 \paragraph{TextModel} It is the model for text areas.
+
 The entry points are:
 \begin{itemize}
 	\item actionToPerform: a value holder which contains a block performed when the modified text is saved.
@@ -422,24 +425,64 @@ There are also entry points for text shouting:
 	\item aboutToStyleBlock: set the block used to know if wether or not the text should be shouted.
 	\item behavior: set the behavior corresponding with the text currently displayed if relevant. It's used to properly colorize the syntax elements.
 \end{itemize}	
-You can communicate with this widget through:
+You can communicate with this widget using:
 \begin{itemize}	
 	\item setSelection: : used to manually specify the range you want o be selected.
 \end{itemize}
 
 \paragraph{ButtonModel} It is the model for buttons.
+
 The entry point is:
 \begin{itemize}
 	\item action: set the block executed when the button is clicked.
 \end{itemize}	
 There is no exit points.	
 
-You can communicate with this widget through:
+You can communicate with this widget using:
 \begin{itemize}		
-	\item label: set the button's label.
-	\item state: set wether the button is on or off.
-	\item enabled: set wether the button is activated or not.
+	\item label: : set the button's label.
+	\item state: : set wether the button is on or off.
+	\item enabled: : set wether the button is activated or not.
 \end{itemize}
+
+\paragraph{RadioButtonModel/CheckboxModel} They are the models for RadioButton and Checkbox. Since they are almost the same widget, they share the same API.
+
+The entry points are:
+\begin{itemize}
+	\item activationAction: : set the action block to be valued when the item is activated.
+	\item desactivationAction: : set the action block to be valued when the item is desactivated.
+\end{itemize}
+
+There is no exit points.	
+
+You can communicate with this widget using:
+\begin{itemize}		
+	\item label: : set the button's label.
+	\item state: : set wether the button is on or off.
+	\item enabled: : set wether the button is activated or not.
+\end{itemize}
+
+\paragraph{DropListModel} It is the model for drop lists.
+
+The entry points are:
+\begin{itemize}
+	\item items: set the list of items to be displayed. You have to provide a collection of DropListItem instances.
+\end{itemize}
+My exit point is:
+\begin{itemize}
+	\item selectedIndex: the index of the currently selected item (\verb+0+ if none).
+	\item selectionItem: the currently selected item (\verb+nil+ if none).
+\end{itemize}
+You can communicate with this widget using:
+\begin{itemize}
+\item resetSelection: to reset the selection of the widget.
+\item setSelectedIndex: : to manually set the index of the item you want to be selected.
+\item setSelectedItem: : to manually set the item you want to be selected. 
+\item updateList: to manually ask the list to refresh its own display.
+\end{itemize}
+
+
+
 
 \section{Conclusion}
 As conclusion, you have now tools to quickly create UIs and to reuse them. Since the reuse is really a strong value for specs, keep in mind that your tools can be reused. So do not forget to provide a proper API for it.
