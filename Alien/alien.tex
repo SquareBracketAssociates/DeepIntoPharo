@@ -111,7 +111,7 @@ This function is part of the standard C library. Its C declaration is\footnote{A
 uint clock (void)
 \end{code}
 
-To call \ct{clock} from the image, you should write a binding: a normal Smalltalk method annotated with the \ct{<primitive:module:>} pragma. This pragma specifies that a native call should be performed using the NativeBoost plugin. \sig{You're not mistaken: a primitive is responsible only for running the previously generated native code, while code is generated at language side.} The external function call is described using the message \ct{nbCall:module:} message\footnote{Note, that this is not the only message which you can use for defining a callout. There are others, which we will discuss later, but for now use this form for introduction}. Here is the full definition. We  explain the details below.
+To call \ct{clock} from the image, you should write a binding: a normal Smalltalk method annotated with the \ct{<primitive:module:>} pragma. This pragma specifies that a native call should be performed using the NativeBoost plugin.  The external function call is described using the message \ct{nbCall:module:} message\footnote{Note, that this is not the only message which you can use for defining a callout. There are others, which we will discuss later, but for now use this form for introduction}. We will explain the full mechanism that lies behind Spock in the last sections, after explaining how to use it. For now, here is the full definition of the binding. We explain the details below.
 
 \begin{code}{}
 CExamples class>>ticksSinceStart
@@ -141,14 +141,12 @@ CExamples class>>ticksSinceStart
 
 \paragraph{Callout.}
 What we have just done is usually named an FFI \emph{callout}. 
-The \ct{#nbCall:module:} is a method provided by NativeBoost package and defined for Object class (so you can use it anywhere), which is responsible for
-generating an FFI callout code to perform a call to external function when you invoke the given method, while primitive is only executing code.
+The \ct{#nbCall:module:} is a method provided by NativeBoost package and defined for Object class (so you can use it anywhere).
+It is responsible for generating an FFI callout. Remember that calling a C function requires to marshall all arguments from Smalltalk world to C one, push them to the C stack, perform a call to the external function, and finally convert the return value from C to Smalltalk again. \ct{#nbCall:module:} handles this using the description of the function you provide.
 
-Note, that the given message \ct{#nbCall:module:} should be invoked only by methods, which define the callout, because it requires a valid method context with a
-\#primitiveNativeCall primitive, where it will install the generated native code.
+Note, that the given message \ct{#nbCall:module:} should be sent only by methods that define the callout, because it does some context handling behind the scenes.
 
-This message has two arguments: the \emph{signature of the function} that will be invoked and the \emph{module or library} where to look for it.  In this example we look this function in the standard C library. 
-
+This message has two arguments: the \emph{signature of the function} that will be invoked and the \emph{module or library} where to look for it.  In this example we look for \ct{clock()} function in the standard C library. 
 
 The signature is described by an array: here \ct{#(int clock ())}.
 \begin{itemize} 
@@ -163,12 +161,10 @@ that in most cases you can actually copy-and-paste a complete C function declara
 The second argument, \ct{#module:}, is where you should specify a module name or its handle, where to look up for given function.
 NativeBoost provides a convenience method named \ct{CLibrary}
 to obtain a handle of the standard C library. In other cases (suppose you want to use some standalone library), you must specify either a library name, or full path to it, or handle to already loaded library. You can use
-NativeBoost methods  to load external library (and hence obtain handle of it) before making any calls to it. For example: \ct{NativeBoost forCurrentPlatform loadModule: 'nameOfModule'} loads the module \ct{'nameOfModule'}.
+NativeBoost methods  to load an external library (and hence obtain handle of it) before making any calls to it. For example: \ct{NativeBoost forCurrentPlatform loadModule: 'nameOfModule'} loads the module \ct{'nameOfModule'}\footnote{Module names are platform dependent, so for example to load OpenGL library you may want to use 'OpenGL32' on windows and 'libGL.so' or even '/usr/lib/libGL.so' on linux }.
 
 
-\paragraph{About marshaling.} The return type is \ct{int} and not \ct{SmallInteger}. This is the same as with function arguments. They are all described in terms of C language. In general you don't have to worry too much about this because the \Spock library does an automatic conversion between C values and Smalltalk objects. So, when this message is executed, the return value will be a \ct{SmallInteger}. 
-This conversion process for types from different languages is called \emph{marshaling}.
-We will see more examples of automatic conversions in this Chapter. 
+\paragraph{About marshaling.} The return type is \ct{int} and not \ct{SmallInteger}. This is the same as with function arguments. They are all described in terms of C language. In general you don't have to worry too much about this, because the \Spock library knows how to map standard C values to Smalltalk objects and viceversa. So, when this message is executed, the return value will be turned into a \ct{SmallInteger}. Also, you can define new mappings for C types defined elsewhere, for example when wrapping libraries that define new C types, we will show that later. This conversion process for types from different languages is called \emph{marshalling}. We will see more examples of automatic conversions in this Chapter. 
 
 \subsection{Presentation Conventions}
 
@@ -187,7 +183,7 @@ int clock (void)
 \end{description}
 
 
-\item Second, how do we communicate between the C and Smalltalk worlds. That's the \emph{Primitive pragma}, which instructs a VM to actually "do the thing", when you run the corresponding smalltalk method. Also, note, that there is no a hidden complexity behind this primitive. It does only one thing: runs a generated machine code, while the code generation logic are found in image and ready for study and modification.
+\item Second, how do we communicate between the C and Smalltalk worlds. That's the \emph{Primitive pragma}, which instructs a VM to actually "do the thing", when you run the corresponding smalltalk method. Also, note, that there is no hidden complexity behind this primitive. It does only one thing: runs a generated machine code, while the code generation logic are found in image and ready for study and modification.
 
 \begin{description}
 \item [Pragma declaration.] \ 
@@ -210,7 +206,7 @@ int clock (void)
 
 \section{Passing arguments to a function}
 
-The previous example was the simplest we could find: we asked for the execution of a function without parameters and got the results. Now let's look how we can execute functions that takes arguments. 
+The previous example was the simplest we could find: we asked for the execution of a function without parameters and got the results. Now let's look how we can execute functions that take arguments. 
 
 \subsection{Passing an integer}
 
@@ -255,12 +251,10 @@ Now you can try printing this:
 \subsubsection{About arguments}
 
 In the callout code/declaration, we are expressing not one but \emph{two} different aspects: the obvious one is the C function signature, the other
-is which objects we are passing as arguments to the C function when the method is invoked. In this second aspect there are many possibilities. In our example the argument of the C is  the method argument: \ct{anInteger}. But it is not always necessary the case.
+is which objects we are passing as arguments to the C function when the method is invoked. In this second aspect there are many possibilities. In our example the argument of the C function is the method argument: \ct{anInteger}. But it is not always necessary the case.
 
-Note that there is no need to specify the type of the argument. This is
-because for integer constants NativeBoost automatically uses 'int' C type.
-The type for integer constants are int. There is no need to use: \ct{int abs (int -45)}
-when you can use \ct{int abs (-45)}. 
+You can also use some constants, and in that case it's not always necessary to specify the type of the argument. This is
+because NativeBoost automatically uses them as C 'int's: \ct{nil} and \ct{false} are converted to 0, and \ct{true} to 1. Numbers are converted to their respective value, and can be positive and negative. As the type for these constants is int, there is no need to use: \ct{int abs (int -45)} when you can use \ct{int abs (-45)}. 
 
 
 \subsubsection{About constants}
@@ -274,7 +268,7 @@ variable in shared pool, and then use the constant name as argument in
 your callout.
 
 
-For example, imagine that we always passing a MyConstant value to our
+For example, imagine that we always pass a MyConstant value to our
 function. For this we can define it as a class variable in our class:
 
 \begin{code}{}
@@ -407,12 +401,11 @@ case, aString is the first one and anotherString is the second.
 
 
 \subsection{Handling Heap-based Objects: Passing an Array}
-So far we only used either objects that were allocated on the heap or available on the stack. 
-\sd{is it true with instance variables?}
-With the next example we will show how \Spock supports the access to object that are allocated on the heap.
+So far we only used objects that were taken from the Smalltalk heap and pushed into the C stack (doing the corresponding marshalling). 
+That means that until now we only passed copies of the arguments, or that we passed them \emph{by-value}. With the next example we will show how \Spock supports to pass objects \emph{by-reference}, so that they can be modified by the external world.
 \sd{here}
 The next example adds a bit more complexity: we are going to send a ByteArray
-to the \ct{memset} function. memset fills an array with one value (literally man defines it as: "fill a byte string with a byte value").
+to the \ct{memset} function. \ct{memset} fills an array with one value (literally \ct{man} defines it as: "fill a byte string with a byte value").
 
 \begin{description}
 \item [C header.] \ 
@@ -441,11 +434,11 @@ array}
 
 \end{description}
 
-As you should notice, this time Spock takes care of finding out the memory address where aByteArray lives and sends a pointer to it as the first argument. After executing the example you can see that the byte array elements were actually changed. 
+As you should notice, this time Spock takes care of finding out the memory address where aByteArray lives and pushes a pointer to it as the first argument of \ct{memset}. After executing the example you can see that the byte array elements were actually changed. 
 
 Then, there is an important difference between passing arrays and passing strings. The expert user would notice that string functions in C language expects to receive a pointer to contiguous memory bytes ending with a null character to delimit its length.  \Spock is responsible for copying the string to a bigger buffer and inserting this special end character. This means that strings are passed by-copy, while on the other hand byte arrays are passed by reference!.
 
-Also for expertise users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be careful about this special behavior. At the moment this book is written the FFI library doesn't support asynchronous calls, so strange behavior is not possible. But we have to be very careful when facing with C pointer arguments to Smalltalk's memory.
+Also for expertise users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be careful about this special behavior. This is really important in the case of asynchronous calls, so in that case special measures may need to be taken to avoid strange behavior. We have to be very careful when facing with C pointer arguments to Smalltalk's memory. We will talk about asynchronous FFI on the latest sections.
 
 \subsection{Default primitives types}
 
@@ -496,10 +489,13 @@ create
 
 \section{Loading code from other libraries}
 
+\section{Asynchronous FFI}
+
+\section{Behind the scenes: NativeBoost naked!}
 
 \section{NativeBoost Executive Summary}
 
-Here we say everything again but in a  concise way.
+Here we say everything again but in a concise way. \jp{Ha!}
 
 \section{Wrapping Cairo library}
 
@@ -513,7 +509,7 @@ Whenever you want to start writing a wrapper, you should do it this way: find th
 that uses that library, and wrap everything you need to make it work from Smalltalk. Then you can go on adding more and
 more to the wrapped functionality. 
 
-In this example we have a minimal program that uses Cairo library, taken from Cairo's FAQ \jp{Add url to it}.
+In this example we have a minimal program that uses Cairo library, taken from \url{Cairo's FAQ}{http://cairographics.org/FAQ/}
 It creates a Cairo surface, puts some text on it
 and renders everything to a PNG.
 
@@ -575,7 +571,7 @@ class for structures used in the wrapper, putting the shared pools,
 so that we can use all of them in the derived classes. 
 
 \begin{classdef}{}
-NBExternalObject subclass: #NBCairoHandle
+NBExternalObject subclass: #NBCairoObject
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: 'NBCairoConstants NBCairoTypes'
@@ -586,7 +582,7 @@ Finally, to wrap the first line of main function we will create a
 class to represent a Cairo surface.
 
 \begin{classdef}{}
-NBCairoHandle subclass: #NBCairoSurface
+NBCairoObject subclass: #NBCairoSurface
 	instanceVariableNames: ''
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -599,7 +595,7 @@ sense that you may not know nor care what bits they have inside,
 because you only change them through calls to the library.
 For that kind of structures, Spock has the NBExternalObject.
 Our wrapping classes inherit from NBExternalObject, which is
-made for this situation, where don't need to fill the fields
+made for this situation, where we don't need to fill the fields
 of the structs.
 
 Now, NBCairoSurface is described as an abstract structure, 
@@ -623,7 +619,7 @@ NBCairoImageSurface class>>create: aFormat width: aWidth height: aHeight
 
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
-	^ self call: #(NBCairoImageSurface !cairo\_image\_surface\_create! (int aFormat,
+	^ self nbCall: #(NBCairoImageSurface !cairo\_image\_surface\_create! (int aFormat,
                                                          int aWidth,
                                                          int aHeight) )
 \end{code}
@@ -634,7 +630,7 @@ and of course, we shouldn't forget to wrap the code that destroys the instance o
 NBCairoSurface>>destroy
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
-	^ self call: #(void !cairo\_surface\_destroy! (NBCairoSurface self) )
+	^ self nbCall: #(void !cairo\_surface\_destroy! (NBCairoSurface self) )
 
 \end{code}
 
@@ -647,41 +643,27 @@ In both cases, spock takes care of the conversion.
 
 
 
-This methods are almost working. To finish, we add some helper
-functions to the NBCairoHandle class, the one which was going
+These methods are almost working. To finish, we add some helper
+functions to the NBCairoObject class, the one which was going
 to contain some useful configuration:
 
 \begin{code}{}
-NBCairoHandle class>>libraryHandle
+NBCairoObject class>>nbLibraryNameOrHandle
 	^NativeBoost forCurrentPlatform loadModule: '/usr/lib/libcairo.so.2'
 
-NBCairoHandle>>libraryHandle
-	^self class libraryHandle
-	
-NBCairoHandle(both instance and class side)>>call: fnSpec
-	" you can override this method if you need to"
+NBCairoObject>>nbLibraryNameOrHandle
+	^self class nbLibraryNameOrHandle
 
-	| sender |
-	
-	sender := thisContext sender.
-	^ NBFFICallout  
-		handleFailureIn: sender
-		nativeCode: [ :gen |
-			gen
-				sender: sender;
-				cdecl;
-				generateCall: fnSpec module: self libraryHandle]
 \end{code}
-\jp{we should change something in order to remove this last method}
 
 Now to be able to test a bit, we have to add some more things. We add 
-cairo\_status\_t (which is an enum) to the NBCairoTypes.
+cairo\_status\_t (which is an enum) and cairo\_surface\_t to the NBCairoTypes.
 
    
 \begin{classdef}{}
 SharedPool subclass: #NBCairoTypes
 	instanceVariableNames: ''
-	classVariableNames: '!cairo\_status\_t!'
+	classVariableNames: '!cairo\_status\_t! !cairo\_surface\_t '
 	poolDictionaries: ''
 	category: 'NBCairo-Core'
 \end{classdef}
@@ -692,21 +674,27 @@ NBCairoTypes class>>initialize
 	"self initialize"
 		
 	!cairo\_status\_t! := #int
+	!cairo\_surface\_t!  := #NBCairoSurface.
 \end{code}
 
 and we doit:
 
-\dothis{NBCairoTypes initialize}.
+\dothis{NBCairoTypes initialize}
 
-so that cairo\_status\_t gets initialized. The, we add a method to
+so that cairo\_status\_t and cairo\_surface\_t get initialized. Then, we add a method to
 the NBCairoSurface class:
 
 \begin{code}{}
 NBCairoSurface>>status
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
-	^ self call: #(!cairo\_status\_t cairo\_surface\_status! (NBCairoSurface self) )
+	^ self nbCall: #(!cairo\_status\_t cairo\_surface\_status! (!cairo\_surface\_t! self) )
 \end{code}
+
+Note what we just did: we added two types mappings, cairo\_status\_t that maps to int, and
+cairo\_surface\_t that maps to NBCairoSurface. That way we can now use this mappings in the
+function specifications, getting closer to copy-pasting the functions definitions into
+the binding.
 
 We are now ready to test just a bit. Take a second and save the
 image now. Remember that if you wrongly specify the parameters
@@ -769,7 +757,7 @@ SharedPool subclass: #NBCairoConstants
 
 SharedPool subclass: #NBCairoTypes
 	instanceVariableNames: ''
-	classVariableNames: 'cairo_font_slant_t cairo_font_weight_t cairo_status_t'
+	classVariableNames: 'cairo_font_slant_t cairo_font_weight_t cairo_status_t cairo_surface_t cairo_t'
 	poolDictionaries: ''
 	category: 'NBCairo-Core'
 \end{code}
@@ -779,9 +767,11 @@ and then we add the code to initialize these variables:
 \begin{code}{}
 NBCairoTypes class>>initialize
 
-	"self initialize"
-		
-	cairo_status_t := cairo_font_slant_t := cairo_font_weight_t := #int
+    "self initialize"
+	
+    cairo_status_t := cairo_font_slant_t := cairo_font_weight_t := #int
+    cairo_t := #NBCairoContext.
+    cairo_surface_t  := #NBCairoSurface.
 
 
 NBCairoConstants class>>initialize
@@ -804,8 +794,13 @@ NBCairoConstants class>>initialize
     CAIRO_FONT_WEIGHT_BOLD := 1.
 \end{code}
 
-don't forget to \dothis{NBCairoConstants initialize}
-and \dothis{NBCairoTypes initialize}.
+don't forget to doit:
+
+\dothis{NBCairoConstants initialize}
+
+and
+
+\dothis{NBCairoTypes initialize}
 
 As a last step, you need to wrap the remaining functions.
 We leave here a last example and the rest of them you can
@@ -823,14 +818,14 @@ NBCairoSurface subclass: #NBCairoImageSurface
 CairoContext>>selectFont: aFamily slant: slant weight: aWeight
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
-	^ self call: #(void cairo_select_font_face (NBCairoContext self,
+	^ self nbCall: #(void cairo_select_font_face (cairo_t self,
                                                          String aFamily,
                                                          cairo_font_slant_t slant,
                                                          cairo_font_weight_t aWeight) )
 \end{code}
 
 
-Now as a general principle it is better not to manipulate all the variables in your program. Why first because the call out will be slowler and second because it is better to encapsulate all these constants.
+Now as a general principle it is better not to manipulate all the variables in your program. Why first because the call out will be slowler and second because it is better to encapsulate all these constants. \jp{Explain more!}
 
 So the solution is to do something like
 @@@to be fixed@@
