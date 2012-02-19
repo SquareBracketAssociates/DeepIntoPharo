@@ -470,6 +470,97 @@ http://www.google.com/some%20encoding%20here?and%20some%20encoding=here%2C%20too
 
 
 
+\section{Scripting}
+
+to support the migration of projects from squeak source to its gemstone version, camillo Bruni proposed the following scripts. One in bash and the other one in Zinc of course. 
+
+\begin{code}
+# bash, takes around 1min vs 10mins with gofer
+wget --mirror --page-requisites http://www.squeaksource.com/Citezen/
+\end{code}
+
+\begin{code}
+# pharo 
+f := FSFilesystem disk workingDirectory / 'www.squeaksource.com' / 'Citezen'.
+files := f glob: [ :f| f basename endsWith: '.mcz'].
+
+files do: [ :file ||entity stream|
+	stream := file readStream.
+	(entity := ZnStreamingEntity type: ZnMimeType applicationOctetStream)
+		stream: stream;
+		contentLength: stream size.
+	Transcript show: file; cr.
+	"upload the version to gemstone"
+	ZnClient new
+		systemPolicy;
+		beOneShot;
+		signalProgress: true;
+		ifFail: [ :exception | Transcript show: file basename; show: ' '; print: exception ];
+		username: 'XXX' password: 'XXX';
+		entity: entity;
+		url: ( 'http://ss3.gemstone.com/ss/citezen/', file basename);
+		put ]
+	displayingProgress: 'Uploading mcz'
+\end{code}
+
+Now the wget script can be also simply expressed in Zinc too as follows.
+
+\begin{code}{}
+| repositoryUrl files |
+repositoryUrl := 'http://www.squeaksource.com/Citezen/'.
+files := (MCHttpRepository new 
+	parseFileNamesFromStream: (ZnClient new get: repositoryUrl; entity) readStream)
+	select: [ :each | ZnMonticelloServerDelegate new isValidMczName: each ].
+files.
+
+ZnClient new
+	url: repositoryUrl;
+	addPath: files first;
+	get;
+	entity.
+\end{code}
+
+
+
+
+\section{Zodiac}
+Zodiac delivers general purpose TLS/SSL streams.
+These can then be used to implement for example HTTPS when combined with a suitable client such as Zinc HTTP Components.
+It also works for some other use cases like mail.
+However, ZnSecureSocketStream is binary only, unlike SocketStream which mixes both with encoding.
+
+
+Client HTTPS works on all 3 platforms, server support only on Linux and Windows due to plugin limitiations. 
+
+\paragraph{How to connect to Gmail.}
+
+\begin{code}{}
+"Retrieve (but not delete) your last 5 messages" 
+
+ZdcSecurePOP3Client 
+       retrieveMessagesFromGMailAccount: '<your-name>@gmail.com' 
+       password: '<your-password>' 
+       limit: 5. 
+\end{code}
+(Note that you have to enable POP3 access in your GMail account) 
+
+
+"Send a message" 
+\begin{code}
+| mailMessage | 
+mailMessage := MailMessage empty. 
+mailMessage setField: 'subject' toString: 'ZdcSecureSMTPClient Test'. 
+mailMessage body: (MIMEDocument contentType: 'text/plain' content: 'This is test from Pharo Smalltalk'). 
+ZdcSecureSMTPClient 
+       sendUsingGMailAccount: '<your-name>@gmail.com' 
+       password: '<your-password>' 
+       to: '<email-address>' 
+       message: mailMessage 
+\end{code}
+
+The code is in the 'Zodiac-Extra' package in the http://www.squeaksource.com/Zodiac repository. 
+Of course, you also have to install Zodiac and a plugin, see http://zdc.stfx.eu/ for more details. 
+
 
 %=================================================================
 \ifx\wholebook\relax\else\end{document}\fi
