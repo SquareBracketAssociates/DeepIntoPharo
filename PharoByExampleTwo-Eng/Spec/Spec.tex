@@ -40,13 +40,12 @@ In this chapter, we will begin by an example of how to design a UI and most impo
 
 \section{Code}
 
-The code is available on squeaksource:
+The latest code is available on gemstone source \url{http://ss3.gemstone.com/ss/Spec} and we suggest you to use the configuration to load it.
+
 \begin{code}{}
-Gofer new
-	squeaksource: 'DirtyExperiments';
-	package: 'Spec';
-	version: 'Spec-BenjaminVanRyseghem.24';
-	load
+Gofer new	url: 'http://ss3.gemstone.com/ss/Spec';	package: 'ConfigurationOfSpec';	load
+	
+ConfigurationOfSpec project load: #stable
 \end{code}
 
 \subsection{Example}
