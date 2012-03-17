@@ -47,7 +47,7 @@
 \newcommand{\ppmthind}[1]{\clsmthind{PPParser}{#1}}
 
 Building parsers to analyze data is a common task in software
-development. In this chapter we present a powerful parser frameworks
+development. In this chapter we present a powerful parser framework
 named PetitParser. And contrary to its name, PetitParser is a really
 powerful parsing framework combining several technologies (scannerless
 parsers, parser combinators, packrat..). PetitParser is written by Lukas
@@ -75,7 +75,7 @@ these four parser methodologies:
   graph of composable objects; they are modular and maintainable, and
   can be changed, recomposed, transformed and reflected upon.
 
-\item[Parsing Expression Grammars] (PEGs) provide ordered choice. Unlike in
+\item[Parsing Expression Grammars] (PEGs) provide the notion of ordered choices. Unlike in
   parser combinators, the ordered choice of PEGs always follows the
   first matching alternative and ignores other alternatives. Valid
   input always results in exactly one parse-tree, the result of a
@@ -88,10 +88,8 @@ these four parser methodologies:
 
 \subsection{Loading PetitParser}
 
-Enough theory, let's get started. PetitParser is developed in Pharo,
-but is also available on other Smalltalk platforms. A ready made image
-can be
-downloaded.\footnote{\url{http://hudson.lukas-renggli.ch/job/PetitParser/lastSuccessfulBuild/artifact/petitparser}}
+Enough talking, let's get started. PetitParser is developed in Pharo. A ready made image
+can be downloaded.\footnote{\url{http://hudson.lukas-renggli.ch/job/PetitParser/lastSuccessfulBuild/artifact/petitparser}}
 To load PetitParser into an existing image evaluate the following
 Gofer expression:
 
@@ -126,6 +124,14 @@ follows:
 identifier := #letter asParser , #word asParser star.  
 \end{script}
 
+To invoke such parser we use the message \ct{parse:} (we will explain into details just after)
+as shown in the following snippet
+\begin{code}{}
+|identifier|identifier := #letter asParser , #word asParser star.identifier parse: 'a987jlkjl'
+--> #($a #($9 $8 $7 $j $l $k $j $l))
+\end{code}
+
+
 \tikzgrammarfig{identifier}{
   {
     \node (identifier) [production] {identifier:}; \&
@@ -148,20 +154,22 @@ identifier := #letter asParser , #word asParser star.
   }
 }
 
+
+\subsection{A Graphical Notation}
+
 \syntaxref{identifier} presents a graphical representation, called a
 syntax diagram, of the identifier parser. Such a syntax diagram
-contains squared boxes that represent non terminals (parsers composed
-of other parsers), round boxes that represent terminals (all other
-kinds of parsers), arrows between these boxes, some entry points and
-some exit points. The idea behind this representation is that if an
+contains squared boxes (not shown on the figure) that represent non terminals, round boxes that represent terminals, arrows between these boxes, some entry points and some exit points. In the context of PetitParser, the squared boxes (non terminals) are in fact parsers composed
+of other parsers, and round boxes (terminals) are elementary parsers. 
+
+The idea behind this representation is that if an
 input can go from the entry point to the exit point by following the
 arrows and being consumed by the boxes, this input is matched by the
 represented parser.
 
-If you inspect the object identifier you'll notice that it is an
+If you inspect the object \ct{identifier} of the previous script,  you'll notice that it is an
 instance of a \clsind{PPSequenceParser}. If you dive further into the
-object you notice the following simple tree of different parser
-objects:
+object you notice the following simple tree of different parser objects:
 
 \begin{script}{Composition of parsers used for the identifier parser}
 PPSequenceParser (accepts a sequence of parsers)
@@ -170,13 +178,13 @@ PPSequenceParser (accepts a sequence of parsers)
        PPPredicateObjectParser (accepts a single word character)  
 \end{script}
 
-The root parser is a sequence parser because the \#, operator (comma)
-created a sequence of a letter and zero or more word character
-parser. The first child of the root parser is a predicate object
+The root parser is a sequence parser because the \ct{,} (comma) operator 
+creates a sequence from (1) a letter parser and (2) zero or more word character
+parser. The root parser first child is a predicate object
 parser created by the \ct{#letter asParser} expression. This parser is
 capable of parsing a single letter as defined by the
 \clsmthind{Character}{isLetter} method. %
-The second child of the root parser is a repeating parser created by
+The root parser second child   is a repeating parser created by
 the \ct{star} call. This parser uses its child parser (another
 predicate object parser) as much as possible on the input (\ie{} it is
 a \emph{greedy} parser). Its child parser is a predicate object parser
@@ -187,8 +195,8 @@ methods.
 
 \subsection{Parsing Some Input}
 
-To actually parse a string (or stream) we can use the method
-\ppmthind{parse:}:
+To actually parse a string (or stream) we use the method
+\ppmthind{parse:} as follows:
 
 \begin{script}{Parsing some input strings with the identifier parser}
 identifier parse: 'yeah'.          --> #($y #($e $a $h))
@@ -227,16 +235,17 @@ identifier matches: '123'.        --> false
 identifier matches: 'foo()'.      --> true
 \end{script}
 
-The last result can be quite surprising:%
+The last result can be quite surprising:
 indeed, a parenthesis is neither a digit nor a letter as was specified
 by the \ct{#word asParser} expression. In fact, the \ct{identifier}
-parser matches ``aa'' and this is enough for the \ct{matches:} call to
+parser matches ``foo'' and this is enough for the \ct{matches:} call to
 return \ct{true}. The result would be similar with the use of
 \ct{parse:} which would return \ct{#($f #($o $o))}. %$
-If you want to be sure that the complete input is matched, use
-\ppmthind{end}:
 
-\begin{script}{Ensuring that the whole input is matched}
+If you want to be sure that the complete input is matched, use the message
+\ppmthind{end} as follows:
+
+\begin{script}{Ensuring that the whole input is matched using \ct{end}}
 identifier end matches: 'foo()'.   --> false
 \end{script}
 
