@@ -127,7 +127,9 @@ identifier := #letter asParser , #word asParser star.
 To invoke such parser we use the message \ct{parse:} (we will explain into details just after)
 as shown in the following snippet
 \begin{code}{}
-|identifier|identifier := #letter asParser , #word asParser star.identifier parse: 'a987jlkjl'
+|identifier|
+identifier := #letter asParser , #word asParser star.
+identifier parse: 'a987jlkjl'
 --> #($a #($9 $8 $7 $j $l $k $j $l))
 \end{code}
 
@@ -280,8 +282,8 @@ identifier matchingSkipRangesIn: 'foo 123 bar12'.
   
 identifier matchingRangesIn: 'foo 123 bar12'.  
  --> an OrderedCollection((1 to: 3) (2 to: 3) (3 to: 3) (9 to: 13) (10 to: 13) (11 to: 13))
-  
 \end{script}
+
 Similarly, to find all the matching ranges (index of first character and index of last
 character) in the given input one can use either \ppmthind{matchingSkipRangesIn:} or \ppmthind{matchingRangesIn:} as shown 
 by the script above.
@@ -343,12 +345,13 @@ is defined in \tabref{parser-combinators}.
   \label{tab:parser-combinators}
 \end{table}
 
-So instead of using the \ct{#word} predicate we could have written
-our identifier parser like this (see also \syntaxref{identifier2}):
+As a simple example of parser combination the expression 
+is equivalent to the \ct{#word asParser}.
 
-\begin{script}[identifier2]{Another way of defining the identifier parser}
-identifier2 := #letter asParser , (#letter asParser / #digit asParser) star.
+\begin{script}[identifier2]{Creating our first parser to parse identifiers}
+identifier2 := #letter asParser , (#letter asParser / #digit asParser) star.  
 \end{script}
+
 
 \tikzgrammarfig{identifier2}{
   {
@@ -381,10 +384,15 @@ identifier2 := #letter asParser , (#letter asParser / #digit asParser) star.
   }
 }
 
-To attach an action or transformation to a parser we can use one of
-the methods defined in \tabref{action-parsers}.
 
-\begin{table}
+
+
+
+
+\subsection{Parser Action}
+In addition to the messages \ct{parse:}, \ct{matches:}, and \ct{matchesSkipIn:} whose output is a collection of matched elements, we can also performs more operation on the parser output. To define an action or transformation to a parser we can use one of the messages \ct{==>}, \ct{flatten}, \ct{token} or \ct{trim} defined in \tabref{action-parsers}.
+
+\begin{table}[h]
   \centering
   \begin{tabular}{ll}
     \textbf{Action Parsers} & 	\textbf{Description}                                                  \\
@@ -398,20 +406,47 @@ the methods defined in \tabref{action-parsers}.
   \label{tab:action-parsers}
 \end{table}
 
-To return a string of the parsed identifier, we can modify our parser
-like this:
+
+
+To return a string of the parsed identifier instead of getting a collection of matched element, configure the parser by sending it the message \ct{flatten}. 
 
 \begin{script}{Using flatten so that the parsing result is a string}
-identifier3 := (#letter asParser , (#letter asParser / #digit asParser) star) flatten.
+|identifier|identifier := (#letter asParser , (#letter asParser / #digit asParser) star) flatten.identifier parse: 'ajka0'
+ --> 'ajka0'
+identifier := (#letter asParser , (#letter asParser / #digit asParser) star).identifier parse: 'ajka0'
+ -->  #($a #($j $k $a $0))
 \end{script}
 
-These are the basic elements to build parsers. There are a few more
-well documented and tested factory methods in the \ct{operators}
-protocols of \clsind{PPParser}. If you want to know more about these
-factory methods, browse these protocols.
+
+Sending the message trim configure the parser to remove whitespaces before and after. Study the following example: The first example leads to an error because the parser does not accept starting spaces. The second example handles perfectly the fact that the string starts with a couple of spaces.
+
+\begin{script}{Using trim to remove spaces }
+|identifier|identifier := (#letter asParser , (#letter asParser / (#space asParser) / #digit asParser) star) flatten.identifier parse: '  aj ka0   '  
+  -->  letter expected at 0
+
+|identifier|identifier := (#letter asParser , (#letter asParser / (#space asParser) / #digit asParser) star) trim flatten.identifier parse: '  aj ka0   '  
+   --> '  aj ka0   '
+\end{script}
+
+The message \ct{==>} is really important since it lets you specify a block to be executed on the result of a parser.
+The next section presents several examples. Here is a simple way to get a number from its string representation. 
+
+\begin{script}[number]{Parsing integers}
+number :=  #digit asParser plus trim flatten 				==> [ :str | str asNumber ].
+number parse: ' 122'
+	--> 122
+\end{script}
+
+
+The table~\ref{tab:action-parsers} shows the basic elements to build parsers. There are a few more
+well documented and tested factory methods in the \ct{operators} protocols of \clsind{PPParser}. If you want to know more about these factory methods, browse these protocols. Handy ones are \ct{delimitedBy:} aParser which answers a new parser that parses the receiver one or more times, separated and possibly ended by aParser, \ct{separatedBy: aParser} which answers a new parser that parses the receiver one or more times, separated by aParser.
+
+
+
+
 
 \subsection{Writing a More Complicated Grammar}
-
+\sd{here}
 Now we are able to write a more complicated grammar for evaluating
 simple arithmetic expressions. Within a workspace we start with the
 grammar for a number (actually an integer):
@@ -438,7 +473,7 @@ number parse: '123'             --> 123
   }
 }
 
-The \ct{token} call allows to get a token in the action block instead
+The \ct{token} call allows one to get a token in the action block instead
 of an array. The \ct{trim} call allows the parser to accept spaces
 before and after the number such as in \ct{' 123 '}. The action block
 asks the parser to convert any parsed string (fetched from the token
