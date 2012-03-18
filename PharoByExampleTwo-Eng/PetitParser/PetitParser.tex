@@ -249,33 +249,43 @@ If you want to be sure that the complete input is matched, use the message
 identifier end matches: 'foo()'.   --> false
 \end{script}
 
-The \ct{end} call creates a new parser that matches the end of input.
+The \ct{end} message creates a new parser that matches the end of input.
 To be able to compose parsers easily, it is important that parsers do
 not match the end of input by default. Because of this, you might be
-interested to find all the places that a parser can match:
+interested to find all the places that a parser can match using the message \ct{matchesSkipIn:}
+and \ct{matchesIn:}.
 
 \begin{script}{Finding all matches in an input}
 identifier matchesSkipIn: 'foo 123 bar12'.  
+ --> an OrderedCollection(#($f #($o $o)) #($b #($a $r $1 $2)))
+  
 identifier matchesIn: 'foo 123 bar12'.  
-identifier matchingSkipRangesIn: 'foo 123 bar12'.  
-identifier matchingRangesIn: 'foo 123 bar12'.  
+ --> an OrderedCollection(#($f #($o $o)) #($o #($o)) #($o #()) #($b #($a $r $1 $2)) #($a #($r $1 $2)) #($r #($1 $2)))
 \end{script}
 
 The \ppmthind{matchesSkipIn:} method returns a collection of arrays
 containing what has been matched (\eg{} \ct{#($f #($o $o))} and
 \ct{#($b #($a $r $1 $2))} in this case. This function avoids parsing
 the same character twice. The method \ppmthind{matchesIn:} does a
-similar job but returns a collection which also contains sub-parsed
+similar job but returns a collection with all possible sub-parsed
 elements: \eg{} evaluating \ct{identifier matchesIn: 'foo 123 bar12'}
 returns a collection of 6 elements: \ct{#($f #($o $o))},%
 \ct{#($o #($o))}, \ct{#($o #())}, \ct{#($b #($a $r $1 $2))},%
-\ct{#($a #($r $1 $2))}, and \ct{#($r #($1 $2))}. Similarly, to find
-all the matching ranges (index of first character and index of last
-character) in the given input one can use either
-\ppmthind{matchingSkipRangesIn:} or \ppmthind{matchingRangesIn:}:
-\eg{} evaluating %
-\ct{identifier matchingSkipRangesIn: 'foo 123 bar12'} returns a
-collection with \ct{(1 to: 3)} and \ct{(9 to: 13)}.
+\ct{#($a #($r $1 $2))}, and \ct{#($r #($1 $2))}. 
+
+
+\begin{script}{Finding all matche ranges in an input}
+identifier matchingSkipRangesIn: 'foo 123 bar12'.  
+ --> an OrderedCollection((1 to: 3) (9 to: 13))
+  
+identifier matchingRangesIn: 'foo 123 bar12'.  
+ --> an OrderedCollection((1 to: 3) (2 to: 3) (3 to: 3) (9 to: 13) (10 to: 13) (11 to: 13))
+  
+\end{script}
+Similarly, to find all the matching ranges (index of first character and index of last
+character) in the given input one can use either \ppmthind{matchingSkipRangesIn:} or \ppmthind{matchingRangesIn:} as shown 
+by the script above.
+
 
 \subsection{Different Kinds of Parsers}
 
@@ -297,6 +307,9 @@ those, some more are defined in \tabref{terminal-parsers}.
     \#word asParser           & Parses a digit or letter.                           \\
     \#blank asParser          & Parses a space or a tabulation.                     \\
     \#newline asParser        & Parses the carriage return or line feed characters. \\
+    \#space asParser          & Parses a space character. \\
+    \#lowercase asParser          & Parses a lowercase character. \\
+     \#uppercase asParser          & Parses an uppercase character. \\
   \end{tabular}
   \caption{PetitParser pre-defines a multitude of terminal parsers}
   \label{tab:terminal-parsers}
