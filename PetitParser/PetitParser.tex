@@ -133,6 +133,7 @@ identifier parse: 'a987jlkjl'
 --> #($a #($9 $8 $7 $j $l $k $j $l))
 \end{code}
 
+% $ <-- to compensate for odd number
 
 \tikzgrammarfig{identifier}{
   {
@@ -420,6 +421,7 @@ identifier parse: 'ajka0'
  -->  #($a #($j $k $a $0))
 \end{script}
 
+% $ <-- to compensate for odd number
 
 Sending the message trim configure the parser to remove whitespaces before and after. Study the following example: The first example leads to an error because the parser does not accept starting spaces. The second example handles perfectly the fact that the string starts with a couple of spaces.
 
@@ -621,26 +623,20 @@ because $+$ as the lowest priority in mathematics.
   \begin{tikzpicture}
     [ level distance=.7cm, growth parent anchor=south, sibling distance=2cm,
      thick]
-    \node (term) [nonterminal] {term}
-    child{ node [terminal] {$+$} }
+    \node (term) {term}
+    child{ node  {$+$} }
     child{
-      node [nonterminal] {prod}
-      child{ node [terminal] {$*$} }
-      child{ node [nonterminal] {prim} 
-        child { node (parens) [nonterminal] {parens} }
-        child { node [nonterminal] {number} }
+      node  {prod}
+      child{ node {$*$} }
+      child{ node {prim} 
+        child { node (parens) {parens} }
+        child { node  {number} }
       }
     };
-    % \node (p1) at ($(parens) + (0,-1)$) {};
-    % \node (p2) at ($(p1) + (-4,0)$) {};
-    % \node (p3) at ($(p2) + 1*(1,0)$) {};
-    % {[start chain]
-    %   \chainin (parens);
-    %   \chainin (term) [join=by {skip loop=10}];
-    % }
   \end{tikzpicture}
 
-  \caption{Explains how to understand the precedence of productions \sd{I do not get this picture}}
+  \caption{Explains how to understand the precedence of productions. An expression is a term which is  either a sum or a production. It is necessary to recognize sums first as they have the lowest priority. A production is either a multiplication or a primitive. A primitive is either a parenthesised expression or a number.
+    \sd{I do not get this picture}\dc{is it better now?}}
   \label{fig:expression-precedence}
 \end{figure}
 
@@ -1011,8 +1007,6 @@ strings.
 
 \sd{what is an element? I rename members into elements to be in sync with the code}
 \sd{I'm quite sure that this code was not run.}
-\sd{I do not get why for array we do not get [ ] instead of \{ \} so I changed the picture. I also change for pair the separator is not a , but :}
-
 
 The syntax diagrams for JSON objects and arrays are in~\syntaxjsonref{object} and~\syntaxjsonref{array}.
 
@@ -1251,7 +1245,7 @@ PPJsonGrammar>>charOctal
 PPJsonGrammar>>Normal
   ^ PPPredicateObjectParser anyExceptAnyOf: '\"'
 \end{jsonscript}
-\dc{some parts of previous script are in italic, no idea why}\sd{fixed}
+
 % $ <-- to cancel previous one for Emacs highlighting
 
 Special characters allowed after a slash and their meanings are
@@ -1456,7 +1450,6 @@ PPJsonGrammar>>number
 \end{jsonscript}
 % $ <-- to cancel previous one for Emacs highlighting
 
-\sd{why (\$0 asParser / \#digit asParser plus) why #digit does not handle 0?}
 The attentive reader will have noticed a small difference between the
 syntax diagram in \syntaxjsonref{number} and the code in
 \scrref{json-number}. Numbers in JSON can not contain leading zeros:
@@ -1465,7 +1458,15 @@ syntax diagram makes that particularly explicit by allowing either a 0
 or a digit between 1 and 9. In the above code, the rule is made
 implicit by relying on the fact that the parser combinator \ct{$/} is
 ordered: the parser on the right of \ct{$/} is only tried if the
-parser on the left fails.
+parser on the left fails: thus, \ct{($0 asParser / #digit asParser plus)}
+defines numbers as being just a 0 or a sequence of digits not
+starting with 0.
+
+ % $ <-- to compensate
+
+
+\sd{why (\$0 asParser / \#digit asParser plus) why \#digit does not handle 0?}
+\dc{is it clearer now?}
 
 \tikzgrammarjsonfig{number}{
   {
@@ -1564,11 +1565,10 @@ PPJsonGrammar>>trueToken
 
 The only piece missing is the \ct{start} parser.
 
-\begin{script}{Defining the JSON start parser}
+\begin{script}{Defining the JSON start parser as being a value (\syntaxjsonref{value}) with nothing following}
 PPJsonGrammar>>start
   ^ value end
 \end{script}
-\sd{what value? where does it come from?}
 
 \section{Chapter Conclusion}
 
