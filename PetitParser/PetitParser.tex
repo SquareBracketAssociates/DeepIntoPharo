@@ -411,9 +411,12 @@ In addition to the messages \ct{parse:}, \ct{matches:}, and \ct{matchesSkipIn:} 
 To return a string of the parsed identifier instead of getting a collection of matched element, configure the parser by sending it the message \ct{flatten}. 
 
 \begin{script}{Using flatten so that the parsing result is a string}
-|identifier|identifier := (#letter asParser , (#letter asParser / #digit asParser) star) flatten.identifier parse: 'ajka0'
+|identifier|
+identifier := (#letter asParser , (#letter asParser / #digit asParser) star) flatten.
+identifier parse: 'ajka0'
  --> 'ajka0'
-identifier := (#letter asParser , (#letter asParser / #digit asParser) star).identifier parse: 'ajka0'
+identifier := (#letter asParser , (#letter asParser / #digit asParser) star).
+identifier parse: 'ajka0'
  -->  #($a #($j $k $a $0))
 \end{script}
 
@@ -421,10 +424,14 @@ identifier := (#letter asParser , (#letter asParser / #digit asParser) star).id
 Sending the message trim configure the parser to remove whitespaces before and after. Study the following example: The first example leads to an error because the parser does not accept starting spaces. The second example handles perfectly the fact that the string starts with a couple of spaces.
 
 \begin{script}{Using trim to remove spaces }
-|identifier|identifier := (#letter asParser , (#letter asParser / (#space asParser) / #digit asParser) star) flatten.identifier parse: '  aj ka0   '  
+|identifier|
+identifier := (#letter asParser , (#letter asParser / (#space asParser) / #digit asParser) star) flatten.
+identifier parse: '  aj ka0   '  
   -->  letter expected at 0
 
-|identifier|identifier := (#letter asParser , (#letter asParser / (#space asParser) / #digit asParser) star) trim flatten.identifier parse: '  aj ka0   '  
+|identifier|
+identifier := (#letter asParser , (#letter asParser / (#space asParser) / #digit asParser) star) trim flatten.
+identifier parse: '  aj ka0   '  
    --> '  aj ka0   '
 \end{script}
 
@@ -432,7 +439,8 @@ The message \ct{==>} is really important since it lets you specify a block to be
 The next section presents several examples. Here is a simple way to get a number from its string representation. 
 
 \begin{script}[number]{Parsing integers}
-number :=  #digit asParser plus trim flatten 				==> [ :str | str asNumber ].
+number :=  #digit asParser plus trim flatten 
+				==> [ :str | str asNumber ].
 number parse: ' 122'
 	--> 122
 \end{script}
@@ -446,8 +454,7 @@ well documented and tested factory methods in the \ct{operators} protocols of \c
 
 
 \subsection{Writing a More Complicated Grammar}
-\sd{here}
-Now we are able to write a more complicated grammar for evaluating
+Now let us start to write a more complicated grammar for evaluating
 simple arithmetic expressions. Within a workspace we start with the
 grammar for a number (actually an integer):
 
@@ -474,7 +481,7 @@ number parse: '123'             --> 123
 }
 
 The \ct{token} call allows one to get a token in the action block instead
-of an array. The \ct{trim} call allows the parser to accept spaces
+of an array. The \ct{trim} call asks the parser to handle spaces
 before and after the number such as in \ct{' 123 '}. The action block
 asks the parser to convert any parsed string (fetched from the token
 using \clsmthind{PPToken}{value}) to a number using the
@@ -507,7 +514,7 @@ asks the parser to compute the arithmetic addition of the value of the
 first node (a prod) and the last node (a term). The prod parser is
 similar to the term parser. The prim parser is interesting in that it
 accepts left and right parenthesis before and after a term and has an
-action block that simply ignores them.
+action block that simply ignores them. 
 
 To understand the precedence of productions, see
 Figure~\ref{fig:expression-precedence}. The root of the tree in this
@@ -633,10 +640,9 @@ because $+$ as the lowest priority in mathematics.
     % }
   \end{tikzpicture}
 
-  \caption{Explains how to understand the precedence of productions}
+  \caption{Explains how to understand the precedence of productions \sd{I do not get this picture}}
   \label{fig:expression-precedence}
 \end{figure}
-
 
 To make sure that our parser consumes all input we wrap it with the
 \ct{end} parser into the \ct{start} production:
@@ -668,7 +674,8 @@ that grammar. Luckily there is \clsind{PPCompositeParser} to the rescue.
 \subsection{Defining the Grammar}
 
 As an example let's create a composite parser using the same
-expression grammar we built in the last section:
+expression grammar we built in the last section but this time we define 
+it inside a  class subclass of \ct{PPCompositeParser}.
 
 \begin{script}{Creating a class to hold our arithmetic expression grammar}
 PPCompositeParser subclass: #ExpressionGrammar
@@ -687,14 +694,24 @@ ExpressionGrammar>>number
 \end{script}
 
 Every production in \ct{ExpressionGrammar} is specified as a method
-that returns its parser. Next we define the productions \ct{term},
-\ct{prod}, and \ct{prim}. Productions refer to each other by reading
-the respective instance variable of the same name. This is important
-to be able to create recursive grammars. The instance variables
-themselves are typically not written to as PetitParser takes care to
+that returns its parser. Thereofore we define the productions \ct{term},
+\ct{prod}, \ct{mul}, and \ct{prim}.
+
+
+Now there is a trick to be able to create recursive grammars. Productions refer to each other by reading
+the respective instance variable of the same name.  The instance variables
+themselves are typically not written to and initialized as PetitParser takes care to
 initialize them for you automatically. We let Pharo automatically add
 the necessary instance variables as we refer to them for the first
-time.
+time. We obtain the following class definition:
+
+\begin{script}{Creating a class to hold our arithmetic expression grammar}
+PPCompositeParser subclass: #ExpressionGrammar
+   instanceVariableNames: 'add prod tern mul parens number'
+   classVariableNames: ''
+   poolDictionaries: ''
+   category: 'PetitTutorial'
+\end{script}
 
 \begin{script}{Defining more expression grammar parsers, this time with no associated action}
 ExpressionGrammar>>term
@@ -720,7 +737,8 @@ Contrary to our previous implementation we do not define the
 production actions yet (what we previously did by using
 \ppmthind{==>}); and we factor out the parts for addition (\ct{add}),
 multiplication (\ct{mul}), and parenthesis (\ct{parens}) into separate
-productions. This will give us better reusability later on. Usually,
+productions. This will give us better reusability later on. For example, a subclass may override 
+such methods to produce slightly different production output. Usually,
 production methods are categorized in a protocol named \ct{grammar}
 (which can be refined into more specific protocol names when necessary
 such as \ct{grammar-literals}).
@@ -744,10 +762,10 @@ parser parse: '1 + 2 * 3'.       --> #(1 $+ #(2 $* 3))
 parser parse: '(1 + 2) * 3'.     --> #(#($( #(1 $+ 2) $)) $* 3)
 \end{script}
 
-\subsection{Defining the Evaluator}
+\subsection{Defining an Evaluator}
 
 Now that we have defined a grammar we can reuse this definition to
-implement an evaluator. To do this we create a subclass of
+implement an evaluator. To do this we create a \emph{subclass} of
 \ct{ExpressionGrammar} called \ct{ExpressionEvaluator}.
 
 \begin{script}{Separating the grammar from the evaluator by creating a subclass}
@@ -760,7 +778,7 @@ ExpressionGrammar subclass: #ExpressionEvaluator
 
 We then redefine the implementation of \ct{add}, \ct{mul} and
 \ct{parens} with our evaluation semantics. This is accomplished by
-calling the super implementation and adapting the returned parser as follows:
+calling the super implementation and adapting the returned parser as shown in the following methods.
 
 \begin{script}{Refining the definition of some parsers to evaluate arithmetic expressions}
 ExpressionEvaluator>>add
@@ -781,10 +799,10 @@ parser parse: '1 + 2 * 3'.       --> 7
 parser parse: '(1 + 2) * 3'.     --> 9
 \end{script}
 
-\subsection{Defining the Pretty-Printer}
+\subsection{Defining a Pretty-Printer}
 
-Similarly a pretty printer can be defined by subclassing
-\ct{ExpressionGrammar} as follows:
+We can reuse the grammar for example to define a simple pretty printer. 
+This is as easy as subclassing \ct{ExpressionGrammar} again! 
 
 \begin{script}{Separating the grammar from the pretty printer by creating a subclass}
 ExpressionGrammar subclass: #ExpressionPrinter
@@ -806,7 +824,7 @@ ExpressionPrinter>>parens
   ^ super parens ==> [:node | '(', node second, ')']
 \end{script}
 
-This pretty printer can be tried out as follows:
+This pretty printer can be tried out as shown by the following expressions.
 
 \begin{script}{Testing our pretty printer on simple arithmetic expressions}
 parser := ExpressionPrinter new.
@@ -838,7 +856,7 @@ ExpressionGrammarTest>>parserClass
   ^ ExpressionGrammar
 \end{script}
 
-Writing a test scenario can be done by implementing new methods in
+Writing a test scenario is done by implementing new methods in
 \ct{ExpressionGrammarTest}:
 
 \begin{script}{Implementing tests for our arithmetic expression grammar}
@@ -920,44 +938,63 @@ lightweight data-interchange format defined in
 \url{http://www.json.org}. We are going to use the specification on
 this website to define our own JSON parser.
 
-An example of JSON is provided by
-Wikipedia:\footnote{\url{http://en.wikipedia.org/wiki/JSON}}
+JSON is a simple format based on nested pairs and arrays. The following script gives an example taken from Wikipedia \url{http://en.wikipedia.org/wiki/JSON}
+
+%\begin{script}{An example of JSON}
+%{
+%  "firstName": "John",
+%  "lastName" : "Smith",
+%  "age"      : 25,
+%  "address"  :
+%  {
+%    "streetAddress": "21 2nd Street",
+%    "city"         : "New York",
+%    "state"        : "NY",
+%    "postalCode"   : "10021"
+%  },
+%  "phoneNumber":
+%  [
+%    {
+%      "type"  : "home",
+%      "number": "212 555-1234"
+%    },
+%    {
+%      "type"  : "fax",
+%      "number": "646 555-4567"
+%    }
+%  ]
+%}
+%\end{script}
 
 \begin{script}{An example of JSON}
-{
-  "firstName": "John",
-  "lastName" : "Smith",
-  "age"      : 25,
-  "address"  :
-  {
-    "streetAddress": "21 2nd Street",
-    "city"         : "New York",
-    "state"        : "NY",
-    "postalCode"   : "10021"
-  },
-  "phoneNumber":
-  [
-    {
-      "type"  : "home",
-      "number": "212 555-1234"
-    },
-    {
-      "type"  : "fax",
-      "number": "646 555-4567"
-    }
-  ]
-}
+{	"firstName" : "John",
+	"lastName" : "Smith",
+	"age" : 25,
+	"address" :
+  		{ 	"streetAddress" : "21 2nd Street",
+			"city" : "New York",
+		    "state" : "NY",
+		    "postalCode" : "10021"	},
+	"phoneNumber":
+  		[	
+			{	"type" : "home",
+		      	"number" : "212 555-1234"	},
+			{	"type" : "fax",
+				"number" : "646 555-4567"	}	]	}
 \end{script}
 
-JSON consists of object definitions (between curly braces ``{}'') and
+
+JSON consists of object definitions (between curly braces ``\{\}'') and
 arrays (between square brackets ``[]''). An object definition is a set
 of key/value pairs whereas an array is a list of values. The previous
 JSON example then represents an object (a person) with several
-key/value pairs (\eg{} for the first name). The address of the person
+key/value pairs (\eg{} for the person firstname, name, age...). The address of the person
 is represented by another object while the phone number is represented
 by an array of objects.
 
-To define our \ct{PPJsonGrammar}, we first need to create a class:
+
+First we define a grammar as subclass of \ct{PPCompositeParser}. Let us call it
+\ct{PPJsonGrammar}
 
 \begin{script}{Defining the JSON grammar class}
 PPCompositeParser subclass: #PPJsonGrammar
@@ -967,21 +1004,27 @@ PPCompositeParser subclass: #PPJsonGrammar
   category: 'PetitJson-Core'
 \end{script}
 
-We will use the \ct{CharacterTable} class variable later to parse
+We define the \ct{CharacterTable} class variable since we will later use it to parse
 strings.
 
 \subsection{Parsing Objects and Arrays}
 
-The syntax diagrams for JSON objects and arrays are in
-Figures~\syntaxjsonref{object} and~\syntaxjsonref{array}.
+\sd{what is an element? I rename members into elements to be in sync with the code}
+\sd{I'm quite sure that this code was not run.}
+\sd{I do not get why for array we do not get [ ] instead of \{ \} so I changed the picture. I also change for pair the separator is not a , but :}
+
+
+The syntax diagrams for JSON objects and arrays are in~\syntaxjsonref{object} and~\syntaxjsonref{array}.
 
 A PetitParser can be defined for JSON objects with the following code:
 
 \begin{jsonscript}{object}
 PPJsonGrammar>>object
-  ^ ${ asParser token trim , members optional , $} asParser token trim
+  ^ ${ asParser token trim , elements optional , $} asParser token trim
+  
 PPJsonGrammar>>elements
   ^ value separatedBy: $, asParser token trim
+  
 PPJsonGrammar>>pair
   ^ stringToken , $: asParser token trim , value
 \end{jsonscript}
@@ -997,7 +1040,7 @@ comma here).
     \node (p01a) [point] {}; \&
     \node (openbrace) [terminal] {\{}; \&
     \node (p02a) [point] {}; \&
-    \node (members) [nonterminal] {members}; \&
+    \node (elements) [nonterminal] {elements}; \&
     \node (p03a) [point] {}; \&
     \node (closebrace) [terminal] {\}}; \&
     \node (p04a) [point] {}; \\
@@ -1008,7 +1051,7 @@ comma here).
     \node (comma) [terminal] {,}; \&
     \node (p13a) [point] {}; \\
 
-    \node (pmembers) [production] {members:}; \&
+    \node (pmembers) [production] {elements:}; \&
     \node (p21a) [point] {}; \& \& 
     \node (p21b) [point] {}; \&
     \node (pair) [nonterminal] {pair}; \&
@@ -1018,7 +1061,7 @@ comma here).
     \node (ppair) [production] {pair:}; \&
     \node (p31a) [point] {}; \& \& 
     \node (stringToken) [nonterminal, align=center, style={text height=3.5ex}] {string \\ Token}; \&
-    \node (comma2) [terminal] {,}; \&
+    \node (comma2) [terminal] {:}; \&
     \node (value) [nonterminal] {value}; \&
     \& \&
     \node (p32a) [point] {}; \\
@@ -1026,7 +1069,7 @@ comma here).
   { [start chain]
     \chainin (p01a);
     \chainin (openbrace) [join=by tip];
-    \chainin (members) [join=by tip];
+    \chainin (elements) [join=by tip];
     \chainin (closebrace) [join=by tip];
     \chainin (p04a) [join=by tip];
 
@@ -1070,13 +1113,13 @@ PPJsonGrammar>>array
 
     \node (array) [production] {array:}; \&
     \node (p11a) [point] {}; \&
-    \node (openbracket) [terminal] {\{}; \&
+    \node (openbracket) [terminal] {[}; \&
     \node (p12a) [point] {}; \& 
     \node (p12b) [point] {}; \& 
     \node (value) [nonterminal] {value}; \&
     \node (p13a)    [point]       {};           \& 
     \node (p13b)    [point]       {};           \&
-    \node (closebracket) [terminal]    {\}};   \&
+    \node (closebracket) [terminal]    {]};   \&
     \node (p14a) [point]    {};     \\
   };
   { [start chain]
@@ -1093,6 +1136,7 @@ PPJsonGrammar>>array
     \chainin (p12b)  [join=by tip];
   }
 }
+
 
 \subsection{Parsing Values}
 
@@ -1197,7 +1241,7 @@ the string) and a backslash (used to introduce an escape character).
 PPJsonGrammar>>stringToken
   ^ string token trim
 PPJsonGrammar>>string
-  ^ $" asParser , char star , $" asParser
+  ^ !\$" asParser , char star , \$" asParser!
 PPJsonGrammar>>char
   ^ charEscape / charOctal / charNormal
 PPJsonGrammar>>charEscape
@@ -1207,24 +1251,24 @@ PPJsonGrammar>>charOctal
 PPJsonGrammar>>Normal
   ^ PPPredicateObjectParser anyExceptAnyOf: '\"'
 \end{jsonscript}
-\dc{some parts of previous script are in italic, no idea why}
+\dc{some parts of previous script are in italic, no idea why}\sd{fixed}
 % $ <-- to cancel previous one for Emacs highlighting
 
 Special characters allowed after a slash and their meanings are
-defined in the \ct{CharacterTable} dictionary:
+defined in the \ct{CharacterTable} dictionary that we initialize in the \ct{initialize} class method. 
 
 \begin{script}{Defining the JSON special characters and their meaning}
 PPJsonGrammar class>>initialize
   CharacterTable := Dictionary new.
   CharacterTable
-  at: $\ put: $\;
-  at: $/ put: $/;
-  at: $" put: $";
-  at: $b put: Character backspace;
-  at: $f put: Character newPage;
-  at: $n put: Character lf;
-  at: $r put: Character cr;
-  at: $t put: Character tab
+		at: $\ put: $\;
+		at: $/ put: $/;
+		at: $" put: $";
+		at: $b put: Character backspace;
+		at: $f put: Character newPage;
+		at: $n put: Character lf;
+		at: $r put: Character cr;
+		at: $t put: Character tab
 \end{script}
 % $ <-- to cancel previous one for Emacs highlighting
 
@@ -1412,6 +1456,7 @@ PPJsonGrammar>>number
 \end{jsonscript}
 % $ <-- to cancel previous one for Emacs highlighting
 
+\sd{why (\$0 asParser / \#digit asParser plus) why #digit does not handle 0?}
 The attentive reader will have noticed a small difference between the
 syntax diagram in \syntaxjsonref{number} and the code in
 \scrref{json-number}. Numbers in JSON can not contain leading zeros:
@@ -1517,12 +1562,13 @@ PPJsonGrammar>>trueToken
   ^ 'true' asParser token trim
 \end{script}
 
-The only piece missing is the \ct{start} parser:
+The only piece missing is the \ct{start} parser.
 
 \begin{script}{Defining the JSON start parser}
 PPJsonGrammar>>start
   ^ value end
 \end{script}
+\sd{what value? where does it come from?}
 
 \section{Chapter Conclusion}
 
