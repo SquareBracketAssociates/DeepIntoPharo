@@ -2,7 +2,9 @@
 
 TEMP_DIR=/tmp
 SVN_REPO=svn+ssh://scm.gforge.inria.fr/svn/pharobooks
-REMOTE=scm.gforge.inria.fr:/home/groups/pharobooks/htdocs
+REMOTE_SERVER=scm.gforge.inria.fr
+REMOTE_PATH=/home/groups/pharobooks/htdocs
+REMOTE=$REMOTE_SERVER:$REMOTE_PATH
 BOOK=PharoByExampleTwo-Eng
 USER=cassou
 
@@ -27,28 +29,12 @@ for chapter in $chapters; do
 done
 
 upload_id=$(date -u +%F_%T)
-
-echo mkdir $upload_id | sftp $USER@$REMOTE/$BOOK
-if [[ $? -ne 0 ]]; then
-    echo "Was not able to create remote directory!"
-    exit 1
-fi
-
 files_to_upload=$(echo $chapters | sed 's/\.tex/.pdf/g')
-scp $files_to_upload $USER@$REMOTE/$BOOK/$upload_id/
-if [[ $? -ne 0 ]]; then
-    echo "Was not able to upload chapters to $REMOTE"
-    exit 1
-fi
 
-echo "rm latest" | sftp $USER@$REMOTE/$BOOK
-if [[ $? -ne 0 ]]; then
-    echo "Was not able to create 'latest' symlink!"
-    exit 1
-fi
+mkdir tmp
+mv $files_to_upload tmp/
+cd tmp
 
-echo "symlink $upload_id latest" | sftp $USER@$REMOTE/$BOOK
-if [[ $? -ne 0 ]]; then
-    echo "Was not able to create 'latest' symlink!"
-    exit 1
-fi
+tar cf - *.pdf | \
+    ssh $USER@$REMOTE_SERVER \
+    "cd $REMOTE_PATH/$BOOK; mkdir $upload_id; cd $upload_id; tar xf -; cd ..; unlink latest; ln -s $upload_id latest"
