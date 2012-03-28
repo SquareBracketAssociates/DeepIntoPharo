@@ -437,6 +437,8 @@ identifier parse: '  aj ka0   '
    --> '  aj ka0   '
 \end{script}
 
+The message \ct{token} is similar to \ct{flatten} but returns a \lct{PPToken} that provide much more contextual information like the collection where the token was located and its position in the collection.
+
 The message \ct{==>} is really important since it lets you specify a block to be executed on the result of a parser.
 The next section presents several examples. Here is a simple way to get a number from its string representation. 
 
