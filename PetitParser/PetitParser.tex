@@ -5,7 +5,7 @@
 % HISTORY:
 % Chapter started by Damien C (2011-07-11)
 % 2011-09-11 - Migrated to PharoBox: svn checkout https://XXX@scm.gforge.inria.fr/svn/pharobooks/PharoByExampleTwo-Eng
-% could change returns by answers 
+% could change returns by answers
 
 
 %=================================================================
@@ -117,34 +117,25 @@ project.\footnote{\url{http://scg.unibe.ch/research/helvetia/petitparser}}
 
 Writing grammars with PetitParser is as simple as writing Smalltalk
 code. For example a grammar parsing identifiers that start with a
-letter followed by zero or more letters or digits is defined as
-follows:
+letter followed by zero or more letters or digits is defined and used
+as follows:
 
 \begin{script}[identifier]{Creating our first parser to parse identifiers}
-identifier := #letter asParser , #word asParser star.  
-\end{script}
-
-To invoke such parser we use the message \ct{parse:} (we will explain into details just after)
-as shown in the following snippet
-\begin{code}{}
 |identifier|
 identifier := #letter asParser , #word asParser star.
-identifier parse: 'a987jlkjl'
---> #($a #($9 $8 $7 $j $l $k $j $l))
-\end{code}
-
-% $ <-- to compensate for odd number
+identifier parse: 'a987jlkj' --> #($a #($9 $8 $7 $j $l $k $j))
+\end{script}
 
 \tikzgrammarfig{identifier}{
   {
     \node (identifier) [production] {identifier:}; \&
-    \node (p1)     [point]       {};           \& 
+    \node (p1)     [point]       {};           \&
     \node (letter) [terminal]    {letter};     \&
-    \node (p3a)    [point]       {};           \& 
-    \node (p3b)    [point]       {};           \& 
+    \node (p3a)    [point]       {};           \&
+    \node (p3b)    [point]       {};           \&
     \node (word)   [terminal] {word};       \&
-    \node (p11a)    [point]       {};           \& 
-    \node (p11b)   [point]       {};           \& 
+    \node (p11a)    [point]       {};           \&
+    \node (p11b)   [point]       {};           \&
     \node (p11c)    [point]       {};           \\
   };
   { [start chain]
@@ -162,35 +153,40 @@ identifier parse: 'a987jlkjl'
 
 \syntaxref{identifier} presents a graphical representation, called a
 syntax diagram, of the identifier parser. Such a syntax diagram
-contains squared boxes (not shown on the figure) that represent non terminals, round boxes that represent terminals, arrows between these boxes, some entry points and some exit points. In the context of PetitParser, the squared boxes (non terminals) are in fact parsers composed
-of other parsers, and round boxes (terminals) are elementary parsers. 
+contains squared boxes (not shown on the figure) that represent non
+terminals, round boxes that represent terminals, arrows between these
+boxes, some entry points and some exit points. In the context of
+PetitParser, the squared boxes (non terminals) are in fact parsers
+composed of other parsers, and round boxes (terminals) are elementary
+parsers.
 
-The idea behind this representation is that if an
-input can go from the entry point to the exit point by following the
-arrows and being consumed by the boxes, this input is matched by the
-represented parser.
+The idea behind this representation is that if an input can go from
+the entry point to the exit point by following the arrows and being
+consumed by the boxes, this input is matched by the represented
+parser.
 
-If you inspect the object \ct{identifier} of the previous script,  you'll notice that it is an
-instance of a \clsind{PPSequenceParser}. If you dive further into the
-object you notice the following simple tree of different parser objects:
+If you inspect the object \ct{identifier} of the previous script,
+you'll notice that it is an instance of a \clsind{PPSequenceParser}.
+If you dive further into the object you notice the following simple
+tree of different parser objects:
 
 \begin{script}{Composition of parsers used for the identifier parser}
 PPSequenceParser (accepts a sequence of parsers)
     PPPredicateObjectParser (accepts a single letter)
     PPPossessiveRepeatingParser (accepts zero or more instances of another parser)
-       PPPredicateObjectParser (accepts a single word character)  
+       PPPredicateObjectParser (accepts a single word character)
 \end{script}
 
-The root parser is a sequence parser because the \ct{,} (comma) operator 
-creates a sequence from (1) a letter parser and (2) zero or more word character
-parser. The root parser first child is a predicate object
-parser created by the \ct{#letter asParser} expression. This parser is
-capable of parsing a single letter as defined by the
+The root parser is a sequence parser because the \ct{,} (comma)
+operator creates a sequence from (1) a letter parser and (2) zero or
+more word character parser. The root parser first child is a predicate
+object parser created by the \ct{#letter asParser} expression. This
+parser is capable of parsing a single letter as defined by the
 \clsmthind{Character}{isLetter} method. %
-The root parser second child   is a repeating parser created by
-the \ct{star} call. This parser uses its child parser (another
-predicate object parser) as much as possible on the input (\ie{} it is
-a \emph{greedy} parser). Its child parser is a predicate object parser
+The root parser second child is a repeating parser created by the
+\ct{star} call. This parser uses its child parser (another predicate
+object parser) as much as possible on the input (\ie{} it is a
+\emph{greedy} parser). Its child parser is a predicate object parser
 created by the \ct{#word asParser} expression. This parser is capable
 of parsing a single digit or letter as defined by the
 \clsmthind{Character}{isDigit} and \clsmthind{Character}{isLetter}
@@ -226,7 +222,7 @@ the system that answer with true when you send the message
 \begin{code}{}
 identifier
    parse: '123'
-   onError: [ :msg :pos | self error: msg ].  
+   onError: [ :msg :pos | self error: msg ].
 \end{code}
 
 If you are only interested if a given string (or stream) matches or
@@ -238,56 +234,53 @@ identifier matches: '123'.        --> false
 identifier matches: 'foo()'.      --> true
 \end{script}
 
-The last result can be quite surprising:
+The last result can be quite surprising: % <- don't remove the comment
 indeed, a parenthesis is neither a digit nor a letter as was specified
 by the \ct{#word asParser} expression. In fact, the \ct{identifier}
-parser matches ``foo'' and this is enough for the \ct{matches:} call to
-return \ct{true}. The result would be similar with the use of
+parser matches ``foo'' and this is enough for the \ppmthind{matches:}
+call to return \ct{true}. The result would be similar with the use of
 \ct{parse:} which would return \ct{#($f #($o $o))}. %$
 
-If you want to be sure that the complete input is matched, use the message
-\ppmthind{end} as follows:
+If you want to be sure that the complete input is matched, use the
+message \ppmthind{end} as follows:
 
-\begin{script}{Ensuring that the whole input is matched using \ct{end}}
+\begin{script}{Ensuring that the whole input is matched using \ppmthind{end}}
 identifier end matches: 'foo()'.   --> false
 \end{script}
 
-The \ct{end} message creates a new parser that matches the end of input.
-To be able to compose parsers easily, it is important that parsers do
-not match the end of input by default. Because of this, you might be
-interested to find all the places that a parser can match using the message \ct{matchesSkipIn:}
-and \ct{matchesIn:}.
+The \ppmthind{end} message creates a new parser that matches the end of
+input. To be able to compose parsers easily, it is important that
+parsers do not match the end of input by default. Because of this, you
+might be interested to find all the places that a parser can match
+using the message \ppmthind{matchesSkipIn:} and \ppmthind{matchesIn:}.
 
 \begin{script}{Finding all matches in an input}
-identifier matchesSkipIn: 'foo 123 bar12'.  
+identifier matchesSkipIn: 'foo 123 bar12'.
  --> an OrderedCollection(#($f #($o $o)) #($b #($a $r $1 $2)))
-  
-identifier matchesIn: 'foo 123 bar12'.  
+
+identifier matchesIn: 'foo 123 bar12'.
  --> an OrderedCollection(#($f #($o $o)) #($o #($o)) #($o #()) #($b #($a $r $1 $2)) #($a #($r $1 $2)) #($r #($1 $2)))
 \end{script}
 
 The \ppmthind{matchesSkipIn:} method returns a collection of arrays
-containing what has been matched (\eg{} \ct{#($f #($o $o))} and
-\ct{#($b #($a $r $1 $2))} in this case. This function avoids parsing
-the same character twice. The method \ppmthind{matchesIn:} does a
-similar job but returns a collection with all possible sub-parsed
-elements: \eg{} evaluating \ct{identifier matchesIn: 'foo 123 bar12'}
-returns a collection of 6 elements: \ct{#($f #($o $o))},%
-\ct{#($o #($o))}, \ct{#($o #())}, \ct{#($b #($a $r $1 $2))},%
-\ct{#($a #($r $1 $2))}, and \ct{#($r #($1 $2))}. 
+containing what has been matched. This function avoids parsing the
+same character twice. The method \ppmthind{matchesIn:} does a similar
+job but returns a collection with all possible sub-parsed elements:
+\eg{} evaluating \ct{identifier matchesIn: 'foo 123 bar12'} returns a
+collection of 6 elements.
 
+Similarly, to find all the matching ranges (index of first character
+and index of last character) in the given input one can use either
+\ppmthind{matchingSkipRangesIn:} or \ppmthind{matchingRangesIn:} as
+shown by the script below:
 
-\begin{script}{Finding all matche ranges in an input}
-identifier matchingSkipRangesIn: 'foo 123 bar12'.  
+\begin{script}{Finding all matched ranges in an input}
+identifier matchingSkipRangesIn: 'foo 123 bar12'.
  --> an OrderedCollection((1 to: 3) (9 to: 13))
-  
-identifier matchingRangesIn: 'foo 123 bar12'.  
+
+identifier matchingRangesIn: 'foo 123 bar12'.
  --> an OrderedCollection((1 to: 3) (2 to: 3) (3 to: 3) (9 to: 13) (10 to: 13) (11 to: 13))
 \end{script}
-
-Similarly, to find all the matching ranges (index of first character and index of last
-character) in the given input one can use either \ppmthind{matchingSkipRangesIn:} or \ppmthind{matchingRangesIn:} as shown 
-by the script above.
 
 \subsection{Different Kinds of Parsers}
 
@@ -309,18 +302,18 @@ those, some more are defined in \tabref{terminal-parsers}.
     \#word asParser           & Parses a digit or letter.                           \\
     \#blank asParser          & Parses a space or a tabulation.                     \\
     \#newline asParser        & Parses the carriage return or line feed characters. \\
-    \#space asParser          & Parses a space character. \\
-    \#lowercase asParser          & Parses a lowercase character. \\
-     \#uppercase asParser          & Parses an uppercase character. \\
-	nil asParser				& Parses nothing. \\
+    \#space asParser          & Parses a space character.                           \\
+    \#lowercase asParser      & Parses a lowercase character.                       \\
+    \#uppercase asParser      & Parses an uppercase character.                      \\
+    nil asParser	      & Parses nothing.                                     \\
   \end{tabular}
   \caption{PetitParser pre-defines a multitude of terminal parsers}
   \label{tab:terminal-parsers}
 \end{table}
 
-The class side of \clsind{PPPredicateObjectParser} provides a lot of other
-factory methods that can be used to build more complex terminal
-parsers. To use them, send the message \ct{asParser} to a symbol
+The class side of \clsind{PPPredicateObjectParser} provides a lot of
+other factory methods that can be used to build more complex terminal
+parsers. To use them, send the message \ppmthind{asParser} to a symbol
 containing the name of the factory method (such as \ct{#punctuation}
 \ct{asParser}).
 
@@ -346,30 +339,30 @@ is defined in \tabref{parser-combinators}.
   \label{tab:parser-combinators}
 \end{table}
 
-As a simple example of parser combination the expression 
-is equivalent to the \ct{#word asParser}.
+As a simple example of parser combination, the following definition of
+the \ct{identifier2} parser is equivalent to our previous definition
+of \ct{identifier}:
 
-\begin{script}[identifier2]{Creating our first parser to parse identifiers}
-identifier2 := #letter asParser , (#letter asParser / #digit asParser) star.  
+\begin{script}[identifier2]{A different way to express the \ct{identifier} parser}
+identifier2 := #letter asParser , (#letter asParser / #digit asParser) star.
 \end{script}
-
 
 \tikzgrammarfig{identifier2}{
   {
     \node (identifier2) [production] {identifier2:}; \&
-    \node (p1)     [point]       {};           \& 
+    \node (p1)     [point]       {};           \&
     \node (letter1) [terminal]    {letter};     \&
-    \node (p2a)    [point]       {};           \& 
-    \node (p2b)    [point]       {};           \& 
+    \node (p2a)    [point]       {};           \&
+    \node (p2b)    [point]       {};           \&
     \node (letter2)   [terminal] {letter};       \&
-    \node (p3a)    [point]       {};           \& 
-    \node (p3b)   [point]       {};           \& 
+    \node (p3a)    [point]       {};           \&
+    \node (p3b)   [point]       {};           \&
     \node (p3c)    [point]       {};           \\
 
 
-    \& \& \& \& 
-    \node (p10)   [point]       {};           \& 
-    \node (digit)   [terminal] {digit};       \& 
+    \& \& \& \&
+    \node (p10)   [point]       {};           \&
+    \node (digit)   [terminal] {digit};       \&
     \node (p11)   [point]       {};           \& \\
   };
   { [start chain]
@@ -385,79 +378,81 @@ identifier2 := #letter asParser , (#letter asParser / #digit asParser) star.
   }
 }
 
-
-
-
-
-
 \subsection{Parser Action}
-In addition to the messages \ct{parse:}, \ct{matches:}, and \ct{matchesSkipIn:} whose output is a collection of matched elements, we can also performs more operation on the parser output. To define an action or transformation to a parser we can use one of the messages \ct{==>}, \ct{flatten}, \ct{token} or \ct{trim} defined in \tabref{action-parsers}.
+
+To define an action or transformation on a parser we can use one of
+the messages \ppmthind{==>}, \ppmthind{flatten}, \ppmthind{token} and
+\ppmthind{trim} defined in \tabref{action-parsers}.
 
 \begin{table}[h]
   \centering
   \begin{tabular}{ll}
     \textbf{Action Parsers} & 	\textbf{Description}                                                  \\
     \midrule
-    p ==> aBlock            & Performs the transformation given in \lct{aBlock}.                          \\
     p flatten               & Creates a string from the result of p.                                      \\
     p token                 & Similar to \lct{flatten} but returns a \lct{PPToken} with more information. \\
-    p trim                  & Trims whitespaces before and after p.                                       \\
+    p trim                  & Trims white spaces before and after p.                                       \\
+    p ==> aBlock            & Performs the transformation given in \lct{aBlock}.                          \\
   \end{tabular}
   \caption{PetitParser pre-defines a multitude of action parsers}
   \label{tab:action-parsers}
 \end{table}
 
-
-
-To return a string of the parsed identifier instead of getting a collection of matched element, configure the parser by sending it the message \ct{flatten}. 
+To return a string of the parsed identifier instead of getting an
+array of matched elements, configure the parser by sending it the
+message \ppmthind{flatten}.
 
 \begin{script}{Using flatten so that the parsing result is a string}
 |identifier|
-identifier := (#letter asParser , (#letter asParser / #digit asParser) star) flatten.
-identifier parse: 'ajka0'
- --> 'ajka0'
 identifier := (#letter asParser , (#letter asParser / #digit asParser) star).
-identifier parse: 'ajka0'
- -->  #($a #($j $k $a $0))
+identifier parse: 'ajka0'          -->  #($a #($j $k $a $0))
+identifier := (#letter asParser , (#letter asParser / #digit asParser) star) flatten.
+identifier parse: 'ajka0'          --> 'ajka0'
 \end{script}
 
 % $ <-- to compensate for odd number
 
-Sending the message trim configure the parser to remove whitespaces before and after. Study the following example: The first example leads to an error because the parser does not accept starting spaces. The second example handles perfectly the fact that the string starts with a couple of spaces.
+The message \ppmthind{token} is similar to \ct{flatten} but returns a
+\ct{PPToken} that provide much more contextual information like the
+collection where the token was located and its position in the
+collection.
+
+Sending the message \ppmthind{trim} configures the parser to ignore
+white spaces at the beginning and end of the parsed result. In the
+following, using the first parser on the input leads to an error
+because the parser does not accept the starting spaces. With the
+second parser, spaces are ignored.
 
 \begin{script}{Using trim to remove spaces }
 |identifier|
-identifier := (#letter asParser , (#letter asParser / (#space asParser) / #digit asParser) star) flatten.
-identifier parse: '  aj ka0   '  
-  -->  letter expected at 0
+identifier := (#letter asParser , #word asParser star) flatten.
+identifier parse: '  ajka0   '          -->  letter expected at 0
 
-|identifier|
-identifier := (#letter asParser , (#letter asParser / (#space asParser) / #digit asParser) star) trim flatten.
-identifier parse: '  aj ka0   '  
-   --> '  aj ka0   '
+identifier := (#letter asParser , #word asParser star) trim flatten.
+identifier parse: '  ajka0   '          --> '  ajka0   '
 \end{script}
 
-The message \ct{token} is similar to \ct{flatten} but returns a \lct{PPToken} that provide much more contextual information like the collection where the token was located and its position in the collection.
-
-The message \ct{==>} is really important since it lets you specify a block to be executed on the result of a parser.
-The next section presents several examples. Here is a simple way to get a number from its string representation. 
+The message \ppmthind{==>} lets you specify a block to be executed
+when the parser matches an input. The next section presents several
+examples. Here is a simple way to get a number from its string
+representation.
 
 \begin{script}[number]{Parsing integers}
-number :=  #digit asParser plus trim flatten 
-				==> [ :str | str asNumber ].
-number parse: ' 122'
-	--> 122
+number :=  #digit asParser plus flatten ==> [ :str | str asNumber ].
+number parse: '122'                     --> 122
 \end{script}
 
 
-The table~\ref{tab:action-parsers} shows the basic elements to build parsers. There are a few more
-well documented and tested factory methods in the \ct{operators} protocols of \clsind{PPParser}. If you want to know more about these factory methods, browse these protocols. Handy ones are \ct{delimitedBy:} aParser which answers a new parser that parses the receiver one or more times, separated and possibly ended by aParser, \ct{separatedBy: aParser} which answers a new parser that parses the receiver one or more times, separated by aParser.
-
-
-
-
+The table~\ref{tab:action-parsers} shows the basic elements to build
+parsers. There are a few more well documented and tested factory
+methods in the \ct{operators} protocols of \clsind{PPParser}. If you
+want to know more about these factory methods, browse these protocols.
+An interesting one is \ct{separatedBy:} which answers a new parser
+that parses the input one or more times, with separations specified by
+another parser.
 
 \subsection{Writing a More Complicated Grammar}
+
 Now let us start to write a more complicated grammar for evaluating
 simple arithmetic expressions. Within a workspace we start with the
 grammar for a number (actually an integer):
@@ -470,10 +465,10 @@ number parse: '123'             --> 123
 \tikzgrammarfig{number}{
   {
     \node (number) [production] {number:}; \&
-    \node (p1a)     [point]       {};           \& 
-    \node (p1b)     [point]       {};           \& 
+    \node (p1a)     [point]       {};           \&
+    \node (p1b)     [point]       {};           \&
     \node (digit) [terminal]    {digit};     \&
-    \node (p2a)    [point]       {};           \& 
+    \node (p2a)    [point]       {};           \&
     \node (p2b)    [point]       {};           \\
   };
   { [start chain]
@@ -503,7 +498,7 @@ for the related syntax diagram):
 term := PPDelegateParser new.
 prod := PPDelegateParser new.
 prim := PPDelegateParser new.
- 
+
 term setParser: (prod , $+ asParser trim , term ==> [ :nodes | nodes first + nodes last ])
                      / prod.
 prod setParser: (prim , $* asParser trim , prod ==> [ :nodes | nodes first * nodes last ])
@@ -518,7 +513,7 @@ asks the parser to compute the arithmetic addition of the value of the
 first node (a prod) and the last node (a term). The prod parser is
 similar to the term parser. The prim parser is interesting in that it
 accepts left and right parenthesis before and after a term and has an
-action block that simply ignores them. 
+action block that simply ignores them.
 
 To understand the precedence of productions, see
 Figure~\ref{fig:expression-precedence}. The root of the tree in this
@@ -531,18 +526,18 @@ because $+$ as the lowest priority in mathematics.
 \tikzgrammar{
   {
     \node (term) [production] {term:};           \&
-    \node (p1a)     [point]       {};           \& 
-    \node (p1b)     [point]       {};           \& 
-    \node (p1c)     [point]       {};           \& 
+    \node (p1a)     [point]       {};           \&
+    \node (p1b)     [point]       {};           \&
+    \node (p1c)     [point]       {};           \&
     \node (prod1) [nonterminal]    {prod};      \&
-    \node (p2)     [point]       {};            \& 
+    \node (p2)     [point]       {};            \&
     \node (plus) [terminal]    {+};             \&
     \node (p3)    [point]       {};             \\
 
-    \& 
-    \& 
-    \& 
-    \node (p10)     [point]       {};           \& 
+    \&
+    \&
+    \&
+    \node (p10)     [point]       {};           \&
     \node (prod2) [nonterminal]    {prod};     \&
     \&
     \&
@@ -550,18 +545,18 @@ because $+$ as the lowest priority in mathematics.
     \node (p11)    [point]       {};           \\
     \\
     \node (prod) [production] {prod:}; \&
-    \node (p21a)     [point]       {};           \& 
-    \node (p21b)     [point]       {};           \& 
-    \node (p21c)     [point]       {};           \& 
+    \node (p21a)     [point]       {};           \&
+    \node (p21b)     [point]       {};           \&
+    \node (p21c)     [point]       {};           \&
     \node (prim1) [nonterminal]    {prim};     \&
-    \node (p22)     [point]       {};           \& 
+    \node (p22)     [point]       {};           \&
     \node (mult) [terminal]    {*};     \&
     \node (p23)    [point]       {};           \\
 
-    \& 
-    \& 
-    \& 
-    \node (p30)     [point]       {};           \& 
+    \&
+    \&
+    \&
+    \node (p30)     [point]       {};           \&
     \node (prim2) [nonterminal]    {prim};     \&
     \&
     \&
@@ -569,17 +564,17 @@ because $+$ as the lowest priority in mathematics.
     \node (p31)    [point]       {};           \\
     \\
     \node (prim) [production] {prim:}; \&
-    \node (p41a)     [point]       {};           \& 
-    \node (p41b)     [point]       {};           \& 
+    \node (p41a)     [point]       {};           \&
+    \node (p41b)     [point]       {};           \&
     \node (lpar) [terminal]    {(};     \&
     \node (term4) [nonterminal]    {term};     \&
     \node (p43)    [point]       {};         \&
     \node (rpar) [terminal]    {)};     \&
-    \node (p44a)     [point]       {};           \& 
+    \node (p44a)     [point]       {};           \&
     \node (p44b)     [point]       {};             \\
     \&
-    \& 
-    \node (p51)     [point]       {};           \& 
+    \&
+    \node (p51)     [point]       {};           \&
     \&
     \node (number5) [nonterminal]    {number};     \&
     \&
@@ -630,15 +625,14 @@ because $+$ as the lowest priority in mathematics.
     child{
       node  {prod}
       child{ node {$*$} }
-      child{ node {prim} 
+      child{ node {prim}
         child { node (parens) {parens} }
         child { node  {number} }
       }
     };
   \end{tikzpicture}
 
-  \caption{Explains how to understand the precedence of productions. An expression is a term which is  either a sum or a production. It is necessary to recognize sums first as they have the lowest priority. A production is either a multiplication or a primitive. A primitive is either a parenthesised expression or a number.
-    \sd{I do not get this picture}\dc{is it better now?}}
+  \caption{Explains how to understand the precedence of productions. An expression is a term which is  either a sum or a production. It is necessary to recognize sums first as they have the lowest priority. A production is either a multiplication or a primitive. A primitive is either a parenthesised expression or a number.}
   \label{fig:expression-precedence}
 \end{figure}
 
@@ -672,7 +666,7 @@ that grammar. Luckily there is \clsind{PPCompositeParser} to the rescue.
 \subsection{Defining the Grammar}
 
 As an example let's create a composite parser using the same
-expression grammar we built in the last section but this time we define 
+expression grammar we built in the last section but this time we define
 it inside a  class subclass of \ct{PPCompositeParser}.
 
 \begin{script}{Creating a class to hold our arithmetic expression grammar}
@@ -684,7 +678,7 @@ PPCompositeParser subclass: #ExpressionGrammar
 \end{script}
 
 Again we start with the grammar for an integer number. Define the
-method \clsmthind{ExpressionGrammar}{number} as follows:
+method \ct{number} as follows:
 
 \begin{script}{Implementing our first parser as a method}
 ExpressionGrammar>>number
@@ -692,16 +686,13 @@ ExpressionGrammar>>number
 \end{script}
 
 Every production in \ct{ExpressionGrammar} is specified as a method
-that returns its parser. Thereofore we define the productions \ct{term},
-\ct{prod}, \ct{mul}, and \ct{prim}.
-
-
-Now there is a trick to be able to create recursive grammars. Productions refer to each other by reading
-the respective instance variable of the same name.  The instance variables
-themselves are typically not written to and initialized as PetitParser takes care to
-initialize them for you automatically. We let Pharo automatically add
-the necessary instance variables as we refer to them for the first
-time. We obtain the following class definition:
+that returns its parser. Similarly, we define the productions
+\ct{term}, \ct{prod}, \ct{mul}, and \ct{prim}. Productions refer to
+each other by reading the respective instance variable of the same
+name and PetitParser takes care of initializing these instance variables
+for you automatically. We let Pharo automatically add the necessary
+instance variables as we refer to them for the first time. We obtain
+the following class definition:
 
 \begin{script}{Creating a class to hold our arithmetic expression grammar}
 PPCompositeParser subclass: #ExpressionGrammar
@@ -735,11 +726,12 @@ Contrary to our previous implementation we do not define the
 production actions yet (what we previously did by using
 \ppmthind{==>}); and we factor out the parts for addition (\ct{add}),
 multiplication (\ct{mul}), and parenthesis (\ct{parens}) into separate
-productions. This will give us better reusability later on. For example, a subclass may override 
-such methods to produce slightly different production output. Usually,
-production methods are categorized in a protocol named \ct{grammar}
-(which can be refined into more specific protocol names when necessary
-such as \ct{grammar-literals}).
+productions. This will give us better reusability later on. For
+example, a subclass may override such methods to produce slightly
+different production output. Usually, production methods are
+categorized in a protocol named \ct{grammar} (which can be refined
+into more specific protocol names when necessary such as
+\ct{grammar-literals}).
 
 Last but not least we define the starting point of the expression
 grammar. This is done by overriding
@@ -799,8 +791,8 @@ parser parse: '(1 + 2) * 3'.     --> 9
 
 \subsection{Defining a Pretty-Printer}
 
-We can reuse the grammar for example to define a simple pretty printer. 
-This is as easy as subclassing \ct{ExpressionGrammar} again! 
+We can reuse the grammar for example to define a simple pretty printer.
+This is as easy as subclassing \ct{ExpressionGrammar} again!
 
 \begin{script}{Separating the grammar from the pretty printer by creating a subclass}
 ExpressionGrammar subclass: #ExpressionPrinter
@@ -877,7 +869,7 @@ ExpressionGrammarTest subclass: #ExpressionEvaluatorTest
   category: 'PetitTutorial'
 
 ExpressionEvaluatorTest>>parserClass
-  ^ ExpressionEvaluator 
+  ^ ExpressionEvaluator
 
 ExpressionEvaluatorTest>>testAdd
   super testAdd.
@@ -894,7 +886,7 @@ ExpressionGrammarTest subclass: #ExpressionPrinterTest
   category: 'PetitTutorial'
 
 ExpressionPrinterTest>>parserClass
-  ^ ExpressionPrinter 
+  ^ ExpressionPrinter
 
 ExpressionPrinterTest>>testAdd
   super testAdd.
@@ -936,33 +928,9 @@ lightweight data-interchange format defined in
 \url{http://www.json.org}. We are going to use the specification on
 this website to define our own JSON parser.
 
-JSON is a simple format based on nested pairs and arrays. The following script gives an example taken from Wikipedia \url{http://en.wikipedia.org/wiki/JSON}
-
-%\begin{script}{An example of JSON}
-%{
-%  "firstName": "John",
-%  "lastName" : "Smith",
-%  "age"      : 25,
-%  "address"  :
-%  {
-%    "streetAddress": "21 2nd Street",
-%    "city"         : "New York",
-%    "state"        : "NY",
-%    "postalCode"   : "10021"
-%  },
-%  "phoneNumber":
-%  [
-%    {
-%      "type"  : "home",
-%      "number": "212 555-1234"
-%    },
-%    {
-%      "type"  : "fax",
-%      "number": "646 555-4567"
-%    }
-%  ]
-%}
-%\end{script}
+JSON is a simple format based on nested pairs and arrays. The
+following script gives an example taken from Wikipedia
+\url{http://en.wikipedia.org/wiki/JSON}
 
 \begin{script}{An example of JSON}
 {	"firstName" : "John",
@@ -974,7 +942,7 @@ JSON is a simple format based on nested pairs and arrays. The following script g
 		    "state" : "NY",
 		    "postalCode" : "10021"	},
 	"phoneNumber":
-  		[	
+  		[
 			{	"type" : "home",
 		      	"number" : "212 555-1234"	},
 			{	"type" : "fax",
@@ -982,13 +950,13 @@ JSON is a simple format based on nested pairs and arrays. The following script g
 \end{script}
 
 
-JSON consists of object definitions (between curly braces ``\{\}'') and
-arrays (between square brackets ``[]''). An object definition is a set
-of key/value pairs whereas an array is a list of values. The previous
-JSON example then represents an object (a person) with several
-key/value pairs (\eg{} for the person firstname, name, age...). The address of the person
-is represented by another object while the phone number is represented
-by an array of objects.
+JSON consists of object definitions (between curly braces ``\{\}'')
+and arrays (between square brackets ``[]''). An object definition is a
+set of key/value pairs whereas an array is a list of values. The
+previous JSON example then represents an object (a person) with
+several key/value pairs (\eg{} for the person's first name, last name,
+and age). The address of the person is represented by another object
+while the phone number is represented by an array of objects.
 
 
 First we define a grammar as subclass of \ct{PPCompositeParser}. Let us call it
@@ -1002,25 +970,22 @@ PPCompositeParser subclass: #PPJsonGrammar
   category: 'PetitJson-Core'
 \end{script}
 
-We define the \ct{CharacterTable} class variable since we will later use it to parse
-strings.
+We define the \ct{CharacterTable} class variable since we will later
+use it to parse strings.
 
 \subsection{Parsing Objects and Arrays}
 
-\sd{what is an element? I rename members into elements to be in sync with the code}
-\sd{I'm quite sure that this code was not run.}
-
-The syntax diagrams for JSON objects and arrays are in~\syntaxjsonref{object} and~\syntaxjsonref{array}.
-
-A PetitParser can be defined for JSON objects with the following code:
+The syntax diagrams for JSON objects and arrays are
+in~\syntaxjsonref{object} and~\syntaxjsonref{array}. A PetitParser can
+be defined for JSON objects with the following code:
 
 \begin{jsonscript}{object}
 PPJsonGrammar>>object
-  ^ ${ asParser token trim , elements optional , $} asParser token trim
-  
-PPJsonGrammar>>elements
-  ^ value separatedBy: $, asParser token trim
-  
+  ^ ${ asParser token trim , members optional , $} asParser token trim
+
+PPJsonGrammar>>members
+  ^ pair separatedBy: $, asParser token trim
+
 PPJsonGrammar>>pair
   ^ stringToken , $: asParser token trim , value
 \end{jsonscript}
@@ -1036,7 +1001,7 @@ comma here).
     \node (p01a) [point] {}; \&
     \node (openbrace) [terminal] {\{}; \&
     \node (p02a) [point] {}; \&
-    \node (elements) [nonterminal] {elements}; \&
+    \node (members) [nonterminal] {members}; \&
     \node (p03a) [point] {}; \&
     \node (closebrace) [terminal] {\}}; \&
     \node (p04a) [point] {}; \\
@@ -1047,15 +1012,15 @@ comma here).
     \node (comma) [terminal] {,}; \&
     \node (p13a) [point] {}; \\
 
-    \node (pmembers) [production] {elements:}; \&
-    \node (p21a) [point] {}; \& \& 
+    \node (pmembers) [production] {members:}; \&
+    \node (p21a) [point] {}; \& \&
     \node (p21b) [point] {}; \&
     \node (pair) [nonterminal] {pair}; \&
     \node (p22a) [point] {}; \& \&
     \node (p22b) [point] {}; \\
 
     \node (ppair) [production] {pair:}; \&
-    \node (p31a) [point] {}; \& \& 
+    \node (p31a) [point] {}; \& \&
     \node (stringToken) [nonterminal, align=center, style={text height=3.5ex}] {string \\ Token}; \&
     \node (comma2) [terminal] {:}; \&
     \node (value) [nonterminal] {value}; \&
@@ -1065,7 +1030,7 @@ comma here).
   { [start chain]
     \chainin (p01a);
     \chainin (openbrace) [join=by tip];
-    \chainin (elements) [join=by tip];
+    \chainin (members) [join=by tip];
     \chainin (closebrace) [join=by tip];
     \chainin (p04a) [join=by tip];
 
@@ -1089,50 +1054,64 @@ comma here).
   }
 }
 
-Arrays are much simpler to parse as depicted in the following code:
+Arrays are much simpler to parse as depicted in \tscrref{json-array}.
 
 \begin{jsonscript}{array}
 PPJsonGrammar>>array
   ^ $[ asParser token trim ,
-        (value separatedBy: $, asParser token trim) optional ,
+         elements optional ,
     $] asParser token trim
+
+PPJsonGrammar>>elements
+  ^ value separatedBy: $, asParser token trim
 \end{jsonscript}
 
 % $ <-- to cancel previous one for Emacs highlighting
 
 \tikzgrammarjsonfig{array}{
   {
-    \& \& \& \&
-    \node (p01a) [point] {}; \& 
-    \node (comma) [terminal] {,}; \& 
-    \node (p02a) [point] {}; \\
-
     \node (array) [production] {array:}; \&
+    \node (p01a) [point] {}; \&
+    \node (openbrace) [terminal] {[}; \&
+    \node (p02a) [point] {}; \&
+    \node (elements) [nonterminal] {elements}; \&
+    \node (p03a) [point] {}; \&
+    \node (closebrace) [terminal] {]}; \&
+    \node (p04a) [point] {}; \\
+
     \node (p11a) [point] {}; \&
-    \node (openbracket) [terminal] {[}; \&
-    \node (p12a) [point] {}; \& 
-    \node (p12b) [point] {}; \& 
+    \& \&
+    \node (p12a) [point] {}; \&
+    \node (comma) [terminal] {,}; \&
+    \node (p13a) [point] {}; \\
+
+    \node (pelements) [production] {elements:}; \&
+    \node (p21a) [point] {}; \& \&
+    \node (p21b) [point] {}; \&
     \node (value) [nonterminal] {value}; \&
-    \node (p13a)    [point]       {};           \& 
-    \node (p13b)    [point]       {};           \&
-    \node (closebracket) [terminal]    {]};   \&
-    \node (p14a) [point]    {};     \\
+    \node (p22a) [point] {}; \& \&
+    \node (p22b) [point] {}; \\
   };
   { [start chain]
-    \chainin (p11a);
-    \chainin (openbracket) [join=by tip];
+    \chainin (p01a);
+    \chainin (openbrace) [join=by tip];
+    \chainin (elements) [join=by tip];
+    \chainin (closebrace) [join=by tip];
+    \chainin (p04a) [join=by tip];
+
+    \chainin (p03a) [join=with p02a by {skip loop=-5mm, tip}];
+
+    \chainin (p21a);
     \chainin (value) [join=by tip];
-    \chainin (closebracket) [join=by tip];
-    \chainin (p14a) [join=by tip];
-    \chainin (p13b)    [join=with p12a by {skip loop=-5mm,tip}];
-    \chainin (p13a);
-    \chainin (p02a)  [join];
+    \chainin (p22b) [join=by tip];
+
+    \chainin (p22a);
+    \chainin (p13a) [join];
     \chainin (comma) [join=by tip];
-    \chainin (p01a)  [join];
-    \chainin (p12b)  [join=by tip];
+    \chainin (p12a) [join];
+    \chainin (p21b) [join=by tip];
   }
 }
-
 
 \subsection{Parsing Values}
 
@@ -1149,39 +1128,39 @@ PPJsonGrammar>>value
 \tikzgrammarjsonfig{value}{
   {
     \node (value) [production] {value:}; \&
-    \node (p01a)    [point]       {};           \& 
-    \node (p01b)    [point]       {};           \& 
+    \node (p01a)    [point]       {};           \&
+    \node (p01b)    [point]       {};           \&
     \node (string) [nonterminal, align=center, style={text height=3.5ex}] {string \\ Token};  \&
     \node (p02a)    [point]       {};           \&
     \node (p02b)    [point]       {};           \\
 
     \& \&
-    \node (p11a)    [point]       {};           \& 
+    \node (p11a)    [point]       {};           \&
     \node (number) [nonterminal]    {number};  \&
     \node (p12a)    [point]       {};           \&    \\
 
     \& \&
-    \node (p21a)    [point]       {};           \& 
+    \node (p21a)    [point]       {};           \&
     \node (object) [nonterminal]    {object};  \&
     \node (p22a)    [point]       {};           \&    \\
 
     \& \&
-    \node (p31a)    [point]       {};           \& 
+    \node (p31a)    [point]       {};           \&
     \node (array) [nonterminal]    {array};  \&
     \node (p32a)    [point]       {};           \&    \\
 
     \& \&
-    \node (p41a)    [point]       {};           \& 
+    \node (p41a)    [point]       {};           \&
     \node (true) [terminal]    {true};  \&
     \node (p42a)    [point]       {};           \&    \\
 
     \& \&
-    \node (p51a)    [point]       {};           \& 
+    \node (p51a)    [point]       {};           \&
     \node (false) [terminal]    {false};  \&
     \node (p52a)    [point]       {};           \&    \\
 
     \& \&
-    \node (p61a)    [point]       {};           \& 
+    \node (p61a)    [point]       {};           \&
     \node (null) [terminal]    {null};  \&
     \node (p62a)    [point]       {};           \&    \\
   };
@@ -1251,20 +1230,21 @@ PPJsonGrammar>>Normal
 % $ <-- to cancel previous one for Emacs highlighting
 
 Special characters allowed after a slash and their meanings are
-defined in the \ct{CharacterTable} dictionary that we initialize in the \ct{initialize} class method. 
+defined in the \ct{CharacterTable} dictionary that we initialize in
+the \ct{initialize} class method.
 
 \begin{script}{Defining the JSON special characters and their meaning}
 PPJsonGrammar class>>initialize
   CharacterTable := Dictionary new.
   CharacterTable
-		at: $\ put: $\;
-		at: $/ put: $/;
-		at: $" put: $";
-		at: $b put: Character backspace;
-		at: $f put: Character newPage;
-		at: $n put: Character lf;
-		at: $r put: Character cr;
-		at: $t put: Character tab
+    at: $\ put: $\;
+    at: $/ put: $/;
+    at: $" put: $";
+    at: $b put: Character backspace;
+    at: $f put: Character newPage;
+    at: $n put: Character lf;
+    at: $r put: Character cr;
+    at: $t put: Character tab
 \end{script}
 % $ <-- to cancel previous one for Emacs highlighting
 
@@ -1282,25 +1262,25 @@ PPJsonGrammar class>>initialize
     \node (p04a) [point] {}; \\
 
     \& \& \& \&
-    \node (p11a) [point] {}; \& 
-    \node (charEscape) [nonterminal] {charEscape}; \& 
+    \node (p11a) [point] {}; \&
+    \node (charEscape) [nonterminal] {charEscape}; \&
     \node (p12a) [point] {}; \\
 
     \node (charp) [production] {char:}; \&
     \node (p21a) [point] {}; \& \& \&
-    \node (p21b) [point] {}; \& 
-    \node (charOctal) [nonterminal] {charOctal}; \& 
+    \node (p21b) [point] {}; \&
+    \node (charOctal) [nonterminal] {charOctal}; \&
     \node (p22a) [point] {}; \& \& \&
     \node (p22b) [point] {}; \\
 
     \& \& \& \&
-    \node (p31a) [point] {}; \& 
-    \node (charNormal) [nonterminal] {charNormal}; \& 
+    \node (p31a) [point] {}; \&
+    \node (charNormal) [nonterminal] {charNormal}; \&
     \node (p32a) [point] {}; \\
 
     \node (charEscapep) [production] {charEscape:}; \&
     \node (p40a) [point] {}; \&
-    \node (backslash) [terminal]    {\textbackslash};  \& 
+    \node (backslash) [terminal]    {\textbackslash};  \&
     \node (p41a) [point] {}; \& \&
     \node (quote) [terminal] {" \textrm{(quotation mark)}}; \&
     \node (p42a) [point] {}; \& \& \&
@@ -1382,7 +1362,7 @@ PPJsonGrammar class>>initialize
     \chainin (p40a);
     \chainin (backslash) [join=by tip];
     \chainin (quote) [join=by tip];
-    \chainin (p42b) [join=by tip];    
+    \chainin (p42b) [join=by tip];
 
     \chainin (p41a);
     \chainin (p50a) [join];
@@ -1447,7 +1427,7 @@ PPJsonGrammar>>numberToken
 PPJsonGrammar>>number
   ^ $- asParser optional ,
   ($0 asParser / #digit asParser plus) ,
-  ($. asParser , #digit asParser plus) optional , 
+  ($. asParser , #digit asParser plus) optional ,
   (($e asParser / $E asParser) , ($- asParser / $+ asParser) optional , #digit asParser plus) optional
 \end{jsonscript}
 % $ <-- to cancel previous one for Emacs highlighting
@@ -1466,10 +1446,6 @@ starting with 0.
 
  % $ <-- to compensate
 
-
-\sd{why (\$0 asParser / \#digit asParser plus) why \#digit does not handle 0?}
-\dc{is it clearer now?}
-
 \tikzgrammarjsonfig{number}{
   {
     \node (number) [production] {number:}; \&
@@ -1478,7 +1454,7 @@ starting with 0.
     \node (-) [terminal] {-}; \&
     \node (p01c) [point] {}; \&
     \node (p01d) [point] {}; \&
-    \node (0) [terminal] {0}; \& 
+    \node (0) [terminal] {0}; \&
     \node (p02a) [point] {}; \& \&
     \node (p02b) [point] {}; \&
     \node (.) [terminal] {.}; \&
@@ -1498,8 +1474,8 @@ starting with 0.
     \node (p14a) [point] {}; \\
 
     \&
-    \node (p21a)  [point] {}; 
-    \& \& \& \& \& \& \& \& \& \& \& \& \& \& 
+    \node (p21a)  [point] {};
+    \& \& \& \& \& \& \& \& \& \& \& \& \& \&
     \node (p22a) [point] {}; \&
     \node (p23a) [point] {}; \\
 
@@ -1515,7 +1491,7 @@ starting with 0.
     \node (digit4) [terminal] {digit}; \&
     \node (p34a) [point] {}; \&
     \node (p34b) [point] {}; \&
-    \& \& \& 
+    \& \& \&
     \node (p35a) [point] {}; \&
     \&
     \node (p35b) [point] {};\\
@@ -1579,7 +1555,7 @@ tutorial is not meant to give an exhaustive overview of PetitParser,
 but is merely intended to introduce the reader to its usage. For a
 more extensive view of PetitParser, its concepts and implementation,
 the Moose book\footnote{\url{http://www.themoosebook.org/book}} and
-Lukas Renggli's PhD have a dedicated chapter dedicated.
+Lukas Renggli's PhD have a dedicated chapter.
 
 %=============================================================
 \ifx\wholebook\relax\else
