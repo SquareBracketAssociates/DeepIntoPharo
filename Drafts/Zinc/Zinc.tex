@@ -35,6 +35,7 @@
 \chalabel{Zinc}
 
 
+
 should be updated the latest release
 
 
@@ -145,6 +146,19 @@ ZnServer stopDefault.
   codec: GRPharoUtf8Codec new;
   start
 \end{code}  
+  
+Monticello file server
+\begin{code}{}
+aServer := ZnServer on: 8080.
+aServer delegate: ((ZnMonticelloServerDelegate new)
+	directory: (FileDirectory on: '/Users/sven/Tmp/monticello')).
+aServer start
+\end{code}
+  
+  
+  
+  
+  
   
 \section{Object Model}
 
