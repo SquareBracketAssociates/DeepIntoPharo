@@ -314,9 +314,25 @@ Otherwise, we get a new socket \ct!interactionSocket! connected the client's soc
 At this point, we do not need the connection socket anymore, so we can close it (\ct!connectionSocket closeAndDestroy! message).
 
 Since the interaction socket is already connected to the client, we can use it to exchange data.
-Messages \ct!receiveData! and \ct!sendData:! presented above (see Section~\ref{sec:exchangeData}) can be used to achieve this goal.
+Messages \ct!receiveData! and \ct!sendData:! presented above (see \secref{exchangeData}) can be used to achieve this goal.
 In our example, we wait for data from the client, next we display it on the \ct!Transcript!, and last we send it back to the client prefixed with the \ct!'ECHO: '! string.
 Last, we finish the interaction with the client by closing the interaction socket.
+
+There different options to test the server of \Scrref{servingBasicExample}.
+The first simple option is to use the \ct{nc} (netcat) utility discussed in \secref{netcat}.
+First run the server script in a workspace.
+Then, open a terminal and evaluate the following command line: 
+\begin{code}
+	echo "Hello Pharo" | nc localhost 9999
+\end{code}
+
+A pure Pharo alternative relies on using two different images: one that runs the server code and one for the client code. 
+Indeed, since we use the user interaction process, the \pharo UI will be frozen at some points, such as during the \ct!waitForAcceptFor:!.
+\Scrref{echoClient} provides the code to run on the client image.
+Note that you have to run the server code first.
+Otherwise, the client will fail.
+Note also that after the interaction both the client and the server terminate.
+So, if you want to run the example a second time you need to run again both sides.
 
 \begin{script}[echoClient]{Echo Client.}
 | clientSocket serverAddress echoString |
@@ -330,16 +346,6 @@ clientSocket := Socket newTCP.
  Transcript cr; show: echoString.
 ] ensure: [ clientSocket closeAndDestroy ].
 \end{script}
-
-You cannot test this script totally without having the client code running, for example in a different process or a second image. 
-\sd{It would be good to have that as a setup so that the guy can directly try. Or use a unix command line that you mention afetr. The idea is to get really concrete use.}
-You should use two different images, one that runs the server code and one for the client code. 
-Indeed, since we use the user interaction process, the \pharo UI will be frozen at some points, such as during the \ct!waitForAcceptFor:!.
-\Scrref{echoClient} provides the code to run on the client image.
-Note that you have to run the server code first.
-Otherwise, the client will fail.
-Note also that after the interaction both the client and the server terminate.
-To run the example a second time you need to run again both sides.
 
 %An alternative to running your own Smalltalk client socket is to use an existing one.
 %On Unix machines, the \ct{nc}\footnote{\ct{nc} stands for \ct{netcat}.} utility is very handy for experimenting with sockets.
@@ -413,7 +419,6 @@ EchoServer>>>stop
 
 \begin{method}[meth:serve]{The \ct!EchoServer>>>serve! Method}
 EchoServer>>>serve
-	| interactionSocket |
 	[ [ self isRunning ]
 		whileTrue: [ self interactOnConnection ] ]
 		ensure: [ connectionSocket closeAndDestroy ]
@@ -650,7 +655,7 @@ In real scale applications, interactions involving HTTP should be coded using a 
 Network programming can easily scale up in complexity. Using a toolbox outside Pharo is often necessary to identify what is the source of an odd behavior. This section lists a number of Unix utilities to deal with low level network operations.
 Readers with a Unix machine (Linux, Mac OS X) or with Cygwin (for Windows) can use \ct!nc! (or netcat), \ct!netstat! and \ct!lsof! for their tests.
 
-\subsection{\ct!nc! (netcat)}
+\subsection{\ct!nc! (netcat)}\label{sec:netcat}
 \ct!nc! allows one to set up either a client or a server for both TCP (default protocol) and UDP.
 It redirects the content of its \ct!stdin! to the other side.
 The following snippet show how to send \ct!'Hello from a client'! to a server on the local machine listening on port 9090.
