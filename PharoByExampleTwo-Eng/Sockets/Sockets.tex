@@ -318,20 +318,30 @@ Messages \ct!receiveData! and \ct!sendData:! presented above (see \secref{exchan
 In our example, we wait for data from the client, next we display it on the \ct!Transcript!, and last we send it back to the client prefixed with the \ct!'ECHO: '! string.
 Last, we finish the interaction with the client by closing the interaction socket.
 
-There different options to test the server of \Scrref{servingBasicExample}.
-The first simple option is to use the \ct{nc} (netcat) utility discussed in \secref{netcat}.
+There are different options to test the server of \Scrref{servingBasicExample}.
+The first simple one is to use the \ct{nc} (netcat) utility discussed in \secref{netcat}.
 First run the server script in a workspace.
-Then, open a terminal and evaluate the following command line: 
-\begin{code}
+Then, in a terminal, evaluate the following command line: 
+\begin{code}[]
 	echo "Hello Pharo" | nc localhost 9999
 \end{code}
 
-A pure Pharo alternative relies on using two different images: one that runs the server code and one for the client code. 
-Indeed, since we use the user interaction process, the \pharo UI will be frozen at some points, such as during the \ct!waitForAcceptFor:!.
+As a result, on the \ct{Transcript} of the \pharo image, the following line should be displayed:
+\begin{code}[]
+	Hello Pharo
+\end{code}
+
+On the client side, that is the terminal, you should see:
+\begin{code}[]
+	ECHO: Hello Pharo
+\end{code}
+
+A pure \pharo alternative relies on using two different images: one that runs the server code and the other for client code. 
+Indeed, since our examples run within the user interaction process, the \pharo UI will be frozen at some points, such as during the \ct!waitForAcceptFor:!.
 \Scrref{echoClient} provides the code to run on the client image.
 Note that you have to run the server code first.
 Otherwise, the client will fail.
-Note also that after the interaction both the client and the server terminate.
+Note also that after the interaction, both the client and the server terminate.
 So, if you want to run the example a second time you need to run again both sides.
 
 \begin{script}[echoClient]{Echo Client.}
@@ -346,7 +356,6 @@ clientSocket := Socket newTCP.
  Transcript cr; show: echoString.
 ] ensure: [ clientSocket closeAndDestroy ].
 \end{script}
-
 %An alternative to running your own Smalltalk client socket is to use an existing one.
 %On Unix machines, the \ct{nc}\footnote{\ct{nc} stands for \ct{netcat}.} utility is very handy for experimenting with sockets.
 %It can play either a client or a server role for both TCP and UDP.
