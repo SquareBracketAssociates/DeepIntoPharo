@@ -143,6 +143,125 @@ Some messages are related to process scheduling. We list the most important ones
 \end{tabular}
 
 
+\section{Method Execution}
+Before going into the details of block handling, we will have a look at the way methods are executed. Imagine that we have 
+a simple method 
+
+\begin{code}{}
+BEXp>>first: arg	| temp | 		temp := arg * 2.
+	^ temp
+\end{code}
+
+We can easily imagine that when such method is invoked multiple times with different arguments, we need a way to keep 
+the value of the argument \ct{arg} and the temporary variable \ct{temp}. In addition, the instruction or program counter (the index saying what is the next instruction) can hold different values depending on the execution state and location. Therefore, there is a need to represent such information. Literature calls it a context. A Smalltalk interpreter needs five information to represent its current execution state:
+\begin{enumerate}
+\item The CompiledMethod whose bytecodes are being executed.\item The location of the next bytecode to be executed in thatCompiledMethod. This is the interpreter's instruction pointer.\item The receiver and arguments of the message that invoked theCompiledMethod.\item Any temporary variables needed by the CompiledMethod.\item A stack.
+\end{enumerate}
+
+
+
+In Pharo, the class \ct{MethodContext} represents such execution information. Instances of \ct{MethodContext} hold information about a specific execution point and we can obtain them using the pseudo-variable \ct{thisContext}.
+
+Let us look at an example. Modify the method as follow and execute it using \ct{BEXp new first: 33}. 
+You will get the inspector shown in Figure~\ref{oneContext}.
+
+\begin{code}
+BEXp>>first: arg	| temp | 		temp := arg * 2.
+	thisContext copy inspect.
+	^ temp
+\end{code}
+
+Note that we copy the current context obtained using \ct{thisContext} because the Virtual Machine reuses contexts to avoid their creation when not necessary and it nilles out some values such as the temp value.
+
+Let us have a look at some value of the current context:
+
+\begin{figure}[!h]
+\begin{center}\includegraphics[width=5cm]{oneContext}
+\caption{A method context where we can access the value of the temporary variable \ct{temp} at that given point of execution.\label{oneContext}}
+\end{center}
+\end{figure}
+
+\begin{itemize}
+\item \ct{sender} points to the previous context that led to the creation of the current context. Here when you executed the expression, a context was created and this context is the sender of the current one. 
+\item \ct{pc} holds the value of the last executed instruction. Here its value is 27. To see which instruction it is, double click on the method instance variable and select the all bytecodes field, you should obtain the situation depicted in Figure~\ref{ByteCodes}. 
+
+\end{itemize}
+
+
+\begin{figure}[!h]
+\begin{center}\includegraphics[width=5cm]{ByteCodes}
+\caption{The last instruction executed was the message send \ct{inspect}.\label{ByteCodes}}
+\end{center}
+\end{figure}
+
+
+
+
+
+
+
+\begin{code}
+BEXp>>first: arg	| temp | 		temp := arg * 2.
+	thisContext copy inspect.
+	temp := arg * 3.
+	thisContext inspect.
+	self halt.
+	^ temp
+\end{code}
+
+Why without the self halt in the inspector temp is nil? Context recycling?
+Why can it see the difference between the first and the second thisContext?
+
+
+
+Therefore, there is a need to represent the specific execution state of a compiled method: the argument, temporary variable, next instruction to execute. 
+
+
+
+
+
+
+
+\begin{code}{}
+BEXp>>first: arg	| temp | 		temp := arg *2.
+	thisContext inspect.	self second: temp.
+
+BEXp>>second: arg2		self halt.	^ arg2
+\end{code}
+
+In the inspector, you can access the temporary variable of method first: using the expression self tempNamedAt: 'arg'
+
+
+\subsection{Contexts}
+
+Contexts are objects representing a given execution state also called activation record, like a C stack represents execution of a C program. Contexts maintain the program counter and stack pointer, holding pointers to the sending context, the method for which this is appropriate, etc. MethodContext represents an executing method, it points back to the context from which it was activated, holds onto its receiver and compiled method. 
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=8cm]{MethodAndMethodContext}
+\end{center}
+\end{figure}
+
+To send a message to a receiver, the VM has to:
+
+\begin{enumerate}
+\item find the class of the receiver using the receiver object's header.\item lookup the method in the class methodDictionary.\item if the method is not found, repeat this lookup in superclasses.When no class in the superclass chain can understand the message, send the message doesNotUnderstand: to the receiver so that the error can be handled in a manner appropriate to that object.
+\item extract the appropriate CompiledMethod from the MethodDictionary where the message was found and then 
+\begin{enumerate}\item check for a primitive associated with the method by reading the method header\item if there is a primitive, execute it.\item if it completes successfully, return the result object directly to the message sender.\item otherwise, continue as if there was no primitive called.
+\end{enumerate}\item Create a new activation record. Set up the program counter, stack pointer,home contexts, then copy the arguments and receiver from the message sending context's stack to the new stack.
+\item Activate that new context and start executing the instructions in the new method.
+\end{enumerate}
+
+
+\subsection{Handling Temporary Variables}
+\sd{to rewrite}
+Temporary Variables.
+ Temporary variables are created for a particular execution of a CompiledMethod and cease to exist when the execu- tion is complete. The CompiledMethod indicates to the interpreter how many temporary variables will be required. The arguments of the in- voking message and the values of the temporary variables are stored to- gether in the temporary frame. The arguments are stored first and the temporary variable values immediately after. They are accessed by the same type of bytecode (whose comments refer to a temporary frame lo- cation). Since merge: takes a single argument, its two temporary vari- ables use the second and third locations in the temporary frame. The compiler enforces the fact that the values of the argument names can- not be changed by never issuing a store bytecode referring to the part of the temporary frame inhabited by the arguments.
+
+
+When a message is sent, all five parts of the in-terpreter's state may have to be changed in order to execute a different CompiledMethod in response to this new message. The interpreter's old statemust be remembered because the bytecodes after the send must be executed after the value of the message is returned.The interpreter saves its state in objects called contexts. There will be many contexts in the system at any one time. The context that rep- resents the current state of the interpreter is called the active context. When a send bytecode in the active context's CompiledMethod requires a new CompiledMethod to be executed, the active context becomes sus- pended and a new context is created and made active. The suspended context retains the state associated with the original CompiledMethod until that context becomes active again. A context must remember the context that it suspended so that the suspended context can be resumed when a result is returned. The suspended context is called the new con- text's sender.
+
+
 \section{Variables and Blocks}
 In Smalltalk, private variables (such as self, instance variables, temporaries and arguments) are 
 lexically scoped. These variables are bound (get a value associated to them) in the context in which the block that contains them is defined, rather than the context in which the block is executed.  We call the context (an activation record representing a smalltalk execution stack element) in which a block is defined, the \emph{block home context}.
@@ -167,6 +286,8 @@ BExp>>testScope
 
 Execute \ct{BExp new testScope}. Executing the \ct{testScope} message will print 42 in the Transcript. The value of the temporary variable \ct{t} defined in method \ct{testScope} is the one used rather than the one of t defined inside \ct{testBlock:}.
 The variable \ct{t} is not looked up in the context of the executing method \ct{testBlock:} but in the context of the method \ct{testScope} which defined the block.
+
+\sd{would be nice to have a picture}
 
 \paragraph{Experience two.}\ 
 \begin{code}{}
