@@ -1188,6 +1188,11 @@ Here this indicates that there is no version for the \ct{common} tag.
 Using a symbolic version that resolves to \ct{notDefined} will result in a \ct{MetacelloSymbolicVersionNotDefinedError} being signaled.
 
 
+
+
+
+
+
 %%%%%%%%%    
 \subsection{Project Blessing and Loading}
 Packages or projects pass through several stages or steps during the software development process or life cycle such as for example, development, alpha, beta, release. Sometimes we want to refer also to the state of a project.
@@ -1265,6 +1270,33 @@ So that you have driven a stake into the ground stating that these versions are 
 
 If you are just bringing up a PharoCore1.2 image and would like to load the Pharo dev code, you should load the \ct{#stable} version of Pharo (which may be 1.2.2 today and 1.2.3 tomorrow).
 If you want to duplicate the environment that someone is working in, you will ask them for the version of Pharo and load that explicit version to reproduce the bug or whatever. 
+
+
+\subsection{How to Deal with Package Structure Changes?}
+Imagine that you want to develop an application on both Pharo13 and Pharo14, and that your application has only a package for one version: either because 
+you changed your application or because the package was integrated into the base system. 
+
+The solution is to define the dependencies and use the symbolic tag as a marker, as follows: 
+
+\begin{code}{}
+spec for: #'pharo' do: [
+   spec package: 'that depends upon zinc' with: [
+     "the common required packages for your package"
+   ].
+   
+spec for: #'pharo1.3.x' do: [
+   spec project: 'Zinc' with: [
+       spec
+           className: 'ConfigurationOfZinc';
+           versionString: #'stable';
+           repository: 'http://www.squeaksource.com/MetacelloRepository' ].
+   spec package: 'that depends upon zinc' with: [
+       spec requires: #('Zinc') ].
+].
+\end{code}
+
+If you use the \ct{stable} version in your baseline there is no need to anything special in your version specification.
+
 
 
 
