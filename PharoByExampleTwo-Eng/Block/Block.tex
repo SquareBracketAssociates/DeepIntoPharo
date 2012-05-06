@@ -249,15 +249,15 @@ Bexp>>testScopeArgValue: aBlock
 Bexp>>testScopeArg: arg
 	"self new testScopeArg: 'foo'"
 	
-	self testScopeArgValue: [self traceCr: arg ; cr]
+	self testScopeArgValue: [arg crLog]
 \end{code}
 
 Now executing \ct{Bexp new testScopeArg: 'foo'} prints 'foo' even if in the method \ct{testScopeArgValue:} the temporary arg is redefined.
  
-
+\sd{here}
 \paragraph{self binding.}
 For binding of self, we simply define a new class and a couple of methods. 
-Add the instance variable x to the class \ct{Bexp} and define the initialize method as follows:
+Add the instance variable x to the class \ct{Bexp} and define the \ct{initialize} method as follows:
 
 \begin{code}{}
 Object subclass: #Bexp
@@ -269,6 +269,7 @@ Object subclass: #Bexp
 
 \begin{code}{}
 Bexp>>initialize
+    super initialize.
 	x := 123.
 \end{code}	
 
