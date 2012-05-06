@@ -122,7 +122,7 @@ Some messages are useful to profile execution (more information on Chapter~\ref{
 
 \item{\textsf{durationToRun}} Answer the duration (instance of Duration) taken to execute the receiver block.
 
-\item{\textsf{timeToRun}}Answer the number of milliseconds taken to execute this block.
+\item{\textsf{timeToRun}} Answer the number of milliseconds taken to execute this block.
 \end{description}
 
 
@@ -134,7 +134,7 @@ Some messages are related to error handling (as explained in the Exception Chapt
 
 \item{\textsf{on: exception do: aBlock}} Evaluate the receiver. If an exception \textsf{exception} is raised, executes the block \textsf{aBlock}.
 
-\item{\textsf{on: exception fork: aBlock}}Execute the receiver. In case of exception, fork a new process, which will handle the error. The original process will continue running as if receiver evaluation finished and answered nil,\ie  an expression like: \textsf{[ self error: 'some error'] on: Error fork: [:ex |  123 ]} will always answer nil to the original process, not 123. The context stack, starting from context which sent this message to the receiver and up to the top of the stack will be transferred to the forked process, with handlerAction on top. When the forked process will resume, it will enter the block \textsf{aBlock}).
+\item{\textsf{on: exception fork: aBlock}} Execute the receiver. In case of exception, fork a new process, which will handle the error. The original process will continue running as if receiver evaluation finished and answered nil,\ie  an expression like: \textsf{[ self error: 'some error'] on: Error fork: [:ex |  123 ]} will always answer nil to the original process, not 123. The context stack, starting from context which sent this message to the receiver and up to the top of the stack will be transferred to the forked process, with handlerAction on top. When the forked process will resume, it will enter the block \textsf{aBlock}).
 \end{description}
 
 
@@ -153,59 +153,85 @@ Some messages are related to process scheduling. We list the most important ones
 
 
 \section{Variables and Blocks}
-In Smalltalk, private variables (such as self, instance variables, temporaries and arguments) are 
-lexically scoped. These variables are bound (get a value associated to them) in the context in which the block that contains them is defined, rather than the context in which the block is executed.  We call the context (an activation record representing a smalltalk execution stack element) in which a block is defined, the \emph{block home context}.
+A block can have its own temporaries variables, such variables are initialized during each block execution and are local to the block. Now the question we want to make clear is what is happening when a block refers to other (non local) variables. 
+
+In Smalltalk, private variables (such as self, instance variables, method temporaries and arguments) are lexically scoped. These variables are bound (get a value associated to them) in the context in which the block that contains them is defined, rather than the context in which the block is executed.  We call the context in which a block is defined, the \emph{block home context} we will come back later to this concept. 
+In essence a context, represent information about the current execution step (what is the context from which the current one is executed, what is the next byte code, what is the value of the temporary variables...) a context is an activation record representing a smalltalk execution stack element. 
 
 
-Let's experiment a bit to understand. Define a class named \ct{Bexp} (for BlockExperience) and the following methods:
+Let's experiment a bit to understand how variables are bound in a blockt. Define a class named \ct{Bexp} (for BlockExperience) and the following methods:
 
 \paragraph{Experience one.}\ 
 
 \begin{code}{}
-Bexp>>testBlock: aBlock 
+Bexp>>testVariable: aBlock 
 	| t | 
 	t := nil. 
 	aBlock value 
 	
-Bexp>>testScope 
+Bexp>>testVariable 
 	| t | 
 	t := 42. 
-	self testBlock: [self traceCr: t printString] 
+	self testVariable: [ t logCr ] 
 \end{code}
 
-Execute \ct{Bexp new testScope}. Executing the \ct{testScope} message will print 42 in the Transcript. The value of the temporary variable \ct{t} defined in method \ct{testScope} is the one used rather than the one of t defined inside \ct{testBlock:}.
-The variable \ct{t} is not looked up in the context of the executing method \ct{testBlock:} but in the context of the method \ct{testScope} which defined the block.
+Execute \ct{Bexp new testVariable}. Executing the \ct{testVariable} message  prints 42 in the Transcript. The value of the temporary variable \ct{t} defined in method \ct{testVariable} is the one used rather than the one of \ct{t} defined inside \ct{testVariable:}. Even if the block is executed during the execution of the method \ct{testVariable:}.
 
-\sd{would be nice to have a picture}
+The variable \ct{t} is not looked up in the context of the executing method \ct{testVariable:} but in the context of the method \ct{testVariable} which defined the block.
 
-\paragraph{Experience two.}\ 
+Figure~\ref{fig:variable} shows the execution of the expression \ct{Bexp new testVariable}. It shows that during the execution of method \ct{testVariable}, a block is created and this block refers to the method activation context (which holds temporaries variables for example) (step 1). When the block is executed in step 2 while executing the method testVariable: (in a different execution context), the non local variable t is looking in the home context of the block \ie the method context that created the block.
+
+\begin{figure}[!h]
+\begin{center}\includegraphics[width=9cm]{variable}
+\caption{ Non local variable are looked in the method activation context where the block was created and not executed.\label{fig:variable}}
+\end{center}
+\end{figure}
+
+
+\paragraph{Experience two. A block can change the value of a non local variable.}\ 
+Now the method \ct{testVariable2} shows that non local variable value can be changed during the execution of a block. Executing \ct{Bexp new testVariable2} prints 33, since 33 is the last value of the variable \ct{t}.
+
+
 \begin{code}{}
-Bexp>>testBlock: aBlock
-	| t | 
-	t := nil. 
-	aBlock value 
-	
-Bexp>>testScope2 
+Bexp>>testVariable2 
 	| t | 
 	t := 42. 
-	self testBlock: [t := 33. self traceCr: t printString] 	
+	self testVariable: [ t := 33. t logCr ] 	
 \end{code}
 
-Executing \ct{Bexp new testScope2} prints 33. This experience shows that a block is not only an anonymous method but one with an execution context or environment. In this environment temporary variables are bound with the values they hold when the block 
-is defined. 
-
-If we redefine \ct{testScope2} as follows: 
+\paragraph{Experience Three. Accessing a shared non local variable.}\ 
+Note that two blocks can share a non local variable. Let us define a new method \ct{testVariable3} as follows: 
 
 \begin{code}{}
-testScope2 
-	|t|
+Bexp>>testVariable3 
+	| t |	t := 42.	self testVariable: [ t logCr. t := 33. t logCr ].	self testVariable: [ t logCr. t := 66. t logCr ].	self testVariable: [ t logCr ]
+\end{code}
+
+\ct{Bexp new testVariable3} will print 42, 33, 33, 66 and 66.
+Here the two blocks \ct{[ t := 33. t logCr ]} and \ct{[ t := 66. t logCr ]} access the variable \ct{t} and can modify it. During the first execution of the method \ct{testVariable:} its current value \ct{42} is printed, then the value is changed and printed. Similar situation occurs in the following block.
+
+\paragraph{Experience Four. Storing a block.}\ 
+The following example shows that the value of the variable is looked up at runtime. 
+Here the initial value of the variable \ct{t} is 42. The block is created and stored into an instance variable but the value to \ct{t} is changed to 69 before the block is executed. And this is the last value (69) that is effectively printed because it is looked up at execution-time. Executing \ct{Bexp new testVariable4} prints 69.
+
+\begin{code}{}
+Object subclass: #Bexp
+	instanceVariableNames: 'block'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'BlockExperiment'
+\end{code}
+
+\begin{code}{}
+Bexp>>testVariable4
+	| t |
 	t := 42.
-	self testBlock: [t := 33. self traceCr: t printString].
-	self testBlock: [t := 66. self traceCr: t printString].
-	self testBlock: [ self traceCr: t printString]
+	block := [ t logCr: t ].
+	t := 69. 
+	self testVariable: block
 \end{code}
 
-We will get 33, 66 and 66 printed.
+
 
 
 
@@ -271,9 +297,9 @@ Bexp>>testScopeSelf
 
 Now when we execute \ct{Bexp new testScopeSelf}. You get \ct{a Bexp123} printed, showing that a block captures self too, since an instance of Bexp2 executed the block but the printed object was the original Bexp instance. 
 
-\paragraph{An example of sharing.}
+\paragraph{Another example of sharing.}
 
-Variables referred to by a block continue to be accessible and shared with other expressions. Let us  take some examples. Define the following method \ct{foo} which defines a temporary variable \ct{a}.
+Non local variables referred to by a block continue to be accessible and shared with other expressions. Let us  take some examples. Define the following method \ct{foo} which defines a temporary variable \ct{a}.
 
 \begin{code}{}
 Bexp>>foo
@@ -734,10 +760,14 @@ home contexts, then copy the arguments and receiver from the message sending con
 \end{code}
 
 \begin{code}{}
-inject: thisValue into: binaryBlock	"Accumulate a running value associated with evaluating the argument, 	
+inject: thisValue into: binaryBlock
+	"Accumulate a running value associated with evaluating the argument, 	
 	binaryBlock, with the current value of the argument, thisValue, and the 
 	receiver as block arguments. For instance, to sum the numeric elements of a 
-	collection, aCollection inject: 0 into: [:subTotal :next | subTotal + next]."	| nextValue |	nextValue := thisValue.	self do: [:each | nextValue := binaryBlock value: nextValue value: each]. 	^ nextValue
+	collection, aCollection inject: 0 into: [:subTotal :next | subTotal + next]."
+	| nextValue |
+	nextValue := thisValue.
+	self do: [:each | nextValue := binaryBlock value: nextValue value: each]. 	^ nextValue
 \end{code}
 
 
