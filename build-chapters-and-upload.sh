@@ -6,6 +6,7 @@ REMOTE_SERVER=scm.gforge.inria.fr
 REMOTE_PATH=/home/groups/pharobooks/htdocs
 REMOTE=$REMOTE_SERVER:$REMOTE_PATH
 BOOK=PharoByExampleTwo-Eng
+DOWNLOAD_URL=http://pharobooks.gforge.inria.fr/$BOOK
 USER=cassou
 
 cd $TEMP_DIR
@@ -35,6 +36,10 @@ mkdir tmp
 mv $files_to_upload tmp/
 cd tmp
 
-tar cf - *.pdf | \
+echo
+echo "Uploading to $DOWNLOAD_URL..."
+echo
+
+tar vcf - *.pdf | \
     ssh $USER@$REMOTE_SERVER \
-    "cd $REMOTE_PATH/$BOOK; mkdir $upload_id; cd $upload_id; tar xf -; cd ..; unlink latest; ln -s $upload_id latest"
+    "cd $REMOTE_PATH/$BOOK; mkdir $upload_id; cd $upload_id; tar vxf -; cd ..; unlink latest; ln -s $upload_id latest"
