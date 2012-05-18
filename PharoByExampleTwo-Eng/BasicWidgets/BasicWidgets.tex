@@ -201,6 +201,42 @@ je ne comprends pas pourquoi je peux alors avoir une fenetre immense? \ja{what ?
 \item Action on close? \ja{what ?}
 \end{itemize}
 
+\paragraph*{About dialog.}
+
+The SystemWindow will generate an About window for you. You can control the title by implementing \mthind{Model}{aboutTitle} and it will take the body of the class comment on your model as the text of the about dialog. For example:
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=9cm]{AboutDialog}
+\caption{Customizing the About dialog}
+\figlabel{fig:customizeAboutDialog}
+\end{center}
+\end{figure}
+
+Other SystemWindow model delegate messages:
+
+\begin{itemize}
+\item \#initialExtent
+\item \#modelWakeUpIn: aSystemWindow---sent when the window becomes active
+\item \#modelSleep---sent when the window becomes inactive
+\item \#windowIsClosing---sent during window deletion, before model is cleared
+\item \#desiredWindowLabelHeightIn: aSystemWindow---sent during label creation
+\item \#windowReqNewLabel: aString---sent by relabel
+
+\item \#taskbarIcon
+\item \#taskbarLabel
+
+\item \#wantsStepsIn: aSystemWindow
+\item \#stepAt: aMillisecondClockValue in: aSystemWindow---a step, sent if the model wants stepping
+\item \#stepTimeIn: aSystemWindow---sent to request stepping at this interval
+\end{itemize}
+
+Additional StandardWindow model delegate messages:
+
+\begin{itemize}
+\item \#okToClose
+\end{itemize}
+
 \paragraph*{Title.}
 \mthind{StandardWindow}{title:}
 The default title of the window is simply 'Window'. You can change this title by sending \mthind{StandardWindow}{title:} to a window with a String as argument:
@@ -381,7 +417,19 @@ Radio button in Pharo is sharing same classes with checkbox. Only difference is 
 Pharo has a model class that is for demonstrating radio buttons, named \ct{ExampleRadioButtonModel}.
 
 \begin{code}{}
-radioModel := ExampleRadioButtonModel new.r1 := (CheckboxMorph on: radioModel selected: #isLeft changeSelected: #beLeft)		label: 'left'.r2 := (CheckboxMorph on: radioModel selected: #isCenter changeSelected: #beCenter)		label: 'center'.r3 := (CheckboxMorph on: radioModel selected: #isRight changeSelected: #beRight)		label: 'right'.r1 openInWorld.r2 openInWorld.r3 openInWorld.r1 bounds: (440@10 extent: 80@30).r2 bounds: (440@40 extent: 80@30).r3 bounds: (440@70 extent: 80@30).
+radioModel := ExampleRadioButtonModel new.
+r1 := (CheckboxMorph on: radioModel selected: #isLeft changeSelected: #beLeft)
+		label: 'left'.
+r2 := (CheckboxMorph on: radioModel selected: #isCenter changeSelected: #beCenter)
+		label: 'center'.
+r3 := (CheckboxMorph on: radioModel selected: #isRight changeSelected: #beRight)
+		label: 'right'.
+r1 openInWorld.
+r2 openInWorld.
+r3 openInWorld.
+r1 bounds: (440@10 extent: 80@30).
+r2 bounds: (440@40 extent: 80@30).
+r3 bounds: (440@70 extent: 80@30).
 \end{code}
 
 As explained earlier, we are using the same class \ct{CheckboxMorph}, but it works perfectly as radio buttons. Radio buttons are asking the model whether they should turn themselves	on with selectors \ct{#isLeft}, \ct{#isCenter}, \ct{#isRight}. And when the user press the radio button it send message like \ct{#beLeft}, \ct{#beCenter}, \ct{beRight} to the model. Then the model sends message back to the buttons so the they turned on and off property.
@@ -389,7 +437,14 @@ As explained earlier, we are using the same class \ct{CheckboxMorph}, but it wor
 Following codes will change their appearance, too.
 
 \begin{code}{}
-r1 beRadioButton.r2 beRadioButton.r3 beRadioButton.2 timesRepeat: [	r1 toggleEnabled.	r2 toggleEnabled.	r3 toggleEnabled.].
+r1 beRadioButton.
+r2 beRadioButton.
+r3 beRadioButton.
+2 timesRepeat: [
+	r1 toggleEnabled.
+	r2 toggleEnabled.
+	r3 toggleEnabled.
+].
 \hjo{Hmm... Hope there is easier why to do this...}
 \end{code}
 
@@ -397,7 +452,9 @@ r1 beRadioButton.r2 beRadioButton.r3 beRadioButton.2 timesRepeat: [	r1 toggl
 Delete morphs after you are finished using them.
 
 \begin{code}{}
-r1 delete.r2 delete.r3 delete.
+r1 delete.
+r2 delete.
+r3 delete.
 \end{code}
 
 \section{Text fields}
