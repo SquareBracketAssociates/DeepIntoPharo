@@ -34,7 +34,7 @@
 
 \chapter{Basic Widgets}
 
-This chapter is about the basic widow gadgets (aka widgets) used to compose Graphic User Interfaces in Pharo using the Morphic layer. Since Morphic is based on a composite pattern,  you can easily assemble different widgets to build complex interfaces. So we will explain how the basic widgets (the one that should be mainly used) work and then how to assemble them together. To help you to understand such mechanisms, an example will be used trough the whole chapter.
+This chapter is about the basic window gadgets (aka widgets) used to compose graphical user interfaces in Pharo using Morphic. Since Morphic is based on a composite pattern,  you can easily assemble different widgets to build complex interfaces. We will explain how the essential widgets work and how to assemble them together. To help you understand the mechanisms behind Morphic, a single example will be used through the whole chapter.
 
 \section{The window}
 \index{Morphic!window}
@@ -49,7 +49,7 @@ The basic class for managing a window is \clsind{StandardWindow}. Let's start wi
 \begin{code}{}
 StandardWindow new openInWorld
 \end{code}
-You should see a window with a top bar \ja{title bar ?} that you can move with the mouse (see \figref{fig:emptyWindow}). 
+You should see a window with a top bar \ja{title bar ?} that you can move with the mouse (see \figref{fig:emptyWindow}). The text in the top bar is referred to as the window label.
 
 \begin{figure}[ht]
 \begin{center}
@@ -59,23 +59,46 @@ You should see a window with a top bar \ja{title bar ?} that you can move with t
 \end{center}
 \end{figure} 
 
-On one side, the topbar has three buttons for closing, collapsing and expanding the window. On the other side, the topbar has a menu button with a default set of items \ja{which ones ?}.
+On one side, the topbar has three buttons for closing, collapsing and expanding the window. On the other side, the topbar has a menu button with a default set of items:
+
+\begin{itemize}
+\item Close, which closes the window
+\item About, which displays the About window
+\item Change title, which allows the user to set their own title for this window
+\item Send to back, which puts this window behind all the others on the screen
+\item Make next-to-topmost, which puts this window behind the window immediately behind it
+\item Make closable/unclosable, which changes whether the window can be closed
+\item Make draggable/undraggable, which controls whether or not the window is fixed in place
+\item Maximize, which makes the window take up most of the screen
+\item and Window color, which controls the default background color
+\end{itemize}
+
+These default menu items are added by \mthind{SystemWindow}{SystemWindow>>buildWindowMenu}, and in a moment we will learn how to extend this menu.
 
 \subsection{A window and its model}
 \index{Morphic!window model}
 
-\ben{introduce MVC}
-To set a model to a window \ja{what is a model ? why should I set a model to a window ?}, it's quite easy:
+One of the first problems one runs into in developing graphical applications is the coupling of user interface code with application code. Proper object-oriented design promotes a separation of concerns: parts of the application that deal with the business logic should not also worry too much about what color font their text is rendered in. Every program with a UI must address this problem.
+
+The early days of Smalltalk produced a novel solution to the problem of separating UI code from application code in the form of the Model-View-Controller design pattern. The idea is very simple:
+
+\begin{itemize}
+\item \emph{Models} represent the problem domain and the intelligence of the application
+\item \emph{Views}  handle the visual representation of the model
+\item \emph{Controllers} manage the interaction between the view and the model
+\end{itemize}
+
+We've come a long way since then, and Morphic simplifies the relationship, mostly removing the need for the controller \dkl{I have no idea if this is really true}. In Morphic, we instead deal with \emph{pluggable views}: views which manage themselves and delegate high-level responsibilities to a model that can be plugged into them. By specifying a model for a window, and implementing specific methods, the model will be able to control some of the window's behavior.
+
+It's easy to set a model on a window:
 
 \begin{code}{}
 StandardWindow new model: myModel
 \end{code}
 
-By specifying a model to a window, and by providing specifics methods, the model will be able to control some of the window's behaviors.
-
 \subsubsection{Example:}
 
-First, let's create the model class
+First, let's create the model class:
 
 \begin{classdef}{Defining a specific Model.}
 Object subclass: #MyModel
@@ -96,7 +119,8 @@ StandardWindow new openInWorld.
 StandardWindow new model: (MyModel new); openInWorld.
 \end{code}
 
-So you see a window with the same size than the previous one, and a small window which size is exactly what you have specified in the method \mthind{Morph}{initialExtent} (see \figref{fig:withAndWithoutModel}).
+You see a window with the same size as the previous one, and a small window whose size is exactly what you specified in the method \mthind{Morph}{initialExtent} (see \figref{fig:withAndWithoutModel}).
+
 \sd{should we always specifies a model?}
 \ben{If you want to specify the initial extent, either you define a model or you subclass (as far as I know)}
 \sd{what should be put in the model vs. the Morph itself?}
@@ -111,7 +135,8 @@ So you see a window with the same size than the previous one, and a small window
 \end{center}
 \end{figure}
 \ben{move that into Model API part}
-You can also override this method \ja{what is the goal ? I do not want to define a method for nothing... you are writing a story :)}:
+
+You can also control whether or not the window can be closed by implementing \mthind{Model}{okToChange}:
 
 \begin{method}{Define if the model is ok to change or not}
 MyModel>>#okToChange
@@ -119,13 +144,12 @@ MyModel>>#okToChange
 	^ false
 \end{method}
 
-Now, when you try to close the small window the window will not be closed since the model explicitly precise (through the method \mthind{okToChange}{okToChange} that we just override) that the widget is not ok to be changed.
+Now the window doesn't close when you try to close it, because the model has explicitly stated that the widget is not OK to be changed.
 
 \subsection{Your own topbar menu}
 
-Here, we will show you how to easily add direct and simple shortcuts in the window's menu.
+You can easily add shortcuts to the window's menu. Simply override the method \mthind{Object}{addModelItemsToWindowMenu: aMenu} and fill up the provided menu. For example:
 
-First, your window must have a model \ja{blah blah... why must have a model}, then you simply have to override the method \mthind{Object}{addModelItemsToWindowMenu: aMenu} and to fill up the menu provided as parameter as following:
 \apl{addModelItemsToWindowMenu: is in Object !!}
 
 \begin{method}{}
@@ -156,7 +180,7 @@ MyModel>>#addModelItemsToWindowMenu: aMenu
 		action: #inspect.
 \end{method}
 
-So when you click on the menu button, you see at the end of the list the label we typed just before in the method \ben{how to ref to method env}  (see \figref{fig:menuBar}), and when you click on it, an inspector is opened (see \figref{fig:windowAndInspector})
+When you click on the menu button, you see the new label at the end of the list (see \figref{fig:menuBar}) and when you click it, an inspector is opened (see \figref{fig:windowAndInspector}.)
 
 \begin{figure}[ht]
 \begin{center}
@@ -169,21 +193,21 @@ So when you click on the menu button, you see at the end of the list the label w
 \begin{figure}[ht]
 \begin{center}
 	\includegraphics[width=7cm]{WindowAndInspector}
-	\caption{The inspector is well opened}
+	\caption{An inspector is open}
 	\figlabel{fig:windowAndInspector}
 \end{center}
 \end{figure}
 
 \subsection{Main Window API}
 
-\ja{some blahblah} Here is the list of the main API for a window
+\ja{some blahblah} Here is the list of the main API for a window:
 
 \begin{itemize}
 \item Title
 \item Color
 \item roundcorners?
-\item minimalExtent
-\item 
+\item minimumExtent: \dkl{these two methods exist but seem to do nothing}
+\item maximumExtent:
 
 \begin{code}{}
 SystemWindow new
@@ -290,7 +314,7 @@ b action: #delete.
 
 \dothis{click the button}
  
- Ok. The button is deleted. Since, block is an object and block is a chunk of operation that can be evaluated later. We can make a button do more complicated operations by setting model with a block and action with \clsind{\#value}.
+ OK. The button is deleted. Since, block is an object and block is a chunk of operation that can be evaluated later. We can make a button do more complicated operations by setting model with a block and action with \clsind{\#value}.
 
 \begin{code}{}
 b := PluggableButtonMorph new openInWorld.
