@@ -237,6 +237,25 @@ The SystemWindow will generate an About window for you. You can control the titl
 \end{center}
 \end{figure}
 
+\paragraph*{Stepping.}
+
+Graphical animations, simulations and other processes that need to be able to update the user interface continuously and frequently can make use of the stepping system on their model. To participate, your model must implement \mthind{Model}{wantsStepIn: aSystemWindow} to indicate that you want stepping and \mthind{Model}{stepTimeIn: aMillisecondTimeStamp} to indicate how frequently you want them. For example:
+
+\begin{method}{}
+MyModel>>#wantsStepsIn: aSystemWindow
+	^true
+	
+MyModel>>#stepTimeIn: aSystemWindow
+	^100
+\end{method}
+
+This indicates I want 10 steps a second (every 100 milliseconds.) You can prove to yourself that it works with the Transcript:
+
+\begin{method}{}
+MyModel>>#stepAt: aMillisecondTime in: aSystemWindow
+	Transcript crShow: aMillisecondTime
+\end{method}
+
 Other SystemWindow model delegate messages:
 
 \begin{itemize}
@@ -249,10 +268,6 @@ Other SystemWindow model delegate messages:
 
 \item \#taskbarIcon
 \item \#taskbarLabel
-
-\item \#wantsStepsIn: aSystemWindow
-\item \#stepAt: aMillisecondClockValue in: aSystemWindow---a step, sent if the model wants stepping
-\item \#stepTimeIn: aSystemWindow---sent to request stepping at this interval
 \end{itemize}
 
 Additional StandardWindow model delegate messages:
