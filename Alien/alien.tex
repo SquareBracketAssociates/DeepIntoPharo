@@ -38,7 +38,7 @@
 \chapter{Calling Foreign Code with Spock}\label{cha:alien}
 
 
-Interacting with the external world is a mandatory element of modern systems. Been able to call libraries is often a key success to business. In this chapter, we will explain you how to do that in Pharo using Foreign Function Interface. 
+Interacting with the external world is a mandatory element of modern systems. Being able to call libraries is often key to business  success. In this chapter, we explain how to do that in Pharo using Foreign Function Interface. 
 
 %Despite of our aim of doing as much as possible directly in Smalltalk (as deeper as the virtual machine itself cf. ChapXX), it is still required in some special cases to call external code written in other languages and compiled in a binary library.
 
@@ -57,7 +57,9 @@ how to solve common problems faced when communicating with other languages.
 %that case, you may ask, which is the way to communicate
 %the high-level smalltalk world with the low level one?
 
-Just to mention, there is another possible approach that would be to invoke C libraries by defining a specific plugin for the virtual machine, but it's more complex and it offers no important advantage compared to the results of using bindings in the same language and with the same constructions you are used to.
+Another approach to interact with the external world is by defining a
+dedicated plugin for the Virtual Machine. This approach is however
+more complex and offers no important advantage over using FFI.
 
 We will start to show you how to use \Spock, a new foreign function library. \Spock is based on NativeBoost and previous FFI libraries.\luc{Alien and FFI. cite them here no?}
 
@@ -67,18 +69,23 @@ We will start to show you how to use \Spock, a new foreign function library. \Sp
 \luc{Before the section ``calling Ext func'', I think we should first introduce the basics (part of the old ``What is a FFI and how it works?'' section). Because the reader will want to test while reading. And for that he probably will need a special VM (NativeBoost VM), an image with NativeBoost inside, ... }
 
 
-Right now to run Spock, the new FFI library described in this chapter, you will need a vm that has the NativeBoost plugin and  you can find one at \url{https://ci.lille.inria.fr/pharo/job/NB-Cog-Mac-Carbon/}.  
+Right now to run Spock, the new FFI library described in this chapter,
+you will need a vm that has the NativeBoost plugin. One can be found
+on the Pharo's continuous integration
+server.\footnote{\url{https://ci.lille.inria.fr/pharo/view/NativeBoost/}}
 
-Then you should load in your image, the package \ct{NativeBoost-Installer} that you can load as follows:
-\begin{code}{}
+To install the necessary packages, execute the following code:
+
+\begin{script}{Installing NativeBoost}
 Gofer it
-        squeaksource: 'NativeBoost';
-        package: 'NativeBoost-Installer';
-        load.
-\end{code}
+    squeaksource: 'NativeBoost';
+    package: 'ConfigurationOfNativeBoost';
+    load.
+(Smalltalk at: #ConfigurationOfNativeBoost) project lastVersion load.
+\end{script}
 
-Once loaded you should execute the following expression: \ct{NBInstaller install.}
-
+Now check your installation: open the Test Runner from the World menu,
+select the NativeBoost-Tests package and run all tests.
 
 %\begin{description}
 %\item [C header.] \ 
@@ -104,26 +111,45 @@ Once loaded you should execute the following expression: \ct{NBInstaller install
 \section{Calling a Simple External Function}
 
 
-Suppose you want to know the amount of time the image has been running by calling the underlying OS function named \ct{clock}. 
-This function is part of the standard C library. Its C declaration is\footnote{According to man its return type is \ct{clock\_t} instead of \ct{uint}, but we deliberately made it \ct{uint} for the sake of simplicity. We will see how to deal with typedefs in the following sections}:
+Suppose you want to know the amount of time the image has been running
+by calling the underlying OS function named \ct{clock}. This function
+is part of the standard C library. Its C declaration
+is:\footnote{According to man its return type is \ct{clock\_t} instead
+  of \ct{uint}, but we deliberately made it \ct{uint} for the sake of
+  simplicity. We will see how to deal with typedefs in the following
+  sections}
 
-\begin{code}{}
+\begin{script}{The C declaration of clock()}
 uint clock (void)
-\end{code}
+\end{script}
 
-To call \ct{clock} from the image, you should write a binding: a normal Smalltalk method annotated with the \ct{<primitive:module:>} pragma. This pragma specifies that a native call should be performed using the NativeBoost plugin.  The external function call is described using the message \ct{nbCall:module:} message\footnote{Note, that this is not the only message which you can use for defining a callout. There are others, which we will discuss later, but for now use this form for introduction}. We will explain the full mechanism that lies behind Spock in the last sections, after explaining how to use it. For now, here is the full definition of the binding. We explain the details below.
+To call \ct{clock} from the image, you should write a binding: a
+normal Smalltalk method annotated with the \ct{<primitive:module:>}
+pragma. This pragma specifies that a native call should be performed
+using the NativeBoost plugin. The external function call is described
+using the message \ct{nbCall:module:} message.\footnote{Note, that
+  this is not the only message which you can use for defining a
+  callout. There are others, which we will discuss later, but for now
+  use this form for introduction} We will explain the full mechanism
+that lies behind Spock in the last sections, after explaining how to
+use it. For now, here is the full definition of the binding. We
+explain the details below.
 
-\begin{code}{}
+\begin{script}{Defining our first binding}
 CExamples class>>ticksSinceStart
-	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
-	
-	^ self nbCall: #( uint clock () ) module: NativeBoost CLibrary
-\end{code}
+  <primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 
-In the above example, we defined a class named \ct{CExamples} and defined the method on its class side. This way it is easy to access it by sending a message to this class without creating unnecessary instances. Of course, there is no limitations, about in what class (be it instance side or class side) where you can define an external function call.
+  ^ self nbCall: #( uint clock () ) module: NativeBoost CLibrary
+\end{script}
 
-Then, to know the time since the program started you can execute and print it.
-Note that these are just native clock ticks, which aren't of much use. 
+In the above example, we define a class named \ct{CExamples} and
+define the method on its class side. NativeBoost imposes no constraint
+on the class where the method is added and programmers can choose to
+add their bindings either on the instance- or the class-side.
+
+To know the number of native clock ticks since the Pharo Virtual
+Machine started, execute the method and print its result:
+
 \begin{script}{Invoking a C binding}
 CExamples ticksSinceStart
 \end{script}
@@ -140,9 +166,14 @@ CExamples class>>ticksSinceStart
 \end{code}
 
 \paragraph{Callout.}
-What we have just done is usually named an FFI \emph{callout}. 
-The \ct{#nbCall:module:} is a method provided by NativeBoost package and defined for Object class (so you can use it anywhere).
-It is responsible for generating an FFI callout. Remember that calling a C function requires to marshall all arguments from Smalltalk world to C one, push them to the C stack, perform a call to the external function, and finally convert the return value from C to Smalltalk again. \ct{#nbCall:module:} handles this using the description of the function you provide.
+What we have just done is usually named an FFI \emph{callout}. The
+\ct{#nbCall:module:} is a method provided by NativeBoost package and
+defined for Object class (so you can use it anywhere). It is
+responsible for generating an FFI callout. Calling a C function
+requires to marshall all arguments from Smalltalk to C, push them to
+the C stack, perform a call to the external function, and finally
+convert the return value from C to Smalltalk. \ct{#nbCall:module:}
+handles this using the description of the function you provide.
 
 Note, that the given message \ct{#nbCall:module:} should be sent only by methods that define the callout, because it does some context handling behind the scenes.
 
@@ -158,10 +189,19 @@ The signature is described by an array: here \ct{#(int clock ())}.
 Basically, if you strip down outer \#(), what is inside is a C function prototype, which is very close to normal C syntax. This is intentionally done so,
 that in most cases you can actually copy-and-paste a complete C function declaration, taken from header file or from documentation, and it is ready for use.
 
-The second argument, \ct{#module:}, is where you should specify a module name or its handle, where to look up for given function.
-NativeBoost provides a convenience method named \ct{CLibrary}
-to obtain a handle of the standard C library. In other cases (suppose you want to use some standalone library), you must specify either a library name, or full path to it, or handle to already loaded library. You can use
-NativeBoost methods  to load an external library (and hence obtain handle of it) before making any calls to it. For example: \ct{NativeBoost forCurrentPlatform loadModule: 'nameOfModule'} loads the module \ct{'nameOfModule'}\footnote{Module names are platform dependent, so for example to load OpenGL library you may want to use 'OpenGL32' on windows and 'libGL.so' or even '/usr/lib/libGL.so' on linux }.
+The second argument, \ct{#module:}, is where you should specify a
+module name or its handle, where to look up for given function.
+NativeBoost provides a convenience method named \ct{CLibrary} to
+obtain a handle of the standard C library. In other cases (suppose you
+want to use some standalone library), you must specify either a
+library name, or full path to it, or handle to already loaded library.
+You must use NativeBoost methods to load an external library (and
+hence obtain handle of it) before making any calls to it. For example:
+\ct{NativeBoost forCurrentPlatform loadModule: 'nameOfModule'} loads
+the module \ct{'nameOfModule'}.\footnote{Module names are platform
+  dependent, so for example to load OpenGL library you may want to use
+  'OpenGL32' on windows and 'libGL.so' or even '/usr/lib/libGL.so' on
+  linux }
 
 
 \paragraph{About marshaling.} The return type is \ct{int} and not \ct{SmallInteger}. This is the same as with function arguments. They are all described in terms of C language. In general you don't have to worry too much about this, because the \Spock library knows how to map standard C values to Smalltalk objects and viceversa. So, when this message is executed, the return value will be turned into a \ct{SmallInteger}. Also, you can define new mappings for C types defined elsewhere, for example when wrapping libraries that define new C types, we will show that later. This conversion process for types from different languages is called \emph{marshalling}. We will see more examples of automatic conversions in this Chapter. 
@@ -436,9 +476,9 @@ array}
 
 As you should notice, this time Spock takes care of finding out the memory address where aByteArray lives and pushes a pointer to it as the first argument of \ct{memset}. After executing the example you can see that the byte array elements were actually changed. 
 
-Then, there is an important difference between passing arrays and passing strings. The expert user would notice that string functions in C language expects to receive a pointer to contiguous memory bytes ending with a null character to delimit its length.  \Spock is responsible for copying the string to a bigger buffer and inserting this special end character. This means that strings are passed by-copy, while on the other hand byte arrays are passed by reference!.
+Then, there is an important difference between passing arrays and passing strings. The expert user would notice that string functions in C language expects to receive a pointer to contiguous memory bytes ending with a null character to delimit its length.  \Spock is responsible for copying the string to a bigger buffer and inserting this special end character. This means that strings are passed by-copy, while on the other hand byte arrays are passed by reference!
 
-Also for expertise users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be careful about this special behavior. This is really important in the case of asynchronous calls, so in that case special measures may need to be taken to avoid strange behavior. We have to be very careful when facing with C pointer arguments to Smalltalk's memory. We will talk about asynchronous FFI on the latest sections.
+Also for expert users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be careful about this special behavior. This is really important in the case of asynchronous calls, so in that case special measures may need to be taken to avoid strange behavior. We have to be very careful when facing with C pointer arguments to Smalltalk's memory. We will talk about asynchronous FFI on the latest sections.
 
 \subsection{Default primitives types}
 
@@ -656,45 +696,46 @@ NBCairoObject>>nbLibraryNameOrHandle
 
 \end{code}
 
-Now to be able to test a bit, we have to add some more things. We add 
-cairo\_status\_t (which is an enum) and cairo\_surface\_t to the NBCairoTypes.
+Now to be able to test a bit, we have to add some more things. We add
+\ct{cairo_status_t} (which is an enum) and \ct{cairo_surface_t} to the
+\ct{NBCairoTypes}.
 
    
 \begin{classdef}{}
 SharedPool subclass: #NBCairoTypes
 	instanceVariableNames: ''
-	classVariableNames: '!cairo\_status\_t! !cairo\_surface\_t '
+	classVariableNames: '!cairo\_status\_t cairo\_surface\_t '!
 	poolDictionaries: ''
 	category: 'NBCairo-Core'
 \end{classdef}
 
 \begin{code}{}
 NBCairoTypes class>>initialize
+  "self initialize"
 
-	"self initialize"
-		
-	!cairo\_status\_t! := #int
-	!cairo\_surface\_t!  := #NBCairoSurface.
+  !cairo\_status\_t! := #int.
+  !cairo\_surface\_t!  := #NBCairoSurface.
 \end{code}
 
 and we doit:
 
 \dothis{NBCairoTypes initialize}
 
-so that cairo\_status\_t and cairo\_surface\_t get initialized. Then, we add a method to
-the NBCairoSurface class:
+so that \ct{cairo_status_t} and \ct{cairo_surface_t} get initialized.
+Then, we add a method to the \ct{NBCairoSurface} class:
 
 \begin{code}{}
 NBCairoSurface>>status
-	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+  <primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
-	^ self nbCall: #(!cairo\_status\_t cairo\_surface\_status! (!cairo\_surface\_t! self) )
+  ^ self nbCall: #(!cairo\_status\_t cairo\_surface\_status! (!cairo\_surface\_t! self) )
 \end{code}
 
-Note what we just did: we added two types mappings, cairo\_status\_t that maps to int, and
-cairo\_surface\_t that maps to NBCairoSurface. That way we can now use this mappings in the
-function specifications, getting closer to copy-pasting the functions definitions into
-the binding.
+Note what we just did: we added two types mappings, cairo\_status\_t
+that maps to int, and \ct{cairo_surface_t} that maps to
+\ct{NBCairoSurface}. That way we can now use this mappings in the
+function specifications, getting closer to copy-pasting the functions
+definitions into the binding.
 
 We are now ready to test just a bit. Take a second and save the
 image now. Remember that if you wrongly specify the parameters
@@ -712,7 +753,6 @@ to destroy the surface:
 
 \dothis{surface destroy}
 
-
 To make the example complete, let's add the final pieces needed.
 
 Here is how the original example will look after translating
@@ -720,35 +760,35 @@ it to use the wrapper:
 
 \begin{code}{}
 CairoExamples>>minimalProgram
-	"
-	self new minimalProgram
-	"
-	
-	| surface context fileName |
-	surface := NBCairoImageSurface create: CAIRO_FORMAT_ARGB32 width: 240 height: 80.
-	context := surface createContext.
-	context selectFont: 'serif' slant: CAIRO_FONT_SLANT_NORMAL weight: CAIRO_FONT_WEIGHT_BOLD;
-			setFontSize: 32.0;
-			setSourceR: 0.0 G: 0.0 B: 1.0;
-			moveToX: 10.0 Y: 50.0;
-			showText: 'Hello, world';
-			destroy.
-	
-	fileName := (FileDirectory default / 'Hello.png') fullName.
-	surface writeToPng: fileName.
-	surface destroy.
+  "
+  self new minimalProgram
+  "
+  
+  | surface context fileName |
+  surface := NBCairoImageSurface create: CAIRO_FORMAT_ARGB32 width: 240 height: 80.
+  context := surface createContext.
+  context selectFont: 'serif' slant: CAIRO_FONT_SLANT_NORMAL weight: CAIRO_FONT_WEIGHT_BOLD;
+      setFontSize: 32.0;
+      setSourceR: 0.0 G: 0.0 B: 1.0;
+      moveToX: 10.0 Y: 50.0;
+      showText: 'Hello, world';
+      destroy.
 
-	Form openImageInWindow: fileName
+  fileName := (FileDirectory default / 'Hello.png') fullName.
+  surface writeToPng: fileName.
+  surface destroy.
+
+  Form openImageInWindow: fileName
 \end{code}
 
 
 but before it works we have to add some constants and types.
-\verb|CAIRO_FORMAT_ARGB32| is a constant defined on
-\verb|cairo_format_t|, and we are using constants for
+\ct{CAIRO_FORMAT_ARGB32} is a constant defined on
+\ct{cairo_format_t}, and we are using constants for
 font slants and font weights too. For each enum we add
 a type on NBCairoTypes and its constants to NBCairoConstants:
 
-\begin{code}
+\begin{code}{}
 SharedPool subclass: #NBCairoConstants
 	instanceVariableNames: ''
 	classVariableNames: 'CAIRO_FONT_SLANT_ITALIC CAIRO_FONT_SLANT_NORMAL CAIRO_FONT_SLANT_OBLIQUE CAIRO_FONT_WEIGHT_BOLD CAIRO_FONT_WEIGHT_NORMAL CAIRO_FORMAT_A1 CAIRO_FORMAT_A8 CAIRO_FORMAT_ARGB32 CAIRO_FORMAT_INVALID CAIRO_FORMAT_RGB16_565 CAIRO_FORMAT_RGB24'
@@ -766,32 +806,32 @@ and then we add the code to initialize these variables:
 
 \begin{code}{}
 NBCairoTypes class>>initialize
+  "self initialize"
 
-    "self initialize"
-	
-    cairo_status_t := cairo_font_slant_t := cairo_font_weight_t := #int
-    cairo_t := #NBCairoContext.
-    cairo_surface_t  := #NBCairoSurface.
+  cairo_status_t := cairo_font_slant_t := cairo_font_weight_t := #int
+  cairo_t := #NBCairoContext.
+  cairo_surface_t  := #NBCairoSurface.
 
 
 NBCairoConstants class>>initialize
+  "self initialize"
 
-	"enum cairo_format_t"
-	CAIRO_FORMAT_INVALID :=  -1.
-	CAIRO_FORMAT_ARGB32 :=  0.
-	CAIRO_FORMAT_RGB24 := 1.
-	CAIRO_FORMAT_A8 := 2.
-	CAIRO_FORMAT_A1 := 3.
-	CAIRO_FORMAT_RGB16_565 := 4
-	
-	"enum cairo_font_slant_t"
-    CAIRO_FONT_SLANT_NORMAL := 0.
-    CAIRO_FONT_SLANT_ITALIC := 1.
-    CAIRO_FONT_SLANT_OBLIQUE := 2
-    
-	"enum _cairo_font_weight_t"
-    CAIRO_FONT_WEIGHT_NORMAL := 0.
-    CAIRO_FONT_WEIGHT_BOLD := 1.
+  "enum cairo_format_t"
+  CAIRO_FORMAT_INVALID :=  -1.
+  CAIRO_FORMAT_ARGB32 :=  0.
+  CAIRO_FORMAT_RGB24 := 1.
+  CAIRO_FORMAT_A8 := 2.
+  CAIRO_FORMAT_A1 := 3.
+  CAIRO_FORMAT_RGB16_565 := 4.
+
+  "enum cairo_font_slant_t"
+  CAIRO_FONT_SLANT_NORMAL := 0.
+  CAIRO_FONT_SLANT_ITALIC := 1.
+  CAIRO_FONT_SLANT_OBLIQUE := 2.
+
+  "enum _cairo_font_weight_t"
+  CAIRO_FONT_WEIGHT_NORMAL := 0.
+  CAIRO_FONT_WEIGHT_BOLD := 1.
 \end{code}
 
 don't forget to doit:
@@ -825,7 +865,10 @@ CairoContext>>selectFont: aFamily slant: slant weight: aWeight
 \end{code}
 
 
-Now as a general principle it is better not to manipulate all the variables in your program. Why first because the call out will be slowler and second because it is better to encapsulate all these constants. \jp{Explain more!}
+Now as a general principle it is better not to manipulate all the
+variables in your program. Why first because the call out will be
+slowler and second because it is better to encapsulate all these
+constants. \jp{Explain more!}
 
 So the solution is to do something like
 @@@to be fixed@@
@@ -1056,3 +1099,5 @@ Figure~\ref{fig:alien_uml} shows an UML diagram of the Alien-Core package that c
 %=================================================================
 \ifx\wholebook\relax\else\end{document}\fi
 %=================================================================
+
+%  LocalWords:  NativeBoost Pharo's callout
