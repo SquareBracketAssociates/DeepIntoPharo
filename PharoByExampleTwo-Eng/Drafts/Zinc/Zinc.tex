@@ -147,7 +147,9 @@ ZnServer stopDefault.
   start
 \end{code}  
   
-Monticello file server
+  
+  
+\subsection{Monticello file server}
 \begin{code}{}
 aServer := ZnServer on: 8080.
 aServer delegate: ((ZnMonticelloServerDelegate new)
@@ -156,10 +158,33 @@ aServer start
 \end{code}
   
   
+Only the default server (\ct{ZnServer default}) is sent \ct{register} on \ct{start} so that it will be sent \ct{start}/\ct{stop} on System \ct{startUp/shutDown}.
+
+You can Have a look at \ct{ZnSingleThreadedServer>>start} and/or follow \ct{ZnServer>>register}.
+
+To make this work, either change your example to
+
+\begin{code}{}
+aServer := ZnServer defaultOn: 8080.
+aServer delegate: ((ZnMonticelloServerDelegate new)
+	directory: (FileDirectory on: '/Users/sven/Tmp/monticello')).
+aServer start
+\end{code}
+
+or to 
+
+\begin{code}{}
+aServer := ZnServer on: 8080.
+aServer delegate: ((ZnMonticelloServerDelegate new)
+	directory: (FileDirectory on: '/Users/sven/Tmp/monticello')).
+aServer register.
+aServer start
+\end{code}
+
+It is by design that not every server is registered (as not everyone needs this behavior).
+The default server is an exception because it is used for first time and more casual usage and many people expect this behavior in Smalltalk.
   
-  
-  
-  
+
 \section{Object Model}
 
 The main goal of the Zinc HTTP components is to provide a clean and elegant, flexible, easy to use and easy to understand framework for dealing with the HTTP protocol. The foundation should be a good object model, mapping clearly to the concepts of the HTTP protocol.

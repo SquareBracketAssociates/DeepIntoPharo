@@ -90,7 +90,7 @@ Integer readFrom: '1101' base: 2
 
 Note that the last two messages \ct{printStringBase:} and \ct{readFrom:base:} do not handle well the internal encoding of negative numbers as we will see later. \ct{-2 printStringBase: 2} returns -10 but this is not the internal number representation known as two's complement. These messages just print/read the number in a given base. 
 
-The radix notation can be use to specify numbers in different bases. Obviously 15 written in decimal base (10r15) returns 15, while 15 in base 16 returns $16 + 5 = 21@$ as illustrated by the following expressions. 
+The radix notation can be used to specify numbers in different bases. Obviously 15 written in decimal base (10r15) returns 15, while 15 in base 16 returns $16 + 5 = 21$ as illustrated by the following expressions. 
 
 \begin{code}{@TEST}
 10r15 
@@ -178,7 +178,7 @@ The complete sequence of bits can be shifted as shown with \ct{2r000001100} belo
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[width=0.45\textwidth]{16bits-1280shifted8}
+\includegraphics[width=0.65\textwidth]{16bits-1280shifted8}
 \caption{We move 8 times to the right. So from 1280 we get 5.\label{16bits-1280shifted8}}
 \end{center}
 \end{figure}
