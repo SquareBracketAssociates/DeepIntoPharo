@@ -237,24 +237,18 @@ Bexp>>testVariable4
 
 
 \paragraph{For method arguments.}\
-Naturally we can expect that method arguments as well as self and instance variables are bound 
-in the context of defining method. Let's illustrate these points now. 
+Naturally we can expect that method arguments as well as self and instance variables are bound in the context of defining method. Let's illustrate these points now. Define the following methods. 
 
 \begin{code}{}
-Bexp>>testScopeArgValue: aBlock
-	| arg | 
-	arg := 'zork'.
-	aBlock value
+Bexp>>testArg	"self new testArg"	self testArg: 'foo'.
 	
-Bexp>>testScopeArg: arg
-	"self new testScopeArg: 'foo'"
-	
-	self testScopeArgValue: [arg crLog]
+Bexp>>testArg: arg		block := [arg crLog].	self testArg2: 'zork'.
+
+Bexp>>testArg2: arg		block value.
 \end{code}
 
-Now executing \ct{Bexp new testScopeArg: 'foo'} prints 'foo' even if in the method \ct{testScopeArgValue:} the temporary arg is redefined.
- 
-\sd{here}
+Now executing \ct{Bexp new testArg: 'foo'} prints \ct{'foo'} even if in the method \ct{testArg:} the temporary arg is redefined.
+
 \paragraph{self binding.}
 For binding of self, we simply define a new class and a couple of methods. 
 Add the instance variable x to the class \ct{Bexp} and define the \ct{initialize} method as follows:
@@ -275,7 +269,6 @@ Bexp>>initialize
 
 Define another class named \ct{Bexp2} (it can be a subclass of \ct{Bexp} since inheritance is orthogonal to what we want to show).
 
-
 \begin{code}{}
 Bexp2>>initialize
 	super initialize.
@@ -293,13 +286,13 @@ Bexp>>testScopeSelf: aBlock
 	
 Bexp>>testScopeSelf
 	"self new testScopeSelf"
-	self testScopeSelf: [self traceCr: self printString ; traceCr: x]
+	self testScopeSelf: [self crLog ; traceCr: x]
 \end{code}	
 
 Now when we execute \ct{Bexp new testScopeSelf}. You get \ct{a Bexp123} printed, showing that a block captures self too, since an instance of Bexp2 executed the block but the printed object was the original Bexp instance. 
 
 \paragraph{Another example of sharing.}
-
+\sd{here}
 Non local variables referred to by a block continue to be accessible and shared with other expressions. Let us  take some examples. Define the following method \ct{foo} which defines a temporary variable \ct{a}.
 
 \begin{code}{}

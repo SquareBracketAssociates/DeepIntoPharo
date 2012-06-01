@@ -32,7 +32,7 @@
 
 \chapter{Spec}
 
-Creating user interfaces programmatically is often a tedious and repetitive task. Some attempts to offer UI-Builders solved the problem on positioning UI elements and their inter connection. However, there is still the challenge of reusing widgets and the linked logic. There is a need for a declarative way to specify widgets allowing for composition and reuse of the UI declaration and logic. 
+Creating user interfaces programmatically is often a tedious and repetitive task. Some attempts to offer UI-Builders solved the problem on positioning UI elements and their inter connection. However, there is still the challenge of reusing widgets and the  logic of the widgets and their connection. There is a need for a declarative way to specify widgets allowing for composition and reuse of the UI declaration and logic. 
 
 A Spec is a declarative way to describe a user interface. Used as a presenter, it is a major element of UI design and of applicative model reuse.
 
@@ -43,29 +43,22 @@ In this chapter, we will begin by an example of how to design a UI and most impo
 The latest code is available on gemstone source \url{http://ss3.gemstone.com/ss/Spec} and we suggest you to use the configuration to load it.
 
 \begin{code}{}
-<<<<<<< .mine
 Gofer new
 	url: 'http://ss3.gemstone.com/ss/Spec';
 	package: 'ConfigurationOfSpec';
 	load.
 	
 ConfigurationOfSpec loadFull.	
-=======
-Gofer new	url: 'http://ss3.gemstone.com/ss/Spec';	package: 'ConfigurationOfSpec';	load
->>>>>>> .r211
-	
-ConfigurationOfSpec project load: #stable
 \end{code}
 
 \subsection{Example}
-
-The most important point of the spec is the reuse and the possibility of composition at two levels, UI and models. In this section we will show you how to build an abstract method browser (similar to the senders/implementor ) and how to reuse this browser to build a class and an extended method browser (similar to the code browser).
+The most important point of the Spec framework is the reuse and the possibility of composition at two levels, UI and models. In this section we will show you how to build an abstract method browser (similar to the senders/implementor) and how to reuse this browser to build a class and an extended method browser (similar to the code browser).
 
 Here comes a simple example to quickly introduce to the use Specs. For now do not try to understand all the details but focus on the results. We will provide detailed insights right after the example.
 
 \subsubsection{Methods Browser}
 
-Firstly, let's think about how the visual structure of a method browser GUI. It is basically composed of two areas: a list and a text zone.Moreover there is an entry point which is the list of methods to be browsed.
+Firstly, let's think about how the visual structure of a method browser GUI. It is basically composed of two areas: a list and a text zone. Moreover there is an entry point which is the list of methods to be browsed.
 
 So let's define a MethodBrowser class
 
@@ -77,25 +70,21 @@ ComposableModel subclass: #MethodBrowser
 	category: 'Spec-Examples'
 \end{classdef}
 
-I let you write getters. The will be needed by the presenter.
-
-It's still miss the entry point. By the way the entry point of the method browser could also be the list model's entry point.
+Write getter methods since they will be needed by the presenter. It's still miss the entry point to specify the list of methods to browse. Let us name such method \ct{methods:} and define it as follow.  
 
 \begin{method}{MethodBrowser>>\#methods:}
-methods: aList
-
+MethodBrowser class>>methods: aList
 	"Here I reroute my entry point to the list model's entry point"
 	self listModel items: aList
 \end{method}
-
-So now we have the entry point and the models. So lets make the connections between them.
+By the way the entry point of the method browser could also be the list model's entry point.
+Now that we have the entry point and the models, we can define their connections.
 
 \begin{method}{MethodBrowser>>\#initialize}
-initialize
+MethodBrowser class>>initialize
 	"Initialization code for MethodBrowser"
 
 	super initialize.
-
 	listModel := self instantiate: ListComposableModel.
 	textModel := self instantiate: TextModel.
 		
@@ -107,14 +96,14 @@ initialize
 			ifNotNil: [:m | 
 				textModel text: m sourceCode.
 				textModel behavior: m methodClass ]].
-	
 	textModel aboutToStyle: true.
 \end{method}
 
+\sd{behavior: for textModel looks strange}
 Now that links are created, we have to specify the spec on the class side:
 
 \begin{method}{MethodBrowser class>>\#internSpec:}
-internSpec
+MethodBrowser class>>internSpec
 
 	^{ #ComposableSpec
 			#add:. {{#model. #listModel. #internSpec.}.
@@ -127,14 +116,16 @@ internSpec
 %
 We specify the layout to be a column with submorphs added from top to bottom. And then for each model we add its spec recursively.
 
-So if you evaluate
-%
+Now if you evaluate the following snippet, you should have a window as shown in \figref{fig:methodBrowser1}.
+
 \begin{code}{}
 | browser |
 browser := MethodBrowser new.
 browser openWithSpec.
 \end{code}
-You should have a window like the \figref{fig:methodBrowser1}.
+
+
+
 \begin{figure}[ht]
 \begin{center}
 	\includegraphics[width=7cm]{MethodBrowser1}
@@ -148,7 +139,7 @@ And then, if you do:
 \begin{code}{}
 browser  methods: (ComposableModel methodDict values , ListComposableModel methodDict values).
 \end{code}
-The list should automatically be updated, and looks like \figref{fig:methodBrowser2}.
+The list should automatically be updated, and looks as in \figref{fig:methodBrowser2}.
 \begin{figure}[ht]
 \begin{center}
 	\includegraphics[width=7cm]{MethodBrowser2}
@@ -158,7 +149,7 @@ The list should automatically be updated, and looks like \figref{fig:methodBrows
 \end{figure}
 
 %\newpage
-And if you select a method its source code should appear, like \figref{fig:methodBrowser3}
+And if you select a method its source code should appear, as in \figref{fig:methodBrowser3}
 
 \begin{figure}[ht]
 \begin{center}
@@ -169,10 +160,10 @@ And if you select a method its source code should appear, like \figref{fig:metho
 \end{figure}
 
 We are almost done, only the window title is still wrong.
-So we will define
+So we will define the class method \ct{title} as follow.
 %
 \begin{method}{MethodBrowser class>>\#title}
-title
+MethodBrowser class>>title
 
 	^ 'Method Browser'
 \end{method}
@@ -188,11 +179,13 @@ So now, if you re-evaluate the code, you should have a window like \figref{fig:m
 \end{figure}
 
 We can still improve the way the items are displayed. We just have to precise to the list model how to wrap items.
-So let's add the following line into \verb+MethodBrowser>>#initialize+:
+So let's add the following line into \ct{MethodBrowser>>initialize}
 \begin{code}{}
 listModel wrappingBlock: [:item | item methodClass name,'>>#', item selector ].
 \end{code}
 
+
+\sd{here}
 But you could also decide to add the items wrapping as a new entry point, so let's define 
 \begin{method}{MethodBrowser>>\#wrapWith:}
 wrapWith: aBlock
@@ -338,7 +331,10 @@ The first element of a spec can be either the name of a spec type (which knows w
 
 %stupid indentation is used to have a render almost aligned
 \begin{method}{Example of a spec}
-internSpec	<spec>		^ {#ListSpec.	
+internSpec
+	<spec>
+	
+	^ {#ListSpec.	
                #model:.                                        #model.
                #getListSizeSelector:.                   #listSize.
                #getIndexSelector:.                       #getIndex.
