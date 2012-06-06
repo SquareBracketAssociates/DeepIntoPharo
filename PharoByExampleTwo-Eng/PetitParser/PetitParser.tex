@@ -46,24 +46,29 @@
 
 \newcommand{\ppmthind}[1]{\clsmthind{PPParser}{#1}}
 
-Building parsers to analyze data is a common task in software
-development. In this chapter we present a powerful parser framework
-named PetitParser. And contrary to its name, PetitParser is a really
-powerful parsing framework combining several technologies (scannerless
-parsers, parser combinators, packrat..). PetitParser is written by Lukas
+Building parsers to analyze and transform data is a common task in
+software development. In this chapter we present a powerful parser
+framework called PetitParser. PetitParser combines many ideas from
+various parsing technologies to model grammars and parsers as objects
+that can be reconfigured dynamically. PetitParser was written by Lukas
 Renggli as part of his work on the Helvetia system but it can be used
-as a standalone tool.
+as a standalone library.
 
 \section{Writing Parsers with PetitParser}
 
- PetitParser is a parsing framework different
-to many other popular parser generators. For example, it is not table
-based such as SmaCC or ANTLR. Instead it uses a unique combination of
-four alternative parser methodologies: scannerless parsers, parser
-combinators, parsing expression grammars and packrat parsers. As such
-PetitParser is more powerful in what it can parse and it arguably fits
-better the dynamic nature of Smalltalk. Let's have a quick look at
-these four parser methodologies:
+PetitParser is a parsing framework different from many other popular
+parser generators. PetitParser makes it easy to define parsers with
+Smalltalk code and to dynamically reuse, compose, transform and extend
+grammars. We can reflect on the resulting grammars and modify them
+on-the-fly. As such PetitParser fits better the dynamic nature of
+Smalltalk.
+
+Furthermore, PetitParser is not based on tables such as SmaCC and
+ANTLR. Instead it uses a combination of four alternative parser
+methodologies: scannerless parsers, parser combinators, parsing
+expression grammars and packrat parsers. As such PetitParser is more
+powerful in what it can parse. Let's have a quick look at these four
+parser methodologies:
 
 \begin{description}
 \item[Scannerless Parsers] combine what is usually done by two
@@ -75,23 +80,24 @@ these four parser methodologies:
   graph of composable objects; they are modular and maintainable, and
   can be changed, recomposed, transformed and reflected upon.
 
-\item[Parsing Expression Grammars] (PEGs) provide the notion of ordered choices. Unlike in
-  parser combinators, the ordered choice of PEGs always follows the
-  first matching alternative and ignores other alternatives. Valid
-  input always results in exactly one parse-tree, the result of a
-  parse is never ambiguous.
+\item[Parsing Expression Grammars] (PEGs) provide the notion of
+  ordered choices. Unlike parser combinators, the ordered choice of
+  PEGs always follows the first matching alternative and ignores other
+  alternatives. Valid input always results in exactly one parse-tree,
+  the result of a parse is never ambiguous.
 
 \item[Packrat Parsers] give linear parse time guarantees and avoid
   common problems with left-recursion in PEGs.
 \end{description}
 
-
 \subsection{Loading PetitParser}
 
-Enough talking, let's get started. PetitParser is developed in Pharo. A ready made image
-can be downloaded.\footnote{\url{http://hudson.lukas-renggli.ch/job/PetitParser/lastSuccessfulBuild/artifact/petitparser}}
-To load PetitParser into an existing image evaluate the following
-Gofer expression:
+Enough talking, let's get started. PetitParser is developed in Pharo,
+and there are also versions for Java and Dart available. A ready made
+image can be downloaded\footnotemark. To load PetitParser into an
+existing image evaluate the following Gofer expression:
+
+\footnotetext{\url{http://hudson.lukas-renggli.ch/job/PetitParser/lastSuccessfulBuild/artifact/petitparser}}
 
 \begin{script}{Installing PetitParser}
 Gofer new
@@ -101,24 +107,24 @@ Gofer new
   load.
 \end{script}
 
-There are other packages in the same repository that provide
-additional features, for example PetitSmalltalk is a Smalltalk
-grammar, PetitXml is an XML grammar, PetitJson is a JSON grammar,
-PetitAnalyzer provides functionality to analyze and transform
-grammars, and PetitGui is a Glamour IDE (see \charef{glamour}) for
-writing complex grammars. We are not going to use any of these
-packages for now.
+There are other packages in the same repository that provide additional 
+features: PetitSmalltalk is a complete Smalltalk grammar; PetitXml is an XML 
+grammar; PetitJson is a JSON grammar; PetitAnalyzer provides functionality to 
+analyze and transform grammars; and PetitGui is a Glamour IDE (see 
+\charef{glamour}) for writing complex grammars. We are not going to use any of 
+these packages for now.
 
-More information on how to get PetitParser can be found on the website
-of the
-project.\footnote{\url{http://scg.unibe.ch/research/helvetia/petitparser}}
+More information on how to get PetitParser can be found on the website of the 
+project\footnotemark.
+
+\footnotetext{\url{http://scg.unibe.ch/research/helvetia/petitparser}}
 
 \subsection{Writing a Simple Grammar}
 
 Writing grammars with PetitParser is as simple as writing Smalltalk
-code. For example a grammar parsing identifiers that start with a
-letter followed by zero or more letters or digits is defined and used
-as follows:
+code. For example, to define a grammar that parses identifiers
+starting with a letter followed by zero or more letters or digits is
+defined and used as follows:
 
 \begin{script}[identifier]{Creating our first parser to parse identifiers}
 |identifier|
@@ -151,24 +157,15 @@ identifier parse: 'a987jlkj' --> #($a #($9 $8 $7 $j $l $k $j))
 
 \subsection{A Graphical Notation}
 
-\syntaxref{identifier} presents a graphical representation, called a
-syntax diagram, of the identifier parser. Such a syntax diagram
-contains squared boxes (not shown on the figure) that represent non
-terminals, round boxes that represent terminals, arrows between these
-boxes, some entry points and some exit points. In the context of
-PetitParser, the squared boxes (non terminals) are in fact parsers
-composed of other parsers, and round boxes (terminals) are elementary
-parsers.
+\syntaxref{identifier} presents a syntax diagram of the identifier
+parser. Each box represents a parser. The arrows between the boxes
+represent the flow in which input is consumed. The rounded boxes are
+elementary parsers (terminals). The squared boxes (not shown on this
+figure) are parsers composed of other parsers (non terminals).
 
-The idea behind this representation is that if an input can go from
-the entry point to the exit point by following the arrows and being
-consumed by the boxes, this input is matched by the represented
-parser.
-
-If you inspect the object \ct{identifier} of the previous script,
-you'll notice that it is an instance of a \clsind{PPSequenceParser}.
-If you dive further into the object you notice the following simple
-tree of different parser objects:
+If you inspect the object \ct{identifier} of the previous script, you'll notice 
+that it is an instance of a \clsind{PPSequenceParser}. If you dive further into 
+the object you notice the following tree of different parser objects:
 
 \begin{script}{Composition of parsers used for the identifier parser}
 PPSequenceParser (accepts a sequence of parsers)
@@ -183,7 +180,7 @@ more word character parser. The root parser first child is a predicate
 object parser created by the \ct{#letter asParser} expression. This
 parser is capable of parsing a single letter as defined by the
 \clsmthind{Character}{isLetter} method. %
-The root parser second child is a repeating parser created by the
+The second child is a repeating parser created by the
 \ct{star} call. This parser uses its child parser (another predicate
 object parser) as much as possible on the input (\ie{} it is a
 \emph{greedy} parser). Its child parser is a predicate object parser
@@ -234,7 +231,7 @@ identifier matches: '123'.        --> false
 identifier matches: 'foo()'.      --> true
 \end{script}
 
-The last result can be quite surprising: % <- don't remove the comment
+The last result can be surprising: % <- don't remove the comment
 indeed, a parenthesis is neither a digit nor a letter as was specified
 by the \ct{#word asParser} expression. In fact, the \ct{identifier}
 parser matches ``foo'' and this is enough for the \ppmthind{matches:}
@@ -287,7 +284,7 @@ identifier matchingRangesIn: 'foo 123 bar12'.
 PetitParser provide a large set of ready-made parser that you can
 compose to consume and transform arbitrarily complex languages. The
 terminal parsers are the most simple ones. We've already seen a few of
-those, some more are defined in \tabref{terminal-parsers}.
+those, some more are defined in the protocol \tabref{terminal-parsers}.
 
 \begin{table}
   \centering
@@ -318,7 +315,7 @@ containing the name of the factory method (such as \ct{#punctuation}
 \ct{asParser}).
 
 The next set of parsers are used to combine other parsers together and
-is defined in \tabref{parser-combinators}.
+is defined in the protocol \tabref{parser-combinators}.
 
 \begin{table}
   \centering
@@ -354,13 +351,15 @@ identifier2 := #letter asParser , (#letter asParser / #digit asParser) star.
     \node (letter1) [terminal]    {letter};     \&
     \node (p2a)    [point]       {};           \&
     \node (p2b)    [point]       {};           \&
+    \node (p2c)    [point]       {};           \&
     \node (letter2)   [terminal] {letter};       \&
     \node (p3a)    [point]       {};           \&
     \node (p3b)   [point]       {};           \&
-    \node (p3c)    [point]       {};           \\
+    \node (p3c)   [point]       {};           \&
+    \node (p3d)    [point]       {};           \\
 
 
-    \& \& \& \&
+    \& \& \& \& \&
     \node (p10)   [point]       {};           \&
     \node (digit)   [terminal] {digit};       \&
     \node (p11)   [point]       {};           \& \\
@@ -369,12 +368,13 @@ identifier2 := #letter asParser , (#letter asParser / #digit asParser) star.
     \chainin (p1);
     \chainin (letter1) [join=by tip];
     \chainin (letter2)  [join=by tip];
-    \chainin (p3c)     [join=by tip];
-    \chainin (p2a)    [join=with p3b by {skip loop=5mm,tip}];
-    \chainin (p10)    [join=with p2b];
+    \chainin (p3d)     [join=by tip];
+    \chainin (p2b)    [join=with p3b by {skip loop=5mm,tip}];
+    \chainin (p10)    [join=with p2c];
     \chainin (digit)  [join=by tip];
     \chainin (p11)  [join];
     \chainin (p3a)    [join=with p11 by tip];
+    \chainin (p3c)   [join,join=with p2a by {skip loop=-15mm,tip}];
   }
 }
 
@@ -382,7 +382,7 @@ identifier2 := #letter asParser , (#letter asParser / #digit asParser) star.
 
 To define an action or transformation on a parser we can use one of
 the messages \ppmthind{==>}, \ppmthind{flatten}, \ppmthind{token} and
-\ppmthind{trim} defined in \tabref{action-parsers}.
+\ppmthind{trim} defined in the protocol \tabref{action-parsers}.
 
 \begin{table}[h]
   \centering
@@ -426,10 +426,10 @@ second parser, spaces are ignored.
 \begin{script}{Using trim to remove spaces }
 |identifier|
 identifier := (#letter asParser , #word asParser star) flatten.
-identifier parse: '  ajka0   '          -->  letter expected at 0
+identifier parse: '  ajka   '          -->  letter expected at 0
 
-identifier := (#letter asParser , #word asParser star) trim flatten.
-identifier parse: '  ajka0   '          --> '  ajka0   '
+identifier := (#letter asParser , #word asParser star) flatten trim.
+identifier parse: '  ajka   '          --> 'ajka'
 \end{script}
 
 The message \ppmthind{==>} lets you specify a block to be executed
@@ -439,27 +439,7 @@ representation.
 
 \begin{script}[number]{Parsing integers}
 number :=  #digit asParser plus flatten ==> [ :str | str asNumber ].
-number parse: '122'                     --> 122
-\end{script}
-
-
-The table~\ref{tab:action-parsers} shows the basic elements to build
-parsers. There are a few more well documented and tested factory
-methods in the \ct{operators} protocols of \clsind{PPParser}. If you
-want to know more about these factory methods, browse these protocols.
-An interesting one is \ct{separatedBy:} which answers a new parser
-that parses the input one or more times, with separations specified by
-another parser.
-
-\subsection{Writing a More Complicated Grammar}
-
-Now let us start to write a more complicated grammar for evaluating
-simple arithmetic expressions. Within a workspace we start with the
-grammar for a number (actually an integer):
-
-\begin{script}[number]{Parsing integers}
-number :=  #digit asParser plus token trim ==> [ :token | token value asNumber ].
-number parse: '123'             --> 123
+number parse: '123'                     --> 123
 \end{script}
 
 \tikzgrammarfig{number}{
@@ -479,20 +459,25 @@ number parse: '123'             --> 123
   }
 }
 
-The \ct{token} call allows one to get a token in the action block instead
-of an array. The \ct{trim} call asks the parser to handle spaces
-before and after the number such as in \ct{' 123 '}. The action block
-asks the parser to convert any parsed string (fetched from the token
-using \clsmthind{PPToken}{value}) to a number using the
-\clsmthind{String}{asNumber} method.
+The table~\ref{tab:action-parsers} shows the basic elements to build
+parsers. There are a few more well documented and tested factory
+methods in the \ct{operators} protocols of \clsind{PPParser}. If you
+want to know more about these factory methods, browse these protocols.
+An interesting one is \ct{separatedBy:} which answers a new parser
+that parses the input one or more times, with separations specified by
+another parser.
 
-The next step is to define the productions for addition and
-multiplication in order of precedence. Note that we instantiate the
-productions as \clsind{PPDelegateParser} upfront, because they recursively
-refer to each other. The method \ct{#setParser:} then resolves this
-recursion. The following script defines three parsers for the
-addition, multiplication and parenthesis (see \syntaxref{arithmetic}
-for the related syntax diagram):
+\subsection{Writing a More Complicated Grammar}
+
+We now write a more complicated grammar for evaluating simple
+arithmetic expressions. With the grammar for a number (actually an
+integer) defined above, the next step is to define the productions for
+addition and multiplication in order of precedence. Note that we
+instantiate the productions as \clsind{PPDelegateParser} upfront,
+because they recursively refer to each other. The method
+\ct{#setParser:} then resolves this recursion. The following script
+defines three parsers for the addition, multiplication and parenthesis
+(see \syntaxref{arithmetic} for the related syntax diagram):
 
 \begin{script}[arithmetic]{Parsing arithmetic expressions}
 term := PPDelegateParser new.
@@ -507,7 +492,7 @@ prim setParser: ($( asParser trim , term , $) asParser trim ==> [ :nodes | nodes
                      / number.
 \end{script}
 
-The term parser is defined as being either (1) a prod followed by '+',
+The term parser is defined as being either (1) a prod followed by `+',
 followed by another term or (2) a prod. In case (1), an action block
 asks the parser to compute the arithmetic addition of the value of the
 first node (a prod) and the last node (a term). The prod parser is
@@ -682,7 +667,7 @@ method \ct{number} as follows:
 
 \begin{script}{Implementing our first parser as a method}
 ExpressionGrammar>>number
-   ^ #digit asParser plus token trim ==> [ :token | token value asNumber ]
+   ^ #digit asParser plus trim ==> [ :str | str asNumber ]
 \end{script}
 
 Every production in \ct{ExpressionGrammar} is specified as a method
@@ -802,16 +787,16 @@ ExpressionGrammar subclass: #ExpressionPrinter
   category: 'PetitTutorial'
 
 ExpressionPrinter>>add
-  ^ super add ==> [:nodes | nodes first, ' + ', nodes third]
+  ^ super add ==> [:nodes | nodes first , ' + ' , nodes third]
 
 ExpressionPrinter>>mul
-  ^ super mul ==> [:nodes | nodes first, ' * ', nodes third]
+  ^ super mul ==> [:nodes | nodes first , ' * ' , nodes third]
 
 ExpressionPrinter>>number
   ^ super number ==> [:num | num printString]
 
 ExpressionPrinter>>parens
-  ^ super parens ==> [:node | '(', node second, ')']
+  ^ super parens ==> [:node | '(' , node second , ')']
 \end{script}
 
 This pretty printer can be tried out as shown by the following expressions.
@@ -921,12 +906,10 @@ ExpressionPrinterTest>>testNumber
 \end{figure}
 }
 
-In this section we illustrate PetitParser through the development of a
-JSON parser.\footnote{Written by Lukas Renggli and available for
-  download at \url{http://source.lukas-renggli.ch/petit/}} JSON is a
-lightweight data-interchange format defined in
-\url{http://www.json.org}. We are going to use the specification on
-this website to define our own JSON parser.
+In this section we illustrate PetitParser through the development of a JSON 
+parser. JSON is a lightweight data-interchange format defined in 
+\url{http://www.json.org}. We are going to use the specification on this 
+website to define our own JSON parser.
 
 JSON is a simple format based on nested pairs and arrays. The
 following script gives an example taken from Wikipedia
@@ -1550,12 +1533,13 @@ PPJsonGrammar>>start
 
 \section{Chapter Conclusion}
 
-This concludes our tutorial of PetitParser. Please note that this
-tutorial is not meant to give an exhaustive overview of PetitParser,
-but is merely intended to introduce the reader to its usage. For a
-more extensive view of PetitParser, its concepts and implementation,
-the Moose book\footnote{\url{http://www.themoosebook.org/book}} and
-Lukas Renggli's PhD have a dedicated chapter.
+This concludes our introductionary tutorial of PetitParser. For a more 
+extensive view of PetitParser, its concepts and implementation, the Moose 
+book\footnotemark{} and Lukas Renggli's PhD\footnotemark{} both have a dedicated 
+chapter.
+
+\footnotetext{\url{http://www.themoosebook.org/book/internals/petit-parser}}
+\footnotetext{\url{http://scg.unibe.ch/archive/phd/renggli-phd.pdf}}
 
 %=============================================================
 \ifx\wholebook\relax\else
