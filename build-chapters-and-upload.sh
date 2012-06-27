@@ -14,7 +14,7 @@ rm -rf $BOOK
 svn co $SVN_REPO/$BOOK
 cd $BOOK
 
-chapters=$(cat PBE2.tex  | grep '^\\input' | grep -v common.tex | sed -e 's/^\\input{\([^}]\+\)}.*$/\1/')
+chapters=$(cat PBE2.tex  | grep '^\\input' | grep -v common.tex | sed -e 's/^\\input{\([^}]*\)}.*$/\1/')
 
 # First try to compile all chapters before uploading anything
 for chapter in $chapters; do
