@@ -631,7 +631,9 @@ ConfigurationOfCoolToolSet >>baseline01: spec
        spec for: #common do: [
               spec repository: 'http://www.example.com/CoolToolSet'.
               spec project: 'CoolBrowser ALL' with: [
-                            spec !\textbf{repository:}! 'http://www.example.com/CoolBrowser' ]
+                            spec 
+                                 !\textbf{repository:}! 'http://www.example.com/CoolBrowser';
+                                 !\textbf{versionString:}! '2.5' ]
               spec 
                      package: 'CoolToolSet-Core' with: [ spec !\textbf{requires:}! 'CoolBrowser ALL' ];
                      package: 'CoolToolSet-Tests' with: [ spec requires: 'CoolToolSet-Core' ]].
@@ -640,11 +642,6 @@ ConfigurationOfCoolToolSet >>baseline01: spec
 
 
 We've named the project reference 'CoolBrowser ALL' and in the specification for the 'CoolToolSet-Core' package, we've specified that 'CoolBrowser ALL' is required. The name of the project reference is arbitrary, you can select the name you want, although is recommended to put a name that make sense to that project reference. As explained later, the message \ct{project:with:} allows one to specify the exact version of the project you want to load.
-
-
-
-Now if the project you depend on does not follow the default convention you will have to provide more information to identify the configuration. Let's also assume  that the class \ct{ConfigurationOfCoolBrowser} is stored in a Monticello package called \ct{CoolBrowser-Metacello} instead of the recommended \ct{ConfigurationOfCoolBrowser}. This will help us to understand the role of each parameter. 
-
 
 Now we can now load \ct{CoolToolSet} like this:
 
@@ -676,7 +673,10 @@ ConfigurationOfCoolToolSet >>baseline01: spec
 \end{code}       
 
 
-We've named the project reference 'CoolBrowser ALL' and in the specification for the 'CoolToolSet-Core' package, we've specified that 'CoolBrowser ALL' is required. The name of the project reference is arbitrary, you can select the name you want, although is recommended to put a name that make sense to that project reference. What we did here in \ct{baseline0.1} was to create a \emph{project reference} for the CoolBrowser project (see \figref{version07}). 
+We've named the project reference 'CoolBrowser ALL' and in the specification for the 'CoolToolSet-Core' package, we've specified that 'CoolBrowser ALL' is required. The name of the project reference is arbitrary, you can select the name you want, although is recommended to put a name that make sense to that project reference. What we did here in \ct{baseline0.1} was to create a \emph{project reference} for the CoolBrowser project (see \figref{version07}). Pay attention that when you have multiple dependent you should specify a collection of dependent as follows \ct{spec package: 'CoolToolSet-Core' with: [ spec requires: #('CoolBrowser ALL' 'XML') ]}. 
+It is not equivalent to \ct{spec requires: 'CoolBrowser ALL'; requires: 'XML'}
+The example in the next section shows such use. 
+
 
 \begin{itemize}
 \item The message \ct{className:} specifies the name of the class that contains the project metadata; in this case \ct{'ConfigurationOfCoolBrowser'}.
@@ -711,7 +711,7 @@ Now we can now load \ct{CoolToolSet} like this:
 
 
 
-\subsection{Multiple Entries}
+\subsection{Depending on Multiple Projects}
 
 Using 'ALL' will cause the entire \ct{CoolBrowser} project to be loaded before \ct{'CoolToolSet-Core'}. 
 If we wanted to specify dependencies on CoolBrowser's test package separately from those on the core package, we might define this baseline:
@@ -724,23 +724,20 @@ ConfigurationOfCoolToolSet >>baseline02: spec
               spec repository: 'http://www.example.com/CoolToolSet'.
               spec project: 'CoolBrowser default' with: [
                             spec
-                                   className: 'ConfigurationOfCoolBrowser';
-                                   loads: #('default' );  ``this is optional''
-                                   file: 'CoolBrowser-Metacello';
+                                   className: 'ConfigurationOfCoolBrowser'; ''this is optional''
+                                   loads: #('default');  ''this is optional''
                                    repository: 'http://www.example.com/CoolBrowser' ].
                      project: 'CoolBrowser Tests' with: [
                             spec
-                                   className: 'ConfigurationOfCoolBrowser';
-                                   loads: #('Tests' );
-                                   file: 'CoolBrowser-Metacello';
+                                   loads: #('Tests' ); 
                                    repository: 'http://www.example.com/CoolBrowser' ].
               spec 
                      package: 'CoolToolSet-Core' with: [ spec requires: 'CoolBrowser default' ];
                      package: 'CoolToolSet-Tests' with: [ 
-                            spec requires: #('CoolToolSet-Core'  'CoolBrowser Tests'  ) ].].                     
+                            spec !\textbf{requires: \#('CoolToolSet-Core'  'CoolBrowser Tests')}! ].].                     
 \end{code}
 
-This baseline creates \emph{two} project references: the reference named \ct{'CoolBrowser default'} loads the 'default' group and the reference named 'CoolBrowser Tests'  loads the 'Tests' group of the configuration of CoolBrowser. We declared that \ct{'CoolToolSet-Core'} require \ct{'CoolBrowser default'} and \ct{'CoolToolSet-Tests'} require \mbox{\ct{'CoolToolSet-Core'}} and \ct{'CoolBrowser Tests'}.
+This baseline creates \emph{two} project references: the reference named \ct{'CoolBrowser default'} loads the 'default' group and the reference named 'CoolBrowser Tests'  loads the 'Tests' group of the configuration of CoolBrowser. We declared that \ct{'CoolToolSet-Core'} require \ct{'CoolBrowser default'} and \ct{'CoolToolSet-Tests'} require \mbox{\ct{'CoolToolSet-Core'}} and \ct{'CoolBrowser Tests'}. Note also the use of \ct{requires:} with a collection of dependent projects.
 
 Now it is possible to load just the core packages:
 
@@ -758,7 +755,7 @@ or the core including tests:
 
 
 As we did for internal dependencies, \ct{baseline02}, and also in \ct{baseline01}, do not specify the version of the project they depend on. Instead, we do this in the version method using the message \mthind{project:with:}: 
-
+\sd{It would be nice to have a clear message that project: with: may  be project:version: and to rename versionString: as version:}
 \begin{code}{}
 ConfigurationOfCoolToolSet>>version02: spec 
        <version: '0.2' imports: #('0.2-baseline' )>
@@ -797,15 +794,15 @@ ConfigurationOfSoup>>version10: spec
 What you can also do is to use the \ct{loads:} message in the project reference to specify which packages of the project you want to load. Such solution is nice because you factor the information in the project reference and you do not have to duplicate it in all the versions.
 
 \begin{code}{}
-ConfigurationOfCoolToolSet>>version10: spec 
+ConfigurationOfSoup>>version10: spec 
 	<version: '1.0' imports:  #('1.0-baseline')>
 	 
 	spec for: #pharo do: [	
 		spec project: 'XMLSupport' with: [
-                       spec className: 'ConfigurationOfXMLSupport';
-                       versionString: #stable;
-                       !\textbf{loads:}! #('XML-Parser' 'XML-Tests-Parser') 
-                       repository: 'http://www.squeaksource.com/XMLSupport' ].
+                       spec 
+                          versionString: #stable;
+                          !\textbf{loads:}! #('XML-Parser' 'XML-Tests-Parser') 
+                          repository: 'http://www.squeaksource.com/XMLSupport' ].
 
 	spec 
 			package: 'Soup-Core' with: 'Soup-Core-sd.11'; 
@@ -854,10 +851,10 @@ ConfigurationOfKozen>>baseline103: spec
  		spec group: 'full' with: #('Kozen' 'KoCizen').
  		
  	spec project: 'Citezen' with: [
- 			spec className: 'ConfigurationOfCitezen';
- 			versionString: #stable;
- 			loads: #('NoWeb' );
- 			repository: 'http://ss3.gemstone.com/ss/citezen'.	]].
+ 			spec 
+ 			   versionString: #stable;
+ 			   loads: #('NoWeb' );
+ 			   repository: 'http://ss3.gemstone.com/ss/citezen'.	]].
 \end{code}
 
 In the version you 
@@ -870,7 +867,7 @@ ConfigurationOfKozen>>version12: spec
                spec blessing: #release.
                spec author: 'StephaneDucasse'.
                spec timestamp: '12/03/2012 21:45'.
-			!\textbf{spec project: 'Citezen' with: \#'develoment'.}!
+			  !\textbf{spec project: 'Citezen' with: \#'develoment'.}!
                spec 
                        package: 'Kozen' with: 'Kozen-StephaneDucasse.32';
                        package: 'KoCizen' with: 'KoCizen-StephaneDucasse.6'.]
@@ -889,7 +886,6 @@ ConfigurationOfCoolToolSet >>baseline02: spec
               spec repository: 'http://www.example.com/CoolToolSet'.
               spec project: 'CoolBrowser default' with: [
                             spec
-                                   className: 'ConfigurationOfCoolBrowser';
                                    loads: #('default');
                                    repository: 'http://www.example.com/CoolBrowser';
                                    file: 'CoolBrowser-Metacello']
