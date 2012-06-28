@@ -7,7 +7,6 @@ REMOTE_PATH=/home/groups/pharobooks/htdocs
 REMOTE=$REMOTE_SERVER:$REMOTE_PATH
 BOOK=PharoByExampleTwo-Eng
 DOWNLOAD_URL=http://pharobooks.gforge.inria.fr/$BOOK
-USER=cassou
 
 cd $TEMP_DIR
 rm -rf $BOOK
