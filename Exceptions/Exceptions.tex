@@ -54,15 +54,7 @@
 \chapter{Handling exceptions}
 %\chapterauthor{\authorsteph{}}
 
-%Hi Stef,
-% here are the coments of the exceptions chapter:
-%
-%The fist paragraph talks about error handling. Maybe it is a good idea to reference point 1.4 for the problems related with error handling. I know that forward references are not good, but changing the order to talk about error codes first is a big change.
-%Just as a comment, in my class of exceptions, I start talking about how to write safe code and talk about error code as a common technique. Then we discuss about the problems of error code handling (as you do later in the chapter) and then I make them think about how to "remove" all that code duplication... the solution then is obviuos, the problem needs to be reified and a object model has to be created to solve the problem... then we talk about whose responsible for what so, processes, contexts and blocks came into play and we deduce the final model together... Anyway, the idea of seen exceptions as a model that replaces error codes makes a lot of sense to them and help them understand exceptions from the conceptual point of view
-%
-%Section 1.4: it says: "If Smalltalk did provide exception-handling".
-%I think it should say: "If Smalltalk did NOT provide exception-handling"
-%
+
 %Something that is missing but I don't know if it is one goal of the chapter is some words about whose responsible to signal exceptions (the objects at the end of the tree call) and whose responsible to handle exceptions (the objects at the top of the tree call)
 %
 %Section 1.7 sounded to me a little out of order... because you need to talk about defaultAction but you have not talked about how handlers are found yet... I would move this secction to the end, as an example of exception usage
@@ -109,7 +101,7 @@
 
 All applications have to deal with exceptional situations.
 Arithmetic errors may occur (such as division by zero), unexpected situations may arise (file not found), or resources may be exhausted (network down, disk full, \etc).
-The old-fashioned solution is to have operations that fail return a special \emph{error code}; this means that client code must check the return value of each operation, and take special action to handle errors.
+The old-fashioned solution is to have operations that fail return a special \emph{error code}; this means that client code must check the return value of each operation, and take special action to handle errors. This leads to brittle code. 
 
 Modern programming languages, including \st, instead offer a dedicated exception-handling mechanism that greatly simplifies the way in which exceptional situations are signaled and handled.
 Before the development of the \ind{ANSI \st{}} standard in 1996, several  exception handling mechanisms existed, largely incompatible with each other. \pharo's exception handling follows the ANSI standard, with some embellishments; we present it in this chapter from a user perspective.
@@ -360,7 +352,7 @@ Without exception handling, we must explicitly check the result of each operatio
 Not only must we check error codes at each point that something might go wrong, but we must also be prepared to cleanup any operations performed up to that point and abort the rest of the code.
 
 %=================================================================
-\section{Specifying which Exceptions will be Handled}
+\section{Specifying which exceptions will be handled}
 
 
 \begin{figure}[t]\centering
@@ -456,52 +448,6 @@ That completes our description of how exceptions are used.  The remainder of thi
 
 %=================================================================
 
-
-\section{Halt implementation}
-
-As we discussed in the Debugger chapter of \emph{Pharo By Example}, 
-the usual way of setting a \ind{breakpoint} within a \st{} method is to insert the message-send \ct{self halt} into the code. The method \mthind{Object}{halt}, implemented in \ct{Object}, uses exceptions to open a debugger at the location of the breakpoint; it is defined as follows:
-
-\needlines{6}
-\begin{code}{}
-Object>>>halt
-	"This is the typical message to use for inserting breakpoints during 
-	debugging. It behaves like halt:, but does not call on halt: in order to 
-	avoid putting this message on the stack. Halt is especially useful when 
-	the breakpoint message is an arbitrary one."
-	Halt signal
-\end{code}
-
-\index{exception!resumable}
-\clsind{Halt} is a direct subclass of \clsind{Exception}. A \ct{Halt} exception is \emph{resumable}, which means that it is possible to continue execution after a \ct{Halt} is signaled. 
-
-\ct{Halt} overrides the \mthind{Halt}{defaultAction} method, which specifies the action to perform if the exception is not caught (\ie there is no exception handler for \ct{Halt} anywhere on the execution stack):
-
-\begin{code}{}
-Halt>>>defaultAction
-	"No one has handled this error, but now give them a chance to decide
-	how to debug it.  If no one handles this then open debugger
-	(see UnhandedError-defaultAction)"
-	UnhandledError signalForException: self
-\end{code}
-
-This code signals a new exception, \ct{UnhandledError}, that conveys the idea that no handler is present. The \ct{defaultAction} of \ct {UnhandledError} is to open a debugger:
-
-\mthindex{UnhandledError}{defaultAction}
-\begin{code}{}
-UnhandledError>>>defaultAction
-	"The current computation is terminated. The cause of the error should be logged or reported to the user. If the program is operating in an interactive debugging environment the computation should be suspended and the debugger activated."
-	^ ToolSet debugError: exception.
-\end{code}
-
-\noindent
-A few messages later, the debugger opens:
-
-\mthindex{StandardToolSet}{debug:context:label:contents:fullView:}
-\begin{code}{}
-StandardToolSet>>>debug: aProcess context: aContext label: aString contents: contents fullView: aBool
-	^ Debugger openOn: aProcess context: aContext label: aString contents: contents fullView: aBool
-\end{code}
 
 %=================================================================
 \section{Finding handlers}
@@ -975,7 +921,55 @@ ExceptionSet>>>handles: anException
 \end{code}
 
 \noindent
-\ab{Is there some reason that \ct{ExceptionSet>>>handles:} isn't implemented using \ct{anySatisfy:}?}
+%\ab{Is there some reason that \ct{ExceptionSet>>>handles:} isn't implemented using \ct{anySatisfy:}?}
+%\sd{probably that any satisfy was introduced later.}
+\section{Halt implementation}
+
+As we discussed in the Debugger chapter of \emph{Pharo By Example}, 
+the usual way of setting a \ind{breakpoint} within a \st{} method is to insert the message-send \ct{self halt} into the code. The method \mthind{Object}{halt}, implemented in \ct{Object}, uses exceptions to open a debugger at the location of the breakpoint; it is defined as follows:
+
+\needlines{6}
+\begin{code}{}
+Object>>>halt
+	"This is the typical message to use for inserting breakpoints during 
+	debugging. It behaves like halt:, but does not call on halt: in order to 
+	avoid putting this message on the stack. Halt is especially useful when 
+	the breakpoint message is an arbitrary one."
+	Halt signal
+\end{code}
+
+\index{exception!resumable}
+\clsind{Halt} is a direct subclass of \clsind{Exception}. A \ct{Halt} exception is \emph{resumable}, which means that it is possible to continue execution after a \ct{Halt} is signaled. 
+
+\ct{Halt} overrides the \mthind{Halt}{defaultAction} method, which specifies the action to perform if the exception is not caught (\ie there is no exception handler for \ct{Halt} anywhere on the execution stack):
+
+\begin{code}{}
+Halt>>>defaultAction
+	"No one has handled this error, but now give them a chance to decide
+	how to debug it.  If no one handles this then open debugger
+	(see UnhandedError-defaultAction)"
+	UnhandledError signalForException: self
+\end{code}
+
+This code signals a new exception, \ct{UnhandledError}, that conveys the idea that no handler is present. The \ct{defaultAction} of \ct {UnhandledError} is to open a debugger:
+
+\mthindex{UnhandledError}{defaultAction}
+\begin{code}{}
+UnhandledError>>>defaultAction
+	"The current computation is terminated. The cause of the error should be logged or reported to the user. If the program is operating in an interactive debugging environment the computation should be suspended and the debugger activated."
+	^ ToolSet debugError: exception.
+\end{code}
+
+\noindent
+A few messages later, the debugger opens:
+
+\mthindex{StandardToolSet}{debug:context:label:contents:fullView:}
+\begin{code}{}
+StandardToolSet>>>debug: aProcess context: aContext label: aString contents: contents fullView: aBool
+	^ Debugger openOn: aProcess context: aContext label: aString contents: contents fullView: aBool
+\end{code}
+
+
 
 %=========================================================
 \section{Exceptions implementation}
@@ -1138,7 +1132,7 @@ The full story is only slightly more complicated because there are actually two 
 So, to summarize, the \ct{signal} method, with minimal assistance from the virtual machine, finds the context that correspond to an \ct{on:do:} message with an appropriate exception class.   Because the execution stack is made up of Context objects that may be manipulated just like any other object, the stack can be shortened at any time.  This is a superb example of flexibility of \st.
 
 %=========================================================
-\section{Other kinds of Exception}
+\section{Other kinds of exceptions}
 
 The class \ct{Exception} in \pharo{} has ten direct subclasses, as shown in \figref{wholeHierarchy}.
 The first thing that we notice from this figure is that the Exception hierarchy is a bit of a mess; you can expect to see some of the details change as \pharo{} is improved.
@@ -1184,7 +1178,7 @@ a \ct{Notification} is a resumable \ct{Exception} that can be safely resumed wit
 More often, it will be safe to resume an exception only if the state of the system is first modified in some way.
 So, if you signal a resumable exception, you should be very clear about what you expect an exception handler to do before it resumes the exception.
 
-\section{When not to use Exceptions}
+\section{When not to use exceptions}
 Just because \pharo{} has exception handling, you should not conclude that it is always appropriate to use it.  
 Recall that in the introduction to this chapter, we said that exception handling is for \emph{exceptional} situations.  
 So, the first rule for using exceptions is \emph{not} to use them for situations that \emph{can reasonably be expected to occur} in a normal execution. 
