@@ -177,8 +177,7 @@ ifCurtailed: curtailBlock
 	| result curtailed |
 	curtailed := true.
 	[	result := self value.
-		curtailed := false
-	]	ensure: [ curtailed ifTrue: [ curtailBlock value ] ].
+		curtailed := false ] ensure: [ curtailed ifTrue: [ curtailBlock value ] ].
 	^ result
 \end{code}
 
@@ -245,8 +244,8 @@ Although several file-related things could go wrong, with exception handling we 
 \begin{code}{| source destination fromStream toStream |}
 source := 'log.txt'.
 destination := 'log-backup.txt'.
-[	fromStream := FileDirectory default oldFileNamed: source.
-	[	toStream := FileDirectory default newFileNamed: destination.
+[ fromStream := FileDirectory default oldFileNamed: source.
+	[ toStream := FileDirectory default newFileNamed: destination.
 		[ toStream nextPutAll: fromStream contents ]
 			ensure: [ toStream close ] ]
 		ensure: [ fromStream close ] ]
@@ -405,7 +404,7 @@ That completes our description of how exceptions are used.  The remainder of thi
 %=================================================================
 
 
-\section{How breakpoints are Implemented}
+\section{Halt implementation}
 
 As we discussed in the Debugger chapter of \emph{Pharo By Example}, 
 the usual way of setting a \ind{breakpoint} within a \st{} method is to insert the message-send \ct{self halt} into the code. The method \mthind{Object}{halt}, implemented in \ct{Object}, uses exceptions to open a debugger at the location of the breakpoint; it is defined as follows:
@@ -452,7 +451,7 @@ StandardToolSet>>>debug: aProcess context: aContext label: aString contents: con
 \end{code}
 
 %=================================================================
-\section{How handlers are found}
+\section{Finding handlers}
 
 \index{exception!handler}
 \index{activation context}
@@ -557,9 +556,9 @@ The first possibility is to abandon the execution of the protected block, as fol
 answer := [ |result|
 	result := 6 * 7.
 	Error signal.
-	result 	"This part is never evaluated"
-]	on: Error
-	do: [ :ex | 3 + 4 ].
+	result 	"This part is never evaluated" ]	
+	   on: Error
+	   do: [ :ex | 3 + 4 ].
 answer --> 7
 \end{code}
 
@@ -926,27 +925,18 @@ ExceptionSet>>>handles: anException
 \ab{Is there some reason that \ct{ExceptionSet>>>handles:} isn't implemented using \ct{anySatisfy:}?}
 
 %=========================================================
-\section{How exceptions are implemented}
+\section{Exceptions implementation}
+Up to now, we have presented the use of exceptions without really explaining deeply how there are implemented
+at the Virtual Machine level. Note that since you do not need to know how exceptions are implemented 
+to use them, you can simply skip this section in a first reading. Now if you are curious and really 
+want to know how this is implemented at the Virtual Machine level, this section is for you. 
+The mechanism is quite simple, making it worth to know how it operates.
 
-%\on{As an explanation, this part really does not work. I would prefer to leave it out.}
-%\sd{no this is really important I did a new pass on it}
-
-Let's have a look at how exceptions are implemented at the Virtual Machine level.
-
-%\on{need new intro}
-
-%\ugh{Up to now, we have presented the use of exceptions in \st without really saying a word about their implementation.
-%at the execution engine level (Virtual Machine). 
-%Normally you do not need to know how handlers are really looked up at execution time to use exceptions.
-%Therefore in the first reading you can skip this section. Now if you are curious and really want to know how this is implemented at the Virtual Machine level, this section is for you. 
-%This section will uncover the internal of the Pharo exception mechanism.
-%The mechanism is quite simple, making it worth to know how it operates.
-%This section is a wonderful example on how Pharo can reveal information just by browsing its source code.}
-
+So let's have a look at how exceptions are implemented at the Virtual Machine level.
 
 \paragraph{Storing Handlers.}
-First we need to understand how the exception class and its associated handler  are stored and how this information is found at run-time. 
-Let's look at the definition of the central method \mthind{BlockClosure}{on:do:} defined on the class \ct{BlockClosure}. % which is the class representing the block-closure. 
+First we need to understand how the exception class and its associated handler are stored and how this information is found at run-time. 
+Let's look at the definition of the central method \mthind{BlockClosure}{on:do:} defined on the class \ct{BlockClosure}. 
 
 \mthindex{BlockClosure}{on:do:}
 \needlines{6}
@@ -990,6 +980,19 @@ do: [:ex| ].
 \end{code}
 
 The last line explores a 2-element array that contains the exception class and the exception handler. 
+
+Note that you can also execute the following code you obtain an explorer and that you can see that the exception class and the handler are stored in the first and second variable instance variables of the method context object (a method context represents an execution stack element).
+
+\begin{code}{}
+[thisContext sender explore] on: Error do: [:ex|].
+\end{code}
+
+\begin{figure}[ht]\centering
+        \includegraphics[width=6cm]{exception}
+        \caption{Explore a method context to find the exception class and the handler.\figlabel{exploration}}
+\end{figure}
+
+
 
 \paragraph{Finding Handlers.}
 Now that we know where the information is stored, let's have a look at how it is found at runtime. 
