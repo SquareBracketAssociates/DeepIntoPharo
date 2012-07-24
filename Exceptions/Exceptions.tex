@@ -21,6 +21,7 @@
 % 2010-03-03 - Henrik Sperre Johansen spotted an error. Alexandre fixed it
 % 2010-03-11 - Various corrections from Max Leske - fixed by Oscar
 % 2011-09-11 - Migrated to PharoBox: svn checkout https://XXX@scm.gforge.inria.fr/svn/pharobooks/PharoByExampleTwo-Eng
+% 2012-07-24 - Taking into account hernan comments for real.
 
 % Todo for stef	Should add a note on 	on: fork:
 
@@ -56,33 +57,13 @@
 
 
 %Something that is missing but I don't know if it is one goal of the chapter is some words about whose responsible to signal exceptions (the objects at the end of the tree call) and whose responsible to handle exceptions (the objects at the top of the tree call)
-%
 
 
-%Section Nested Exceptions: "Exception handlers are outside of their own scope" For me is confusing... maybe "Exception handlers do not handle exceptions signaled during its evaluation" or something like that?
-%The first example of Nested Exceptions does:
-%result := [[ Error signal ....]
-%
-%Section 1.10: I would put section 1.10 as part of 1.9. I mean, it is the same from the organization point of view as Retry Execution, etc.
-%
-%Page 16, third example, the "stream close" should be inside an #ensure: :-)
-%
-
-%
-%About deprication, why is it an exception? why not having a global object to wich one can send the message #deprecated:on:in: ? my feeling is that there is no need to use exceptions for this... even more, I'm starting to think that they are a bad example of exception usage...
-%
 %Section 1.11: I would move it inside section 1.9, at the same level as Retry excecution, Returning execution, etc.
 %Section 1.12: Same as section 1.11. I would put Resending exceptions as part of 1.9
 %Section 1.13: Same as section 1.11 (does it make sense to have outer? I think it only adds confusion... just a coment)
 %
-%Page 23: It seems to me that the second example is not doing what it is expected. The handler variable references the doit closure, not the handler. I think it should be:
-%| exception handler |
-%[ exception := thisContext sender at: 1. 
-%1/0 ]
-%on: Error
-%do: [ :ex | handler := thisContext ].
-%{ exception . handler } explore
-%I would also suggest to send the message #at: 1 to the handler
+
 %
 %Section 1.16: I don't like the title... Specialized Exceptions or Specific Exceptions ?
 %I think a good discussion about when to subclass an exception and when to reuse an exception is valuable. Something to help avoid a class explosion of exceptions... That is an interesting problem...
@@ -994,13 +975,10 @@ Up to now, we have presented the use of exceptions without really explaining dee
 at the Virtual Machine level. Note that since you do not need to know how exceptions are implemented 
 to use them, you can simply skip this section in a first reading. Now if you are curious and really 
 want to know how this is implemented at the Virtual Machine level, this section is for you. 
-The mechanism is quite simple, making it worth to know how it operates.
-
-So let's have a look at how exceptions are implemented at the Virtual Machine level.
+The mechanism is quite simple, making it worth to know how it operates. We will have a look at how exceptions are implemented at the Virtual Machine level and use stack execution elements to store their information.
 
 \paragraph{Storing Handlers.}
-First we need to understand how the exception class and its associated handler are stored and how this information is found at run-time. 
-Let's look at the definition of the central method \mthind{BlockClosure}{on:do:} defined on the class \ct{BlockClosure}. 
+First we need to understand how the exception class and its associated handler are stored and how this information is found at run-time. Let's look at the definition of the central method \mthind{BlockClosure}{on:do:} defined on the class \ct{BlockClosure}. 
 
 \mthindex{BlockClosure}{on:do:}
 \needlines{6}
@@ -1017,7 +995,8 @@ This code tells us two things: First, this method is implemented as a primitive,
 So, the \st code that follows the primitive serves two purposes: it documents what the primitive does, and is available to be executed if the primitive should fail. 
 Here we see that \ct{on:do:} simply sets the temporary variable \ct{handlerActive} to true, and then evaluates the receiver (which is, of course, a block).  
 
-This is surprisingly simple, but somewhat puzzling.  Where are the arguments of the \ct{on:do:} method stored?  Let's look at the definition of the class \ct{MethodContext}, whose instances make up the execution stack: 
+This is surprisingly simple, but somewhat puzzling.  Where are the arguments of the \ct{on:do:} method stored?
+To get the answer,  let's look at the definition of the class \ct{MethodContext}, whose instances make up the execution stack: 
 
 \begin{code}{}
 ContextPart variableSubclass: #MethodContext
@@ -1027,21 +1006,30 @@ ContextPart variableSubclass: #MethodContext
 	category: 'Kernel-Methods'
 \end{code}
 
-There is no instance variable here to store the exception class or the handler, nor is there any place  in the superclass to store them. 
+There is no instance variable here to store the exception class or the handler, nor is there any place in the superclass to store them. 
 However, note that \ct{MethodContext} is defined as a \ct{variableSubclass}.
-This means that in addition to the named instance variables, objects of this class have some numbered slots.  In fact, every \ct{MethodContext} has a numbered slot for each  argument of the method whose invocation it represents.  There are also additional numbered slots for the temporary variables of the method.
+This means that in addition to the named instance variables, objects of this class have some indexed slots.  In fact, every \ct{MethodContext} has an indexed slot for each argument of the method whose invocation it represents.  There are also additional indexed slots for the temporary variables of the method.
 
-To verify this, you can evaluate the following piece of code:
+In the case that interest us, the arguments of the \ct{on:do:} message are stored in the indexed variables of the stack execution instance. To verify this, evaluate the following piece of code:
 
 \begin{code}{}
 | exception handler | 
 [exception := thisContext sender at: 1. 
- handler := thisContext sender at: 2. 
- 1 / 0] 
-on: Error 
-do: [:ex| ]. 
+handler := thisContext sender at: 2. 
+1 / 0] 
+   on: Error 
+   do: [:ex| 666 ]. 
 { exception . handler } explore
 \end{code}
+
+In the protected block, we query the stack element that represents the protected block execution using . This execution was triggered by the \ct{on:do:} message execution. Hence, the stack element 
+
+If you get some strange results using halt and inspect inside the protected block, pay attention that contexts are recycled by the Virtual Machine. Opening an explorer on thisContext will show you that the context sender is effectively the execution of the method \ct{on:do:}. 
+
+\begin{code}{}
+| exception handler |	[ thisContext  explore. 	self halt.	exception := thisContext  sender at: 1.	handler := thisContext sender at: 2.	1 / 0]		on: Error		do: [:ex | 666].	^ {exception. handler} explore
+\end{code}
+
 
 The last line explores a 2-element array that contains the exception class and the exception handler. 
 
@@ -1149,7 +1137,7 @@ The full story is only slightly more complicated because there are actually two 
 So, to summarize, the \ct{signal} method, with minimal assistance from the virtual machine, finds the context that correspond to an \ct{on:do:} message with an appropriate exception class.   Because the execution stack is made up of Context objects that may be manipulated just like any other object, the stack can be shortened at any time.  This is a superb example of flexibility of \st.
 
 %=========================================================
-\section{Other kinds of exceptions}
+\section{Specialized exceptions}
 
 The class \ct{Exception} in \pharo{} has ten direct subclasses, as shown in \figref{wholeHierarchy}.
 The first thing that we notice from this figure is that the Exception hierarchy is a bit of a mess; you can expect to see some of the details change as \pharo{} is improved.
