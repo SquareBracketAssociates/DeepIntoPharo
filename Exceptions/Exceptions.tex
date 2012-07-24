@@ -57,22 +57,17 @@
 
 %Something that is missing but I don't know if it is one goal of the chapter is some words about whose responsible to signal exceptions (the objects at the end of the tree call) and whose responsible to handle exceptions (the objects at the top of the tree call)
 %
-%Section 1.7 sounded to me a little out of order... because you need to talk about defaultAction but you have not talked about how handlers are found yet... I would move this secction to the end, as an example of exception usage
-%
-%Page 12, point 4: it says: "send it value: E". I think it should say "send TO it value: E". I also would write "value: E" in italics because it makes more clear that you are talking about a message.
-%
+
+
 %Section Nested Exceptions: "Exception handlers are outside of their own scope" For me is confusing... maybe "Exception handlers do not handle exceptions signaled during its evaluation" or something like that?
 %The first example of Nested Exceptions does:
 %result := [[ Error signal ....]
-%But nowhere before is said what #on:do: returns... 
 %
-%Section 1.9: Does it make sense to talk about abandon? It is the same as return... 
 %Section 1.10: I would put section 1.10 as part of 1.9. I mean, it is the same from the organization point of view as Retry Execution, etc.
 %
-%Page 16, second example: ResumableLoader>>readOptionsFrom:aStrem. A the end of the method does "aStream close". I think it should not close the stream, that is responsibility of the one that opened it and passed it as parameter.
 %Page 16, third example, the "stream close" should be inside an #ensure: :-)
 %
-%I would move the Deprication example to a different section. I think it is better to finish with how exception can be handle and then give examples.
+
 %
 %About deprication, why is it an exception? why not having a global object to wich one can send the message #deprecated:on:in: ? my feeling is that there is no need to use exceptions for this... even more, I'm starting to think that they are a bad example of exception usage...
 %
@@ -119,7 +114,7 @@ When an exception is caught by a handler, there are many possible responses: the
 
 With the help of a series of examples, we shall explore all of these possibilities, and we shall also take a brief look into the internal mechanics of exceptions and exception handlers.
 However, before we do that, we need to stop and think for a moment about the consequence of adding exceptions into a language: \emph{we can no longer be sure that a message send will give us an answer}.  
-In other words, once we have exceptions, any message send has the potential not to return to the sender: it may fail. We thank Hernan Wilkinson and Christopher Oliver for their comments.
+In other words, once we have exceptions, any message send has the potential not to return to the sender: it may fail. 
 
 %=================================================================
 \section{Ensuring execution}
@@ -254,7 +249,23 @@ The general mechanism is provided by the message \mthind{BlockClosure}{on:do:}. 
 \lct{\emph{handlerAction}} is the block that is evaluated if an exception is signaled; it is called the \emph{exception handler}.
 \ct{exceptionClass} defines the class of exceptions that \ct{handlerAction} will be asked to handle.
 
-%\ab{This is inappropriate, because in the ANSI standard the first argument to \ct{on:do:} is a selector, not a class.}  
+
+The message \ct{on:do:} returns the value of the receiver (the protected block) and when an error occurs it returns the value of the handlerAction block as illustrated by the following expressions:
+
+\begin{code}{}
+[1+2] on: ZeroDivide do: [:exception | 33] 
+--> 3
+
+[1/0] on: ZeroDivide do: [:exception | 33] 
+--> 33
+
+[1+2. 1+ 'kjhjkhjk'] on: ZeroDivide do: [:exception | 33] 
+--> raise another Error 
+\end{code}
+
+
+
+%\ab{This is inappropriate, because in the ANSI standard the first argument to \ct{on:do:} is a selector, not a class.} - sd- it means that ANSI is old and wrong.  
 
 %\ind{ANSI \st} defines this message as follows:
 %\begin{quote}
@@ -270,23 +281,9 @@ Although several file-related things could go wrong, with exception handling we 
 \clsindex{FileDirectory}
 \mthindex{FileDirectory}{oldFileNamed:}
 \mthindex{FileDirectory}{newFileNamed:}
-%\begin{code}{| source destination fromStream toStream |}
-%source := 'log.txt'.
-%destination := 'log-backup.txt'.
-%[	fromStream := FileDirectory default oldFileNamed: source.
-%	toStream := FileDirectory default newFileNamed: destination.
-%	toStream nextPutAll: fromStream contents
-%]
-%	on: FileStreamException
-%	do: [ :ex | UIManager default inform: 'Copy failed -- ', ex description ].
-%fromStream ifNotNil: [fromStream close].
-%toStream ifNotNil: [toStream close].
-%\end{code}
-
-%\lr{That code is not correct. If any other exception than \ct{FileStreamException} happens the files are not properly closed. Following the pattern of the initial example, the code has to be written like this:}
-
 \needlines{7}
-\begin{code}{| source destination fromStream toStream |}
+\begin{code}{}
+| source destination fromStream toStream |
 source := 'log.txt'.
 destination := 'log-backup.txt'.
 [ fromStream := FileDirectory default oldFileNamed: source.
@@ -304,6 +301,25 @@ Note the two nested uses of \ct{ensure:} to make sure that the two file streams 
 
 It is important to understand  that the block that is the receiver of the message \ct{on:do:} defines the scope of the exception handler. This handler will be used only if the receiver (\ie the protected block) has not completed. Once completed, the exception handler will not be used. Moreover, a handler is associated exclusively with the kind of exception specified as the first argument to \ct{on:do:}. 
 Thus, in the previous example, only a \clsind{FileStreamException} (or a more specific variant thereof) can be handled.
+
+
+\paragraph{A Buggy Solution.} Study the following code and see why it is wrong.
+
+\begin{code}{}
+| source destination fromStream toStream |
+source := 'log.txt'.
+destination := 'log-backup.txt'.
+	[ fromStream := FileDirectory default oldFileNamed: source.
+	toStream := FileDirectory default newFileNamed: destination.
+	toStream nextPutAll: fromStream contents ]
+		on: FileStreamException
+		do: [ :ex | UIManager default inform: 'Copy failed -- ', ex description ].
+	fromStream ifNotNil: [fromStream close].
+	toStream ifNotNil: [toStream close].
+\end{code}
+
+If any other exception than \ct{FileStreamException} happens the files are not properly closed. 
+
 
 %=================================================================
 \section{Error codes --- don't  do this!}
@@ -385,6 +401,57 @@ The class \ct{FileStreamException} adds information to class \ct{Exception} to c
 %\ab{I removed this because I added a new subsection that discusses the hierarchy more completely.}
 
 Two key messages are involved in exception handling: \ct{on:do:}, which, as we have already seen, is sent to blocks to set an exception handler, and \ct{signal}, which is sent to subclasses of \ct{Exception} to signal that an exception has occurred.
+
+\subsection{Catching sets of exceptions}
+
+So far we have always used \ct{on:do:} to catch just a single class of exception. The handler will only be invoked if the exception signaled is a sub-instance of the specified exception class.
+However, we can imagine situations where we might like to catch multiple classes of exceptions. This is easy to do, just specify a list of classes separated by commas as shown in the following example.
+
+\begin{code}{@TEST | result |}
+result := [ Warning signal . 1/0 ]
+	on: Warning, ZeroDivide
+	do: [:ex | ex resume: 1 ].
+result --> 1
+\end{code}
+
+If you are wondering how this works, just have a look at the implementation of \ct{Exception class>>>,}
+
+\begin{code}{}
+Exception class>>>, anotherException
+	"Create an exception set."
+	^ExceptionSet new add: self; add: anotherException; yourself
+\end{code}
+
+The rest of the magic occurs in the class \clsind{ExceptionSet}, which has a surprisingly trivial implementation.
+
+\begin{code}{}
+Object subclass: #ExceptionSet
+	instanceVariableNames: 'exceptions'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'Exceptions-Kernel'
+
+ExceptionSet>>>initialize
+	super initialize.
+	exceptions := OrderedCollection new
+
+ExceptionSet>>>, anException
+	self add: anException.
+	^self
+
+ExceptionSet>>>add: anException
+	exceptions add: anException
+
+ExceptionSet>>>handles: anException
+	exceptions do: [:ex | (ex handles: anException) ifTrue: [^true]].
+	^false
+\end{code}
+
+The message \ct{handles:} is also defines on a single exception and returns whether the receiver handles the exception.
+
+
+
+
 
 %=================================================================
 \section{Signaling an exception}
@@ -498,14 +565,14 @@ When an exception $E$ is signaled, the system identifies and fetches the corresp
 
 \item If no handler is found and the stack is empty, then send \ct{defaultAction} to $E$. The default implementation in the \ct{Error} class leads to the opening of a debugger.
 
-\item If the handler is found, send it \ct{value:} $E$.
+\item If the handler is found, send to it \ct{value:} $E$.
 
 \end{enumerate}
 
 \paragraph{Nested Exceptions.}
 Exception handlers are outside of their own scope.  This means that if an exception is signaled from within an exception handler\,---\,what we call a nested exception\,---\,a \emph{separate} handler must be set to catch the nested exception.
 
-Here is an example where one \ct{on:do:} message is the receiver of another one; the second will catch errors signaled by the handler of the first:
+Here is an example where one \ct{on:do:} message is the receiver of another one; the second will catch errors signaled by the handler of the first (remember that the result of \ct{on:do:} is either the protected block value or the handler action block value):
 \begin{code}{@TEST | result |}
 result := [[ Error signal: 'error 1' ]
 	on: Exception
@@ -535,7 +602,7 @@ result --> 'Error: error 2'
 When an exception is signaled, the handler has several choices about how to handle it.
 In particular, it may:
 \begin{itemize}
-\item[(i)] \emph{abandon} the execution of the protected block, by simply specifying an alternative result;
+\item[(i)] \emph{abandon} the execution of the protected block, by simply specifying an alternative result -- it is part of the protocol but not used since it is similar to return; 
 \item[(ii)] \emph{return} an alternative result for the protected block, by sending \lct{return: \emph{aValue}} to the exception object;
 \item[(iii)] \emph{retry} the protected block, by sending \ct{retry}, or try a different block by sending \ct{retryUsing:};
 \item[(iv)] \emph{resume} the protected block at the failure point, by sending \ct{resume} or \ct{resume:};
@@ -677,7 +744,6 @@ ResumableLoader>>>readOptionsFrom: aStream
 			option isNil
 				ifTrue: [InvalidOption signal]
 				ifFalse: [self addOption: option]].
-	aStream close
 \end{code}
 \noindent
 If an invalid option is encountered, we signal an \ct{InvalidOption} exception.
@@ -695,72 +761,13 @@ ResumableLoader>>>readConfiguration
 	stream close
 \end{code}
 
+Note that to be sure to close the stream the \ct{stream close} should guarded by an \ct{ensure:} invocation.
+
 \noindent
 Depending on user input, the handler in \ct{readConfiguration} might \lct{return} \lct{nil}, or it might \ct{resume} the exception, causing the \ct{signal} message send in \ct{readOptionsFrom:} to return and the parsing of the options stream to continue.
 
 Note that \ct{InvalidOption} must be resumable; it suffices to define it as a subclass of \ct{Exception}.
 
-%=================================================================
-\subsection{Example: Deprecation}
-
-\index{deprecation (pattern)}
-\emph{Deprecation} offers a case study of a mechanism built using resumable exceptions.
-Deprecation is a software re-engineering pattern that allows us to mark a method as being ``deprecated'', meaning that it may disappear in a future release and should not be used by new code.
-In \pharo, a method can be marked as deprecated as follows:
-
-\mthindex{Object}{deprecated:}
-\begin{code}{}
-Utilities class>>>convertCRtoLF: fileName
-	"Convert the given file to LF line endings. Put the result in a file with the extention '.lf'"
-
-	self deprecated: 'Use ''FileStream convertCRtoLF: fileName'' instead.' 
-		on: '10 July 2009' in: #Pharo1.0 .
-	FileStream convertCRtoLF: fileName
-\end{code}
-
-When the message \ct{convertCRtoLF:} is sent, if the \ct{raiseDeprecationWarnings} preference is  \ct{true}, then a pop-up window is displayed with a notification and the programmer may resume the application execution; this is shown in \figref{deprecation}.
-
-
-\begin{figure}[ht]\centering
-        \includegraphics[width=\linewidth]{Deprecation}
-        \caption{Sending a deprecated message.\figlabel{deprecation}}
-\end{figure}
-
-Deprecation is implemented in \pharo in just a few steps.
-First, we define \clsind{Deprecation} as a subclass of \clsind{Warning}.
-It should have some instance variables to contain information about the deprecation: in 
-\pharo{} these are \ct{methodReference}, \ct{explanationString}, \ct{deprecationDate} and \ct{versionString}; we therefore need to define an instance-side initialization method for these variables, and a class-side instance creation method that sends the corresponding message.
-
-When we define a new exception class, we should consider overriding \ct{isResumable}, \ct{description}, and \ct{defaultAction}.
-In this case the inherited implementations of the first two methods are fine:
-
-\begin{itemize}
-\item \ct{isResumable} is inherited from \clsind{Exception}, and answers \ct{true};
-\item \ct{description} is inherited from \ct{Exception}, and answers an adequate textual description.
-\end{itemize}
-
-However, it is necessary to override the implementation of \lct{defaultAction}, because we want that to depend on some preferences.  Here is \pharo's implementation:
-\begin{code}{}
-Deprecation>>>defaultAction
-	Log ifNotNil: [:log| log add: self].
-	Preferences showDeprecationWarnings ifTrue:
-		[Transcript nextPutAll: explanationString; cr; flush].
-	Preferences raiseDeprecatedWarnings ifTrue:
-		[super defaultAction]
-\end{code}
-
-The first preference simply causes a warning message to be written on the \ct{Transcript}.  The second preference asks for an exception to be signaled, which is accomplished by \super-sending \ct{defaultAction}.
-
-We also need to implement some convenience methods in \ct{Object}, like this one:
-\needlines{8}
-\begin{code}{}
-Object>>>deprecated: anExplanationString on: date in: version
-	(Deprecation
-		method: thisContext sender method
-		explanation: anExplanationString
-		on: date
-		in: version) signal
-\end{code}
 
 %=================================================================
 \section{Passing exceptions on}
@@ -871,59 +878,69 @@ outerResume --> 2    "resumes to where outer was sent"
 \end{code}
 
 %=================================================================
-\section{Catching sets of exceptions}
+%=================================================================
+\section{Example: Deprecation}
 
-So far we have always used \ct{on:do:} to catch just a single class of exception. The handler will only be invoked if the exception signaled is a sub-instance of the specified exception class.
-However, we can imagine situations where we might like to catch multiple classes of exceptions. This is easy to do:
+\index{deprecation (pattern)}
+\emph{Deprecation} offers a case study of a mechanism built using resumable exceptions.
+Deprecation is a software re-engineering pattern that allows us to mark a method as being ``deprecated'', meaning that it may disappear in a future release and should not be used by new code.
+In \pharo, a method can be marked as deprecated as follows:
 
-\begin{code}{@TEST | result |}
-result := [ Warning signal . 1/0 ]
-	on: Warning, ZeroDivide
-	do: [:ex | ex resume: 1 ].
-result --> 1
-\end{code}
-
-If you are wondering how this works, just have a look at the implementation of \ct{Exception class>>>,}
-
+\mthindex{Object}{deprecated:}
 \begin{code}{}
-Exception class>>>, anotherException
-	"Create an exception set."
+Utilities class>>>convertCRtoLF: fileName
+	"Convert the given file to LF line endings. Put the result in a file with the extention '.lf'"
 
-	^ExceptionSet new
-		add: self;
-		add: anotherException;
-		yourself
+	self deprecated: 'Use ''FileStream convertCRtoLF: fileName'' instead.' 
+		on: '10 July 2009' in: #Pharo1.0 .
+	FileStream convertCRtoLF: fileName
 \end{code}
 
-The rest of the magic occurs in the class \clsind{ExceptionSet}, which has a surprisingly trivial implementation.
+When the message \ct{convertCRtoLF:} is sent, if the \ct{raiseDeprecationWarnings} preference is  \ct{true}, then a pop-up window is displayed with a notification and the programmer may resume the application execution; this is shown in \figref{deprecation}.
 
+
+\begin{figure}[ht]\centering
+        \includegraphics[width=\linewidth]{Deprecation}
+        \caption{Sending a deprecated message.\figlabel{deprecation}}
+\end{figure}
+
+Deprecation is implemented in \pharo in just a few steps.
+First, we define \clsind{Deprecation} as a subclass of \clsind{Warning}.
+It should have some instance variables to contain information about the deprecation: in 
+\pharo{} these are \ct{methodReference}, \ct{explanationString}, \ct{deprecationDate} and \ct{versionString}; we therefore need to define an instance-side initialization method for these variables, and a class-side instance creation method that sends the corresponding message.
+
+When we define a new exception class, we should consider overriding \ct{isResumable}, \ct{description}, and \ct{defaultAction}.
+In this case the inherited implementations of the first two methods are fine:
+
+\begin{itemize}
+\item \ct{isResumable} is inherited from \clsind{Exception}, and answers \ct{true};
+\item \ct{description} is inherited from \ct{Exception}, and answers an adequate textual description.
+\end{itemize}
+
+However, it is necessary to override the implementation of \lct{defaultAction}, because we want that to depend on some preferences.  Here is \pharo's implementation:
 \begin{code}{}
-Object subclass: #ExceptionSet
-	instanceVariableNames: 'exceptions'
-	classVariableNames: ''
-	poolDictionaries: ''
-	category: 'Exceptions-Kernel'
-
-ExceptionSet>>>initialize
-	super initialize.
-	exceptions := OrderedCollection new
-
-ExceptionSet>>>, anException
-	self add: anException.
-	^self
-
-ExceptionSet>>>add: anException
-	exceptions add: anException
-
-ExceptionSet>>>handles: anException
-	exceptions do: [:ex | (ex handles: anException) ifTrue: [^true]].
-	^false
+Deprecation>>>defaultAction
+	Log ifNotNil: [:log| log add: self].
+	Preferences showDeprecationWarnings ifTrue:
+		[Transcript nextPutAll: explanationString; cr; flush].
+	Preferences raiseDeprecatedWarnings ifTrue:
+		[super defaultAction]
 \end{code}
 
-\noindent
-%\ab{Is there some reason that \ct{ExceptionSet>>>handles:} isn't implemented using \ct{anySatisfy:}?}
-%\sd{probably that any satisfy was introduced later.}
-\section{Halt implementation}
+The first preference simply causes a warning message to be written on the \ct{Transcript}.  The second preference asks for an exception to be signaled, which is accomplished by \super-sending \ct{defaultAction}.
+
+We also need to implement some convenience methods in \ct{Object}, like this one:
+\needlines{8}
+\begin{code}{}
+Object>>>deprecated: anExplanationString on: date in: version
+	(Deprecation
+		method: thisContext sender method
+		explanation: anExplanationString
+		on: date
+		in: version) signal
+\end{code}
+
+\section{Example: Halt implementation}
 
 As we discussed in the Debugger chapter of \emph{Pharo By Example}, 
 the usual way of setting a \ind{breakpoint} within a \st{} method is to insert the message-send \ct{self halt} into the code. The method \mthind{Object}{halt}, implemented in \ct{Object}, uses exceptions to open a debugger at the location of the breakpoint; it is defined as follows:
@@ -1238,7 +1255,7 @@ In this chapter we saw how to use exceptions to signal and handle abnormal situa
 
 \end{itemize}
 
-\paragraph{Acknowledgments.}  We gratefully acknowledge Vassili Bykov for the raw material he provided. We also thank Paolo Bonzini, the main developer of GNU \st, for the \st implementations of \ct{ensure:} and \ct{ifCurtailed:}.
+\paragraph{Acknowledgments.}  We gratefully acknowledge Vassili Bykov for the raw material he provided. We also thank Paolo Bonzini for the \st implementations of \ct{ensure:} and \ct{ifCurtailed:}. We thank Hernan Wilkinson, Lukas Renggli, Christopher Oliver for their comments and suggestions.
 \index{Bonzini, Paolo}
 \index{GNU \st}
 
