@@ -56,25 +56,6 @@
 %\chapterauthor{\authorsteph{}}
 
 
-%Something that is missing but I don't know if it is one goal of the chapter is some words about whose responsible to signal exceptions (the objects at the end of the tree call) and whose responsible to handle exceptions (the objects at the top of the tree call)
-
-
-%Section 1.11: I would move it inside section 1.9, at the same level as Retry excecution, Returning execution, etc.
-%Section 1.12: Same as section 1.11. I would put Resending exceptions as part of 1.9
-%Section 1.13: Same as section 1.11 (does it make sense to have outer? I think it only adds confusion... just a coment)
-%
-
-%
-%Section 1.16: I don't like the title... Specialized Exceptions or Specific Exceptions ?
-%I think a good discussion about when to subclass an exception and when to reuse an exception is valuable. Something to help avoid a class explosion of exceptions... That is an interesting problem...
-%
-%
-%Well, I hope you find this comments valuable :-)
-%Thank you for sharing the chapter
-
-
-
-
 All applications have to deal with exceptional situations.
 Arithmetic errors may occur (such as division by zero), unexpected situations may arise (file not found), or resources may be exhausted (network down, disk full, \etc).
 The old-fashioned solution is to have operations that fail return a special \emph{error code}; this means that client code must check the return value of each operation, and take special action to handle errors. This leads to brittle code. 
@@ -680,7 +661,7 @@ As another example, recall the file handling code we saw earlier, in which we pr
 \end{code}
 
 %=================================================================
-\section{Resuming execution}
+\subsection{Resuming execution}
 
 \index{exception!resuming execution}
 A method that signals an exception that \ct{isResumable} can be resumed at the place immediately following the signal. An exception handler may therefore perform some action, and then resume the execution flow. This behavior is achieved by sending \mthind{Exception}{resume:} to the exception in the handler.
@@ -751,10 +732,9 @@ Note that \ct{InvalidOption} must be resumable; it suffices to define it as a su
 
 
 %=================================================================
-\section{Passing exceptions on}
+\subsection{Passing exceptions on}
 
-To illustrate the remaining possibilities for handling exceptions, we will look at how to implement a generalization of the \ct{perform:} method.
-If we send \lct{perform: \emph{aSymbol}} to an object, this will cause the message named \lct{\emph{aSymbol}} to be sent  to that object:
+To illustrate the remaining possibilities for handling exceptions such as passing an exception, we will look at how to implement a generalization of the \ct{perform:} method. If we send \lct{perform: \emph{aSymbol}} to an object, this will cause the message named \lct{\emph{aSymbol}} to be sent  to that object:
 \begin{code}{@TEST}
 5 perform: #factorial --> 120    "same as: 5 factorial"
 \end{code}
@@ -763,9 +743,7 @@ Several variants of this method exist. For example:
 \begin{code}{@TEST}
 1 perform: #+ withArguments: #(2) --> 3    "same as: 1 + 2"
 \end{code}
-These \ct{perform:}-like methods are very useful for accessing an interface dynamically, since the messages to be sent can be determined at run-time.
-
-One message that is missing is one that will send a cascade of unary messages to a given receiver. A simple and naive implementation is:
+These \ct{perform:}-like methods are very useful for accessing an interface dynamically, since the messages to be sent can be determined at run-time. One message that is missing is one that sends a cascade of unary messages to a given receiver. A simple and naive implementation is:
 \begin{code}{}
 Object>>>performAll: selectorCollection
 	selectorCollection do: [:each | self perform: each]    "aborts on first error"
@@ -788,7 +766,7 @@ Object>>>performAll: selectorCollection
 \end{code}
 
 On closer examination we notice another problem. This handler will not only catch and ignore messages not understood by the original receiver, but also any messages sent but not understood in methods for messages that \emph{are} understood! This will hide programming errors in those methods, which is not our intent.
-To fix this, we need our handler to analyze the exception to see if it was indeed caused by the attempt to perform the current selector.
+To address this, we need our handler to analyze the exception to see if it was indeed caused by the attempt to perform the current selector.
 Here is the correct implementation.
 \begin{method}[objectPerformAll]{Object>>performAll:}
 Object>>>performAll: selectorCollection 
@@ -810,7 +788,7 @@ that results is not always easy to understand.
 There is often a simpler way to get he same effect without exceptions; see \mthref{simplerObjectPerfromAll} on page \pageref{mth:simplerObjectPerfromAll} for a better way to implement \ct{performAll:}.
 
 %=================================================================
-\section{Resending exceptions}
+\subsection{Resending exceptions}
 
 \index{exception!resending}
 Now suppose that in our \ct{performAll:} example we no longer want to ignore selectors not understood by the receiver, but instead we want to consider an occurrence of such a selector as an error. However, we want it to be signaled as an application-specific exception, let's say \ct{InvalidAction}, rather than the generic \ct{MessageNotUnderstood}. In other words, we want the ability to ``resignal'' a signaled exception as a different one.
@@ -836,8 +814,7 @@ To solve this problem, resignaling an exception is a special action handled by t
 
 %=================================================================
 \section{Comparing \lct{outer} with \lct{pass}}
-
-The method \mthind{Exception}{outer} is very similar to \ct{pass}. Sending \ct{outer} to an exception also evaluates the enclosing handler action. The only difference is that if the outer handler resumes the exception, then control will be returned to the point where \ct{outer} was sent, not the original point where the exception was signaled:
+The ANSI protocol also specifies the \ct{outer} behavior. The method \mthind{Exception}{outer} is very similar to \ct{pass}. Sending \ct{outer} to an exception also evaluates the enclosing handler action. The only difference is that if the outer handler resumes the exception, then control will be returned to the point where \ct{outer} was sent, not the original point where the exception was signaled:
 
 \begin{code}{@TEST | passResume |}
 passResume := [[ Warning signal . 1 ]    "resume to here"
@@ -861,7 +838,6 @@ outerResume --> 2    "resumes to where outer was sent"
 %=================================================================
 %=================================================================
 \section{Example: Deprecation}
-
 \index{deprecation (pattern)}
 \emph{Deprecation} offers a case study of a mechanism built using resumable exceptions.
 Deprecation is a software re-engineering pattern that allows us to mark a method as being ``deprecated'', meaning that it may disappear in a future release and should not be used by new code.
@@ -1027,7 +1003,15 @@ In the protected block, we query the stack element that represents the protected
 If you get some strange results using halt and inspect inside the protected block, pay attention that contexts are recycled by the Virtual Machine. Opening an explorer on thisContext will show you that the context sender is effectively the execution of the method \ct{on:do:}. 
 
 \begin{code}{}
-| exception handler |	[ thisContext  explore. 	self halt.	exception := thisContext  sender at: 1.	handler := thisContext sender at: 2.	1 / 0]		on: Error		do: [:ex | 666].	^ {exception. handler} explore
+| exception handler |
+	[ thisContext  explore. 
+	self halt.
+	exception := thisContext  sender at: 1.
+	handler := thisContext sender at: 2.
+	1 / 0]
+		on: Error
+		do: [:ex | 666].
+	^ {exception. handler} explore
 \end{code}
 
 
@@ -1137,7 +1121,7 @@ The full story is only slightly more complicated because there are actually two 
 So, to summarize, the \ct{signal} method, with minimal assistance from the virtual machine, finds the context that correspond to an \ct{on:do:} message with an appropriate exception class.   Because the execution stack is made up of Context objects that may be manipulated just like any other object, the stack can be shortened at any time.  This is a superb example of flexibility of \st.
 
 %=========================================================
-\section{Specialized exceptions}
+\section{Specific exceptions}
 
 The class \ct{Exception} in \pharo{} has ten direct subclasses, as shown in \figref{wholeHierarchy}.
 The first thing that we notice from this figure is that the Exception hierarchy is a bit of a mess; you can expect to see some of the details change as \pharo{} is improved.
@@ -1182,6 +1166,9 @@ In fact, this gives us another way of characterizing a notification:
 a \ct{Notification} is a resumable \ct{Exception} that can be safely resumed without first modifying the state of the system.
 More often, it will be safe to resume an exception only if the state of the system is first modified in some way.
 So, if you signal a resumable exception, you should be very clear about what you expect an exception handler to do before it resumes the exception.
+
+\paragraph{When defining a new exception.} It is a difficult problem to decide when it is worth to define a new exception instead of reusing an existing one. Here are some heuristics: first, you should evaluate if you can have an adequate solution to the exceptional situation. Second if you need a specific default behavior when the exceptional situation is not handled.
+
 
 \section{When not to use exceptions}
 Just because \pharo{} has exception handling, you should not conclude that it is always appropriate to use it.  
