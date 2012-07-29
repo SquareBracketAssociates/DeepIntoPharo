@@ -34,6 +34,7 @@
 	{QuickTour/figures/}
 	{SUnit/figures/}
 	{Streams/figures/} 
+	{RulesAndRewriteRules/figures/}
 	{Syntax/figures/}
 }
 %=================================================================
@@ -50,6 +51,57 @@
 
 \chapter{Validation et Transformations de code automatique en Pharo}
 
+
+\section{Ensuring Quality}
+Agile, Tests, Checking
+
+\section{SmallLint in a Nutshell}
+
+
+False positives
+
+\section{Existing SmallLint Rules}
+
+\subsection{Bugs}
+	message send but not implemented
+
+\subsection{Potential Bugs}
+	read before set
+
+\subsection{Design Flaws}
+	subclass
+		
+\subsection{Coding Idiom Violation}
+	todo instead collection
+
+
+\subsection{Optimization}
+\subsection{Style}
+	empty catger
+	empty class comment
+
+\subsection{Varia}
+
+
+Table
+
+
+\section{Defining your own rules}
+@@autofixing rules
+
+\subsection{Block rules}
+
+
+\subsection{Abstract Syntax Tree-Based Rules}
+
+\subsection{Defining a simple rules}
+
+
+
+\section{Conclusion}
+
+
+\section{Junk}
 
 SmallLint est un outil qui analyse du code Squeak et qui
 d\'etecte des bogues ou de possibles erreurs, et RewriteTool, qui permet
