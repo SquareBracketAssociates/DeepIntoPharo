@@ -49,11 +49,22 @@
 %\synctex=1
 
 
-\chapter{Validation et Transformations de code automatique en Pharo}
-
+%\chapter{Validation et Transformations de code automatique en Pharo}
+\chapter{Smalllint: static analysis in Pharo}
 
 \section{Ensuring Quality}
-Agile, Tests, Checking
+
+%Agile, Tests, Checking
+%Adapted from the paper the Smells in JOT 2012
+Good design practices are fundamental requisites to address software inherent properties (e.g., complexity, conformity, changeability).
+But smells are often introduced unintentionally by developers during early software development or software maintenance.
+For example, a software designer may adopt well-known established practices during initial design; however, such design may indicate certain structural deficiencies or smells that have arised during the process. 
+Also, software developers who are tasked with software maintenance (e.g., develop new features or fix bugs) may introduce smells into the code. 
+It is important in both cases to address the smells as to reduce the technical debt and maintain a high structural quality of the software.
+Awareness of smells enable designers to make well-informed design decisions and developers to avoid introducing smells in the software. 
+
+As defined by Martin Fowler, smells are certain structures in the code that suggest (sometimes they scream for) the possibility of refactoring.
+Basically, three types of smells can be found in source code at different levels: architectural, design and implementation. The architectural level includes smells such as "god package" and "cyclical dependency between packages". The design (or micro-architectural) level includes smells such as "cyclic hierarchy" and "large abstraction". Finally, the implementation level includes smells such as "improper name length" and "variables having constant value". Smalllint aims the detection of smells at design and implementation level, so this chapter is limited to such types of smells.
 
 \section{SmallLint in a Nutshell}
 
