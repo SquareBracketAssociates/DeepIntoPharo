@@ -6,6 +6,7 @@
 % Chapter started by Damien C (2011-07-11)
 % 2011-09-11 - Migrated to PharoBox: svn checkout https://XXX@scm.gforge.inria.fr/svn/pharobooks/PharoByExampleTwo-Eng
 % could change returns by answers
+% Minor correction and new section about PPExpressionParser added by Guillaume Larcheveque
 
 
 %=================================================================
@@ -331,6 +332,10 @@ is defined in the protocol \tabref{parser-combinators}.
     p negate                    & Parses p and succeeds when p fails.                                 \\
     p not                       & Parses p and succeeds when p fails, but does not consume its input. \\
     p end                       & Parses p and succeeds only at the end of the input.                 \\
+    p times: n                       & Parses p exactly n time. \\
+    p min: n max: m             &Parses p at least n times up to m times \\
+    p starLazy: q                &Like star but stop consumming when q succeed  \\
+
   \end{tabular}
   \caption{PetitParser pre-defines a multitude of parser combinators}
   \label{tab:parser-combinators}
@@ -406,8 +411,8 @@ message \ppmthind{flatten}.
 |identifier|
 identifier := (#letter asParser , (#letter asParser / #digit asParser) star).
 identifier parse: 'ajka0'          -->  #($a #($j $k $a $0))
-identifier := (#letter asParser , (#letter asParser / #digit asParser) star) flatten.
-identifier parse: 'ajka0'          --> 'ajka0'
+
+identifier flatten parse: 'ajka0'          --> 'ajka0'
 \end{script}
 
 % $ <-- to compensate for odd number
@@ -428,8 +433,7 @@ second parser, spaces are ignored.
 identifier := (#letter asParser , #word asParser star) flatten.
 identifier parse: '  ajka   '          -->  letter expected at 0
 
-identifier := (#letter asParser , #word asParser star) flatten trim.
-identifier parse: '  ajka   '          --> 'ajka'
+identifier trim parse: '  ajka   '          --> 'ajka'
 \end{script}
 
 The message \ppmthind{==>} lets you specify a block to be executed
@@ -667,7 +671,7 @@ method \ct{number} as follows:
 
 \begin{script}{Implementing our first parser as a method}
 ExpressionGrammar>>number
-   ^ #digit asParser plus trim ==> [ :str | str asNumber ]
+   ^ #digit asParser plus flatten trim ==> [ :str | str asNumber ]
 \end{script}
 
 Every production in \ct{ExpressionGrammar} is specified as a method
@@ -805,6 +809,36 @@ This pretty printer can be tried out as shown by the following expressions.
 parser := ExpressionPrinter new.
 parser parse: '1+2 *3'.          --> '1 + 2 * 3'
 parser parse: '(1+ 2 )* 3'.      --> '(1 + 2) * 3'
+\end{script}
+
+\subsection{Easy expressions with PPExpressionParser}
+
+PetitParser propose a powerful tool to create expressions;
+PPExpressionParser is a parser to conveniently define an expression
+grammar with prefix, postfix, and left- and right-associative infix
+operators. The operator-groups are defined in descending precedence. 
+
+\begin{script}{The ExpressionGrammar we define previously can be implemented in few lines}
+
+|expression parens number|
+expression := PPExpressionParser new.
+parens := $( asParser token trim , expression , $) asParser token trim
+==> [ :nodes | nodes second ].
+number := #digit asParser plus flatten trim ==> [ :str | str asNumber ].
+
+expression term: parens / number.
+
+expression
+group: [ :g |
+g left: $* asParser token trim do: [ :a :op :b | a * b ].
+g left: $/ asParser token trim do: [ :a :op :b | a / b ] ];
+group: [ :g |
+g left: $+ asParser token trim do: [ :a :op :b | a + b ].
+g left: $- asParser token trim do: [ :a :op :b | a - b ] ].
+\end{script}
+
+\begin{script}{Now our parser is also able to manage subtraction and division}
+expression parse: '1-2/3'.       --> (1/3)
 \end{script}
 
 \section{Testing a Grammar}
