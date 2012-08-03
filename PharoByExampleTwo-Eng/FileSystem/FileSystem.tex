@@ -39,30 +39,18 @@
 \chapter{Files with FileSystem }\chalabel{filesystem}
 \chapterauthor{Max Leske}
 
-Filesystem is the new file system library for Pharo. It is available in the system since Pharo 1.4. 
-Filesystem has been developed by Colin Putney. This chapter is a quick start that 
-shows how to get started. 
+Filesystem is the new file system library for Pharo. It is integrated in the system since Pharo 2.0. 
+Filesystem has been originally developed by Colin Putney. Camillo Bruni made some changes to the original design or API and integrated it into Pharo with the help of Esteban Lorenzano and Guillermo Polito - This is this version that we describe in this chapter. This chapter is a quick start that shows how to get started. 
 
 \section{Getting started}
-%From Pharo 1.4 on Filesystem is included in the system by default. If you want to load this library, use the following expression:
-%
-%\begin{code}{}
-%Gofer new
-%  squeaksource: 'fs'; 
-%  package: 'ConfigurationOfFilesystem';
-%  load.
-%ConfigurationOfFilesystem load.
-%\end{code}     
-
 The framework supports different kinds of filesystems that can be used interchangeably and that can transparently work with each other. The most obvious one is the filesystem on your hard disk. We are going to work with that one for now. 
-\ct{FSFilesystem} is the factory to access different filesystem. 
+\ct{Filesystem} is the factory to access different filesystem. 
 
-Sending the message \mthind{FSFilesystem}{disk} to \ct{FSFilesystem}, returns a file system as on your physical harddrive. Another less used possibility is \ct{memory} to create a file system at the system of the image. 
-
+Sending the message \mthind{Filesystem}{disk} to \ct{Filesystem}, returns a file system as on your physical hard-drive. Another less used possibility is \ct{memory} to create a file system at the system of the image. 
 
 \begin{code}{}
 | working |
-working := FSFilesystem disk workingDirectory.
+working := Filesystem disk workingDirectory.
 \end{code} 
 
 The message \mthind{FSReference}{workingDirectory} above returns a reference to the working directory. References are instances of the class \ct{FSReference}.  As we will see references are the central objects of the framework and provide the primary mechanisms for working with files and directories. 
@@ -168,7 +156,12 @@ working / 'foo.txt' readStreamDo: [ :stream | stream contents ].
 
 
 \begin{code}{}
-FSFilesystem disk 	openFileStream: 'authors.txt' writable: true	(FSFilesystem disk workingDirectory / 'authors2.txt') 	writeStreamDo: [ :stream | stream nextPutAll: 'lkhklkjh']
+FSFilesystem disk 
+	openFileStream: 'authors.txt' writable: true
+	
+
+(FSFilesystem disk workingDirectory / 'authors2.txt') 
+	writeStreamDo: [ :stream | stream nextPutAll: 'lkhklkjh']
 \end{code}
 Have a look at the streams protocol of FSReference for other convenience methods.
 
