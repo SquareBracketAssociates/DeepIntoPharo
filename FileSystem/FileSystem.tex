@@ -44,18 +44,24 @@ Filesystem has been originally developed by Colin Putney. Camillo Bruni made som
 
 \section{Getting started}
 The framework supports different kinds of filesystems that can be used interchangeably and that can transparently work with each other. The most obvious one is the filesystem on your hard disk. We are going to work with that one for now. 
-\ct{Filesystem} is the factory to access different filesystem. 
+\ct{FileSystem} is the factory to access different filesystem. 
 
-Sending the message \mthind{Filesystem}{disk} to \ct{Filesystem}, returns a file system as on your physical hard-drive. Another less used possibility is \ct{memory} to create a file system at the system of the image. 
+Sending the message \mthind{FileSystem}{disk} to \ct{FileSystem}, returns a file system as on your physical hard-drive. Another less used possibility is \ct{memory} to create a file system at the system of the image. 
 
 \begin{code}{}
 | working |
-working := Filesystem disk workingDirectory.
+working := FileSystem disk workingDirectory.
+--> /Users/ducasse/Workspace/FirstCircle//Pharo/20
+
+working := FileSystem disk workingDirectory class 
+--> FileReference
 \end{code} 
 
-The message \mthind{FSReference}{workingDirectory} above returns a reference to the working directory. References are instances of the class \ct{FSReference}.  As we will see references are the central objects of the framework and provide the primary mechanisms for working with files and directories. 
+The message \mthind{FileReference}{workingDirectory} above returns a reference to the working directory. References are instances of the class \ct{FileReference}.  As we will see references are the central objects of the framework and provide the primary mechanisms for working with files and directories. 
 
-Filesystem defines four classes that are important for the end-user: \ct{FSFilesystem}, \ct{FSReference}, \ct{FSLocator}, and \ct{FSDirectoryEntry}. You should do not use platform specific classes such as \ct{FSUnixStore} or \ct{FSWindowsStore}, there are internal classes. All code snippets below work on \ct{FSReference} instances.
+Filesystem defines four classes that are important for the end-user: \ct{FileSystem}, \ct{FileReference}, \ct{FileLocator}, and \ct{FileSystemDirectoryEntry}. These classes are grouped in the 'FileSystem-Core-Public' category.
+
+You should do not use platform specific classes such as \ct{UnixStore} or \ct{WindowsStore}, these are internal classes. All code snippets below work on \ct{FileReference} instances.
 
 
 \section{Navigating the Filesystem}
@@ -64,49 +70,63 @@ Now let's do some more interesting things. To list the immediate children of you
 
 \begin{code}{}
 | working |
-working := FSFilesystem disk workingDirectory.
+working := FileSystem disk workingDirectory.
 working children.
+--> anArray(file:///Users/ducasse/Workspace/FirstCircle/Pharo/20/.DS_Store file:///Users/ducasse/Workspace/FirstCircle/Pharo/20/ASAnimation.st ...)
 \end{code} 
 
-Notice that \mthind{FSReference}{children} returns the files and folders. 
-To recursively access all the children of the current directory you should use the message \mthind{FSReference}{allChildren}:
+Notice that \mthind{FileReference}{children} returns the direct files and folders. 
+To recursively access all the children of the current directory you should use the message \mthind{FileReference}{allChildren} as follows:
 
 \begin{code}{}
 working allChildren.
 \end{code}
 
-
-To find all jpeg files in \ct{working}, execute:
+To find all st files in the working directory, simply execute:
 
 \begin{code}{}
-working allChildren select: [ :each | each basename endsWith: 'jpeg' ]
+working allChildren select: [ :each | each basename endsWith: 'st' ]
 \end{code} 
  
 Use the slash operator to obtain a reference to a specific file or directory within your working directory:
 
 \begin{code}{}
 | working cache |
-working := FSFilesystem disk workingDirectory.
+working := FileSystem disk workingDirectory.
 cache := working / 'package-cache'.
 \end{code} 
 
-Navigating back to the parent is easy using the \mthind{FSReference}{parent} message:
+Navigating back to the parent is easy using the \mthind{FileReference}{parent} message:
 
 \begin{code}{}
+| working cache |
+working := FileSystem disk workingDirectory.
+cache := working / 'package-cache'.
 parent := cache parent.
-parent = working			--> true
+parent = working			
+--> true
 \end{code}
 
 You can check for various properties of the cache directory by executing the following expressions:
 
 \begin{code}{}
 cache exists.				--> true
+cache isSymLink.				--> false
 cache isFile.				--> false
 cache isDirectory.			--> true
 cache basename.			--> 'package-cache'
-\end{code} 
-The methods \mthind{FSReference}{exists}, \mthind{FSReference}{isFile}, \mthind{FSReference}{isDirectory}, and  \mthind{FSReference}{basename} are defined on the \ct{FSReference} class. 
+cache fullName           --> '/Users/ducasse/Workspace/FirstCircle/Pharo/20/package-cache'
+cache parent fullName    --> '/Users/ducasse/Workspace/FirstCircle/Pharo/20/'
+\end{code}
+ 
 
+
+The methods \mthind{FileReference}{exists}, \mthind{FileReference}{isFile}, \mthind{FileReference}{isDirectory}, and  \mthind{FileReference}{basename} are defined on the \ct{FileReference} class. Notice that there is no message to get 
+the path without the basename and that the idiom is to use \ct{parent fullName} to obtain it.
+The message \ct{path} returns a Path object which is internally used by FileSystem. You normally do not to use such objects. 
+  
+Note that FileSystem does not really distinguish between files and folders which often leads to cleaner code and can be seen as an application of the composite design patterns.   
+  
   
 To get additional information about a filesystem entry, we should get an \ct{FSDirectoryEntry} using the message \mthind{FSDirectoryEntry}{entry}. Here are some examples:
 
