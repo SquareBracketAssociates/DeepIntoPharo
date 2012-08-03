@@ -128,28 +128,36 @@ The message \ct{path} returns a Path object which is internally used by FileSyst
 Note that FileSystem does not really distinguish between files and folders which often leads to cleaner code and can be seen as an application of the composite design patterns.   
   
   
-To get additional information about a filesystem entry, we should get an \ct{FSDirectoryEntry} using the message \mthind{FSDirectoryEntry}{entry}. Here are some examples:
+To get additional information about a filesystem entry, we should get an \ct{FileSystemDirectoryEntry} using the message \mthind{FileSystemDirectoryEntry}{entry}. Note that you can access the file permissions. Here are some examples:
 
 \begin{code}{}
-cache entry creation.		--> 2010-02-14T10:34:31+00:00
-cache entry modification.	--> 2010-02-14T10:34:31+00:00
+cache entry creation.		-->  2012-04-25T15:11:36+02:00
+cache entry creationTime -->  2012-04-25T15:11:36+02:00
+cache entry creationSeconds -->  3512812296 2012-08-02T14:23:29+02:00
+cache entry modificationTime -->  2012-08-02T14:23:29+02:00
 cache entry size.			--> 0 (directories have size 0)
+cache entry permissions		-->  rwxr-xr-x
+cache entry permissions class		-->  FileSystemPermission
+cache entry permissions isWritable --> true
+cache entry isFile			--> false
+cache entry isDirectory 		--> true
 \end{code} 
 
 The framework also supports locations, late-bound references that point to a file or directory. When asking to perform a concrete operation, a location behaves the same way as a reference. Currently the following locations are supported:
 
 \begin{code}{}
-FSLocator desktop.
-FSLocator home.
-FSLocator imageDirectory.
-FSLocator image.
-FSLocator changes.
-FSLocator vmBinary.
-FSLocator vmDirectory.
+FileLocator desktop.
+FileLocator home.
+FileLocator imageDirectory.
+FileLocator image.
+FileLocator changes.
+FileLocator vmBinary.
+FileLocator vmDirectory.
 \end{code} 
 
 If you save a location with your image and move the image to a different machine or operating system, a location will still resolve to the expected directory or file. Note that some of them are still in flux because depending on specific VM functionalities. 
 
+\sd{stef here }
 \subsection{Opening Read- and Write-Streams}
 \sd{this example seems conceptually bogus with the current state of FS}
 To open a file-stream on a file ask the reference for a read- or write-stream:
