@@ -143,21 +143,20 @@ cache entry isFile			--> false
 cache entry isDirectory 		--> true
 \end{code} 
 
-The framework also supports locations, late-bound references that point to a file or directory. When asking to perform a concrete operation, a location behaves the same way as a reference. Currently the following locations are supported:
+
+\paragraph{Locations.}
+The framework also supports locations, late-bound references that point to a file or directory. When asking to perform a concrete operation, a location behaves the same way as a reference. Here are some  locations.
 
 \begin{code}{}
 FileLocator desktop.
 FileLocator home.
 FileLocator imageDirectory.
-FileLocator image.
-FileLocator changes.
-FileLocator vmBinary.
 FileLocator vmDirectory.
 \end{code} 
 
 If you save a location with your image and move the image to a different machine or operating system, a location will still resolve to the expected directory or file. Note that some of them are still in flux because depending on specific VM functionalities. 
 
-\subsection{Opening Read- and Write-Streams}
+\section{Opening Read- and Write-Streams}
 To open a file-stream on a file ask the reference for a read- or write-stream:
 
 \begin{code}{}
@@ -187,9 +186,7 @@ FileSystem disk workingDirectory / 'authors.txt' 	writeStreamDo: [ :stream | st
 
 Have a look at the streams protocol of \ct{FileReference} for other convenience methods.
 
-
-\sd{here}
-\subsection{Renaming, Copying and Deleting Files and Directories}
+\section{Renaming, Copying and Deleting Files and Directories}
 
 You can also copy and rename files using the methods \ct{copyTo:} and \ct{renameTo:}.
 
@@ -199,73 +196,76 @@ You can also copy and rename files using the methods \ct{copyTo:} and \ct{rename
 | working |working := FileSystem disk workingDirectory.working / 'foo.txt' renameTo: 'skweek.txt'.| working  |working := FileSystem disk workingDirectory.working / 'skweek.txt' readStreamDo: [ :stream | stream contents ]. -->  'Hello World'
 \end{code} 
 
-\sd{here}
+
 
 To create a directory use the message \mthind{FSReference}{createDirectory}:
 
 \begin{code}{}
+| working  |working := FileSystem disk workingDirectory.
 backup := working / 'cache-backup'.
 backup createDirectory.
+backup isDirectory.
+	--> true
+back children.
+	--> #()
 \end{code} 
 
-To then copy the contents of the complete package-cache to that directory simply use \mthind{FSReference}{copyAllTo:}:
+To then you can  copy the contents of the complete package-cache to that directory simply use \mthind{FileReference}{copyAllTo:}:
 
 \begin{code}{}
- cache copyAllTo: backup.
+cache copyAllTo: backup.
 \end{code}
 
 Note that the target directory will be automatically created if it was not there before.
 
 
-
-To delete a single file, use the message \mthind{FSReference}{delete}:
+To delete a single file, use the message \mthind{FileReference}{delete}:
 \begin{code}{}
  (working / 'bar.txt') delete.
 \end{code}
 
-To delete a complete directory tree use \mthind{FSReference}{deleteAll}. Be careful with that one though.
+To delete a complete directory tree use \mthind{FileReference}{deleteAll}. Be careful with that one though.
 
 \begin{code}
 backup deleteAll.
 \end{code}
 
+\section{FileReference}
+
+FileReference offers a set of operations to manipulate files. We saw some of them until now and here is a more complete list of operations.
+
+\sd{here so far}
+
+delete (deletes the file if it is present else raise an error, deleteAll, deleteAllChildren, deleteIfAbsent: 
+ensureDeleted (which makes sure that the file will be deleted), 
 
 
-
-\section{Design of FileSystem}
-\sd{should check class comments and a uml diagram}
-
-Now we explain the key classes of Filesystem. 
-
-
-
-
-
-\subsection{Filesystem}
-
-A filesystem is an interface to access hierarchies of directories and files. "The filesystem," provided by the host operating system, is represented by \ct{FSDiskFilesystem} and its platform-specific subclasses. However, the user should not access them directly but using \ct{FSFilesystem} as we show previously. Other kinds of Filesystems are also possible. The memory filesystem provides a RAM disk filesystem where all files are stored as ByteArrays in the image. The zip filesystem represents the contents of a zip file.
-
-Each filesystem has its own working directory, which it uses to resolve any relative paths that are passed to it. Some examples:
+ensureDirectory does not raise an error while createDirectory does it.
 
 \begin{code}{}
-fs := FSFilesystem memory.
-fs workingDirectoryPath: (FSPath / 'plonk').
-griffle := FSPath / 'plonk' / 'griffle'.
-nurp := FSPath * 'nurp'.
-    
-fs resolve: nurp.            --> /plonk/nurp
-    
-fs createDirectory: (FSPath / 'plonk').  --> "/plonk created"
-(fs writeStreamOn: griffle) close.  --> "/plonk/griffle created"
-fs isFile: griffle.         --> true
-fs isDirectory: griffle.         --> false
-fs copy: griffle to: nurp.       --> "/plonk/griffle copied to /plonk/nurp"
-fs exists: nurp.             --> true
-fs delete: griffle.          --> "/plonk/griffle" deleted
-fs isFile: griffle.          --> false
-fs isDirectory: griffle.         --> false
+(FileSystem disk workingDirectory / 'paf' ) delete.
+(FileSystem disk workingDirectory / 'paf' ) createDirectory.
+[(FileSystem disk workingDirectory / 'paf' ) createDirectory] on: DirectoryExists do: [:ex| true].
+	--> true
+(FileSystem disk workingDirectory / 'paf' ) delete.
+(FileSystem disk workingDirectory / 'paf' ) delete.
+(FileSystem disk workingDirectory / 'paf' ) ensureDirectory.
+(FileSystem disk workingDirectory / 'paf' ) ensureDirectory.
+(FileSystem disk workingDirectory / 'paf' ) isDirectory.
+  --> true
 \end{code}
-	
+
+
+
+ensureFile
+
+\sd{what is the difference between deleteAll and deleteAllChildren}
+\sd{what is the difference between delete and ensureDeleted? since delete sent to a non existing file does not raise error}
+
+
+
+
+
 \subsection{Reference}
 
 Paths and filesystems are the lowest level of the Filesystem API. A \ct{FSReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FSFilesystem}, but without the need to track paths and filesystem separately:
@@ -317,6 +317,44 @@ The following origins are currently supported:
 \end{itemize}
 
 Applications may also define their own origins, but the system will not be able to resolve them automatically. Instead, the user will be asked to manually choose a directory. This choice is then cached so that future resolution requests will not require user interaction.
+
+
+\subsection{Filesystem}
+
+A filesystem is an interface to access hierarchies of directories and files. "The filesystem," provided by the host operating system, is represented by \ct{FSDiskFilesystem} and its platform-specific subclasses. However, the user should not access them directly but using \ct{FSFilesystem} as we show previously. Other kinds of Filesystems are also possible. The memory filesystem provides a RAM disk filesystem where all files are stored as ByteArrays in the image. The zip filesystem represents the contents of a zip file.
+
+Each filesystem has its own working directory, which it uses to resolve any relative paths that are passed to it. Some examples:
+
+\begin{code}{}
+fs := FSFilesystem memory.
+fs workingDirectoryPath: (FSPath / 'plonk').
+griffle := FSPath / 'plonk' / 'griffle'.
+nurp := FSPath * 'nurp'.
+    
+fs resolve: nurp.            --> /plonk/nurp
+    
+fs createDirectory: (FSPath / 'plonk').  --> "/plonk created"
+(fs writeStreamOn: griffle) close.  --> "/plonk/griffle created"
+fs isFile: griffle.         --> true
+fs isDirectory: griffle.         --> false
+fs copy: griffle to: nurp.       --> "/plonk/griffle copied to /plonk/nurp"
+fs exists: nurp.             --> true
+fs delete: griffle.          --> "/plonk/griffle" deleted
+fs isFile: griffle.          --> false
+fs isDirectory: griffle.         --> false
+\end{code}
+	
+
+
+
+\section{Looking at FileSystem internals}
+\sd{put an uml diagram?}
+Now we explain the key classes of Filesystem. 
+
+
+
+
+
 
 \subsection{Path}
 Paths are the most fundamental element of the Filesystem API. They represent filesystem paths in a very abstract sense, and provide a high-level protocol for working with paths without having to manipulate strings. Here are some examples showing how to 
