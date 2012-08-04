@@ -157,14 +157,12 @@ FileLocator vmDirectory.
 
 If you save a location with your image and move the image to a different machine or operating system, a location will still resolve to the expected directory or file. Note that some of them are still in flux because depending on specific VM functionalities. 
 
-\sd{stef here }
 \subsection{Opening Read- and Write-Streams}
-\sd{this example seems conceptually bogus with the current state of FS}
 To open a file-stream on a file ask the reference for a read- or write-stream:
 
 \begin{code}{}
 | working stream |
-working := FSFilesystem disk workingDirectory.
+working := FileSystem disk workingDirectory.
 stream := (working / 'foo.txt') writeStream.
 stream nextPutAll: 'Hello World'.
 stream close.
@@ -173,26 +171,24 @@ stream contents.			--> 'Hello World'
 stream close.
 \end{code}
 
-\sd{in Pharo 1.4 we do not get 'Hello World' but a byte array}
-
 Please note that \ct{writeStream} overrides any existing file and \ct{readStream} throws an exception if the file does not exist. There are also short forms available that eliminate the need to close a stream manually:
 
 \begin{code}{}
-working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].
-working / 'foo.txt' readStreamDo: [ :stream | stream contents ].
-\end{code}
+| working  |working := FileSystem disk workingDirectory.working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].working / 'foo.txt' readStreamDo: [ :stream | stream contents ].\end{code}
 
 
 \begin{code}{}
-FSFilesystem disk 
-	openFileStream: 'authors.txt' writable: true
-	
-
-(FSFilesystem disk workingDirectory / 'authors2.txt') 
-	writeStreamDo: [ :stream | stream nextPutAll: 'lkhklkjh']
+| stream |stream := FileSystem disk openFileStream: 'authors.txt' writable: true.stream nextPutAll: 'stephane alexandre damien jannik'.	| working |working := FileSystem disk workingDirectory.working / 'authors.txt' readStreamDo: [ :stream | stream contents ]. 
+   --> 'stephane alexandre damien jannik'
+   
+FileSystem disk workingDirectory / 'authors.txt' 	writeStreamDo: [ :stream | stream nextPutAll: 'andrew oscar'].| working |working := FileSystem disk workingDirectory.working / 'authors.txt' readStreamDo: [ :stream | stream contents ]. 
+	--> 'andrew oscarxandre damien jannik'
 \end{code}
-Have a look at the streams protocol of FSReference for other convenience methods.
 
+Have a look at the streams protocol of \ct{FileReference} for other convenience methods.
+
+
+\sd{here}
 \subsection{Renaming, Copying and Deleting Files and Directories}
 
 You can also copy and rename files by executing:
