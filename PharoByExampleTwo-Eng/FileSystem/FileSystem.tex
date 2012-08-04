@@ -191,14 +191,15 @@ Have a look at the streams protocol of \ct{FileReference} for other convenience 
 \sd{here}
 \subsection{Renaming, Copying and Deleting Files and Directories}
 
-You can also copy and rename files by executing:
+You can also copy and rename files using the methods \ct{copyTo:} and \ct{renameTo:}.
 
 \begin{code}{}
-working / 'foo.txt' copyTo: (working / 'bar.txt').
-working / 'foo.txt' renameAs: 'zork.txt'
+| working |working := FileSystem disk workingDirectory.working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].working / 'foo.txt' copyTo: (working / 'bar.txt').| working  |working := FileSystem disk workingDirectory.working / 'bar.txt' readStreamDo: [ :stream | stream contents ].-->  'Hello World'
+
+| working |working := FileSystem disk workingDirectory.working / 'foo.txt' renameTo: 'skweek.txt'.| working  |working := FileSystem disk workingDirectory.working / 'skweek.txt' readStreamDo: [ :stream | stream contents ]. -->  'Hello World'
 \end{code} 
 
-\sd{renameAs: does not work since it calls unimplemented methods}
+\sd{here}
 
 To create a directory use the message \mthind{FSReference}{createDirectory}:
 
@@ -229,54 +230,20 @@ backup deleteAll.
 \end{code}
 
 
-\section{Design }
+
+
+\section{Design of FileSystem}
 \sd{should check class comments and a uml diagram}
 
 Now we explain the key classes of Filesystem. 
 
 
-\subsection{Path}
-Paths are the most fundamental element of the Filesystem API. They represent filesystem paths in a very abstract sense, and provide a high-level protocol for working with paths without having to manipulate strings. Here are some examples showing how to 
-define absolute paths (\mthind{FSPath}{/}), relative paths (\mthind{FSPath}{*}), file extension (\mthind{FSPath}{,}), parent navigation (\mthind{FSPath}{parent})
 
-\begin{code}{}
-"absolute path"
-FSPath / 'plonk' / 'feep'       --> /plonk/feep
-    
-"relative path"
-FSPath * 'plonk' / 'feep'       --> plonk/feep
-
-"relative path with extension"
-FSPath * 'griffle' , 'txt'      --> griffle.txt
-    
-"changing the extension"
-FSPath * 'griffle.txt' , 'jpeg'     --> griffle.jpeg
-    
-"parent directory"
-(FSPath / 'plonk' / 'griffle') parent   --> /plonk
-    
-"resolving a relative path"
-(FSPath / 'plonk' / 'griffle') resolve: (FSPath * '..' / 'feep')
-                   --> /plonk/feep
-    
-"resolving an absolute path"
-(FSPath / 'plonk' / 'griffle') resolve: (FSPath / 'feep')
-                   --> /feep
-                                           
-"resolving a string"
-(FSPath * 'griffle') resolve: 'plonk'   --> griffle/plonk
-                        
-"comparing"
-(FSPath / 'plonk') contains: (FSPath / 'griffle' / 'nurp')
-                     --> false
-\end{code}
-
-Note that some of the path protocol (messages like \ct{/}, \ct{parent} and \ct{resolve:}) are also available on references --- references are a combination of path and filesystem. 
 
 
 \subsection{Filesystem}
 
-A filesystem is an interface to access hierarchies of directories and files. "The filesystem," provided by the host operating system, is represented by \ct{FSDiskFilesystem} and it's platform-specific subclasses. However, the user should not access them directly but using \ct{FSFilesystem} as we show previously. Other kinds of Filesystems are also possible. The memory filesystem provides a RAM disk filesystem where all files are stored as ByteArrays in the image. The zip filesystem represents the contents of a zip file.
+A filesystem is an interface to access hierarchies of directories and files. "The filesystem," provided by the host operating system, is represented by \ct{FSDiskFilesystem} and its platform-specific subclasses. However, the user should not access them directly but using \ct{FSFilesystem} as we show previously. Other kinds of Filesystems are also possible. The memory filesystem provides a RAM disk filesystem where all files are stored as ByteArrays in the image. The zip filesystem represents the contents of a zip file.
 
 Each filesystem has its own working directory, which it uses to resolve any relative paths that are passed to it. Some examples:
 
@@ -350,6 +317,44 @@ The following origins are currently supported:
 \end{itemize}
 
 Applications may also define their own origins, but the system will not be able to resolve them automatically. Instead, the user will be asked to manually choose a directory. This choice is then cached so that future resolution requests will not require user interaction.
+
+\subsection{Path}
+Paths are the most fundamental element of the Filesystem API. They represent filesystem paths in a very abstract sense, and provide a high-level protocol for working with paths without having to manipulate strings. Here are some examples showing how to 
+define absolute paths (\mthind{FSPath}{/}), relative paths (\mthind{FSPath}{*}), file extension (\mthind{FSPath}{,}), parent navigation (\mthind{FSPath}{parent})
+
+\begin{code}{}
+"absolute path"
+FSPath / 'plonk' / 'feep'       --> /plonk/feep
+    
+"relative path"
+FSPath * 'plonk' / 'feep'       --> plonk/feep
+
+"relative path with extension"
+FSPath * 'griffle' , 'txt'      --> griffle.txt
+    
+"changing the extension"
+FSPath * 'griffle.txt' , 'jpeg'     --> griffle.jpeg
+    
+"parent directory"
+(FSPath / 'plonk' / 'griffle') parent   --> /plonk
+    
+"resolving a relative path"
+(FSPath / 'plonk' / 'griffle') resolve: (FSPath * '..' / 'feep')
+                   --> /plonk/feep
+    
+"resolving an absolute path"
+(FSPath / 'plonk' / 'griffle') resolve: (FSPath / 'feep')
+                   --> /feep
+                                           
+"resolving a string"
+(FSPath * 'griffle') resolve: 'plonk'   --> griffle/plonk
+                        
+"comparing"
+(FSPath / 'plonk') contains: (FSPath / 'griffle' / 'nurp')
+                     --> false
+\end{code}
+
+Note that some of the path protocol (messages like \ct{/}, \ct{parent} and \ct{resolve:}) are also available on references --- references are a combination of path and filesystem. 
 
 \subsection{Enumeration}
 
