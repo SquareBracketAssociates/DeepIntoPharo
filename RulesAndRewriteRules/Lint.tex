@@ -66,12 +66,9 @@ Awareness of smells enable designers to make well-informed design decisions and 
 As defined by Martin Fowler, smells are certain structures in the code that suggest (sometimes they scream for) the possibility of refactoring.
 Basically, three types of smells can be found in source code at different levels: architectural, design and implementation. The architectural level includes smells such as "god package" and "cyclical dependency between packages". The design (or micro-architectural) level includes smells such as "cyclic hierarchy" and "large abstraction". Finally, the implementation level includes smells such as "improper name length" and "variables having constant value". Smalllint aims the detection of smells at design and implementation level, so this chapter is limited to such types of smells.
 
-\section{SmallLint in a Nutshell}
 
+\input{SmallLint-rules}
 
-False positives
-
-\section{Existing SmallLint Rules}
 
 \subsection{Bugs}
 	message send but not implemented
@@ -191,9 +188,9 @@ listes, des instructions r\'ecursives et des litt\'eraux.
   reconnaissance est possible dans la partie repr\'esent\'ee par la
   variable \ct{``@object}.
 
-\item	Litt\'eraux. \ct{\#} repr\'esente les litt\'eraux ; ainsi, \ct{`\#literal}
-  reconnaît n'importe quel litt\'eral, par exemple 1, \ct{\#()}, "unechaine"
-  ou \ct{\#unSymbol}.
+\item	Litt\'eraux. \ct{\\#} repr\'esente les litt\'eraux ; ainsi, \ct{`\\#literal}
+  reconnaît n'importe quel litt\'eral, par exemple 1, \ct{\\#()}, "unechaine"
+  ou \ct{\\#unSymbol}.
 \end{itemize}
 
 \section{Des exemples d'identification de sch\'emas}
@@ -241,7 +238,7 @@ expressions qui pourraient être avantageusement transform\'ees :
 
 \begin{code}{}
 rule := RBUnderscoreAssignmentRule new.
-environment := BrowserEnvironment new forPackageNames: #('PackageA'
+environment := BrowserEnvironment new forPackageNames: \#('PackageA'
 'PackageB' ...).
 SmalllintChecker runRule: rule onEnvironment: environment.
 rule open
@@ -251,7 +248,7 @@ rule open
 ORLintBrowser
 	openRule: (RBCompositeLintRule rules: (RBCompositeLintRule
 rulesGroupedFor: RBSpellingRule) name: 'Spelling')
-	environment: (BrowserEnvironment new forPackageNames: #('Kernel'
+	environment: (BrowserEnvironment new forPackageNames: \#('Kernel'
 'Collections-Abstract'))
 \end{code}
 
