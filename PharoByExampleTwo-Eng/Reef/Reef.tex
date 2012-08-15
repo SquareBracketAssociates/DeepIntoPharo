@@ -119,6 +119,16 @@ REApplication
 		roots: CounterApplication
 \end{code}
 
+Now you should get the following in your web-browser
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=12cm]{reefCounter}
+\caption{A Seaside Counter based on Reef.\label{review}}
+\end{center}
+\end{figure}
+
+
 A second version with controlled refresh.
 In the previous definition, the anchors were unnecessary refreshed. Indeed the complete panel containing all the three elements wa refresh.
 A panel is the unit of refresh in HTML so we enclose what we want to refresh via ajax.
@@ -146,7 +156,50 @@ renderContentOn: html
                 panel refresh ];
             yourself);
         yourself)
-        
+\end{code}
+
+Now to get a better look we can use the Reef library as follows: 
+
+\begin{code}{}
+register 
+    "self register"
+    (REApplication 
+        registerAsApplication: 'reef-counter' 
+        root: self)
+        addLibrary: REBootstrapLibrary
+\end{code}
+
+\begin{code}{}
+renderContentOn: html
+    | panel |
+    
+    panel := REPanel with: [ REHeading with: count ].
+    
+    html render: (REContainer new 
+        add: panel;
+        add: (REAnchor new 
+            class: 'btn';
+            label: '+';
+            callback: [ 
+                count := count + 1. 
+                panel refresh  ];
+            yourself);
+        add: (REAnchor new 
+            class: 'btn';
+            label: '-';
+            callback: [ 
+                count := count - 1. 
+                panel refresh ];
+            yourself);
+        yourself)
+\end{code}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=12cm]{moreBeautifulReefCounter}
+\caption{A Seaside Counter based on Reef.\label{review}}
+\end{center}
+\end{figure}
 
 \section{Creating a Search Component}
 We will create a Reef component and embed it inside a Seaside one. 
