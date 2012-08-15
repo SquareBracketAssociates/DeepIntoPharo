@@ -115,8 +115,10 @@ cache isSymLink.				--> false
 cache isFile.				--> false
 cache isDirectory.			--> true
 cache basename.			--> 'package-cache'
-cache fullName           --> '/Users/ducasse/Workspace/FirstCircle/Pharo/20/package-cache'
-cache parent fullName    --> '/Users/ducasse/Workspace/FirstCircle/Pharo/20/'
+cache fullName           
+  --> '/Users/ducasse/Workspace/FirstCircle/Pharo/20/package-cache'
+cache parent fullName    
+  --> '/Users/ducasse/Workspace/FirstCircle/Pharo/20/'
 \end{code}
  
 
@@ -127,7 +129,7 @@ The message \ct{path} returns a Path object which is internally used by FileSyst
   
 Note that FileSystem does not really distinguish between files and folders which often leads to cleaner code and can be seen as an application of the composite design patterns.   
   
-  
+\paragraph{Querying file entry status.}
 To get additional information about a filesystem entry, we should get an \ct{FileSystemDirectoryEntry} using the message \mthind{FileSystemDirectoryEntry}{entry}. Note that you can access the file permissions. Here are some examples:
 
 \begin{code}{}
@@ -156,8 +158,8 @@ FileLocator vmDirectory.
 
 If you save a location with your image and move the image to a different machine or operating system, a location will still resolve to the expected directory or file. Note that some of them are still in flux because depending on specific VM functionalities. 
 
-\section{Opening Read- and Write-Streams}
-To open a file-stream on a file ask the reference for a read- or write-stream:
+\section{Opening read and write Streams}
+To open a file-stream on a file, just ask the reference for a read- or write-stream using the message \ct{writeStream} or \ct{readStream} as follows:
 
 \begin{code}{}
 | working stream |
@@ -173,14 +175,29 @@ stream close.
 Please note that \ct{writeStream} overrides any existing file and \ct{readStream} throws an exception if the file does not exist. There are also short forms available that eliminate the need to close a stream manually:
 
 \begin{code}{}
-| working  |working := FileSystem disk workingDirectory.working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].working / 'foo.txt' readStreamDo: [ :stream | stream contents ].\end{code}
+| working  |
+working := FileSystem disk workingDirectory.
+working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].
+working / 'foo.txt' readStreamDo: [ :stream | stream contents ].
+\end{code}
 
 
 \begin{code}{}
-| stream |stream := FileSystem disk openFileStream: 'authors.txt' writable: true.stream nextPutAll: 'stephane alexandre damien jannik'.	| working |working := FileSystem disk workingDirectory.working / 'authors.txt' readStreamDo: [ :stream | stream contents ]. 
+| stream |
+stream := FileSystem disk openFileStream: 'authors.txt' writable: true.
+stream nextPutAll: 'stephane alexandre damien jannik'.
+	
+| working |
+working := FileSystem disk workingDirectory.
+working / 'authors.txt' readStreamDo: [ :stream | stream contents ]. 
    --> 'stephane alexandre damien jannik'
    
-FileSystem disk workingDirectory / 'authors.txt' 	writeStreamDo: [ :stream | stream nextPutAll: 'andrew oscar'].| working |working := FileSystem disk workingDirectory.working / 'authors.txt' readStreamDo: [ :stream | stream contents ]. 
+FileSystem disk workingDirectory / 'authors.txt' 
+	writeStreamDo: [ :stream | stream nextPutAll: 'andrew oscar'].
+
+| working |
+working := FileSystem disk workingDirectory.
+working / 'authors.txt' readStreamDo: [ :stream | stream contents ]. 
 	--> 'andrew oscarxandre damien jannik'
 \end{code}
 
@@ -191,9 +208,24 @@ Have a look at the streams protocol of \ct{FileReference} for other convenience 
 You can also copy and rename files using the methods \ct{copyTo:} and \ct{renameTo:}.
 
 \begin{code}{}
-| working |working := FileSystem disk workingDirectory.working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].working / 'foo.txt' copyTo: (working / 'bar.txt').| working  |working := FileSystem disk workingDirectory.working / 'bar.txt' readStreamDo: [ :stream | stream contents ].-->  'Hello World'
+| working |
+working := FileSystem disk workingDirectory.
+working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].
+working / 'foo.txt' copyTo: (working / 'bar.txt').
 
-| working |working := FileSystem disk workingDirectory.working / 'foo.txt' renameTo: 'skweek.txt'.| working  |working := FileSystem disk workingDirectory.working / 'skweek.txt' readStreamDo: [ :stream | stream contents ]. -->  'Hello World'
+| working  |
+working := FileSystem disk workingDirectory.
+working / 'bar.txt' readStreamDo: [ :stream | stream contents ].
+-->  'Hello World'
+
+| working |
+working := FileSystem disk workingDirectory.
+working / 'foo.txt' !\textbf{renameTo:}! 'skweek.txt'.
+
+| working  |
+working := FileSystem disk workingDirectory.
+working / 'skweek.txt' readStreamDo: [ :stream | stream contents ]. 
+-->  'Hello World'
 \end{code} 
 
 
@@ -201,7 +233,8 @@ You can also copy and rename files using the methods \ct{copyTo:} and \ct{rename
 To create a directory use the message \mthind{FSReference}{createDirectory}:
 
 \begin{code}{}
-| working  |working := FileSystem disk workingDirectory.
+| working  |
+working := FileSystem disk workingDirectory.
 backup := working / 'cache-backup'.
 backup createDirectory.
 backup isDirectory.
@@ -234,6 +267,86 @@ backup deleteAll.
 
 FileReference offers a set of operations to manipulate files. We saw some of them until now and here is a more complete list of operations.
 
+\paragraph{Accessing.}
+First given a file reference you can access usual information using methods \ct{basename}, \ct{base}, \ct{extensions}...
+
+
+
+\begin{code}{}
+| pf |
+pf := (FileSystem disk workingDirectory / 'package-cache' ) children second.
+  -->  /Users/ducasse/Pharo/PharoHarvestingFixes/20/package-cache/AsmJit-IgorStasenko.66.mcz
+pf fullName.
+  --> '/Users/ducasse/Pharo/PharoHarvestingFixes/20/package-cache/AsmJit-IgorStasenko.66.mcz'
+pf basename.
+  --> 'AsmJit-IgorStasenko.66.mcz'  
+pf basenameWithoutExtension. 
+  -->	'AsmJit-IgorStasenko.66'
+pf base 
+	--> 'AsmJit-IgorStasenko'
+pf extension 'mcz'
+    -->
+pf extensions
+	--> an OrderedCollection('66' 'mcz')
+\end{code}
+
+\begin{code}{}
+pf  basenameWithIndicator  
+	--> 'AsmJit-IgorStasenko.66.mcz'
+pf parent  basename 
+	--> 'package-cache'
+pf parent basenameWithIndicator  
+	--> 'package-cache/'
+\end{code}
+
+
+
+\begin{code}{}
+pf pathSegments  
+	-->  #('Users' 'ducasse' 'Pharo' 'PharoHarvestingFixes' '20' 'package-cache' 'AsmJit-IgorStasenko.66.mcz')
+pf path
+    -->  Path / 'Users' / 'ducasse' / 'Pharo' / 'PharoHarvestingFixes' / '20' / 'package-cache' / 'AsmJit-IgorStasenko.66.mcz'
+\end{code}
+
+
+
+\begin{code}{}
+| pf |
+pf := (FileSystem disk workingDirectory / 'package-cache' ) children second.
+pf humanReadableSize 
+	--> '182.78 kB'
+pf size 
+	--> 182778
+\end{code}  
+
+
+You can get limited information about the file entry itself using creationTime, permissions
+
+To get the full information you should access the entry itself.
+
+\begin{code}{}
+| pf |
+pf := (FileSystem disk workingDirectory / 'package-cache' ) children second.
+pf creationTime.
+	--> 2012-06-10T10:43:19+02:00
+pf modificationTime.
+	-->  2012-06-10T10:43:19+02:00
+pf permissions
+	-->  rw-r--r--
+\end{code}
+
+\begin{code}{}
+| pf |
+pf := (FileSystem disk workingDirectory / 'package-cache' ) children second.
+pf entry
+
+
+pf parent entries
+	"returns all the entries of the children of the receiver"
+\end{code}
+
+
+\paragraph{Operating on files.}
 \sd{here so far}
 
 delete (deletes the file if it is present else raise an error, deleteAll, deleteAllChildren, deleteIfAbsent: 
@@ -263,18 +376,13 @@ ensureFile
 \sd{what is the difference between delete and ensureDeleted? since delete sent to a non existing file does not raise error}
 
 
-
-
-
 \subsection{Reference}
-
-Paths and filesystems are the lowest level of the Filesystem API. A \ct{FSReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FSFilesystem}, but without the need to track paths and filesystem separately:
-
+Paths and filesystems are the lowest level of the FileSystem API. A \ct{FileReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FileSystem}, but without the need to track paths and filesystem separately:
 
 \begin{code}{}
-fs := FSFilesystem memory.
-griffle := fs referenceTo: (FSPath / 'plonk' / 'griffle').
-nurp := fs referenceTo: (FSPath * 'nurp').
+fs := Filesystem memory.
+griffle := fs referenceTo: (Path / 'plonk' / 'griffle').
+nurp := fs referenceTo: (Path * 'nurp').
     
 griffle isFile.				--> false
 griffle isDirectory. 		--> false
@@ -291,14 +399,14 @@ References also implement the path protocol with methods like \ct{/}, \ct{parent
 
 \subsection{Locator}
 
-Locators could be considered late-bound references. They're left deliberately fuzzy, and are only resolved to a concrete reference when some file operation needs to be performed. Instead of a filesystem and path, locators are made up of an origin and a path. An origin is an abstract filesystem location, such as the user's home directory, the image file, or the VM executable. When it receives a message like \ct{isFile}, a locator will first resolve its origin, then resolve its path against the origin.
+Locators can be considered late-bound references. They're left deliberately fuzzy, and are only resolved to a concrete reference when some file operation needs to be performed. Instead of a filesystem and path, locators are made up of an origin and a path. An origin is an abstract filesystem location, such as the user's home directory, the image file, or the VM executable. When it receives a message like \ct{isFile}, a locator will first resolve its origin, then resolve its path against the origin.
 
 Locators make it possible to specify things like "an item named 'package-cache' in the same directory as the image file" and have that specification remain valid even if the image is saved and moved to another directory, possibly on a different computer.
 
 \begin{code}{}
-    locator := FSLocator image / 'package-cache'.
-    locator printString.             --> '{image}/package-cache'
-    locator resolve.                 --> /Users/colin/Projects/Mason/package-cache
+    locator := FileLocator imageDirectory / 'package-cache'.
+    locator printString.             --> ' {imageDirectory}/package-cache'
+    locator resolve.                 -->  /Users/ducasse/Pharo/PharoHarvestingFixes/20/package-cache
     locator isFile.                  --> false
     locator isDirectory.             --> true
 \end{code}	
