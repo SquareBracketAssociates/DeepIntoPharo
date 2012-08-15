@@ -33,9 +33,11 @@
 
 \chapter{Reef}
 
-Reef is a framework to build dynamic components. As a complement to Seaside, Reef does not replace it, instead, it makes easier the use of AJAX/Javascript inside it. A reef component can be embedded inside a Seaside one: we often call Reef components, component part for this reason. A Seaside component can be embedded inside a Reef one. 
+Reef is a framework to build dynamic components embedding Javascript. Reef is a complement to Seaside. Reef does not replace Seaside, instead, it makes easier the definition and use of AJAX/Javascript. Reef makes the writing of Ajax interaction much simpler since as a developer there is no need to manipulate Javascript using query.
 
-In this Chapter, we will do a journey with Reef showing you its power. We are going to create a dynamic search of classes, to show basic AJAX interaction, then show some reef widgets. 
+A reef component can be embedded inside a Seaside one: we call Reef components, component part for this reason.  A Seaside component can also be embedded inside a Reef one. 
+
+In this Chapter, we will do a journey with Reef showing you its power. We will start doing a simple counter application. Then we will take the todo applications and build a user interface using Reef. Then we are going to create a dynamic search of classes, to show basic AJAX interaction, then show some reef widgets. 
 
 
 \section{Installation}
@@ -75,7 +77,7 @@ WAComponent subclass: #CounterApplication
 Then we define a 
 
 \begin{code}{}
-initialize 
+CounterApplication>>initialize 
     super initialize.
     count := 0
 \end{code}
@@ -92,7 +94,7 @@ Each anchor gets a label and a callback. Unless specified differently, the callb
 Ajax callbacks (no new page is rendered but there is a request to the server). 
 
 \begin{code}{}
-renderContentOn1: html
+CounterApplication>>renderContentOn1: html
     | panel |
     "This has one problem: it refreshes all (including anchors)"
     html render: ((panel := REPanel new)
@@ -137,7 +139,7 @@ Here we use a container, i.e. a components refreshing only its children and not 
 the value.
 
 \begin{code}{}
-renderContentOn: html
+CounterApplication>>renderContentOn: html
     | panel |    
     panel := REPanel with: [ count asReefView ].
     html render: (REContainer new 
@@ -161,7 +163,7 @@ renderContentOn: html
 Now to get a better look we can use the Reef library as follows: 
 
 \begin{code}{}
-register 
+CounterApplication class>>register 
     "self register"
     (REApplication 
         registerAsApplication: 'reef-counter' 
@@ -170,7 +172,7 @@ register
 \end{code}
 
 \begin{code}{}
-renderContentOn: html
+CounterApplication>>renderContentOn: html
     | panel |
     
     panel := REPanel with: [ REHeading with: count ].
@@ -200,6 +202,14 @@ renderContentOn: html
 \caption{A Seaside Counter based on Reef.\label{review}}
 \end{center}
 \end{figure}
+
+So far the counter example does not really show the power of Reef in action.
+
+
+\section{Todo Application}
+
+
+
 
 \section{Creating a Search Component}
 We will create a Reef component and embed it inside a Seaside one. 
