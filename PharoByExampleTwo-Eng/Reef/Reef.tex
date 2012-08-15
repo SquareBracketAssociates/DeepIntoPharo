@@ -33,31 +33,122 @@
 
 \chapter{Reef}
 
-Reef is a framework to build dynamic components. As a complement to Seaside, Reef does not replace it, instead, it makes easier the use of AJAX/Javascript inside it. A reef component can be embedded inside a Seaside one (we often call Reef components, component part for this reason), but a Seaside component can be embedded inside a Reef one. 
+Reef is a framework to build dynamic components. As a complement to Seaside, Reef does not replace it, instead, it makes easier the use of AJAX/Javascript inside it. A reef component can be embedded inside a Seaside one: we often call Reef components, component part for this reason. A Seaside component can be embedded inside a Reef one. 
 
-In this Chapter, you are going to create a dynamic search of classes, to show basic AJAX interaction.
+In this Chapter, we will do a journey with Reef showing you its power. We are going to create a dynamic search of classes, to show basic AJAX interaction, then show some reef widgets. 
 
 
 \section{Installation}
 
 To get started with download the latest Seaside image that you can find on \url{http://www.seaside.st} then execute the following expression:
 
+
 \begin{code}{Loading Reef}
 Gofer it
-	squeaksource: 'Reef';
+	url: 'http://smalltalkhub.com/mc/estebanlm/Reef/main';
 	package: 'ConfigurationOfReef';
 	load.
 
 "Use  this if you already have Seaside30 and JQueryWidgetBox installed"
-((Smalltalk at: #ConfigurationOfReef) project version: #bleedingEdge) load. 
+(ConfigurationOfReef project version: #stable) load. 
 
 "This loads everything, including Seaside30 and JQueryWidgetBox"
-((Smalltalk at: #ConfigurationOfReef) project version: #bleedingEdge) load: 'All'. 
+(ConfigurationOfReef project version: #stable) load: 'All'. 
 \end{code}
 
 
-\section{Creating a search component}
 
+\section{A Reef Counter}
+
+Let us start to code a simple counter as a reef computer.
+
+
+\begin{code}{}
+WAComponent subclass: #CounterApplication
+    instanceVariableNames: 'count'
+    classVariableNames: ''
+    poolDictionaries: ''
+    category: 'CounterApplication'
+
+\end{code}
+
+Then we define a 
+
+\begin{code}{}
+initialize 
+    super initialize.
+    count := 0
+\end{code}
+
+A first version with a little problem.
+We create a panel to which we add a view on the counter, and two anchors. 
+Note that we use a block \ct{[count asReefView]} so that when the panel 
+is refreshed the current value is used. 
+asReefView is a shortcut to create the corresponding default view component. For a number we just convert into the corresponding text view, a REText (as you can see browsing implementors of asReefView). 
+
+
+Blocks are the way we link client and server behavior.
+Each anchor gets a label and a callback. Unless specified differently, the callbacks are executed as 
+Ajax callbacks (no new page is rendered but there is a request to the server). 
+
+\begin{code}{}
+renderContentOn1: html
+    | panel |
+    "This has one problem: it refreshes all (including anchors)"
+    html render: ((panel := REPanel new)
+        class: 'counter';
+        add: [ count asReefView ];
+        add: (REAnchor new 
+            label: '+';
+            callback: [ 
+                count := count + 1. 
+                panel refresh  ];
+            yourself);
+        add: (REAnchor new 
+            label: '-';
+            callback: [ 
+                count := count - 1. 
+                panel refresh ];
+            yourself);
+        yourself)
+\end{code}
+
+\begin{code}
+REApplication
+	registerAsApplication: 'reef-couter'
+		roots: CounterApplication
+\end{code}
+
+A second version with controlled refresh.
+In the previous definition, the anchors were unnecessary refreshed. Indeed the complete panel containing all the three elements wa refresh.
+A panel is the unit of refresh in HTML so we enclose what we want to refresh via ajax.
+
+Here we use a container, i.e. a components refreshing only its children and not itself. Then the anchor callbacks will refresh the panel containing
+the value.
+
+\begin{code}{}
+renderContentOn: html
+    | panel |    
+    panel := REPanel with: [ count asReefView ].
+    html render: (REContainer new 
+        class: 'counter';
+        add: panel ;
+        add: (REAnchor new 
+            label: '+';
+            callback: [ 
+                count := count + 1. 
+                panel refresh  ];
+            yourself);
+        add: (REAnchor new 
+            label: '-';
+            callback: [ 
+                count := count - 1. 
+                panel refresh ];
+            yourself);
+        yourself)
+        
+
+\section{Creating a Search Component}
 We will create a Reef component and embed it inside a Seaside one. 
 
 
