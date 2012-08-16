@@ -211,11 +211,11 @@ You can also copy and rename files using the methods \ct{copyTo:} and \ct{rename
 | working |
 working := FileSystem disk workingDirectory.
 working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].
-working / 'foo.txt' copyTo: (working / 'bar.txt').
+working / 'foo.txt' \textbf{copyTo:}! (working / 'bar.txt').
 
 | working  |
 working := FileSystem disk workingDirectory.
-working / 'bar.txt' readStreamDo: [ :stream | stream contents ].
+working / 'bar.txt' !\textbf{readStreamDo:}! [ :stream | stream contents ].
 -->  'Hello World'
 
 | working |
@@ -347,13 +347,9 @@ pf parent entries
 
 
 \paragraph{Operating on files.}
-\sd{here so far}
+There are several operations on files such as \ct{delete} (deletes the file if it is present else raise an error),\ct{deleteAll}( which delete the directory and its contents), \ct{deleteAllChildren} (which only delete children of a directory), \ct{deleteIfAbsent:}, \ct{ensureDeleted} (which makes sure that the file will be deleted), and \ct{ensureDirectory} does not raise an error while \ct{createDirectory} does it. \ct{ensureFile} creates if necessary a file.
 
-delete (deletes the file if it is present else raise an error, deleteAll, deleteAllChildren, deleteIfAbsent: 
-ensureDeleted (which makes sure that the file will be deleted), 
-
-
-ensureDirectory does not raise an error while createDirectory does it.
+\sd{what is the difference between delete and ensureDeleted? since delete sent to a non existing file does not raise error}
 
 \begin{code}{}
 (FileSystem disk workingDirectory / 'paf' ) delete.
@@ -370,32 +366,22 @@ ensureDirectory does not raise an error while createDirectory does it.
 
 
 
-ensureFile
-
-\sd{what is the difference between deleteAll and deleteAllChildren}
-\sd{what is the difference between delete and ensureDeleted? since delete sent to a non existing file does not raise error}
 
 
-\subsection{Reference}
-Paths and filesystems are the lowest level of the FileSystem API. A \ct{FileReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FileSystem}, but without the need to track paths and filesystem separately:
+\subsection{References and Locators}
+Paths and filesystems are the lowest level of the FileSystem API. A \ct{FileReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FileSystem}, but without the need to track paths and filesystem separately.
+Normally you do not need to use Path but here are some examples.
 
 \begin{code}{}
-fs := Filesystem memory.
-griffle := fs referenceTo: (Path / 'plonk' / 'griffle').
-nurp := fs referenceTo: (Path * 'nurp').
-    
-griffle isFile.				--> false
-griffle isDirectory. 		--> false
-    
-griffle parent ensureDirectory.
-griffle writeStreamDo: [ :stream | ].
-griffle exists & griffle isFile		--> true
-griffle copyTo: nurp
-nurp exists.				--> true
-griffle delete              
+|fs griffle nurp | fs := FileSystem memory.griffle := fs referenceTo: (Path / 'plonk' / 'griffle').nurp := fs referenceTo: (Path * 'nurp').griffle isFile.	
+    --> false			griffle isDirectory. 		
+    --> false		griffle parent ensureDirectory.griffle ensureFile.griffle exists & griffle isFile.		
+    --> truegriffle copyTo: nurp.nurp exists.			
+    --> true	griffle delete       
 \end{code}    
 
 References also implement the path protocol with methods like \ct{/}, \ct{parent} and \ct{resolve:}.
+\sd{we should talk about resolve:}
 
 \subsection{Locator}
 
