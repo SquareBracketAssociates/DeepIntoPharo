@@ -82,6 +82,15 @@ To recursively access all the children of the current directory you should use t
 working allChildren.
 \end{code}
 
+
+To get a file reference you can also use the \ct{asFileReference} message as follows: 
+
+\begin{code}{}
+'/Users/ducasse/Workspace/FirstCircle/Pharo/20' asFileReference
+\end{code}
+
+
+
 To find all st files in the working directory, simply execute:
 
 \begin{code}{}
@@ -205,13 +214,13 @@ Have a look at the streams protocol of \ct{FileReference} for other convenience 
 
 \section{Renaming, Copying and Deleting Files and Directories}
 
-You can also copy and rename files using the methods \ct{copyTo:} and \ct{renameTo:}.
+You can also copy and rename files using the methods \ct{copyTo:} and \ct{renameTo:}. Note that while copyTo: expect another fileReference, renameTo: expects a string.
 
 \begin{code}{}
 | working |
 working := FileSystem disk workingDirectory.
-working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].
-working / 'foo.txt' \textbf{copyTo:}! (working / 'bar.txt').
+working / 'foo.txt' !\textbf{writeStreamDo:}! [ :stream | stream nextPutAll: 'Hello World' ].
+working / 'foo.txt' !\textbf{copyTo:}! (working / 'bar.txt').
 
 | working  |
 working := FileSystem disk workingDirectory.
@@ -224,13 +233,13 @@ working / 'foo.txt' !\textbf{renameTo:}! 'skweek.txt'.
 
 | working  |
 working := FileSystem disk workingDirectory.
-working / 'skweek.txt' readStreamDo: [ :stream | stream contents ]. 
+working / 'skweek.txt' !\textbf{readStreamDo:}! [ :stream | stream contents ]. 
 -->  'Hello World'
 \end{code} 
 
 
 
-To create a directory use the message \mthind{FSReference}{createDirectory}:
+To create a directory use the message \mthind{FileReference}{createDirectory}:
 
 \begin{code}{}
 | working  |
@@ -246,7 +255,7 @@ back children.
 To then you can  copy the contents of the complete package-cache to that directory simply use \mthind{FileReference}{copyAllTo:}:
 
 \begin{code}{}
-cache copyAllTo: backup.
+cache !\textbf{copyAllTo:}! backup.
 \end{code}
 
 Note that the target directory will be automatically created if it was not there before.
@@ -254,23 +263,25 @@ Note that the target directory will be automatically created if it was not there
 
 To delete a single file, use the message \mthind{FileReference}{delete}:
 \begin{code}{}
- (working / 'bar.txt') delete.
+ (working / 'bar.txt') !\textbf{delete}!.
 \end{code}
 
 To delete a complete directory tree use \mthind{FileReference}{deleteAll}. Be careful with that one though.
 
-\begin{code}
-backup deleteAll.
+\begin{code}{}
+backup !\textbf{deleteAll}!.
 \end{code}
 
-\section{FileReference}
 
-FileReference offers a set of operations to manipulate files. We saw some of them until now and here is a more complete list of operations.
 
-\paragraph{Accessing.}
+
+\section{The main entry point: FileReference}
+While FileSystem is built over different concepts and classes such as FileSystem, Path and FileReference. FileReference is the most important as
+a end-user. FileReference offers a set of operations to manipulate files. We saw some of them until now and here is a more complete list of operations.
+At the design level, a FileReference combines two lower level entities: a path (\ct{Path}) and a filesystem (\ct{FileSystem}) into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FileSystem}, but without the need to track paths and filesystem separately.
+
+\subsection{FileReference information access}
 First given a file reference you can access usual information using methods \ct{basename}, \ct{base}, \ct{extensions}...
-
-
 
 \begin{code}{}
 | pf |
@@ -320,8 +331,7 @@ pf size
 \end{code}  
 
 
-You can get limited information about the file entry itself using creationTime, permissions
-
+You can get limited information about the file entry itself using \ct{creationTime} and \ct{permissions}. 
 To get the full information you should access the entry itself.
 
 \begin{code}{}
@@ -335,18 +345,18 @@ pf permissions
 	-->  rw-r--r--
 \end{code}
 
+Entries are objects that represent all the metadata of a single file. 
 \begin{code}{}
 | pf |
 pf := (FileSystem disk workingDirectory / 'package-cache' ) children second.
 pf entry
-
 
 pf parent entries
 	"returns all the entries of the children of the receiver"
 \end{code}
 
 
-\paragraph{Operating on files.}
+\subsection{Operating on files}
 There are several operations on files such as \ct{delete} (deletes the file if it is present else raise an error),\ct{deleteAll}( which delete the directory and its contents), \ct{deleteAllChildren} (which only delete children of a directory), \ct{deleteIfAbsent:}, \ct{ensureDeleted} (which makes sure that the file will be deleted), and \ct{ensureDirectory} does not raise an error while \ct{createDirectory} does it. \ct{ensureFile} creates if necessary a file.
 
 \sd{what is the difference between delete and ensureDeleted? since delete sent to a non existing file does not raise error}
@@ -364,28 +374,9 @@ There are several operations on files such as \ct{delete} (deletes the file if i
   --> true
 \end{code}
 
-
-
-
-
-\subsection{References and Locators}
-Paths and filesystems are the lowest level of the FileSystem API. A \ct{FileReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FileSystem}, but without the need to track paths and filesystem separately.
-Normally you do not need to use Path but here are some examples.
-
-\begin{code}{}
-|fs griffle nurp | fs := FileSystem memory.griffle := fs referenceTo: (Path / 'plonk' / 'griffle').nurp := fs referenceTo: (Path * 'nurp').griffle isFile.	
-    --> false			griffle isDirectory. 		
-    --> false		griffle parent ensureDirectory.griffle ensureFile.griffle exists & griffle isFile.		
-    --> truegriffle copyTo: nurp.nurp exists.			
-    --> true	griffle delete       
-\end{code}    
-
-References also implement the path protocol with methods like \ct{/}, \ct{parent} and \ct{resolve:}.
-\sd{we should talk about resolve:}
-
 \subsection{Locator}
 
-Locators can be considered late-bound references. They're left deliberately fuzzy, and are only resolved to a concrete reference when some file operation needs to be performed. Instead of a filesystem and path, locators are made up of an origin and a path. An origin is an abstract filesystem location, such as the user's home directory, the image file, or the VM executable. When it receives a message like \ct{isFile}, a locator will first resolve its origin, then resolve its path against the origin.
+Locators can be considered late-bound references. They're left deliberately fuzzy, and are only resolved to a concrete reference when some file operation is performed. Instead of a filesystem and path, locators are made up of an origin and a path. An origin is an abstract filesystem location, such as the user's home directory, the image file, or the VM executable. When it receives a message like \ct{isFile}, a locator will first resolve its origin, then resolve its path against the origin.
 
 Locators make it possible to specify things like "an item named 'package-cache' in the same directory as the image file" and have that specification remain valid even if the image is saved and moved to another directory, possibly on a different computer.
 
@@ -411,6 +402,25 @@ The following origins are currently supported:
 \end{itemize}
 
 Applications may also define their own origins, but the system will not be able to resolve them automatically. Instead, the user will be asked to manually choose a directory. This choice is then cached so that future resolution requests will not require user interaction.
+
+
+
+
+
+\section{FileReference = FileSystem + Path}
+Paths and filesystems are the lowest level of the FileSystem API. A \ct{FileReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FileSystem}, but without the need to track paths and filesystem separately.
+Normally you do not need to use Path but here are some examples.
+
+\begin{code}{}
+|fs griffle nurp | fs := FileSystem memory.griffle := fs referenceTo: (Path / 'plonk' / 'griffle').nurp := fs referenceTo: (Path * 'nurp').griffle isFile.	
+    --> false			griffle isDirectory. 		
+    --> false		griffle parent ensureDirectory.griffle ensureFile.griffle exists & griffle isFile.		
+    --> truegriffle copyTo: nurp.nurp exists.			
+    --> true	griffle delete       
+\end{code}    
+
+References also implement the path protocol with methods like \ct{/}, \ct{parent} and \ct{resolve:}.
+\sd{we should talk about resolve:}
 
 
 \subsection{Filesystem}
