@@ -38,7 +38,7 @@
 %=================================================================
 \chapter{Files with FileSystem }\chalabel{filesystem}
 \chapterauthor{Max Leske}
-
+ 
 Filesystem is the new file system library for Pharo. It is integrated in the system since Pharo 2.0. 
 Filesystem has been originally developed by Colin Putney. Camillo Bruni made some changes to the original design or API and integrated it into Pharo with the help of Esteban Lorenzano and Guillermo Polito - This is this version that we describe in this chapter. This chapter is a quick start that shows how to get started. 
 
@@ -412,11 +412,22 @@ Paths and filesystems are the lowest level of the FileSystem API. A \ct{FileRefe
 Normally you do not need to use Path but here are some examples.
 
 \begin{code}{}
-|fs griffle nurp | fs := FileSystem memory.griffle := fs referenceTo: (Path / 'plonk' / 'griffle').nurp := fs referenceTo: (Path * 'nurp').griffle isFile.	
-    --> false			griffle isDirectory. 		
-    --> false		griffle parent ensureDirectory.griffle ensureFile.griffle exists & griffle isFile.		
-    --> truegriffle copyTo: nurp.nurp exists.			
-    --> true	griffle delete       
+|fs griffle nurp | 
+fs := FileSystem memory.
+griffle := fs referenceTo: (Path / 'plonk' / 'griffle').
+nurp := fs referenceTo: (Path * 'nurp').
+griffle isFile.	
+    --> false			
+griffle isDirectory. 		
+    --> false		
+griffle parent ensureDirectory.
+griffle ensureFile.
+griffle exists & griffle isFile.		
+    --> true
+griffle copyTo: nurp.
+nurp exists.			
+    --> true	
+griffle delete       
 \end{code}    
 
 References also implement the path protocol with methods like \ct{/}, \ct{parent} and \ct{resolve:}.
