@@ -266,7 +266,7 @@ To delete a single file, use the message \mthind{FileReference}{delete}:
  (working / 'bar.txt') !\textbf{delete}!.
 \end{code}
 
-To delete a complete directory tree use \mthind{FileReference}{deleteAll}. Be careful with that one though.
+To delete a complete directory tree (including the receiver) use \mthind{FileReference}{deleteAll}. Be careful with that one though.
 
 \begin{code}{}
 backup !\textbf{deleteAll}!.
@@ -404,7 +404,20 @@ The following origins are currently supported:
 Applications may also define their own origins, but the system will not be able to resolve them automatically. Instead, the user will be asked to manually choose a directory. This choice is then cached so that future resolution requests will not require user interaction.
 
 
+\paragraph{\ct{absolutePath} vs. \ct{path}.} The message  \ct{absolutePath} (previously \ct{fullPath}) returns the absolute path of the receiver. When the file reference is not virtual the messages \ct{path} and \ct{absolutePath} provide similar results.
+Now when the file is a late bound reference (instance of \ct{FileLocator}), \ct{absolutePath} will resolve the file and return the full path, while \ct{path} will return an unresolved file reference as shown below.
 
+
+\begin{code}{}
+(FileLocator image parent / 'package-cache') path
+--> {image}/../package-cache
+
+(FileLocator image parent / 'package-cache') fullPath
+--> Path / 'Data' / 'Downloads' / 'Pharo-2.0' / 'package-cache'
+
+(FileLocator image parent / 'package-cache') absolutePath
+--> Path / 'Data' / 'Downloads' / 'Pharo-2.0' / 'package-cache'
+\end{code}
 
 
 \section{FileReference = FileSystem + Path}
@@ -412,7 +425,7 @@ Paths and filesystems are the lowest level of the FileSystem API. A \ct{FileRefe
 Normally you do not need to use Path but here are some examples.
 
 \begin{code}{}
-|fs griffle nurp | 
+| fs griffle nurp | 
 fs := FileSystem memory.
 griffle := fs referenceTo: (Path / 'plonk' / 'griffle').
 nurp := fs referenceTo: (Path * 'nurp').
