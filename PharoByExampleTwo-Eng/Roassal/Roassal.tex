@@ -25,8 +25,8 @@
 %\renewcommand{\nnbb}[2]{} % Disable editorial comments
 \sloppy
 %=================================================================
-\chapter{Mondrian}
-\chalabel{mondrian}
+\chapter{Roassal: Yes Alex Roassal!}
+\chalabel{roassal}
 
 
 Giving a meaning to a a large amount of data is challenging without adequate tools. Textual outputs are known to be limited in their expression and interactions. 
@@ -144,7 +144,15 @@ view treeLayout.
 The message \ct{edgesFrom:} is used to draw one edge at most per node. A variant of it is \ct{edges:from:toAll:}. It support the definition of several edges starting from a given node. Consider the dependencies between classes. The script: 
 
 \begin{code}{}
-view shape rectangle	size: [:cls | cls referencedClasses size ];	withText.view nodes: ArrayedCollection withAllSubclasses.view shape arrowedLine.view 	edges: ArrayedCollection withAllSubclasses from: #yourself toAll: #referencedClasses.view circleLayout\end{code}
+view shape rectangle
+	size: [:cls | cls referencedClasses size ];
+	withText.
+view nodes: ArrayedCollection withAllSubclasses.
+view shape arrowedLine.
+view 
+	edges: ArrayedCollection withAllSubclasses from: #yourself toAll: #referencedClasses.
+view circleLayout
+\end{code}
 
 The obtained visualization is given in \figref{classDependencies}.
 
