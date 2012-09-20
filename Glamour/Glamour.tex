@@ -5,7 +5,8 @@
 % HISTORY:
 % 2009-09-02 - Chapter started by Damien C
 % 2011-09-01 - Alexandre doing a pass on the chapter. I updated the FileSystem code with the latest version
-% 2011-06-06 - Alexandre finished his pass. Waiting for comments
+% 2011-06-06 - Alexandre finished his pass. Waiting for comments         
+% 2012-09-20 - Veornica doing a pass in the chapter. Changing examples
 
 %=================================================================
 \ifx\wholebook\relax\else
@@ -102,9 +103,10 @@ Glamour offers this behavior with the class \clsind{GLMFinder}. This class has t
 \begin{code}{}
 | browser |
 browser := GLMFinder new.
-browser list
-	display: #children.
-browser openOn: FSFilesystem disk root.
+browser show: [:a | 
+   a list
+	  display: #children ].
+browser openOn: FileSystem disk root.
 \end{code}
 
 Note that at that stage selecting a plain file raises an error. We will understand why and how to fix that situation soon.
@@ -122,9 +124,10 @@ user would expect only names of each entry. This can easily be done by
 customizing the list:
 
 \begin{code}{}
-browser list
-  display: #children;
-  format: #basename.
+browser	show: [:a | 
+   a list
+  	  display: #children;
+  	  format: #basename ].
 \end{code}
 
 This way, the message \ct{basename} will be sent to each entry to get its
@@ -137,10 +140,11 @@ understand. To fix that, we just have to avoid displaying a list of
 contained entries if the selected element is a file:
 
 \begin{code}{}
-browser list
-  when: #isDirectory;
-  display: #children;
-  format: #basename.
+browser show: [:a | 
+   a list
+  	  when: #isDirectory;
+  	  display: #children;
+  	  format: #basename ].
 \end{code}
 
 This works well but the user can not distinguish between a line
@@ -148,10 +152,11 @@ representing a file or a directory. This can be fixed by, for example,
 adding a slash at the end of the file name if it is a directory:
 
 \begin{code}{}
-browser list
-  when: #isDirectory;
-  display: #children;
-  format: #basenameWithIndicator.
+browser show: [:a | 
+  a list
+  	 when: #isDirectory;
+  	 display: #children;
+  	 format: #basenameWithIndicator ].
 \end{code}
 
 The last thing we might want to do is to display the contents of the
@@ -165,23 +170,26 @@ browser := GLMFinder new
   title: 'Find your file';
   yourself.
 
-browser list
-  when: #isDirectory;
-  display: [:each | [each children sorted]
-                       on: Exception
-                       do: [Array new]];
-  format: #basenameWithIndicator.
+browser show: [:a | 
+	a list
+  		when: #isDirectory;
+  		display: [:each | [each children sorted]
+                       		on: Exception
+                       		do: [Array new]];
+  		format: #basenameWithIndicator].
 
-browser text
-  when: #isFile;
-  display: [:entry | [entry readStream contents]
-                        on: Exception
-                        do: ['Can''t display the content of this file']].
-browser openOn: FSFilesystem disk root.
-\end{code}
+browser show: [:a | 
+    a text
+  		when: #isFile;
+  		display: [:entry | [entry readStream contents]
+                            on: Exception
+                        	do:['Can''t display the content of this file']]].
+browser openOn: FileSystem disk root.
+\end{code}     
+                        
 
 This code extends the previous one with variable-sized panes, a title
-as well as directory entry sorting, access permission handling and
+as well as directory entry sorting \vu{which sorting?}, access permission handling and
 file content reading. The resulting browser is presented in
 \figref{casestudies/file_finder}.
 
