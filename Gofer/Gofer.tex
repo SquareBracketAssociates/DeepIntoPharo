@@ -169,7 +169,20 @@ Gofer new
 \end{code}
 
 
-Since we often use the same public servers, there are some shortcuts in the API to use them. For example, \ct{squeaksource:} is a shortcut for \ct{http://www.squeaksource.com}, \ct{wiresong:} for \ct{http://source.wiresong.ca/} and \ct{gemsource:} for \ct{http://seaside.gemstone.com/ss/}.
+Often we want to write a script and give it to other people to load our code. In such a case having to specify 
+a password is not really adequate. Here is an example for smalltalkHub (which has some verbose urls such as 
+ \url{'http://smalltalkhub.com/mc/StephaneDucasse/Tuio/main'} for the project Tuio). We use the \ct{smalltalkhubUser:project:} message and just specify the minimal information.
+
+\begin{code}{}
+"A script with a user specified but no passwords"
+Gofer new
+    !\textbf{smalltalkhubUser: 'StephaneDucasse' project: 'Tuio'}!;
+    package: 'ConfigurationOfTuio';
+    load
+\end{code}
+
+
+Since we often use the same public servers, there are some shortcuts in the API to use them. For example, \ct{squeaksource:} is a shortcut for \ct{http://www.squeaksource.com}.
 In such a case you do not need to specify the full path as shown with the next snippet:
 
 \begin{code}{}
@@ -178,6 +191,10 @@ Gofer new
     package: 'PBE2GoferExample'; 
     load
 \end{code}
+
+
+
+
 
 
 
