@@ -1,6 +1,46 @@
 \section{Existing SmallLint Rules}
+\subsection{Potential Bugs}
+\textbf{Returns a boolean and non boolean} (RBReturnsBooleanAndOtherRule): This smell arises when a method return a boolean value (true or false) and return some other value such as (nil or self). If the method is suppose to return a boolean, then this signifies that there is one path through the method that might return a non-boolean. If the method doesn't need to return a boolean, it should be probably rewriten to return some non-boolean value since other programmers reading the method might assume that it returns a boolean.
+
+\textbf{Defines = but not hash} (RBDefinesEqualNotHashRule): This smell arises when a class defines \#= also and not \#hash. If \#hash is not defined then the instances of the class might not be able to be used in sets since equal element must have the same hash.
+
+\subsection{Design Flaws}
+\textbf{Methods equivalently defined in superclass} (RBEquivalentSuperclassMethodsRule): This smell arises when a method is equivalent to its superclass method. The methods are equivalent when they have the same abstract syntax tree, except for variables names. Such method does not add anything to the computation and can be removed since the superclass method have the same behaviour. Furthermore, the methods \#new and \#initialize are ignored once they are often overridden for compatilbity with other platforms. The ignored methods can be edited in RBEquivalentSuperclassMethodsRule$>>$ignoredSelectors
+
+\textbf{Excessive inheritance depth} (RBExcessiveInheritanceRule): This smell arises when a deep inheritance is found (depth of ten or more), which is usually a sign of a design flaw. It should be broken down and reduced to something manageable. The defined inheritance depth can be edited in RBExcessiveInheritanceRule$>>$inheritanceDepth.
+
+\textbf{Inconsistent method classification} (RBInconsistentMethodClassificationRule): This smell arises when a method protocol is not equivalent to the one defined in the superclass of such method class. All methods should be put into a protocol (method category) that is equivalent to the one of the superclass, which is a standart style in Smalltalk. Furthermore, methods which are extension in the superclass are ignored, since they may have different protocol name.
+
+\textbf{Methods implemented but not sent} (RBImplementedNotSentRule): This smell arises when a method is never sent. If a method is not sent, it can be removed. Furthermore, methods with pragmas and test methods are likely to be sent through reflection, thus such methods are ignored.
+
+\textbf{Excessive number of arguments} (RBExcessiveArgumentsRule): This smell arises when a method contains a long number of argument (five or more), which can indicate that a new object should be created to wrap the numerous parameters. The defined number of arguments can be edited in RBExcessiveArgumentsRule$>>$argumentsCount.
+
+\textbf{Excessive number of variables} (RBExcessiveVariablesRule): This smell arises when a class has too many instance variables (10 or more). Such classes could be redesigned to have fewer fields, possibly through some nested object grouping. The defined number of instance variables can be edited in RBExcessiveVariablesRule$>>$variablesCount.
+
+\textbf{Refers to class name instead of "self class"} (RBRefersToClassRule): This smell arises when a class has its class name directly in the source instead of "self class". The self class variant allows you to create subclasses without needing to redefine that method.
+
+\textbf{Excessive number of methods} (RBExcessiveMethodsRule): This smell arises when a large class is found (with 40 or more methods). Large classes are indications that it has too much responsibility. Try to break it down, and reduce the size to something manageable. The defined number of methods can be edit in RBExcessiveMethodsRule$>>$methodsCount.
+
+\textbf{Long methods} (RBLongMethodsRule): This smell arises when a long method is found (with 10 or more statements). Note that, it counts statements, not lines. The defined number of statements can be edited in RBLongMethodsRule$>>$longMethodSize.
+
+\textbf{Class not referenced} (RBClassNotReferencedRule): This smell arises when a class is not referenced either directly or indirectly by a symbol. If a class is not referenced, it can be removed.
+
+\textbf{Instance variables defined in all subclasses} (RBInstVarInSubclassesRule): This smell arises when instance variables are defined in all subclasses. Many times you might want to pull the instance variable up into the class so that all the subclasses do not have to define it.
+
+\textbf{Method defined in all subclasses, but not in superclass} (RBMissingSubclassResponsibilityRule): This smell arises when a class defines a method in all subclasses, but not in itself as an abstract method. Such methods should most likely be defined as subclassResponsibility methods. Furthermore, this check helps to find similar code that might be occurring in all the subclasses that should be pulled up into the superclass.
+
+\subsection{Coding Idiom Violation}
+\textbf{No class comment} (RBNoClassCommentRule): This smell arises when a class has no comment. Classes should have comments to explain their purpose, collaborations with other classes, and optionally provide examples of use.
+
+\textbf{Sends "questionable" message} (RBBadMessageRule): This smell arises when methods send messages that perform low level things. You might want to limit the number of such messages in your application. Messages such as \#isKindOf: can signify a lack of polymorphism. You can see which methods are "questionable" by editing the RBBadMessageRule$>>$badSelectors method. Some examples are: \#respondsTo: \#isMemberOf: \#performMethod: and \#performMethod:arguments:
+
+\subsection{Optimization}
+\textbf{Instance variables not read AND written} (RBOnlyReadOrWrittenVariableRule): This smell arises when an instance variable is not both read and written. If an instance variable is only read, the reads can be replaced by nil, since it could not have been assigned a value. If the variable is only written, then it does not need to store the result since it is never used. This check does not work for the data model classes since they use the \#instVarAt:put: messages to set instance variables.
+
+\textbf{Method just sends super message} (RBJustSendsSuperRule): This smell arises when a method just forward the message to its superclass. These methods can be removed.
+
 \subsection{Bugs}
-\textbf{Method has no timeStamp} (RBMethodHasNoTimeStampRule): This smell arises when a method has no timestamp. For proper versioning, every method should have a timestamp.
+\textbf{Overrides a "special" message} (RBOverridesSpecialMessageRule): Checks that a class does not override a message that is essential to the base system. For example, if you override the \#class method from object, you are likely to crash your image.In the class the messages we should not override are: ==, ~~, class, basicAt:, basicAt:put:, basicSize, identityHash.In the class side the messages we should not override are: basicNew, basicNew, class, comment, name.
 
 \textbf{Messages sent but not implemented} (RBSentNotImplementedRule): This smell arises when a message is sent by a method,  but no class in the system implements such a message. This method sent will certainly cause a doesNotUnderstand: message when they are executed.  Further this rule checks if messages sent to self or super exist in the hierarchy, since these can be statically typed.
 
@@ -11,51 +51,9 @@
 \subsection{Style}
 \textbf{Class variable capitalization} (RBClassVariableCapitalizationRule): This smell arises when class or pool variable names do not start with an uppercase letter, which is a standart style in Smalltalk
 
-\textbf{Temporary variable capitalization} (RBTemporaryVariableCapitalizationRule): This smell arises when a temporary or argument variable do not start with a lowercase letter, which is a standart style in Smalltalk.
+\textbf{Instance variable capitalization} (RBInstanceVariableCapitalizationRule): This smell arises when instance variable names (in instance and class side) do not start with an lowercase letter, which is a standart style in Smalltalk.
 
 \textbf{Redundant class name in selector} (RBClassNameInSelectorRule): This smell arises when the class name is found in a selector. This is redundant since to call the you must already refer to the class name. For example, \#openHierarchyBrowserFrom: is a redundant name for HierarchyBrowser.
 
-\textbf{Instance variable capitalization} (RBInstanceVariableCapitalizationRule): This smell arises when instance variable names (in instance and class side) do not start with an lowercase letter, which is a standart style in Smalltalk.
-
-\subsection{Potential Bugs}
-\textbf{Returns a boolean and non boolean} (RBReturnsBooleanAndOtherRule): This smell arises when a method return a boolean value (true or false) and return some other value such as (nil or self). If the method is suppose to return a boolean, then this signifies that there is one path through the method that might return a non-boolean. If the method doesn't need to return a boolean, it should be probably rewriten to return some non-boolean value since other programmers reading the method might assume that it returns a boolean.
-
-\textbf{Defines = but not hash} (RBDefinesEqualNotHashRule): This smell arises when a class defines \#= also and not \#hash. If \#hash is not defined then the instances of the class might not be able to be used in sets since equal element must have the same hash.
-
-\subsection{Coding Idiom Violation}
-\textbf{Literal array contains a \#,} (RBLiteralArrayContainsCommaRule): This smell arises when literal arrays contain the \#, symbol. It can be done accidentally by new developers when trying to separate elements. Elements in arrays are separated by space, ex: \#(1 2 3). Elements in dynamic arrays are separated by \#. symbol, ex: {1. 2. 3}
-
-\textbf{No class comment} (RBNoClassCommentRule): This smell arises when a class has no comment. Classes should have comments to explain their purpose, collaborations with other classes, and optionally provide examples of use.
-
-\textbf{Sends "questionable" message} (RBBadMessageRule): This smell arises when methods send messages that perform low level things. You might want to limit the number of such messages in your application. Messages such as \#isKindOf: can signify a lack of polymorphism. You can see which methods are "questionable" by editing the RBBadMessageRule$>>$badSelectors method. Some examples are: \#respondsTo: \#isMemberOf: \#performMethod: and \#performMethod:arguments:
-
-\subsection{Design Flaws}
-\textbf{Methods equivalently defined in superclass} (RBEquivalentSuperclassMethodsRule): This smell arises when a method is equivalent to its superclass method. The methods are equivalent when they have the same abstract syntax tree, except for variables names. Such method does not add anything to the computation and can be removed since the superclass method have the same behaviour. Furthermore, the methods \#new and \#initialize are ignored once they are often overridden for compatilbity with other platforms. The ignored methods can be edited in RBEquivalentSuperclassMethodsRule$>>$ignoredSelectors
-
-\textbf{Excessive inheritance depth} (RBExcessiveInheritanceRule): This smell arises when a deep inheritance is found (depth of ten or more), which is usually a sign of a design flaw. It should be broken down and reduced to something manageable. The defined inheritance depth can be edited in RBExcessiveInheritanceRule$>>$inheritanceDepth.
-
-\textbf{Inconsistent method classification} (RBInconsistentMethodClassificationRule): This smell arises when a method protocol is not equivalent to the one defined in the superclass of such method class. All methods should be put into a protocol (method category) that is equivalent to the one of the superclass, which is a standart style in Smalltalk. Furthermore, methods which are extension in the superclass are ignored, since they may have different protocol name.
-
-\textbf{Long methods} (RBLongMethodsRule): This smell arises when a long method is found (with 10 or more statements). Note that it counts statements, not lines. The defined number of statements can be edited in RBLongMethodsRule$>>$longMethodSize.
-
-\textbf{Excessive number of arguments} (RBExcessiveArgumentsRule): This smell arises when a method contains a long number of argument (five or more), which can indicate that a new object should be created to wrap the numerous parameters. The defined number of arguments can be edited in RBExcessiveArgumentsRule$>>$argumentsCount.
-
-\textbf{Methods implemented but not sent} (RBImplementedNotSentRule): This smell arises when a method is never sent. If a method is not sent, it can be removed. Furthermore, methods with pragmas and test methods are likely to be sent through reflection, thus such methods are ignored.
-
-\textbf{Excessive number of variables} (RBExcessiveVariablesRule): This smell arises when a class has too many instance variables (10 or more). Such classes could be redesigned to have fewer fields, possibly through some nested object grouping. The defined number of instance variables can be edited in RBExcessiveVariablesRule$>>$variablesCount.
-
-\textbf{Refers to class name instead of "self class"} (RBRefersToClassRule): This smell arises when a class has its class name directly in the source instead of "self class". The self class variant allows you to create subclasses without needing to redefine that method.
-
-\textbf{Excessive number of methods} (RBExcessiveMethodsRule): This smell arises when a large class is found (with 40 or more methods). Large classes are indications that it has too much responsibility. Try to break it down, and reduce the size to something manageable. The defined number of methods can be edit in RBExcessiveMethodsRule$>>$methodsCount.
-
-\textbf{Class not referenced} (RBClassNotReferencedRule): This smell arises when a class is not referenced either directly or indirectly by a symbol. If a class is not referenced, it can be removed.
-
-\textbf{Instance variables defined in all subclasses} (RBInstVarInSubclassesRule): This smell arises when instance variables are defined in all subclasses. Many times you might want to pull the instance variable up into the class so that all the subclasses do not have to define it.
-
-\textbf{Method defined in all subclasses, but not in superclass} (RBMissingSubclassResponsibilityRule): This smell arises when a class defines a method in all subclasses, but not in itself as an abstract method. Such methods should most likely be defined as subclassResponsibility methods. Furthermore, this check helps to find similar code that might be occurring in all the subclasses that should be pulled up into the superclass.
-
-\subsection{Optimization}
-\textbf{Instance variables not read AND written} (RBOnlyReadOrWrittenVariableRule): This smell arises when an instance variable is not both read and written. If an instance variable is only read, the reads can be replaced by nil, since it could not have been assigned a value. If the variable is only written, then it does not need to store the result since it is never used. This check does not work for the data model classes since they use the \#instVarAt:put: messages to set instance variables.
-
-\textbf{Method just sends super message} (RBJustSendsSuperRule): This smell arises when a method just forward the message to its superclass. These methods can be removed.
+\textbf{Temporary variable capitalization} (RBTemporaryVariableCapitalizationRule): This smell arises when a temporary or argument variable do not start with a lowercase letter, which is a standart style in Smalltalk.
 
