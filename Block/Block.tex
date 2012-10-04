@@ -153,7 +153,7 @@ Object subclass: #Bexp
 
 \sd{I should rename textVariable: by setVariableAndExecuteBlock: }
 \sd{I should rename testVariable by setVariableAndDefineBlock: }
-\paragraph{Experience one: Variable lookup.} A variable is looked up in the block definition context.
+\paragraph{Experience 1: Variable lookup.} A variable is looked up in the block definition context.
 
 
 
@@ -188,8 +188,8 @@ Let's look at it in detail. Figure~\ref{fig:variable} shows the execution of the
 \end{figure}
 
 
-\paragraph{Experience two: Changing a variable value.} A block can change the value of a non local variable.
-Now the method \ct{testVariable2} shows that a non local variable value can be changed during the execution of a block. Executing \ct{Bexp new testVariable2} prints 33, since 33 is the last value of the variable \ct{t}.
+\paragraph{Experience 2: Changing a variable value.} A block can change the value of a non local variable.
+The method \ct{testVariable2} shows that a non local variable value can be changed during the execution of a block. Executing \ct{Bexp new testVariable2} prints 33, since 33 is the last value of the variable \ct{t}.
 
 
 \begin{code}{}
@@ -198,7 +198,7 @@ Bexp>>testVariable2
 	t := 42.
 	self testVariable: [ t := 33. t traceCr ]
 \end{code}
-\paragraph{Experience Three: Accessing a shared non local variable.}
+\paragraph{Experience 3: Accessing a shared non local variable.}
 Note that two blocks can share a non local variable. Let us define a new method \ct{testVariable3} as follows:
 
 \begin{code}{}
@@ -213,7 +213,7 @@ Bexp>>testVariable3
 \ct{Bexp new testVariable3} will print 42, 33, 33, 66 and 66.
 Here the two blocks \ct{[ t := 33. t traceCr ]} and \ct{[ t := 66. t traceCr ]} access the variable \ct{t} and can modify it. During the first execution of the method \ct{testVariable:} its current value \ct{42} is printed, then the value is changed and printed. Similar situation occurs in the following block. This example shows that blocks shares the same context where variables are stored.
 
-\paragraph{Experience Four: Variable lookup is done at execution time.}\
+\paragraph{Experience 4: Variable lookup is done at execution time.}\
 The following example shows that the value of the variable is looked up at runtime.
 First add the instance variable \ct{block} to the class \ct{Bexp}.
 
@@ -244,7 +244,7 @@ Bexp>>testVariable4
 
 
 
-\paragraph{Experience Five: For method arguments.}\
+\paragraph{Experience 5: For method arguments.}\
 Naturally we can expect that method arguments are bound in the context of defining method. Let's illustrate this point now. Define the following methods and add the instance variable \ct{block} to the class.
 
 \begin{code}{}
@@ -261,7 +261,7 @@ Bexp>>testArg2: arg
 
 Now executing \ct{Bexp new testArg: 'foo'} prints \ct{'foo'} even if in the method \ct{testArg:} the temporary arg is redefined.
 
-\paragraph{Experience Six: self binding.}
+\paragraph{Experience 6: self binding.}
 For binding of self, we simply define a new class and a couple of methods.
 Add the instance variable x to the class \ct{Bexp} and define the \ct{initialize} method as follows:
 
