@@ -189,7 +189,7 @@
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{0, 109.70312881469727}, {177, 69}}</string>
+			<string>{{0, 109.70312881469727}, {191, 69}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>ID</key>
@@ -218,7 +218,7 @@
 	
 \b0 | t | \
 	t := 42. \
-	self testVariable: [t logCr]}</string>
+	self testVariable: [t traceCr]}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -405,7 +405,7 @@
 			<array>
 				<string>{196.5, 74.3515625}</string>
 				<string>{116, 60.851562000000001}</string>
-				<string>{100.03916730831477, 109.22830427342566}</string>
+				<string>{104.10455789634439, 109.21759796552261}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -713,8 +713,9 @@
 \f0\fs24 \cf0 in context
 \i \
   italic: already executed\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
 
-\i0\b   bold:
+\i0\b \cf0   bold:
 \b0  current execution\
   plain: future}</string>
 				<key>VerticalPad</key>
@@ -845,7 +846,7 @@ testVariable \
 	t := 42. 
 \i0 \
 	self testVariable: 
-\b [t logCr]}</string>
+\b [t traceCr]}</string>
 			</dict>
 			<key>TextPlacement</key>
 			<integer>0</integer>
@@ -951,7 +952,7 @@ testVariable: aBlock \
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2012-07-25 11:15:03 +0000</string>
+	<string>2012-10-04 09:21:21 +0000</string>
 	<key>Modifier</key>
 	<string>ducasse</string>
 	<key>NotesVisible</key>
@@ -1032,7 +1033,7 @@ testVariable: aBlock \
 			</dict>
 		</array>
 		<key>Frame</key>
-		<string>{{96, -40}, {1245, 778}}</string>
+		<string>{{96, 0}, {1245, 778}}</string>
 		<key>ListView</key>
 		<true/>
 		<key>OutlineWidth</key>
@@ -1046,7 +1047,7 @@ testVariable: aBlock \
 		<key>SidebarWidth</key>
 		<integer>120</integer>
 		<key>VisibleRegion</key>
-		<string>{{-336, 0}, {1231, 623}}</string>
+		<string>{{-329, 0}, {1217, 623}}</string>
 		<key>Zoom</key>
 		<real>1</real>
 		<key>ZoomValues</key>
