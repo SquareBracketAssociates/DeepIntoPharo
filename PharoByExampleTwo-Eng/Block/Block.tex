@@ -40,7 +40,7 @@
 \sloppy
 %=================================================================
 \chapter{Blocks: a Detailed Analysis}\chalabel{blocks}
-\chapterauthor{Jean-Baptiste Arnaud}
+
 
 Blocks (lexical closures) are a powerful and essential feature of Smalltalk. Without them it
 would be difficult to have such a small and compact syntax. The use of blocks in Smalltalk
@@ -135,9 +135,9 @@ Some messages are related to process scheduling. We list the most important ones
 \section{Variables and Blocks}
 A block can have its own temporaries variables, such variables are initialized during each block execution and are local to the block. Now the question we want to make clear is what is happening when a block refers to other (non local) variables. Later, for the curious, we will present how local variables are implemented and stored.
 
-In Smalltalk, private variables (such as self, instance variables, method temporaries and arguments) are lexically scoped. These variables are bound (get a value associated to them) in \emph{the context} in which the block that contains them is defined, rather than the context in which the block is executed.  Traditionally, the context in which a block is defined is named the \emph{block home context}.
+In Pharo, private variables (such as self, instance variables, method temporaries and arguments) are lexically scoped. These variables are bound (get a value associated to them) in \emph{the context (a stack frame)} in which the block that contains them is \emph{defined}, rather than the context in which the block is executed.  Traditionally, the context in which a block is defined is named the \emph{block home context}.
 
-In essence a context represents information about the current execution step (what is the context from which the current one is executed, what is the next byte code to be executed, what is the value of the temporary variables...) a context is an activation record representing a smalltalk execution stack element. This is important and we will come back later to this concept.
+In essence a context (called stack frame in other languages) represents information about the current execution step (what is the context from which the current one is executed, what is the next byte code to be executed, what is the value of the temporary variables...) a context is an activation record representing a smalltalk execution stack element. This is important and we will come back later to this concept.
 
 \subsection{Some little experiences}
 
@@ -152,6 +152,7 @@ Object subclass: #Bexp
 \end{code}
 
 \sd{I should rename textVariable: by setVariableAndExecuteBlock: }
+\sd{I should rename testVariable by setVariableAndDefineBlock: }
 \paragraph{Experience one: Variable lookup.} A variable is looked up in the block definition context.
 
 
@@ -165,14 +166,20 @@ Bexp>>testVariable: aBlock
 Bexp>>testVariable
 	| t |
 	t := 42.
-	self testVariable: [ t logCr ]
+	self testVariable: [ t traceCr ]
 \end{code}
 
 Execute \ct{Bexp new testVariable}. Executing the \ct{testVariable} message  prints 42 in the Transcript. The value of the temporary variable \ct{t} defined in method \ct{testVariable} is the one used rather than the one of \ct{t} defined inside \ct{testVariable:}. Even if the block is executed during the execution of the method \ct{testVariable:}.
 
 The variable \ct{t} is not looked up in the context of the executing method \ct{testVariable:} but in the context of the method \ct{testVariable} which defined the block.
 
-Let's look at it in detail. Figure~\ref{fig:variable} shows the execution of the expression \ct{Bexp new testVariable}. During the execution of method \ct{testVariable}, a variable \ct{t} is defined and it is assigned 42. Then a block is created and this block refers to the method activation context - which holds temporaries variables (Step 1). The method \ct{testVariable:} defines its own local variable \ct{t} with the same name than the one in the block. However, this is not this variable that is used when the block is executed. While executing the method \ct{testVariable:} the block is executed, during the execution of the expression \ct{t logCr} the non local variable \ct{t} is looked up in the home context of the block \ie the method context that created the block and not the context of the currently executed method.
+Let's look at it in detail. Figure~\ref{fig:variable} shows the execution of the expression \ct{Bexp new testVariable}. 
+
+\begin{itemize}
+\item During the execution of method \ct{testVariable}, a variable \ct{t} is defined and it is assigned 42. Then a block is created and this block refers to the method activation context - which holds temporaries variables (Step 1). 
+
+\item The method \ct{testVariable:} defines its own local variable \ct{t} with the same name than the one in the block. However, this is not this variable that is used when the block is executed. While executing the method \ct{testVariable:} the block is executed (step 2), during the execution of the expression \ct{t traceCr} the non local variable \ct{t} is looked up in the home context of the block \ie the method context that created the block and not the context of the currently executed method.
+\end{itemize}
 
 \begin{figure}[!h]
 \begin{center}\includegraphics[width=9cm]{variable}
@@ -189,7 +196,7 @@ Now the method \ct{testVariable2} shows that a non local variable value can be c
 Bexp>>testVariable2
 	| t |
 	t := 42.
-	self testVariable: [ t := 33. t logCr ]
+	self testVariable: [ t := 33. t traceCr ]
 \end{code}
 \paragraph{Experience Three: Accessing a shared non local variable.}
 Note that two blocks can share a non local variable. Let us define a new method \ct{testVariable3} as follows:
@@ -198,13 +205,13 @@ Note that two blocks can share a non local variable. Let us define a new method 
 Bexp>>testVariable3
 	| t |
 	t := 42.
-	self testVariable: [ t logCr. t := 33. t logCr ].
-	self testVariable: [ t logCr. t := 66. t logCr ].
-	self testVariable: [ t logCr ]
+	self testVariable: [ t traceCr. t := 33. t traceCr ].
+	self testVariable: [ t traceCr. t := 66. t traceCr ].
+	self testVariable: [ t traceCr ]
 \end{code}
 
 \ct{Bexp new testVariable3} will print 42, 33, 33, 66 and 66.
-Here the two blocks \ct{[ t := 33. t logCr ]} and \ct{[ t := 66. t logCr ]} access the variable \ct{t} and can modify it. During the first execution of the method \ct{testVariable:} its current value \ct{42} is printed, then the value is changed and printed. Similar situation occurs in the following block. This example shows that blocks shares the same context where variables are stored.
+Here the two blocks \ct{[ t := 33. t traceCr ]} and \ct{[ t := 66. t traceCr ]} access the variable \ct{t} and can modify it. During the first execution of the method \ct{testVariable:} its current value \ct{42} is printed, then the value is changed and printed. Similar situation occurs in the following block. This example shows that blocks shares the same context where variables are stored.
 
 \paragraph{Experience Four: Variable lookup is done at execution time.}\
 The following example shows that the value of the variable is looked up at runtime.
@@ -226,7 +233,7 @@ Here the initial value of the variable \ct{t} is 42. The block is created and st
 Bexp>>testVariable4
 	| t |
 	t := 42.
-	block := [ t logCr: t ].
+	block := [ t traceCr: t ].
 	t := 69.
 	self testVariable: block
 \end{code}
