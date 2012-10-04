@@ -136,7 +136,11 @@ Metacello has the following features:
 
 \item Conditional package loading: to enable projects to run on multiple platforms, Metacello supports conditional loading of platform-specific Monticello packages. 
 
-\item Configurations: Metacello actually manages not projects but \emph{configurations of projects}.  This is because large projects frequently have multiple variants: there might be a configuration for Pharo and another configuration for Squeak, which might have different prerequisites.  Moreover, there might be stable, released configurations as well as experimental configurations that have cool new features but also more bugs.
+\item Configurations: Metacello manages \emph{configurations of projects}.  Large projects frequently have multiple variations with different sets of packages and projects required for each platform.  Each unique configuration is labeled with a version string.
+
+% Pulled out the following sentence ... it is starting to introduce the idea of symbolic versions but if we're introducing symbolic versions now, I think it is worth going into more detail ...
+  
+% Moreover, there might be stable, released configurations as well as experimental configurations that have cool new features but also more bugs.
 
 \end{description}
 
@@ -145,8 +149,10 @@ Metacello has the following features:
 Metacello supports the definition of two kinds of entities (represented as methods): \emph{baselines} and \emph{versions}.
 
 \begin{description}
-\item{\textbf{Baselines.}} A baseline is a skeleton identifying abstractly the packages and subprojects that compose a configuration. Structural dependencies as well as code repositories are defined at the baseline level. The baseline can also specify the level of stability of the required components. 
-\item{\textbf{Versions.}} A version is a set of package \emph{versions} that should be loaded. Often a version simply enriches a baseline with specific version information. 
+\item{\textbf{Baselines.}} A baseline defines the basic structure of a project. The baseline lists the packages and required projects that compose the project. The baseline defines the order in which packages are to be loaded and the repositories from which the packages are to be loaded.
+
+\item{\textbf{Versions.}} A version defines the version of each package and project that should be loaded. The Monticello file name is used as the package version (e.g., Metacello-Base-dkh.152). The Metacello version number is used as the project version.
+
 \end{description}
 
 
