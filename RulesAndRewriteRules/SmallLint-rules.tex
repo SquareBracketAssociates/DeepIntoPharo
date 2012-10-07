@@ -1,4 +1,13 @@
 \section{Existing SmallLint Rules}
+\subsection{Style}
+\textbf{Class variable capitalization} (RBClassVariableCapitalizationRule): This smell arises when class or pool variable names do not start with an uppercase letter, which is a standart style in Smalltalk
+
+\textbf{Instance variable capitalization} (RBInstanceVariableCapitalizationRule): This smell arises when instance variable names (in instance and class side) do not start with an lowercase letter, which is a standart style in Smalltalk.
+
+\textbf{Redundant class name in selector} (RBClassNameInSelectorRule): This smell arises when the class name is found in a selector. This is redundant since to call the you must already refer to the class name. For example, \#openHierarchyBrowserFrom: is a redundant name for HierarchyBrowser.
+
+\textbf{Temporary variable capitalization} (RBTemporaryVariableCapitalizationRule): This smell arises when a temporary or argument variable do not start with a lowercase letter, which is a standart style in Smalltalk.
+
 \subsection{Potential Bugs}
 \textbf{Returns a boolean and non boolean} (RBReturnsBooleanAndOtherRule): This smell arises when a method return a boolean value (true or false) and return some other value such as (nil or self). If the method is suppose to return a boolean, then this signifies that there is one path through the method that might return a non-boolean. If the method doesn't need to return a boolean, it should be probably rewriten to return some non-boolean value since other programmers reading the method might assume that it returns a boolean.
 
@@ -13,7 +22,7 @@
 
 \textbf{Methods implemented but not sent} (RBImplementedNotSentRule): This smell arises when a method is never sent. If a method is not sent, it can be removed. Furthermore, methods with pragmas and test methods are likely to be sent through reflection, thus such methods are ignored.
 
-\textbf{Excessive number of arguments} (RBExcessiveArgumentsRule): This smell arises when a method contains a long number of argument (five or more), which can indicate that a new object should be created to wrap the numerous parameters. The defined number of arguments can be edited in RBExcessiveArgumentsRule$>>$argumentsCount.
+\textbf{Class not referenced} (RBClassNotReferencedRule): This smell arises when a class is not referenced either directly or indirectly by a symbol. If a class is not referenced, it can be removed.
 
 \textbf{Excessive number of variables} (RBExcessiveVariablesRule): This smell arises when a class has too many instance variables (10 or more). Such classes could be redesigned to have fewer fields, possibly through some nested object grouping. The defined number of instance variables can be edited in RBExcessiveVariablesRule$>>$variablesCount.
 
@@ -23,7 +32,7 @@
 
 \textbf{Long methods} (RBLongMethodsRule): This smell arises when a long method is found (with 10 or more statements). Note that, it counts statements, not lines. The defined number of statements can be edited in RBLongMethodsRule$>>$longMethodSize.
 
-\textbf{Class not referenced} (RBClassNotReferencedRule): This smell arises when a class is not referenced either directly or indirectly by a symbol. If a class is not referenced, it can be removed.
+\textbf{Excessive number of arguments} (RBExcessiveArgumentsRule): This smell arises when a method contains a long number of argument (five or more), which can indicate that a new object should be created to wrap the numerous parameters. The defined number of arguments can be edited in RBExcessiveArgumentsRule$>>$argumentsCount.
 
 \textbf{Instance variables defined in all subclasses} (RBInstVarInSubclassesRule): This smell arises when instance variables are defined in all subclasses. Many times you might want to pull the instance variable up into the class so that all the subclasses do not have to define it.
 
@@ -47,13 +56,4 @@
 \textbf{Subclass responsibility not defined} (RBSubclassResponsibilityNotDefinedRule): This rule checks if all subclassResponsibility methods are defined in all leaf classes. if such a method is not overridden, a subclassResponsibility message can be occur when this method is called
 
 \textbf{Sends super new initialize} (RBSuperSendsNewRule):  This rule checks for method that wrongly initialize an object twice. Contrary to other Smalltalk implementations Pharo automatically calls \#initiailize on object creation.For example, a warning is raised when the statment self new initialize is found in a method.
-
-\subsection{Style}
-\textbf{Class variable capitalization} (RBClassVariableCapitalizationRule): This smell arises when class or pool variable names do not start with an uppercase letter, which is a standart style in Smalltalk
-
-\textbf{Instance variable capitalization} (RBInstanceVariableCapitalizationRule): This smell arises when instance variable names (in instance and class side) do not start with an lowercase letter, which is a standart style in Smalltalk.
-
-\textbf{Redundant class name in selector} (RBClassNameInSelectorRule): This smell arises when the class name is found in a selector. This is redundant since to call the you must already refer to the class name. For example, \#openHierarchyBrowserFrom: is a redundant name for HierarchyBrowser.
-
-\textbf{Temporary variable capitalization} (RBTemporaryVariableCapitalizationRule): This smell arises when a temporary or argument variable do not start with a lowercase letter, which is a standart style in Smalltalk.
 
