@@ -151,7 +151,7 @@ Metacello supports the definition of two kinds of entities (represented as metho
 \begin{description}
 \item{\textbf{Baselines.}} A baseline defines the basic structure of a project. The baseline lists the packages and required projects that compose the project. The baseline defines the order in which packages are to be loaded and the repositories from which the packages are to be loaded.
 
-\item{\textbf{Versions.}} A version defines the version of each package and project that should be loaded. The Monticello file name is used as the package version (e.g., Metacello-Base-dkh.152). The Metacello version number is used as the project version.
+\item{\textbf{Versions.}} A version identifies the exact version of each package and project that should be loaded. A version is based upon a baseline version. For each package in the baseline version, the Monticello file name (e.g., Metacello-Base-dkh.152) is specified. For each project in the baseline version, the Metacello version number is specified. 
 
 \end{description}
 
@@ -165,17 +165,17 @@ Metacello supports the definition of two kinds of entities (represented as metho
 \end{figure} 
 
 
-Let us explain this using Figure~\ref{configurations}. ConfigurationOfProjectA contains several baselines (here two baselines 0.4 and 0.5) and versions (here 0.4, 0.41, 0.5, and 0.6). Baseline 0.4 defines that it is composed of two packages (PackageA and PackageB). Baseline 0.5 is composed of 3 packages (PackageA, PackageB, and PackageC) and it also depends on Project B. A version uses the description held in a baseline and refines it using specific package version. A version may also refines another one. 
+ConfigurationOfProjectA (See Figure~\ref{configurations}) contains two baselines (baseline 0.4 and 0.5) and four versions (version 0.4, 0.4.1, 0.5, and 0.6). Baseline 0.4 is composed of two packages (PackageA and PackageB). Version 0.4 is based on baseline 0.4 and specifies the version for each of the packages (PackageA-version.5 and PackageB-version.3). Version 0.4.1 is also based on baseline 0.4, but specifies different a different version for PackageA (Package-version.7).
 
-A client (another configuration or you) can load a given version of ProjectA: the loader uses the structural information defined in a baseline and the specific version information to load the adequate packages. All these points are explained in detail in the rest of this chapter. 
+Baseline 0.5 is composed of 3 packages (PackageA, PackageB, and PackageC) and it depends on an external project (ProjectB). A new package (PackageC) and a project dependency (ProjectB) was added to the project so a new baseline version reflecting the new structure needed to be created. Version 0.5 is based on baseline 0.5 and specifies the versions of the packages (PackageA-version.6, PackageB-version.4 and PackageC-version.1) and version of the dependent project (ProjectB-version3).
 
 
 
 \section{A Simple Case Study}
 
-In this example we start with a really simple configuration expressed only with versions and then we gradually add baselines. In normal life, it is better to directly start with a baseline and version. 
+In this example we start with a really simple configuration expressed only with versions and then we gradually add baselines. In normal life, it is better to start by definining a baseline followed by the version.
 
-Let's start using Metacello to manage a software project called \emph{CoolBrowser}. The first step is to create a Metacello configuration for the project by simply copying the class \ct{MetacelloConfigTemplate} and naming it \ct{ConfigurationOfCoolBrowser}. A configuration is a class that describes the currently available configurations of a project (set of baselines and versions), \ie what we previously called metadata. A configuration represents different versions of projects so that you can load a project in different environment or in different versions of Pharo. 
+Let's start using Metacello to manage a software project called \emph{CoolBrowser}. The first step is to create a Metacello configuration for the project by simply copying the class \ct{MetacelloConfigTemplate} and naming it \ct{ConfigurationOfCoolBrowser}. A configuration is a class that describes the currently available configurations of a project (set of baselines and versions), \ie what we previously called metadata. A configuration represents different versions of projects so that you can load a project in a different environment or in different versions of Pharo. 
 By convention, the name of a Metacello configuration is constructed by prefixing the name of the project with \ct{'ConfigurationOf'}. To do this, find the class \ct{MetacelloConfigTemplate} in the system browser, right click on the class name, and select the option \menu{copy}. 
 
 This is the class definition:
@@ -207,6 +207,7 @@ ConfigurationOfCoolBrowser>>version01: spec
 	!\textbf{<version:}! '0.1'!\textbf{>}!
        
 	spec for: !\textbf{\#common}! do: [
+    spec !\textbf{blessing:}! #release.
 		spec !\textbf{repository:}! 'http://www.example.com/CoolBrowser'.
 		spec 
 		    !\textbf{package:}! 'CoolBrowser-Core'  !\textbf{with:}! 'CoolBrowser-Core-BobJones.10';
@@ -217,7 +218,7 @@ ConfigurationOfCoolBrowser>>version01: spec
 The  method \ct{version01: spec} builds a description of version 0.1 of the project in the object \ct{spec}.
 The common code for version \ct{0.1} (specified using the message \ct{for: #common do:}) consists of particular versions of the packages named \ct{'CoolBrowser-Core'} and \ct{'CoolBrowser-Tests'}.
 These are specified with the message \ct{package:} \emph{packageName} \ct{with:} \emph{versionName}.
-These versions are available in the Monticello repository \ct{'http://www.example.com/CoolBrowser'}, which is specified using the message \ct{repository:}.
+These versions are available in the Monticello repository \ct{'http://www.example.com/CoolBrowser'}, which is specified using the message \ct{repository:}. The  \ct{blessing:} method is used to denote that this is a released version and that the specification will not be changed in the future. The blessing #development should be used when the version has not stabilized.
 
 Now let us look at more details.
 
@@ -225,14 +226,14 @@ Now let us look at more details.
 \item Immediately after the method selector you see the pragma definition:  \ct{<version: '0.1'>}. The pragma \ct{version:} indicates that the version created in this method should be associated with version 0.1 of the CoolBrowser project. That's why we said that the name of the method is not that important. Metacello uses the pragma, not the method name, to identify the version being defined.
 
 \item The argument of the method, \ct{spec}, is the only variable in
-the method and it is used as the receiver of four different messages: \ct{for:do:},    \ct{package:with:}, and  \ct{repository:}.
+the method and it is used as the receiver of four different messages: \ct{for:do:}, \ct{blessing:},    \ct{package:with:}, and  \ct{repository:}.
 
 \item Each time a block is passed as argument of the messages (\ct{for:do:}, \ct{package:with:}...) is executed a new object is pushed on a stack and the messages within the block are sent to the object on the top of the stack.
 
-\item The symbol \ct{#common} indicates that this project version is common to all platforms.  In addition to \ct{#common}, there are pre-defined attributes for each of the platforms on which Metacello runs (\ct{#pharo}, \ct{#squeak}, \ct{#gemstone}, \ct{#squeakCommon}, \ct{#pharo1.2.x}, \ct{#pharo1.3.x}, etc.). In Pharo, the method \mthind{metacelloPlatformAttributes}{metacelloPlatformAttributes} defines the tags that you can use. 
+\item The symbol \ct{#common} indicates that this project version is common to all platforms.  In addition to \ct{#common}, there are pre-defined attributes for each of the platforms on which Metacello runs (\ct{#pharo}, \ct{#squeak}, \ct{#gemstone}, \ct{#squeakCommon}, \ct{#pharo1.2.x}, \ct{#pharo1.3.x}, etc.). In Pharo, the method \mthind{metacelloPlatformAttributes}{metacelloPlatformAttributes} defines the attribute values that you can use. 
 \end{itemize}
 
-\paragraph{About passwords.} Sometimes, a Monticello repository requires a username and password. In such case, instead of \mthind{repository:}{repository:}, you can use the message \mthind{repository:username:password:}{repository:username:password:}.
+\paragraph{About passwords.} Sometimes, a Monticello repository requires a username and password. In this case,  you can use the message \mthind{repository:username:password:}{repository:username:password:} instead of \mthind{repository:}{repository:},.
 
 \begin{code}{}
          spec repository: 'http://www.example.com/private' username: 'foo' password: 'bar' 
