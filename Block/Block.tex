@@ -140,7 +140,6 @@ In Pharo, private variables (such as self, instance variables, method temporarie
 In essence a context (called stack frame in other languages) represents information about the current execution step (what is the context from which the current one is executed, what is the next byte code to be executed, what is the value of the temporary variables...) a context is an activation record representing a smalltalk execution stack element. This is important and we will come back later to this concept.
 
 \subsection{Some little experiences}
-
 Let's experiment a bit to understand how variables are bound in a block. Define a class named \ct{Bexp} (for BlockExperience) and the following methods:
 
 \begin{code}{}
@@ -199,7 +198,7 @@ Bexp>>testVariable2
 	self testVariable: [ t := 33. t traceCr ]
 \end{code}
 \paragraph{Experience 3: Accessing a shared non local variable.}
-Note that two blocks can share a non local variable. Let us define a new method \ct{testVariable3} as follows:
+Two blocks can share a non local variable and they can modify the value of this variable at different moments. To see this, let us define a new method \ct{testVariable3} as follows:
 
 \begin{code}{}
 Bexp>>testVariable3
