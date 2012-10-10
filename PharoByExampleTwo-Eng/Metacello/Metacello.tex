@@ -216,9 +216,9 @@ ConfigurationOfCoolBrowser>>version01: spec
 
 \noindent
 The  method \ct{version01: spec} builds a description of version 0.1 of the project in the object \ct{spec}.
-The common code for version \ct{0.1} (specified using the message \ct{for: #common do:}) consists of particular versions of the packages named \ct{'CoolBrowser-Core'} and \ct{'CoolBrowser-Tests'}.
+The common code for version \ct{0.1} (specified using the message \ct{for: \#common do:}) consists of particular versions of the packages named \ct{'CoolBrowser-Core'} and \ct{'CoolBrowser-Tests'}.
 These are specified with the message \ct{package:} \emph{packageName} \ct{with:} \emph{versionName}.
-These versions are available in the Monticello repository \ct{'http://www.example.com/CoolBrowser'}, which is specified using the message \ct{repository:}. The  \ct{blessing:} method is used to denote that this is a released version and that the specification will not be changed in the future. The blessing #development should be used when the version has not stabilized.
+These versions are available in the Monticello repository \ct{'http://www.example.com/CoolBrowser'}, which is specified using the message \ct{repository:}. The  \ct{blessing:} method is used to denote that this is a released version and that the specification will not be changed in the future. The blessing \#development should be used when the version has not stabilized.
 
 Now let us look at more details.
 
