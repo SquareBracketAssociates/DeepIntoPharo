@@ -493,6 +493,29 @@ The message \ct{valueSupplyingAnswers:} supports such a task.
 This message should be sent to a block giving a list of questions and their answers as shown by the previous examples
 
 
+\subsection{Configuration Loading}
+Gofer also supports Metacello configuration loading. It provides a set of the following messages to handle configurations: \ct{configurationOf:},  \ct{loadVersion:}, \ct{loadDevelopment}, and \ct{loadStable}.
+
+Here is an example, loading the development version of NativeBoost. There you only need to specify the NativeBoost project and you will load the ConfigurationOfNativeBoost and execute the loading the development version.
+
+\begin{code}{}
+Gofer new
+	squeaksource: 'NativeBoost';
+	configuration; 
+	loadDevelopment	
+\end{code}
+
+When the repository name does not match the name of the configuration you should use \ct{configurationOf:} and provide the name of the configuration class. 
+
+\begin{code}{}
+Gofer new
+	squeaksource: 'rb';
+	configurationOf: 'RefactoringBrowser'; 
+	loadStable	
+\end{code}
+
+
+
 \section{Some useful scripts}
 Gofer offers a nice facility to get all the packages in a given repository via the message \ct{allResolved}. 
 
