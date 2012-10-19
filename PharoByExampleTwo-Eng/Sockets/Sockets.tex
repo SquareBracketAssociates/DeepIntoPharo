@@ -369,9 +369,17 @@ clientSocket := Socket newTCP.
 %The pipe connects the output of \ct{cat} to the input of \ct{nc}.
 %Here, we use \ct{nc} as client that sends the text we provided to a server on the local host, listening on port 9999.
 
-\subsection{Echo Server Class - \sd{we need a picture with processes}}\label{sec:echoServerClass}
+\subsection{Echo Server Class}\label{sec:echoServerClass}
 We define here the \ct!EchoServer! class that deals with concurrency issues.
 It handles concurrent client queries and it does not freeze the UI.
+Figure~\ref{fig:echoServerConcurrency} shows an example of how the \ct!EchoServer! handles two clients. 
+
+\begin{figure}[ht]\centering
+	\includegraphics[width=.75\linewidth]{echoServerConcurrency}
+	\caption{Echo Server Concurrently Serving Two Clients}
+	\label{fig:echoServerConcurrency}
+\end{figure}
+
 As we can see in the definition labelled \clsref{echoServerClassDef}, the \ct!EchoServer! declares three instance variables.
 The first one (\ct!connectionSocket!) refers to the socket used for listening to client connections.
 The two last instance variables (\ct!isRunning! holding a boolean and \ct!isRunningLock! holding a \ct!Mutex!) are used to manage the server process life-cycle while dealing with synchronization issues. 
