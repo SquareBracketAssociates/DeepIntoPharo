@@ -38,7 +38,7 @@
 \chapter{Gofer: Scripting package loading}
 \chalabel{gofer}
 
-Pharo proposes powerful tools to manage source code such as semantics-based merging, tree diff-merge, and a git-like distributed versioning system. In particular as presented in the Monticello Chapter, Pharo uses a package system named Monticello. In this chapter after a first reminder of the key aspects of Monticello we will show how we can script package using Gofer. Gofer is a simple API for Monticello. It is used by Metacello, the language to manage package maps that we present in Chapter Metacello. 
+Pharo proposes powerful tools to manage source code such as semantics-based merging, tree diff-merge, and a git-like distributed versioning system. In particular as presented in the Monticello Chapter, Pharo uses a package system named Monticello. In this chapter after a first reminder of the key aspects of Monticello we will show how we can script package using Gofer. Gofer is a simple API for Monticello. Gofer was developed by L. Renggli and further extended by E. Lorenzano and C. Bruni. It is used by Metacello, the language to manage package maps that we present in Metacello Chapter (see~\ref{cha:Metacello)}. 
 
 
 
@@ -548,6 +548,9 @@ go allResolved
 				fetch]
 \end{script}
 
+\begin{script}[]{Fetching all the refactoring packages from Pharo2.0 repository}
+| go |go := Gofer new.go squeaksource3: 'Pharo20'.(go allResolved select: [:each | 'Refactoring*' match: each packageName])	do: [:pack| 		self crLog: pack packageName. 		go 			squeaksource3: 'Pharo20'; 			package: pack packageName; fetch]
+\end{script}
 
 	
 
@@ -555,7 +558,7 @@ go allResolved
 
 The following script publishes files from your local cache to a given repository.
 
-\begin{script}[]{How to publish package files to a new repository}
+\begin{script}[]{How to publish package files to a new repository using Pharo 1.4}
 | go |
 go := Gofer new.
 go repository: (MCHttpRepository
@@ -568,6 +571,19 @@ go repository: (MCHttpRepository
 	fileAndDirectoryNames
 		select: [:each | '*.mcz' match: each])
 					do: [:f | go version: ('.' join: (f findTokens: $.) allButLast); push]
+\end{script}
+
+The following script uses the new filesystem library.
+\begin{script}[]{How to publish package files to a new repository using Pharo 20}
+| go |
+go := Gofer new.
+go repository: (MCHttpRepository
+	location: 'http://ss3.gemstone.com/ss/Pharo14';
+	user: 'pharoUser'
+	password: 'pharoPwd').
+
+((FileSystem disk workingDirectory / 'package-cache')	allFiles select: [:each | '*.mcz' match: each basename])
+		do: [:f | go version: ('.' join: (f findTokens: $.) allButLast); push]
 \end{script}
 
 \section{Chapter Summary}
