@@ -230,7 +230,7 @@ the method and it is used as the receiver of four different messages: \ct{for:do
 
 \item Each time a block is passed as argument of the messages (\ct{for:do:}, \ct{package:with:}...) is executed a new object is pushed on a stack and the messages within the block are sent to the object on the top of the stack.
 
-\item The symbol \ct{#common} indicates that this project version is common to all platforms.  In addition to \ct{#common}, there are pre-defined attributes for each of the platforms on which Metacello runs (\ct{#pharo}, \ct{#squeak}, \ct{#gemstone}, \ct{#squeakCommon}, \ct{#pharo1.2.x}, \ct{#pharo1.3.x}, etc.). In Pharo, the method \mthind{metacelloPlatformAttributes}{metacelloPlatformAttributes} defines the attribute values that you can use. 
+\item The symbol \ct{#common} indicates that this project version is common to all platforms.  In addition to \ct{#common}, there are pre-defined attributes for each of the platforms on which Metacello runs (\ct{#pharo}, \ct{#squeak}, \ct{#gemstone}, \ct{#squeakCommon}, \ct{#pharo}, \ct{#pharo1.3.x}, etc.). In Pharo, the method \mthind{metacelloPlatformAttributes}{metacelloPlatformAttributes} defines the attribute values that you can use. 
 \end{itemize}
 
 \paragraph{About passwords.} Sometimes, a Monticello repository requires a username and password. In this case,  you can use the message \mthind{repository:username:password:}{repository:username:password:} instead of \mthind{repository:}{repository:},.
@@ -1032,18 +1032,66 @@ Notice that we add the package \ct{CoolBrowser-Platform} in the \ct{Core} group.
 \begin{code}{}
 ConfigurationOfCoolBrowser>>baseline09: spec 
       <version: '0.9-baseline'>
-
-      ...
-                   
-       !\textbf{spec for: \#gemstone do: [}!
-              spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformGemstone'.].
-       !\textbf{spec for: '\#pharo1.3.x' do: [}!
-              spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformPharo13'.].          
-       !\textbf{spec for: '\#pharo1.2.x' do: [}!
-              spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformPharo12'.].          
       
+      !\textbf{spec for: \#common do: [}!
+            spec blessing: #baseline.
+            spec repository: 'http://www.example.com/CoolBrowser'.
+            
+            spec 
+                  package: 'CoolBrowser-Core';
+                  package: 'CoolBrowser-Tests' with: [ spec requires: 'CoolBrowser-Core' ];
+                  package: 'CoolBrowser-Addons' with: [ spec requires: 'CoolBrowser-Core' ];
+                  package: 'CoolBrowser-AddonsTests' with: [ 
+                        spec requires: #('CoolBrowser-Addons' 'CoolBrowser-Tests' ) ].
+            spec 
+                  group: 'default' with: #('CoolBrowser-Core' 'CoolBrowser-Addons' );
+                  group: 'Core' with: #('CoolBrowser-Core' 'CoolBrowser-Platform' );
+                  group: 'Extras' with: #('CoolBrowser-Addon');
+                  group: 'Tests' with: #('CoolBrowser-Tests' 'CoolBrowser-AddonsTests' );
+                  group: 'CompleteWithoutTests' with: #('Core', 'Extras' );
+                  group: 'CompleteWithTests' with: #('CompleteWithoutTests', 'Tests' )].
+                  
+      !\textbf{spec for: \#gemstone do: [}!
+            spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformGemstone'].
+      !\textbf{spec for: \#pharo do: [}!
+            spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformPharo'].
 \end{code}
 
+
+
+\paragraph{Loading order.}
+\sd{dale is it correct?} Notice that if you 
+in a system where the platform attributes are (\ct{#common} \ct{#squeakCommon} \ct{#pharo} \ct{#'pharo2.x'} \ct{#'pharo2.0.x'}) (you can obtain this information doing \ct{ConfigurationOf project attributes}) and you have specified three sections such as \ct{#common}, \ct{#pharo} and \ct{#pharo2.0.x}, these sections will loaded one after the other.
+
+\begin{code}{}
+ConfigurationOfCoolBrowser>>baseline09: spec 
+      <version: '0.9-baseline'>
+      
+      !\textbf{spec for: \#common do: [}!
+            spec blessing: #baseline.
+            spec repository: 'http://www.example.com/CoolBrowser'.
+            
+            spec 
+                  package: 'CoolBrowser-Core';
+                  package: 'CoolBrowser-Tests' with: [ spec requires: 'CoolBrowser-Core' ];
+                  package: 'CoolBrowser-Addons' with: [ spec requires: 'CoolBrowser-Core' ];
+                  package: 'CoolBrowser-AddonsTests' with: [ 
+                        spec requires: #('CoolBrowser-Addons' 'CoolBrowser-Tests' ) ].
+            spec 
+                  group: 'default' with: #('CoolBrowser-Core' 'CoolBrowser-Addons' );
+                  group: 'Core' with: #('CoolBrowser-Core' 'CoolBrowser-Platform' );
+                  group: 'Extras' with: #('CoolBrowser-Addon');
+                  group: 'Tests' with: #('CoolBrowser-Tests' 'CoolBrowser-AddonsTests' );
+                  group: 'CompleteWithoutTests' with: #('Core', 'Extras' );
+                  group: 'CompleteWithTests' with: #('CompleteWithoutTests', 'Tests' )].
+                  
+      !\textbf{spec for: \#gemstone do: [}!
+            spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformGemstone'].
+      !\textbf{spec for: \#pharo do: [}!
+            spec package: 'CoolBrowser-Platform' with: 'CoolBrowser-PlatformPharo'].
+      !\textbf{spec for: \#pharo2.0.x do: [}!
+            spec package: 'CoolBrowser-Addons' with: 'CoolBrowser-Core20'].
+\end{code}    
     
 
 Finally, note that the method \ct{for:do:} is not only used to specify a platform specific package, but also for anything that has to do with different dialects. You can put whatever you want from the configuration inside that block. So, for example, you can define, change and customize groups, packages, repositories, etc, for each dialect dialect. For example, you can do this:
