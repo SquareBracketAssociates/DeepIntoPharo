@@ -426,7 +426,6 @@ The message \ct{unload} unloads from the image the packages. Note that using the
 The following code unloads the packages and its classes from the current image.
 \begin{code}{}
 Gofer new
-    squeaksource: 'PBE2GoferExample';
     package: 'PBE2GoferExample';
     unload
 \end{code}    
@@ -543,13 +542,18 @@ go allResolved
 	do: [:each |
 			self crLog: each packageName.
 			go 
-				squeaksource: 'Pharo14';
 				package: each packageName;
 				fetch]
 \end{script}
 
 \begin{script}[]{Fetching all the refactoring packages from Pharo2.0 repository}
-| go |go := Gofer new.go squeaksource3: 'Pharo20'.(go allResolved select: [:each | 'Refactoring*' match: each packageName])	do: [:pack| 		self crLog: pack packageName. 		go 			squeaksource3: 'Pharo20'; 			package: pack packageName; fetch]
+| go |
+go := Gofer new.
+go squeaksource3: 'Pharo20'.
+(go allResolved select: [:each | 'Refactoring*' match: each packageName])
+	do: [:pack| 
+		self crLog: pack packageName. 
+		package: pack packageName; fetch]
 \end{script}
 
 	
@@ -562,7 +566,7 @@ The following script publishes files from your local cache to a given repository
 | go |
 go := Gofer new.
 go repository: (MCHttpRepository
-	location: 'http://ss3.gemstone.com/ss/Pharo14';
+	location: 'http://ss3.gemstone.com/ss/Pharo14'
 	user: 'pharoUser'
 	password: 'pharoPwd').
 
@@ -573,17 +577,19 @@ go repository: (MCHttpRepository
 					do: [:f | go version: ('.' join: (f findTokens: $.) allButLast); push]
 \end{script}
 
-The following script uses the new filesystem library.
+The following script uses the new filesystem library, we also show how we can get the package name and not the versions.
 \begin{script}[]{How to publish package files to a new repository using Pharo 20}
 | go |
 go := Gofer new.
 go repository: (MCHttpRepository
-	location: 'http://ss3.gemstone.com/ss/Pharo14';
-	user: 'pharoUser'
-	password: 'pharoPwd').
+	location: 'http://ss3.gemstone.com/ss/rb-pharo'
+	user: 'sd '
+	password: '').
 
-((FileSystem disk workingDirectory / 'package-cache')	allFiles select: [:each | '*.mcz' match: each basename])
-		do: [:f | go version: ('.' join: (f findTokens: $.) allButLast); push]
+(((FileSystem disk workingDirectory / 'package-cache')
+	allFiles select: [:each | '*Refactoring*.mcz' match: each basename]) 
+		groupedBy:  [:each | (each base copyUpToLast: $-) ]) 
+			keys do: [:name | go package: name; push]
 \end{script}
 
 \section{Chapter Summary}
