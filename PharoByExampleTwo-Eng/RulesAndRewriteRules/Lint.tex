@@ -9,6 +9,14 @@
 	ignoreheadfoot
 ]{geometry}
 
+%%%%
+%=============================================================
+%:Listings package configuration
+% \newcommand{\caret}{\makebox{\raisebox{0.4ex}{\footnotesize{$\wedge$}}}}
+\usepackage{listings}
+
+%%%%
+
 %\usepackage{allsf}
 \input{../common.tex}
 
@@ -75,35 +83,15 @@ Basically, three types of smells can be found in source code at different levels
 %SimpleLatexDoc exportLatexDocForRules
 \input{SmallLint-rules}
 
+\section{Defining Your Own Rules}
 
-\subsection{Bugs}
-	message send but not implemented
+\subsection{Block Rules}
 
-\subsection{Potential Bugs}
-	read before set
+Block rules use the Smalltalk reflective API. Block rules rules can be created to look for methods that should be not invoked, to check style consistence such capitalization and lenght of classes variables, to check method and class size, to look for classes and variables not referenced or not defined, to search classes not commented, to look for instance variables defined in all subclasses, among others. More specifically, every thing that is possible to to using the Smalltalk reflective API can be implemented as a block rule.
 
-\subsection{Design Flaws}
-	subclass
-		
-\subsection{Coding Idiom Violation}
-	todo instead collection
+TODO
+Such kind of rules must extend the class RBBlockLintRule..
 
-
-\subsection{Optimization}
-\subsection{Style}
-	empty catger
-	empty class comment
-
-\subsection{Varia}
-
-
-Table
-
-
-\section{Defining your own rules}
-@@autofixing rules
-
-\subsection{Block rules}
 utilise l'api reflective de smalltalk
 redefinition des methode 1 et 2
 object context founir...
@@ -114,9 +102,12 @@ exemple
 
 \subsection{Defining a simple rules}
 
-
-
 \section{Conclusion}
+
+
+
+
+
 
 
 \section{Junk}
