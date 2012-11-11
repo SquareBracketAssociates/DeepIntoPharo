@@ -6,7 +6,7 @@ REMOTE_SERVER=scm.gforge.inria.fr
 REMOTE_PATH=/home/groups/pharobooks/htdocs
 REMOTE=$REMOTE_SERVER:$REMOTE_PATH
 BOOK=PharoByExampleTwo-Eng
-DOWNLOAD_URL=http://pharobooks.gforge.inria.fr/$BOOK
+DOWNLOAD_URL=http://pharobooks.gforge.inria.fr/PharoByExampleTwo-Eng
 
 cd $TEMP_DIR
 rm -rf $BOOK
