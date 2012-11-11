@@ -216,7 +216,7 @@ ConfigurationOfCoolBrowser>>version01: spec
 
 \noindent
 The  method \ct{version01: spec} builds a description of version 0.1 of the project in the object \ct{spec}.
-The common code for version \ct{0.1} (specified using the message \ct{for: \#common do:}) consists of particular versions of the packages named \ct{'CoolBrowser-Core'} and \ct{'CoolBrowser-Tests'}.
+The common code for version \ct{0.1} (specified using the message \ct{for:do:}) consists of particular versions of the packages named \ct{'CoolBrowser-Core'} and \ct{'CoolBrowser-Tests'}.
 These are specified with the message \ct{package:} \emph{packageName} \ct{with:} \emph{versionName}.
 These versions are available in the Monticello repository \ct{'http://www.example.com/CoolBrowser'}, which is specified using the message \ct{repository:}. The  \ct{blessing:} method is used to denote that this is a released version and that the specification will not be changed in the future. The blessing \#development should be used when the version has not stabilized.
 
@@ -228,7 +228,7 @@ Now let us look at more details.
 \item The argument of the method, \ct{spec}, is the only variable in
 the method and it is used as the receiver of four different messages: \ct{for:do:}, \ct{blessing:},    \ct{package:with:}, and  \ct{repository:}.
 
-\item Each time a block is passed as argument of the messages (\ct{for:do:}, \ct{package:with:}...) is executed a new object is pushed on a stack and the messages within the block are sent to the object on the top of the stack.
+\item Each time a block is passed as argument of the messages (\ct{for:do:}, \ct{package:with:}\dots) a new object is pushed on a stack and the messages within the block are sent to the object on the top of the stack.
 
 \item The symbol \ct{#common} indicates that this project version is common to all platforms.  In addition to \ct{#common}, there are pre-defined attributes for each of the platforms on which Metacello runs (\ct{#pharo}, \ct{#squeak}, \ct{#gemstone}, \ct{#squeakCommon}, \ct{#pharo}, \ct{#pharo1.3.x}, etc.). In Pharo, the method \mthind{metacelloPlatformAttributes}{metacelloPlatformAttributes} defines the attribute values that you can use. 
 \end{itemize}
@@ -249,7 +249,7 @@ while the specification is the object. You can access (normally this is not need
 	(ConfigurationOfCoolBrowser project version: '0.1') spec
 \end{code}
 
-This  answers an object (of class \ct{MetacelloMCVersionSpec}) that contains exactly the information of the method that defines version '0.1'.
+This  answers an object (instance of class \ct{MetacelloMCVersionSpec}) that contains exactly the information of the method that defines version '0.1'.
 
 
 %\ab{At this point, I'm also a bit confused by the nomenclature.  The Class ``ConfigurationOfCoolBrowser'' seems to define ALL of the possible CoolBrowsers, so it really represents the project, not a particular configuration of the project.  Of course, we then get teh normal class-instance dichotomy, so an Instance of ConfigurationOfCoolBrowser does indeed describe a single configuration (called a version??)}\sd{I added some text to clarify that}
@@ -384,8 +384,8 @@ To capture this, Metacello introduces the concept of \emph{Baselines}.
 \section{Baselines}
 A baseline represents the skeleton or architecture of a project in terms of the structural dependencies between packages or projects. A baseline defines the structure of a project using just package names. When the structure changes, the baseline should be updated. In the absence of structural changes, the changes are limited to picking specific versions of the packages in the baseline.
 
-Now, let's continue with our example. First we modify it to use baselines: we create one method for our baseline. 
-Note that the method name and the version tag can take any form. Still, for readability purposes, we use baseline in both of them.
+Now, let's continue with our example. First we modify it to use baselines: we create one method for our baseline.
+\dc{I wrote the following, is it correct? The version pragma must be used so that versions can depend on a particular baseline}. Note that the method name and the version pragma can take any form. Still, for readability purposes, we add 'baseline' to both of them.
 It is the argument of the \mthind{blessing:}{blessing:} message that is mandatory and defines a baseline. 
 \needspace{17ex}
 \begin{code}{}
@@ -494,7 +494,7 @@ Groups are useful because they let you name sets of items for various purposes. 
 \end{figure} 
 
 
-To define a group we use the method \mbox{\ct{group: groupName with: group elements}.} The \ct{with:} argument can be a package name, a project, another group, or a collection of those things.  Here is the code correspondiong to \figref{version06}.
+To define a group we use the method \mbox{\ct{group: groupName with: group elements}.} The \ct{with:} argument can be a package name, a project, another group, or a collection of those things.  Here is the code corresponding to \figref{version06}.
 
  
 \begin{code}{}
@@ -512,7 +512,7 @@ ConfigurationOfCoolBrowser>>baseline06: spec
           spec 
                  !\textbf{group: 'default' with: \#('CoolBrowser-Core' 'CoolBrowser-Addons')}!;
                  group: 'Core' with: #('CoolBrowser-Core');
-                 group: 'Extras' with: #('CoolBrowser-Addon');
+                 group: 'Extras' with: #('CoolBrowser-Addons');
                  group: 'Tests' with: #('CoolBrowser-Tests' 'CoolBrowser-AddonsTests');
                  group: 'CompleteWithoutTests' with: #('Core' 'Extras');
                  group: 'CompleteWithTests' with: #('CompleteWithoutTests' 'Tests')
@@ -617,7 +617,7 @@ That is, any dependencies of package B will not be loaded. So, our recommendatio
 
 \subsection{Depending on a project \emph{with} a Metacello configuration}
 Now let us look at the case where the projects on which we depend are described using Metacello.
-Let's introduce a new project called \ct{CoolToolSet} that uses the packages from the \ct{CoolBrowser} project.  Its configuration class is called \ct{ConfigurationOfCoolToolSet}.   Suppose that there are two packages in \ct{CoolToolSet} called \ct{CoolToolSet-Core} and \ct{CoolToolSet-Tests}. Of course, these packages depend on packages from \ct{CoolBrowser}. 
+Let's introduce a new project called \ct{CoolToolSet} that uses the packages from the \ct{CoolBrowser} project.  Its configuration class is called \ct{ConfigurationOfCoolToolSet}.   Suppose that there are two packages in \ct{CoolToolSet} called \ct{CoolToolSet-Core} and \ct{CoolToolSet-Tests}. These packages depend on packages from \ct{CoolBrowser}. 
 
 Version \ct{'0.1'} of \ct{CoolToolSet} is just a normal version that imports a baseline:
 \begin{code}{}
@@ -630,7 +630,7 @@ ConfigurationOfCoolToolSet>>version01: spec
 \end{code}       
 
 \noindent
-Here is the baseline, if the project you depend on followed the default convention (\ie class \ct{ConfigurationOfCoolBrowser} in package \ct{ConfigurationOfCoolBrowser}). By default you just need to specify the version (using \mthind{versionString:}{versionString:}) you want to load and the project repository (using \mthind{repository:}{repository:}). 
+If the project you depend on followed the  conventions (\ie class \ct{ConfigurationOfCoolBrowser} in package \ct{ConfigurationOfCoolBrowser}), the definition of the baseline is simple. By default you just need to specify the version (using \mthind{versionString:}{versionString:}) you want to load and the project repository (using \mthind{repository:}{repository:}).
 
 \begin{code}{}
 ConfigurationOfCoolToolSet >>baseline01: spec 
@@ -644,11 +644,11 @@ ConfigurationOfCoolToolSet >>baseline01: spec
               spec 
                      package: 'CoolToolSet-Core' with: [ spec !\textbf{requires:}! 'CoolBrowser ALL' ];
                      package: 'CoolToolSet-Tests' with: [ spec requires: 'CoolToolSet-Core' ]].
-\end{code}  
-   
+\end{code}
+\dc{shouldn't we use a version we defined previously instead of 2.5? The last one is 0.6.}
 
 
-We've named the project reference 'CoolBrowser ALL' and in the specification for the 'CoolToolSet-Core' package, we've specified that 'CoolBrowser ALL' is required. The name of the project reference is arbitrary, you can select the name you want, although is recommended to put a name that make sense to that project reference. As explained later, the message \ct{project:with:} allows one to specify the exact version of the project you want to load.
+We've named the project reference 'CoolBrowser ALL'. The name of the project reference is arbitrary, you can select the name you want, although is it recommended to put a name that makes sense to that project reference.  In the specification for the 'CoolToolSet-Core' package, we've specified that 'CoolBrowser ALL' is required. As will be explained later, the message \ct{project:with:} allows one to specify the exact version of the project you want to load.
 
 Now we can now load \ct{CoolToolSet} like this:
 
@@ -660,7 +660,7 @@ Now we can now load \ct{CoolToolSet} like this:
 \subsection{For unconventional projects}
 
 Now if the project you depend on does not follow the default convention you will have to provide more information to identify
-the configuration. Let's also assume  that the class \ct{ConfigurationOfCoolBrowser} is stored in a Monticello package called \ct{CoolBrowser-Metacello} instead of the recommended \ct{ConfigurationOfCoolBrowser}. This will help us to understand the role of each parameter. 
+the configuration. Let's assume that the configuration is store in a class \ct{ConfigurationOfCoolBrowser} that is stored in a Monticello package called \ct{CoolBrowser-Metacello} instead of the recommended \ct{ConfigurationOfCoolBrowser}.
 
 
 \begin{code}{}
@@ -679,12 +679,6 @@ ConfigurationOfCoolToolSet >>baseline01: spec
                      package: 'CoolToolSet-Tests' with: [ spec requires: 'CoolToolSet-Core' ]].
 \end{code}       
 
-
-We've named the project reference 'CoolBrowser ALL' and in the specification for the 'CoolToolSet-Core' package, we've specified that 'CoolBrowser ALL' is required. The name of the project reference is arbitrary, you can select the name you want, although is recommended to put a name that make sense to that project reference. What we did here in \ct{baseline0.1} was to create a \emph{project reference} for the CoolBrowser project (see \figref{version07}). Pay attention that when you have multiple dependent you should specify a collection of dependent as follows \ct{spec package: 'CoolToolSet-Core' with: [ spec requires: #('CoolBrowser ALL' 'XML') ]}. 
-It is not equivalent to \ct{spec requires: 'CoolBrowser ALL'; requires: 'XML'}
-The example in the next section shows such use. 
-
-
 \begin{itemize}
 \item The message \ct{className:} specifies the name of the class that contains the project metadata; in this case \ct{'ConfigurationOfCoolBrowser'}.
 
@@ -700,6 +694,11 @@ In this example, it is mandatory to specify the package name with \ct{file:} bec
 \ab{So I could have said \ct{loads: 'ALL';} and that would have meant the same thing?  If so, why didn't I?  And why is this message \ct{loads:} rather than \ct{load:} like the others?}
 
 \end{itemize}
+
+Pay attention that when you have multiple dependencies you should specify them using something like \ct{spec package: 'CoolToolSet-Core' with: [ spec requires: #('CoolBrowser ALL' 'XML') ]}.
+It is not equivalent to \ct{spec requires: 'CoolBrowser ALL'; requires: 'XML'}
+The example in the next section shows such use.
+
 
 Now we can now load \ct{CoolToolSet} like this:
 
@@ -729,12 +728,13 @@ ConfigurationOfCoolToolSet >>baseline02: spec
        spec for: #common do: [
               spec blessing: #baseline.
               spec repository: 'http://www.example.com/CoolToolSet'.
-              spec project: 'CoolBrowser default' with: [
+              spec
+                    project: 'CoolBrowser default' with: [
                             spec
                                    className: 'ConfigurationOfCoolBrowser'; ''this is optional''
                                    loads: #('default');  ''this is optional''
                                    repository: 'http://www.example.com/CoolBrowser' ].
-                     project: 'CoolBrowser Tests' with: [
+                    project: 'CoolBrowser Tests' with: [
                             spec
                                    loads: #('Tests' ); 
                                    repository: 'http://www.example.com/CoolBrowser' ].
@@ -744,7 +744,7 @@ ConfigurationOfCoolToolSet >>baseline02: spec
                             spec !\textbf{requires: \#('CoolToolSet-Core'  'CoolBrowser Tests')}! ].].                     
 \end{code}
 
-This baseline creates \emph{two} project references: the reference named \ct{'CoolBrowser default'} loads the 'default' group and the reference named 'CoolBrowser Tests'  loads the 'Tests' group of the configuration of CoolBrowser. We declared that \ct{'CoolToolSet-Core'} require \ct{'CoolBrowser default'} and \ct{'CoolToolSet-Tests'} require \mbox{\ct{'CoolToolSet-Core'}} and \ct{'CoolBrowser Tests'}. Note also the use of \ct{requires:} with a collection of dependent projects.
+This baseline creates \emph{two} project references: the reference named \ct{'CoolBrowser default'} loads the 'default' group and the reference named 'CoolBrowser Tests'  loads the 'Tests' group of the configuration of CoolBrowser. We declared that \ct{'CoolToolSet-Core'} requires \ct{'CoolBrowser default'} and \ct{'CoolToolSet-Tests'} require \mbox{\ct{'CoolToolSet-Core'}} and \ct{'CoolBrowser Tests'}. Note also the use of \ct{requires:} with a collection of dependent projects.
 
 Now it is possible to load just the core packages:
 
@@ -753,15 +753,12 @@ Now it is possible to load just the core packages:
 \end{code}
 
 \noindent
-or the core including tests:
+or the tests (which will also load the core):
 \begin{code}{}
   (ConfigurationOfCoolToolSet project version: '0.2') load: 'CoolToolSet-Tests'.
 \end{code}
 
-
-
-
-As we did for internal dependencies, \ct{baseline02}, and also in \ct{baseline01}, do not specify the version of the project they depend on. Instead, we do this in the version method using the message \mthind{project:with:}: 
+As we did for internal dependencies, baseline \ct{02-baseline} (and also in \ct{01-baseline}) does not specify the version of the project it depends on. Instead, we do this in the version method using the message \mthind{project:with:}: 
 \sd{It would be nice to have a clear message that project: with: may  be project:version: and to rename versionString: as version:}
 \begin{code}{}
 ConfigurationOfCoolToolSet>>version02: spec 
@@ -776,10 +773,12 @@ ConfigurationOfCoolToolSet>>version02: spec
 \end{code}
 
 \subsection{Loading specific packages}
-Now even if you do not specified references in the baseline, in the version you can also specify which 
-packages of the project you depend on to load. Here in the \ct{ConfigurationOfSoup}, we say that 
-we want to load in the version 1.2 the packages  'XML-Parser' and 'XML-Tests-Parser'.
-				
+
+In addition to baseline methods, version methods can specify
+which packages to load. Here in the \ct{ConfigurationOfSoup}, we say
+that we want to load in the version 1.2 the packages 'XML-Parser' and
+'XML-Tests-Parser'.
+
 \begin{code}{}
 ConfigurationOfSoup>>version10: spec 
 	<version: '1.0' imports:  #('1.0-baseline')>
@@ -798,7 +797,7 @@ ConfigurationOfSoup>>version10: spec
 \end{code}
 
 
-What you can also do is to use the \ct{loads:} message in the project reference to specify which packages of the project you want to load. Such solution is nice because you factor the information in the project reference and you do not have to duplicate it in all the versions.
+\dc{I don't understand what follows and how it is different from above} What you can also do is to use the \ct{loads:} message in the project reference to specify which packages of the project you want to load. Such solution is nice because you factor the information in the project reference and you do not have to duplicate it in all the versions.
 
 \begin{code}{}
 ConfigurationOfSoup>>version10: spec 
@@ -819,7 +818,7 @@ ConfigurationOfSoup>>version10: spec
 
 
 
-\paragraph{Version in Baselines.} Even if this is not recommended. Nothing prevents you from specifying versions from baselines. The same happens with project references. So, in addition to messages like \ct{file:}, \ct{className:}, \ct{repository:}, etc., there is a message called \ct{versionString:} which lets you specify the version of the project directly in the project reference. Example:
+\paragraph{Version in Baselines.} Even if this is not recommended, nothing prevents you from specifying versions from baselines. The same happens with project references. So, in addition to messages like \ct{file:}, \ct{className:}, \ct{repository:}, etc., there is a message called \ct{versionString:} which lets you specify the version of the project directly in the project reference. Example:
 
 \begin{code}{}
 ConfigurationOfCoolToolSet >>baseline011: spec 
@@ -891,12 +890,13 @@ ConfigurationOfCoolToolSet >>baseline02: spec
        spec for: #common do: [
               spec blessing: #baseline.
               spec repository: 'http://www.example.com/CoolToolSet'.
-              spec project: 'CoolBrowser default' with: [
+              spec
+                    project: 'CoolBrowser default' with: [
                             spec
                                    loads: #('default');
                                    repository: 'http://www.example.com/CoolBrowser';
                                    file: 'CoolBrowser-Metacello']
-                     project: 'CoolBrowser Tests' 
+                    project: 'CoolBrowser Tests' 
                             !\textbf{copyFrom:}! 'CoolBrowser default' 
                             !\textbf{with:}! [ spec loads: #('Tests').].
               spec 
