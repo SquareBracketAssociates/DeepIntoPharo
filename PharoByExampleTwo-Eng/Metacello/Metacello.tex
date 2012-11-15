@@ -1663,7 +1663,7 @@ If you want to recursively access all the file versions, use \ct{packageDirectiv
 
 \begin{code}{}
 | pkgs loader |
-loader := ((Smalltalk at: #ConfigurationOfMoose) project version: 'default')
+loader := ((Smalltalk globals at: #ConfigurationOfMoose) project version: 'default')
       ignoreImage: true;
       record.
 
