@@ -1659,6 +1659,21 @@ ConfigurationOfGemToolsExample>>version10: spec
 		'CoolBrowser-Addons' }) !\textbf{loadDirective}!.
 \end{code} 
 
+If you want to recursively access all the file versions, use \ct{packageDirectivesDo:} as in the following example:
+
+\begin{code}{}
+| pkgs loader |
+loader := ((Smalltalk at: #ConfigurationOfMoose) project version: 'default')
+      ignoreImage: true;
+      record.
+
+pkgs := OrderedCollection new.
+loader loadDirective packageDirectivesDo: [:directive |pkgs add: directive spec file ].
+pkgs.
+\end{code}
+
+
+
 
 \paragraph{Proposed development process.}
 Using metacello we suggest the following development steps.
