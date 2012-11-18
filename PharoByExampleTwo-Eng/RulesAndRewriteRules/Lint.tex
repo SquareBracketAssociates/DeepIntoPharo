@@ -1,74 +1,59 @@
-% 2011-09-11 - Migrated to PharoBox: svn checkout https://XXX@scm.gforge.inria.fr/svn/pharobooks/PharoByExampleTwo-Eng
+% $Author: jannik $
+% $Date: 2010-05-13 23:11:04 +0200 (Thu, 13 May 2010) $
+% $Revision: 32942 $
 
-
-\documentclass[a4paper,10pt,twoside]{book}
-\usepackage[
-	papersize={6in,9in},
-	hmargin={.75in,.75in},
-	vmargin={.75in,1in},
-	ignoreheadfoot
-]{geometry}
-
-%%%%
-%=============================================================
-%:Listings package configuration
-% \newcommand{\caret}{\makebox{\raisebox{0.4ex}{\footnotesize{$\wedge$}}}}
-\usepackage{listings}
-
-%%%%
-
-%\usepackage{allsf}
-\input{../common.tex}
+% HISTORY:
+% 2012-11-11: Stephane is doing a pass after Andre's one.
 
 %=================================================================
-% A4
-%\documentclass[a4paper,11pt,twoside]{book}
-%\input{common.tex}
-%\usepackage{a4wide}
+\ifx\wholebook\relax\else
+% --------------------------------------------
+% Lulu:
+	\documentclass[a4paper,10pt,twoside]{book}
+	\usepackage[
+		papersize={6.13in,9.21in},
+		hmargin={.75in,.75in},
+		vmargin={.75in,1in},
+		ignoreheadfoot
+	]{geometry}
+	\input{../common.tex}
+	\pagestyle{headings}
+	\setboolean{lulu}{true}
+% --------------------------------------------
+% A4:
+%	\documentclass[a4paper,11pt,twoside]{book}
+%	\input{../common.tex}
+%	\usepackage{a4wide}
+% --------------------------------------------
+    \graphicspath{{figures/} {../figures/}}
+	\begin{document}
+	% \renewcommand{\nnbb}[2]{} % Disable editorial comments
+	\sloppy
+\fi
 %=================================================================
-% Add the path for the figures of each chapter here:
-\graphicspath{
-	{figures/}
-	{BasicClasses/figures/}
-	{Collections/figures/}
-	{Environment/figures/}
-	{FirstApp/figures/}
-	{Messages/figures/}
-	{Metaclasses/figures/}
-	{Model/figures/}
-	{Morphic/figures/}
-	{Preface/figures/}
-	{Profiling/figures/}
-	{QuickTour/figures/}
-	{SUnit/figures/}
-	{Streams/figures/} 
-	{RulesAndRewriteRules/figures/}
-	{Syntax/figures/}
-}
-%=================================================================
-\let\wholebook=\relax
-\makeindex
-\makeglossary
-%=================================================================
-%\renewcommand{\nnbb}[2]{#2} % Disable editorial comments
 
-\title{khjkhjkh}
-\begin{document}
-%\synctex=1
+%=================================================================
 
 
 %\chapter{Validation et Transformations de code automatique en Pharo}
-\chapter{Smalllint: static analysis in Pharo}
+\chapter{SmallLint: static analysis in Pharo}
+
+
+Being able to check that the code of your application follows certain rules is important to control its quality. Pharo offers SmallLint a tool originally developed by John Brant and Don Roberts to identify several families of problems that code may exhibit. SmallLint defines a list of static analyses grouped by topics and that you can run automatically on your code. In addition, in Pharo, package meta-data supports the application of SmallLint by letting the programmer flagging irrelevant or false positives. 
+In this chapter we will @@
+
+
+
+
 
 \section{Ensuring Quality}
 
 %Agile, Tests, Checking
 %Adapted from the paper the Smells in JOT 2012
-Good design practices are fundamental requisites to address software inherent properties (e.g., complexity, conformity, changeability).
-But smells are often introduced unintentionally by developers during early software development or software maintenance.
-For example, a software designer may adopt well-known established practices during initial design; however, such design may indicate certain structural deficiencies or smells that have arised during the process. 
-Also, software developers who are tasked with software maintenance (e.g., develop new features or fix bugs) may introduce smells into the code. 
-It is important in both cases to address the smells as to reduce the technical debt and maintain a high structural quality of the software.
+Good design practices are fundamental requisites to address software inherent properties (e.g., complexity, conformity, changeability). But smells are often introduced unintentionally by developers during early software development or software maintenance.
+
+For example, a software designer may adopt well-known established practices during initial design; however, such design may indicate certain structural deficiencies or smells that have arose during the process. 
+Also, software developers who are tasked with software maintenance (e.g., develop new features or fix bugs) may introduce smells into the code.  It is important in both cases to address the smells as to reduce the technical debt and maintain a high structural quality of the software.
 Awareness of smells enable designers to make well-informed design decisions and developers to avoid introducing smells in the software. 
 
 As defined by Martin Fowler, smells are certain structures in the code that suggest (sometimes they scream for) the possibility of refactoring.
@@ -81,11 +66,123 @@ Basically, three types of smells can be found in source code at different levels
 %    package: 'Manifest-Support';
 %    load.
 %SimpleLatexDoc exportLatexDocForRules
+
+
+\section{Existing SmallLint Rules}\label{existingRules}
+SmallLint is a tool that analyses Pharo code and identifies bugs, design problems and other mismatches to recommanded idioms. 
+
 \input{SmallLint-rules}
+
+
+
+
+
+\section{Using Code Critics}
+
+You can invoke the Code Critic Browser via the Tools menu. We will execute it on one of our project Kozen whose purpose is to generate static web page based on scientific publications. We started from a project on which we never run the rules. 
+\begin{figure}[h]
+\centering
+\includegraphics[width=6cm]{selectingPackage}\includegraphics[width=6cm]{selectingPackage2} 
+\end{figure}
+
+
+\paragraph{Selecting Rules.}
+Once you have selected the packages on which you want to run the rules, you can select them as shown in Figure~\ref{ruleselection}. Rules are sorted in different categories as explained in Section~\ref{existingRules}. By default running all the rules is a good idea.
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=6cm]{selectingRules}
+\caption{Selecting rules. By default running all the rules is a good idea. \label{ruleselection}}
+\end{figure}
+
+
+\paragraph{First look at Results.} Once the rules are run you get a browser showing you the results as shown in Figure~\ref{unclassified}. Once the rules are run, we obtain a set of rule violations, we have several possibilities:
+
+\begin{itemize}
+\item \emph{Addressing the problem}. In such a case it can be wise to rerun the rule to verify that it has been addressed.
+
+\item \emph{Marking the problem as a ToDo}. The point here is that tagging a violation as to-do makes sure that the violation will not show up as red warning when rules are checked again later. To-dos indicate that the package developer knows that there is an issue that it should be fixed later. 
+Having Todos is a nice feature because it lets the developer decide when to address a problem while avoiding the tools to always report it as a problems. 
+
+\item \emph{Marking the violation as a tool error}. Indeed a rule may be wrong or irrelevant. We call such error a false positive. Marking a violation as a false positive makes sure that the next time the rule execution will be executed
+\end{itemize}
+
+With the Critics Browser we payed attention that once a developer runs and evaluates the violations (\ie addressing, marking them as todos or false positives), he can be sure that a new execution of the rules on the same code will not report again the same problems. 
+
+
+The Critics Browser shows the results are grouped by rule kinds. 
+The top level label labelled \ct{selected Rules (FP: 0, ToDo: 0, Total: 326} means the following: we got a total of 326 rule violations. Since we just started to check a new project, we did not mark any violations as false positive\footnote{A false positive is said to a violation that was detected by a tool but that was not true.}, this is why we have FP: 0, and since we did not flag violations as point to address in the future we have \ct{ToDo: 0}.
+
+
+Figure~\ref{unclassified} shows that in the rules related to style issues, the Kozen packages got two badly classified methods. Since moving the methods to a correct method category is easy, we did it and run the rules. We obtain then the situation described by Figure~\ref{reapplying}.
+
+The Critics Browser shows the rules on the left pane. When one rule is selected, the violations appear in the right pane. You can search by typing in the top right input field. The pane at the bottom shows either the rule description or the entity exhibiting the violation. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=8cm]{UnclassifiedMethods}
+\caption{Browsing rule results. Two methods are not well classified in the class KzMenuInfoBoySite.\label{unclassified}}
+\end{figure}
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=8cm]{ReapplyingTheRulesAfterAChange}
+\caption{Addressing an issue on the spot and running the rules once again\label{reapplying}}
+\end{figure}
+
+
+
+
+
+A more interesting case is the 'Bugs' category as shown by Figure~\ref{}
+
+
+
+\paragraph{Banning a complete rule.}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=6cm]{LookingAtBugs}
+\caption{Looking at the 'Bugs' rule category.}
+\end{figure}
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=6cm]{BanningTimeStampRules}
+\caption{Banning the rule for the complete selected packages.}
+\end{figure}
+
+
+\paragraph{Banning a single critic.}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=6cm]{OneUndeclaredRefence}\includegraphics[width=6cm]{BanningOneViolation}
+\caption{Looking at the undeclared variable bug (left) and Banning one single critic (right)}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \section{Defining Your Own Rules}
 
 \subsection{Block Rules}
+
+
+
 
 Block rules use the Smalltalk reflective API. Block rules rules can be created to look for methods that should be not invoked, to check style consistence such capitalization and lenght of classes variables, to check method and class size, to look for classes and variables not referenced or not defined, to search classes not commented, to look for instance variables defined in all subclasses, among others. More specifically, every thing that is possible to do using the Smalltalk reflective API can be implemented as a block rule. This includes having easy access to superclasses, subclasses, methods, variables, arguments, comments, invocations, etc.
 
@@ -112,12 +209,6 @@ TODO
 
 
 \section{Junk}
-
-SmallLint est un outil qui analyse du code Squeak et qui
-d\'etecte des bogues ou de possibles erreurs, et RewriteTool, qui permet
-d'exprimer la r\'ecriture de code par le biais de reconnaissance
-d'expressions (pattern matching) sur des arbres de syntaxes
-abstraites. 
 
 \section{ Analyse qualitative de code avec SmallLint}
 
