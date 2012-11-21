@@ -279,6 +279,29 @@ ConfigurationOfCoolBrowser>>version02: spec
 \end{figure} 
  
 
+\paragraph{How to manage multiple repositories.}
+You can also add multiple repositories to a spec. You just have to specify multiple times \ct{repository:} expression.
+
+\begin{code}{}
+ConfigurationOfCoolBrowser>>version02: spec 
+		...
+       
+		spec for: #common do: [
+			spec repository: 'http://www.example.com/CoolBrowser'.
+			spec repository: 'http://www.anotherexample.com/CoolBrowser'.
+			...
+			]
+\end{code}
+
+You can also use the message \ct{repositoryOverrides:}
+
+\begin{code}{}
+self whateverVersion repositoryOverrides: (self whateverRepo); load
+\end{code}
+
+Note that these messages do not recursively propagate to dependent configurations.
+
+
 \paragraph{Naming your Configuration.}
 
 Previously, we learned the convention to name configuration classes. In our example, \ct{ConfigurationOfCoolBrowser}. There is also a convention to create a Monticello package with the same name as the configuration class, and to put the class in that package. So in this example you will create a package \ct{ConfigurationOfCoolBrowser} containing exactly one class, \ct{ConfigurationOfCoolBrowser}. 
