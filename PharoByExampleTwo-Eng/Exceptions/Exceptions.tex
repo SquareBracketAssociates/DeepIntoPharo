@@ -943,8 +943,6 @@ StandardToolSet>>>debug: aProcess context: aContext label: aString contents: con
 	^ Debugger openOn: aProcess context: aContext label: aString contents: contents fullView: aBool
 \end{code}
 
-
-
 %=========================================================
 \section{Exceptions implementation}
 Up to now, we have presented the use of exceptions without really explaining deeply how there are implemented
@@ -1121,6 +1119,197 @@ The full story is only slightly more complicated because there are actually two 
 So, to summarize, the \ct{signal} method, with minimal assistance from the virtual machine, finds the context that correspond to an \ct{on:do:} message with an appropriate exception class.   Because the execution stack is made up of Context objects that may be manipulated just like any other object, the stack can be shortened at any time.  This is a superb example of flexibility of \st.
 
 %=========================================================
+\section{Ensure implementation}
+
+First we need to understand how the unwind block is stored and how this information is found at run-time. Let's look at the definition of the central method \mthind{BlockClosure}{ensure:} defined on the class \ct{BlockClosure}. 
+
+\begin{code}{}
+ensure: aBlock
+	"Evaluate a termination block after evaluating the receiver, regardless of
+	 whether the receiver's evaluation completes.  N.B.  This method is *not*
+	 implemented as a primitive.  Primitive 198 always fails.  The VM uses prim
+	 198 in a context's method as the mark for an ensure:/ifCurtailed: activation."
+
+	| complete returnValue |
+	<primitive: 198>
+	returnValue := self valueNoContextSwitch.
+	complete ifNil:[
+		complete := true.
+		aBlock value.
+	].
+	^ returnValue
+\end{code}
+
+The \lct{<primitive: \emph{198}\,>} works the same way of the \lct{<primitive: \emph{199}\,>} we saw in the previous section. It always fails, however, its presence marks the executing context in a unique way. Moreover, the unwind block is stored the same way as the exception class and its associated handler. More explicitely, it is stored in the context of \mthind{BlockClosure}{ensure:}, that can be accessed from the block through  \lct{thisContext sender tempAt: 1 or 2}.
+
+In the case where the block doesn't fail and doesn't have a non-local return, the \mthind{BlockClosure}{ensure:} message implementation is very easy to understand. It evaluates the block, store the result in the returnValue variable, evaluates the argument block and lastly return the result of the block previously stored. The complete variable is just here in order not to execute twice the argument block.
+
+\paragraph{Ensuring a failing block.}
+
+The \mthind{BlockClosure}{ensure:} message will trigger the argument block even if the block fails. In the following example, the \mthind{Bexp}{ensureWithOnDo} message will return 2 and execute 1. In the subsequent section we will carrefully look at where and what the block is actually returning and in which order are the block executed. 
+
+\begin{code}{}
+Bexp>>ensureWithOnDo
+	^[[Error signal] ensure: [1]. 
+		^3]on: Error do: [2]
+\end{code}
+
+Let's have a quick example before looking at the implementation. We define 4 blocks and 1 method that ensure a failing Block.
+
+\begin{code}{}
+Bexp>>mainBlock 
+	^[self traceCr: 'mainBlock start'. 
+		self failingBlock ensure: self ensureBlock.
+		self traceCr: 'mainBlock end']
+
+Bep>>failingBlock 
+	^[self traceCr: 'failingBlock start'. 
+		Error signal.
+		self traceCr: 'failingBlock end']
+
+Bexp>>ensureBlock 
+	^[self traceCr: 'ensureBlock value'. 
+		#EnsureBlockValue]
+
+Bexp>>exceptionHandlerBlock 
+	^[self traceCr: 'exceptionHandlerBlock value'. 
+		#ExceptionHandlerBlockValue] 
+
+Bexp>>start 
+	| res |
+	self traceCr: 'start start'. 
+	res := self mainBlock on: Error do: self exceptionHandlerBlock. 
+	self traceCr: 'start  end'. 
+	self traceCr: 'The result is : ', res, '.'.
+	^res
+\end{code}
+
+Executing \ct{Bexp new start}  prints the following (we added indentation to stress the calling flow).
+
+\begin{code}{}
+start start
+	mainBlock start
+		failingBlock start
+			exceptionHandlerBlock value
+			ensureBlock value
+start  end
+The result is : ExceptionHandlerBlockValue.
+\end{code}
+
+There are three important things to note. First, the failing block and the main block are not fully executed because of the \mthind{Error}{signal} message. Secondly, the exception block is executed before the ensure block. Lastly, the start method will return the result of the exception handler block.
+
+To understand how this works, we have to look at the end of the exception implementation. We finished the previous explanation on the \ct{handleSignal} method.
+
+\begin{code}{}
+ContextPart>>>handleSignal: exception
+	"Sent to handler (on:do:) contexts only.  If my exception class (first arg) handles exception then execute my handle block (second arg), otherwise forward this message to the next handler context.  If none left, execute exception's defaultAction (see nil>>handleSignal:)."
+
+	| val |
+	(((self tempAt: 1) handles: exception) and: [self tempAt: 3]) ifFalse: [
+		^ self nextHandlerContext handleSignal: exception].
+
+	exception privHandlerContext: self contextTag.
+	self tempAt: 3 put: false.  "disable self while executing handle block"
+	val := [(self tempAt: 2) valueWithPossibleArgs: {exception}]
+		ensure: [self tempAt: 3 put: true].
+	self return: val.  "return from self if not otherwise directed in handle block"
+\end{code}
+
+In our example, Pharo will execute the failing block, then will look for the next handler context, marked with \lct{<primitive: \emph{199}\,>}. As a regular exception, Pharo finds the exception handler context, and run the exceptionHandlerBlock. Now, the method finish by the \ct{return:} method. Let's have a look into it.
+
+\begin{code}{}
+ContextPart>>return: value
+	"Unwind thisContext to self and return value to self's sender.  Execute any unwind blocks while unwinding.  ASSUMES self is a sender of thisContext"
+
+	sender ifNil: [self cannotReturn: value to: sender].
+	sender resume: value
+\end{code}
+
+The \ct{return:} message will check if the context has a sender, and, if not, send a CannotReturn Exception. Then the sender of this context will call the \ct{resume:} message.
+
+\begin{code}{}
+ContextPart>>resume: value
+	"Unwind thisContext to self and resume with value as result of last send.  Execute unwind blocks when unwinding.  ASSUMES self is a sender of thisContext"
+
+	| ctxt unwindBlock |
+	self isDead ifTrue: [self cannotReturn: value to: self].
+	ctxt := thisContext.
+	[	ctxt := ctxt findNextUnwindContextUpTo: self.
+		ctxt isNil
+	] whileFalse: [
+		(ctxt tempAt: 2) ifNil:[
+			ctxt tempAt: 2 put: true.
+			unwindBlock := ctxt tempAt: 1.
+			thisContext terminateTo: ctxt.
+			unwindBlock value].
+	].
+	thisContext terminateTo: self.
+	^ value
+\end{code}
+
+This is the method where the argument block of \mthind{BlockClosure}{ensure:} is executed. This method will look for all the unwind context between the context of the method \mthind{ContextPart}{resume:} and self, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). When the method find an unwind context, the unwind block is executed. Lastly, it will trigger the \ct{terminateTo:} message.
+
+\begin{code}{}
+ContextPart>>terminateTo: previousContext
+	"Terminate all the Contexts between me and previousContext, if previousContext is on my Context stack. Make previousContext my sender."
+
+	| currentContext sendingContext |
+	<primitive: 196>
+	(self hasSender: previousContext) ifTrue: [
+		currentContext := sender.
+		[currentContext == previousContext] whileFalse: [
+			sendingContext := currentContext sender.
+			currentContext terminate.
+			currentContext := sendingContext]].
+	sender := previousContext
+\end{code}
+
+Basically, this method will terminate all the context between thisContext and self, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). Moreover, the sender of thisContext will become self, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). It is implemented as a primitive, but the code below explains how it works.
+
+Let's summarize what happened with this context stack figure, which represents the execution of the method  \mthind{Bexp}{ensureWithOnDo}
+
+\begin{code}{}
+Bexp>>ensureWithOnDo
+	^[[Error signal] ensure: [1]. 
+		^3]on: Error do: [2]
+\end{code}
+
+\begin{figure}[ht]\centering
+        \includegraphics[width=9cm]{EnsureImpl}
+        \caption{Context stack\figlabel{EnsureImpl}}
+\end{figure}
+
+\begin{figure}[ht]\centering
+        \includegraphics[width=9cm]{EnsureImplLegend}
+        \caption{Legend of the figure.\figlabel{EnsureImplLegend}}
+\end{figure}
+
+\paragraph{Ensuring a non local return}
+
+There is also an implementation of \mthind{BlockClosure}{ensure:} for the non local return. Basically there is the same kind of lookup for unwind context as in the \mthind{ContextPart}{resume:} message that is triggered when we return the value in \mthind{ContextPart}{resume:through:}
+
+\begin{code}{}
+ContextPart>>resume: value through: firstUnwindCtxt
+	"Unwind thisContext to self and resume with value as result of last send.
+	 Execute any unwind blocks while unwinding.
+	 ASSUMES self is a sender of thisContext."
+
+	| ctxt unwindBlock |
+	self isDead ifTrue: [self cannotReturn: value to: self].
+	ctxt := firstUnwindCtxt.
+	[ctxt isNil] whileFalse:
+		[(ctxt tempAt: 2) ifNil:
+			[ctxt tempAt: 2 put: true.
+			 unwindBlock := ctxt tempAt: 1.
+			 thisContext terminateTo: ctxt.
+			 unwindBlock value].
+		 ctxt := ctxt findNextUnwindContextUpTo: self].
+	thisContext terminateTo: self.
+	^value
+\end{code}
+
+
+%=========================================================
 \section{Specific exceptions}
 
 The class \ct{Exception} in \pharo{} has ten direct subclasses, as shown in \figref{wholeHierarchy}.
@@ -1169,7 +1358,7 @@ So, if you signal a resumable exception, you should be very clear about what you
 
 \paragraph{When defining a new exception.} It is a difficult problem to decide when it is worth to define a new exception instead of reusing an existing one. Here are some heuristics: first, you should evaluate if you can have an adequate solution to the exceptional situation. Second if you need a specific default behavior when the exceptional situation is not handled.
 
-
+%=============================================
 \section{When not to use exceptions}
 Just because \pharo{} has exception handling, you should not conclude that it is always appropriate to use it.  
 Recall that in the introduction to this chapter, we said that exception handling is for \emph{exceptional} situations.  
