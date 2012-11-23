@@ -1,4 +1,4 @@
-% $Author: jannik $
+% $Author: --- $
 % $Date: 2010-05-13 23:11:04 +0200 (Thu, 13 May 2010) $
 % $Revision: 32942 $
 
@@ -181,14 +181,11 @@ A more interesting case is the 'Bugs' category as shown by Figure~\ref{}
 
 \subsection{Block Rules}
 
+Block rules use the Smalltalk reflective API. They can be created to find methods that should be not invoked, style consistence such capitalization or variable name length, class or method size, classes not commented, variables not referenced, instance variables defined in all subclasses, among others. In resume, every thing that is possible to do using the Smalltalk reflective API can be used in a block rule. This includes access to the Smalltalk model which allows the easy navigation through classes (and their superclasses and subclasses), methods, variables, arguments, comments, invocations, etc.
 
-
-
-Block rules use the Smalltalk reflective API. Block rules rules can be created to look for methods that should be not invoked, to check style consistence such capitalization and lenght of classes variables, to check method and class size, to look for classes and variables not referenced or not defined, to search classes not commented, to look for instance variables defined in all subclasses, among others. More specifically, every thing that is possible to do using the Smalltalk reflective API can be implemented as a block rule. This includes having easy access to superclasses, subclasses, methods, variables, arguments, comments, invocations, etc.
+These rules are created by extending the class RBBlockLintRule.
 
 TODO
-
-- Such kind of rules must extend the class RBBlockLintRule.
 
 - Two levels: class and method.
 
@@ -198,7 +195,15 @@ TODO
 
 \subsection{Abstract Syntax Tree-Based Rules}
 
-\subsection{Defining a simple rules}
+These rules are based on the Smalltalk abstract syntax tree (AST). They can be created to find assignments with no effect, weak use of the API (pieces of code can be more efficient or legible), among others. In summaty, these rules performs operation in AST nodes to find smells.
+
+These rules are created by extending the class RBParseTreeLintRule.
+
+- Class level rules must implement the method \#checkClass: and method level rules must implemente the method \#checkMethod:
+
+- Example
+
+\subsection{Defining Simple Rules}
 
 \section{Conclusion}
 
