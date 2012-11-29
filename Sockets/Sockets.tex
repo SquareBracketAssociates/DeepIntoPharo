@@ -3,7 +3,8 @@
 % $Revision$
 % 2011-09-11 - Migrated to PharoBox: svn checkout https://XXX@scm.gforge.inria.fr/svn/pharobooks/PharoByExampleTwo-Eng
 % could change returns by answers 
-
+% 2012-11-29 - answering stef comments. Add texts about SocketStream
+ 
 
 %=================================================================
 \ifx\wholebook\relax\else
@@ -498,9 +499,23 @@ It is worth noting that we ensure that the interaction socket is destroyed, whet
 \section{SocketStream} 
 \label{sec:socketStream}
 \ct!SocketStream! is a read-write stream that encapsulates a TCP socket.
-It eases the data exchange by providing buffering together with a set of facility methods.
+It eases the data exchange by providing buffering together with a set of facility methods. It provide an easy-to-use API on top of Socket. 
 
-\sd{would be good to have a picture explaining socket stream and more importantly a API description of the most important methods}
+
+\begin{figure}[ht]\centering
+	\includegraphics[width=.75\linewidth]{socketStream}
+	\caption{SocketStream allows to use Socket in an easy way.}
+	\label{fig:socketStream}
+\end{figure}
+
+A SocketStream be created using the method \ct!SocketStream class>>openConnectionToHost:port:!. By providing the host address or name and the port, it initialises a new Socket with the default parameter of the system.
+But, you can build a SocketStream on top of an existing Socket with the method \ct!SocketStream class>>on:!, which allows you to send data on a socket you have already configured. 
+
+With your new SocketStream, you can receive data with the useful methods \ct!receiveData!, which waits data until a timeout, or \ct!receiveAvailableData!, which receives data but does not wait for more to arrive. The method \ct!isDataAvailable! allows you to check if data is available on the stream before receiving it.
+
+You can send data using the methods \ct!nextPut:!, \ct!nextPutAll:!, or \ct!nextPutAllFlush:! that put data in the stream. The method \ct!nextPutAllFlush:! flushes the other pending data before putting the data in the stream.
+
+Finally, when the SocketStream is finished to use, send the message \ct!close! to finish and close the associated socket. Other useful methods of SocketStream are explained below in the chapter.
 
 \subsection{SocketStream at Client Side}
 We illustrate socket stream use at client side with the following code snippet (\Scrref{script:streamGetLine}).
@@ -613,7 +628,9 @@ A facility method \ct!nextLine! (illustrated in \scrref{script:streamGetLine}) i
 One can however use any character or byte as a delimiter.
 Indeed, we can ask a socket stream to read all characters/bytes up to some specific one using the \ct!upTo:! message.
 
-\sd{is CRLF specific to squeak? because it looks brittle. What are the other protocols in use today?}
+%\sd{is CRLF specific to squeak? because it looks brittle. What are the other protocols in use today?}
+%\ja{it is not specific to squeak. the bufferedReader in Java use it too. Depending to the OS, it can be CR (maces), LF (linux) or CRLF (windows). In Pharo, the method nextLine uses by default CRLF. }
+
 
 The advantage of using delimiters is that it handles data of arbitrary size.
 The cons is that we need to analyze received bytes or characters to find out the limits, which is resource consuming.
