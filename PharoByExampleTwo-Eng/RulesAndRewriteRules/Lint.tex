@@ -38,9 +38,11 @@
 %\chapter{Validation et Transformations de code automatique en Pharo}
 \chapter{SmallLint: static analysis in Pharo}
 
+\newcommand{\todo}[0]{ToDo}
+\newcommand{\todos}[0]{ToDos}
+\newcommand{\ccb}[0]{Code Critic Browser}
 
-Being able to check that the code of your application follows certain rules is important to control its quality. Pharo offers SmallLint a tool originally developed by John Brant and Don Roberts to identify several families of problems that code may exhibit. SmallLint defines a list of static analyses grouped by topics and that you can run automatically on your code. In addition, in Pharo, package meta-data supports the application of SmallLint by letting the programmer flagging irrelevant or false positives. 
-In this chapter we will @@
+Being able to check that the code of your application follows certain rules is important to control its quality. Pharo offers SmallLint a tool originally developed by John Brant and Don Roberts to identify several families of problems that code may exhibit. SmallLint defines a list of static analyses grouped by topics and that you can run automatically on your code. In Pharo we go a step further. Package meta-data supports lets the developer tag the violation reported by SmallLint. This way false positives or irrelevant rules do not systematically pollute the rule evaluation. In this chapter we will go step by step on a project and present the features of the \ccb.
 
 
 
@@ -74,12 +76,25 @@ SmallLint is a tool that analyses Pharo code and identifies bugs, design problem
 \input{SmallLint-rules}
 
 
-
-
-
 \section{Using Code Critics}
+The Code critic Browser propose a set of rules to be checked on your code. 
+Once the rules are run, we obtain a set of rule violations, we have several possibilities:
 
-You can invoke the Code Critic Browser via the Tools menu. We will execute it on one of our project Kozen whose purpose is to generate static web page based on scientific publications. We started from a project on which we never run the rules. 
+\begin{itemize}
+\item \emph{Addressing the problem}. In such a case it can be wise to rerun the rule to verify that it has been addressed.
+
+\item \emph{Marking the problem as a ToDo}. The point here is that tagging a violation as todo makes sure that the violation will not show up as red warning when rules are checked again later. ToDos indicate that the package developer knows that there is an issue that it should be fixed later. Having ToDos is a nice feature because it lets the developer decide when to address a problem while avoiding the tools to always report it as a problems. 
+
+\item \emph{Marking the violation as a tool error}. Indeed a rule may be wrong or irrelevant. We call such error a false positive. Marking a violation as a false positive makes sure that the next time the rule execution will be executed
+\end{itemize}
+
+With the Critics Browser we payed attention that once a developer runs and evaluates the violations (\ie addressing, marking them as todos or false positives), he can be sure that a new execution of the rules on the same code will not report again the same problems. 
+
+
+
+\section{Applying the Code Critic Browser}
+
+You can invoke the Code Critic Browser via the Tools menu. In this Chapter, we will execute it on one of our project named Kozen whose purpose is to generate static web page based on scientific publications. We start from a project on which we never run the rules and we will gradually go over the rules.
 \begin{figure}[h]
 \centering
 \includegraphics[width=6cm]{selectingPackage}\includegraphics[width=6cm]{selectingPackage2} 
@@ -97,22 +112,9 @@ Once you have selected the packages on which you want to run the rules, you can 
 \end{figure}
 
 
-\paragraph{First look at Results.} Once the rules are run you get a browser showing you the results as shown in Figure~\ref{unclassified}. Once the rules are run, we obtain a set of rule violations, we have several possibilities:
-
-\begin{itemize}
-\item \emph{Addressing the problem}. In such a case it can be wise to rerun the rule to verify that it has been addressed.
-
-\item \emph{Marking the problem as a ToDo}. The point here is that tagging a violation as to-do makes sure that the violation will not show up as red warning when rules are checked again later. To-dos indicate that the package developer knows that there is an issue that it should be fixed later. 
-Having Todos is a nice feature because it lets the developer decide when to address a problem while avoiding the tools to always report it as a problems. 
-
-\item \emph{Marking the violation as a tool error}. Indeed a rule may be wrong or irrelevant. We call such error a false positive. Marking a violation as a false positive makes sure that the next time the rule execution will be executed
-\end{itemize}
-
-With the Critics Browser we payed attention that once a developer runs and evaluates the violations (\ie addressing, marking them as todos or false positives), he can be sure that a new execution of the rules on the same code will not report again the same problems. 
-
-
+\paragraph{First look at Results.} Once the rules are run you get a browser showing you the results as shown in Figure~\ref{unclassified}. 
 The Critics Browser shows the results are grouped by rule kinds. 
-The top level label labelled \ct{selected Rules (FP: 0, ToDo: 0, Total: 326} means the following: we got a total of 326 rule violations. Since we just started to check a new project, we did not mark any violations as false positive\footnote{A false positive is said to a violation that was detected by a tool but that was not true.}, this is why we have FP: 0, and since we did not flag violations as point to address in the future we have \ct{ToDo: 0}.
+The top level label labelled \ct{selected Rules (FP: 0, ToDo: 0, Total: 328} means the following: we got a total of 328 rule violations. Since we just started to check a new project, we did not mark any violations as false positive\footnote{A false positive is said to a violation that was detected by a tool but that was not true.}, this is why we have FP: 0, and since we did not flag violations as point to address in the future we have \ct{ToDo: 0}.
 
 
 Figure~\ref{unclassified} shows that in the rules related to style issues, the Kozen packages got two badly classified methods. Since moving the methods to a correct method category is easy, we did it and run the rules. We obtain then the situation described by Figure~\ref{reapplying}.
@@ -122,7 +124,7 @@ The Critics Browser shows the rules on the left pane. When one rule is selected,
 \begin{figure}[h]
 \centering
 \includegraphics[width=8cm]{UnclassifiedMethods}
-\caption{Browsing rule results. Two methods are not well classified in the class KzMenuInfoBoySite.\label{unclassified}}
+\caption{Browsing rule results. Two methods are not well classified in the class KzMenuInfoBodySite.\label{unclassified}}
 \end{figure}
 
 
@@ -214,21 +216,6 @@ These rules are created by extending the class RBParseTreeLintRule.
 
 
 \section{Junk}
-
-\section{ Analyse qualitative de code avec SmallLint}
-
- SmallLint est un outil d'analyse de code. Il permet d'identifier une soixantaine de
-probl\`emes possibles allant du simple bogue, à la pr\'evision de bogue,
-en passant par la d\'etection de code inutile ou l'identification de
-m\'ethodes trop longues. SmallLint met en \'evidence des probl\`emes au
-niveau de m\'ethodes ou de classes qui utilisent l'h\'eritage, et d\'etecte
-certaines erreurs.  
-
-Pour ouvrir cet outil, ex\'ecutez l'expression
-LintDialog open ; vous obtenez une fenêtre comme celle qui est
-pr\'esent\'ee figure  qui montre le r\'esultat de l'application de
-quelques r\`egles sur les classes.
-
 
 @@ here rules@@
  Pour vous en servir,

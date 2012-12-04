@@ -292,7 +292,32 @@ they introduce additional complexity when you may be able solve your
 communication problem with a simple message send.
 
 
+Summary:
+--------
+use JobStartNotification
 
+Details:
+--------
+the new scheme to show progress is done the following way:
+
+
+[:job|
+	job title: 'doing a lot of work'.
+	self aLotOfWork 
+] asJob run.
+
+To update the progress without a direct reference to Job you throw a
+
+JobProgress progress: 0.1 title: 'new title'.
+
+
+All the communication with the external world is done through
+JobStart, JobChange and JobEnd
+
+You can see that the ProgressMorph uses exactly those announcements to update
+the new. Also there is the JobStartNotification which is thrown in parallel with
+the JobStart, so you can listen when a job/progress is started somewhere downstream
+in the control flow.
 %-----------------------------------------------------------------
 
 %%% Local Variables:

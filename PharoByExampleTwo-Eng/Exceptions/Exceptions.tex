@@ -1209,7 +1209,8 @@ The \ct{return:} message sent as the final action of \ct{handleSignal} is respon
 So, to summarize, the \ct{signal} method, with minimal assistance from the virtual machine, finds the context that correspond to an \ct{on:do:} message with an appropriate exception class.   Because the execution stack is made up of Context objects that may be manipulated just like any other object, the stack can be shortened at any time.  This is a superb example of flexibility of \st.
 
 %=========================================================
-\section{Ensure implementation}
+\section{Ensure:'s implementation}
+Now we propose to have a look at the implementation of the method \ct{ensure:}. 
 
 First we need to understand how the unwind block is stored and how this information is found at run-time. Let's look at the definition of the central method \mthind{BlockClosure}{ensure:} defined on the class \ct{BlockClosure}. 
 
@@ -1223,58 +1224,58 @@ ensure: aBlock
 	| complete returnValue |
 	<primitive: 198>
 	returnValue := self valueNoContextSwitch.
-	complete ifNil:[
+	complete ifNil: [
 		complete := true.
-		aBlock value.
-	].
+		aBlock value ].
 	^ returnValue
 \end{code}
 
-The \lct{<primitive: \emph{198}\,>} works the same way of the \lct{<primitive: \emph{199}\,>} we saw in the previous section. It always fails, however, its presence marks the executing context in a unique way. Moreover, the unwind block is stored the same way as the exception class and its associated handler. More explicitely, it is stored in the context of \mthind{BlockClosure}{ensure:}, that can be accessed from the block through  \lct{thisContext sender tempAt: 1 or 2}.
+The \lct{<primitive: \emph{198}\,>} works the same way of the \lct{<primitive: \emph{199}\,>} we saw in the previous section. It always fails, however, its presence marks the executing context in a unique way. Moreover, the unwind block is stored the same way as the exception class and its associated handler. More explicitely, it is stored in the context (stack frame) of \mthind{BlockClosure}{ensure:}
+method execution, that can be accessed from the block through  \lct{thisContext sender tempAt: 1}.
 
-In the case where the block doesn't fail and doesn't have a non-local return, the \mthind{BlockClosure}{ensure:} message implementation is very easy to understand. It evaluates the block, store the result in the returnValue variable, evaluates the argument block and lastly return the result of the block previously stored. The complete variable is just here in order not to execute twice the argument block.
+In the case where the block doesn't fail and doesn't have a non-local return, the \mthind{BlockClosure}{ensure:} message implementation is very easy to understand. It evaluates the block, stores the result in the \ct{returnValue} variable, evaluates the argument block and lastly returns the result of the block previously stored. The \ct{complete} variable is just here to prevent to execute twice the argument block.
 
 \paragraph{Ensuring a failing block.}
 
-The \mthind{BlockClosure}{ensure:} message will trigger the argument block even if the block fails. In the following example, the \mthind{Bexp}{ensureWithOnDo} message will return 2 and execute 1. In the subsequent section we will carrefully look at where and what the block is actually returning and in which order are the block executed. 
+The \mthind{BlockClosure}{ensure:} message will execute the argument block even if the block fails. In the following example, the \mthind{Bexp}{ensureWithOnDo} message  returns 2 and executes 1. In the subsequent section we will carefully look at where and what the block is actually returning and in which order are the blocks executed. 
 
 \begin{code}{}
 Bexp>>ensureWithOnDo
-	^[[Error signal] ensure: [1]. 
-		^3]on: Error do: [2]
+	^[ [ Error signal ] ensure: [ 1 ]. 
+	   ^3 ] on: Error do: [ 2 ]
 \end{code}
 
 Let's have a quick example before looking at the implementation. We define 4 blocks and 1 method that ensure a failing Block.
-
+\sd{clŽment pourquoi tu as besoin de dŽfinir des mŽthodes?}
 \begin{code}{}
 Bexp>>mainBlock 
-	^[self traceCr: 'mainBlock start'. 
-		self failingBlock ensure: self ensureBlock.
-		self traceCr: 'mainBlock end']
+	^[ self traceCr: 'mainBlock start'. 
+	 self failingBlock ensure: self ensureBlock.
+	 self traceCr: 'mainBlock end' ]
 
-Bep>>failingBlock 
-	^[self traceCr: 'failingBlock start'. 
-		Error signal.
-		self traceCr: 'failingBlock end']
+Bexp>>failingBlock 
+	^[ self traceCr: 'failingBlock start'. 
+	 Error signal.
+	 self traceCr: 'failingBlock end' ]
 
 Bexp>>ensureBlock 
-	^[self traceCr: 'ensureBlock value'. 
-		#EnsureBlockValue]
+	^[ self traceCr: 'ensureBlock value'. 
+	 #EnsureBlockValue ]
 
 Bexp>>exceptionHandlerBlock 
-	^[self traceCr: 'exceptionHandlerBlock value'. 
-		#ExceptionHandlerBlockValue] 
+	^[ self traceCr: 'exceptionHandlerBlock value'. 
+	   #ExceptionHandlerBlockValue ] 
 
 Bexp>>start 
 	| res |
 	self traceCr: 'start start'. 
 	res := self mainBlock on: Error do: self exceptionHandlerBlock. 
-	self traceCr: 'start  end'. 
+	self traceCr: 'start end'. 
 	self traceCr: 'The result is : ', res, '.'.
-	^res
+	^ res
 \end{code}
 
-Executing \ct{Bexp new start}  prints the following (we added indentation to stress the calling flow).
+Executing \ct{Bexp new start} prints the following (we added indentation to stress the calling flow).
 
 \begin{code}{}
 start start
@@ -1283,12 +1284,12 @@ start start
 			exceptionHandlerBlock value
 			ensureBlock value
 start  end
-The result is : ExceptionHandlerBlockValue.
+The result is: ExceptionHandlerBlockValue.
 \end{code}
 
-There are three important things to note. First, the failing block and the main block are not fully executed because of the \mthind{Error}{signal} message. Secondly, the exception block is executed before the ensure block. Lastly, the start method will return the result of the exception handler block.
+There are three important things to see. First, the failing block and the main block are not fully executed because of the \mthind{Error}{signal} message. Secondly, the exception block is executed before the ensure block. Lastly, the start method will return the result of the exception handler block.
 
-To understand how this works, we have to look at the end of the exception implementation. We finished the previous explanation on the \ct{handleSignal} method.
+To understand how this works, we have to look at the end of the exception implementation. We finish the previous explanation on the \ct{handleSignal} method.
 
 \begin{code}{}
 ContextPart>>>handleSignal: exception
@@ -1305,7 +1306,7 @@ ContextPart>>>handleSignal: exception
 	self return: val.  "return from self if not otherwise directed in handle block"
 \end{code}
 
-In our example, Pharo will execute the failing block, then will look for the next handler context, marked with \lct{<primitive: \emph{199}\,>}. As a regular exception, Pharo finds the exception handler context, and run the exceptionHandlerBlock. Now, the method finish by the \ct{return:} method. Let's have a look into it.
+In our example, Pharo will execute the failing block, then will look for the next handler context, marked with \lct{<primitive: \emph{199}\,>}. As a regular exception, Pharo finds the exception handler context, and runs the exceptionHandlerBlock.  The method \ct{handleSignal} finishes with the \ct{return:} method. Let's have a look into it.
 
 \begin{code}{}
 ContextPart>>return: value
@@ -1337,7 +1338,12 @@ ContextPart>>resume: value
 	^ value
 \end{code}
 
-This is the method where the argument block of \mthind{BlockClosure}{ensure:} is executed. This method will look for all the unwind context between the context of the method \mthind{ContextPart}{resume:} and self, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). When the method find an unwind context, the unwind block is executed. Lastly, it will trigger the \ct{terminateTo:} message.
+\begin{figure}[!ht]\centering
+        \includegraphics[width=8.5cm]{EnsureImpl}
+        \caption{Context stack\figlabel{EnsureImpl}}
+\end{figure}
+
+This is the method where the argument block of \mthind{BlockClosure}{ensure:} is executed. This method looks for all the unwind contexts between the context of the method \mthind{ContextPart}{resume:} and self, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). When the method finds an unwound context, the unwound block is executed. Lastly, it  triggers the \ct{terminateTo:} message. 
 
 \begin{code}{}
 ContextPart>>terminateTo: previousContext
@@ -1354,35 +1360,26 @@ ContextPart>>terminateTo: previousContext
 	sender := previousContext
 \end{code}
 
-Basically, this method will terminate all the context between thisContext and self, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). Moreover, the sender of thisContext will become self, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). It is implemented as a primitive, but the code below explains how it works.
+Basically, this method terminates all the contexts between thisContext and self, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). Moreover, the sender of thisContext will become self, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). It is implemented as a primitive, but the code below explains how it works.
 
-Let's summarize what happened with this context stack figure, which represents the execution of the method  \mthind{Bexp}{ensureWithOnDo}
+Let's summarize what happens with \figref{EnsureImpl} which represents the execution of the method  \mthind{Bexp}{ensureWithOnDo} defined previously.
 
-\begin{code}{}
-Bexp>>ensureWithOnDo
-	^[[Error signal] ensure: [1]. 
-		^3] on: Error do: [2]
-\end{code}
 
-\begin{figure}[ht]\centering
-        \includegraphics[width=9cm]{EnsureImpl}
-        \caption{Context stack\figlabel{EnsureImpl}}
-\end{figure}
+
 
 \begin{figure}[ht]\centering
         \includegraphics[width=9cm]{EnsureImplLegend}
         \caption{Legend of the figure.\figlabel{EnsureImplLegend}}
 \end{figure}
 
-\paragraph{Ensuring a non local return}
+\paragraph{Ensuring a non local return.}
 
-There is also an implementation of \mthind{BlockClosure}{ensure:} for the non local return. Basically there is the same kind of lookup for unwind context as in the \mthind{ContextPart}{resume:} message that is triggered when we return the value in \mthind{ContextPart}{resume:through:}
+There is also an implementation of \mthind{BlockClosure}{ensure:} for the non local return. Basically there is the same kind of lookup for unwound contexts as in the \mthind{ContextPart}{resume:} message that is triggered when we return the value in \mthind{ContextPart}{resume:through:}
 
 \begin{code}{}
 ContextPart>>resume: value through: firstUnwindCtxt
 	"Unwind thisContext to self and resume with value as result of last send.
-	 Execute any unwind blocks while unwinding.
-	 ASSUMES self is a sender of thisContext."
+	 Execute any unwind blocks while unwinding. ASSUMES self is a sender of thisContext."
 
 	| ctxt unwindBlock |
 	self isDead ifTrue: [self cannotReturn: value to: self].
