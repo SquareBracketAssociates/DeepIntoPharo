@@ -1,0 +1,175 @@
+% $Author: oscar $
+% $Date: 2009-08-16 16:37:09 +0200 (Sun, 16 Aug 2009) $
+% $Revision: 28477 $
+
+% HISTORY:
+% 2008-01-19 - Stef started
+% 2008-12-26 - Jannik Laval added text
+% 2011-20-05 - Jean baptiste Arnaud add some text (Lexical closure)
+% 2011-07-01 - Jean baptiste Arnaud add some test (Storing a block)
+% 2011-08-09 - Stef doing another pass
+% 2011-09-11 - Migrated to PharoBox: svn checkout https://XXX@scm.gforge.inria.fr/svn/pharobooks/PharoByExampleTwo-Eng
+% todo for stef explaining blockClosure environment representation + explaining the trick with the bytecodes
+% 2012-01-27 - Integrated Ben Coman feedback
+% 2012-07-25 - Stef doing another pass to restart working on it.
+
+%=================================================================
+\ifx\wholebook\relax\else
+% --------------------------------------------
+% Lulu:
+	\documentclass[a4paper,10pt,twoside]{book}
+	\usepackage[
+		papersize={6.13in,9.21in},
+		hmargin={.75in,.75in},
+		vmargin={.75in,1in},
+		ignoreheadfoot
+	]{geometry}
+	\input{../common.tex}
+	\setboolean{lulu}{true}
+% --------------------------------------------
+% A4:
+%	\documentclass[a4paper,11pt,twoside]{book}
+%	\input{../common.tex}
+%	\usepackage{a4wide}
+% --------------------------------------------
+    \graphicspath{{figures/} {../figures/}}
+	\begin{document}
+\fi
+%=================================================================
+%\renewmessage{\nnbb}[2]{} % Disable editorial comments
+\sloppy
+%=================================================================
+\chapter{Athens}\chalabel{athens}
+
+
+\section{Basics}
+
+
+
+\subsection{Some handy extensions}
+
+\begin{code}{Cull: examples}
+[ 1 + 2 ] cull: 5 --> 3
+[ 1 + 2 ] cull: 5 cull: 6 --> 3
+[ :x | 2 + x ] cull: 5 --> 7
+[ :x | 2 + x ] cull: 5 cull: 3 --> 7
+[ :x :y | 1 + x + y ] cull: 5 cull: 2 --> 8
+[ :x :y | 1 + x + y ] cull: 5 ~-> error because the block needs 2 arguments.
+[ :x :y | 1 + x + y ] valueWithPossibleArgs: #(5)
+                      ~-> error because 'y' is nil and '+' does not accept nil as a parameter.
+\end{code}
+
+
+\paragraph{Other messages.}
+
+Some messages are useful to profile execution (more information on Chapter~\ref{cha:Profiler}:
+
+\begin{description}
+\item{\textsf{bench}}. Return how many times the receiver can get executed in 5 seconds.
+
+\item{\textsf{durationToRun}}. Answer the duration (instance of Duration) taken to execute the receiver block.
+
+\item{\textsf{timeToRun}}. Answer the number of milliseconds taken to execute this block.
+\end{description}
+
+
+
+
+\begin{figure}[!h]
+\begin{center}
+%\includegraphics[width=9cm]{variable}
+\caption{ Non local variable are looked in the method activation context where the block was created and not executed.\label{fig:variable}}
+\end{center}
+\end{figure}
+
+
+
+%=========================================================
+\ifx\wholebook\relax\else
+   \bibliographystyle{jurabib}
+   \nobibliography{scg}
+   \end{document}
+\fi
+
+%=================================================================
+\ifx\wholebook\relax\else\end{document}\fi
+%=================================================================
+
+%-----------------------------------------------------------------
+
+%%% Local Variables:
+%%% coding: utf-8
+%%% mode: latex
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% ispell-local-dictionary: "english"
+%%% End:
+
+
+%| last |
+%last := thisContext.
+%thisContext runSimulated: [#(1 2 3) detect: [:e| e even]] contextAtEachStep: [:c| c ~~ last ifTrue: [Transcript print: c; cr; flush. last := c]]
+%
+%=>
+%
+%[] in UndefinedObject>>DoIt
+%Array(Collection)>>detect:
+%Array(Collection)>>detect:ifNone:
+%Array(SequenceableCollection)>>do:
+%[] in Array(Collection)>>detect:ifNone:
+%[] in [] in UndefinedObject>>DoIt
+%SmallInteger>>even
+%[] in [] in UndefinedObject>>DoIt
+%[] in Array(Collection)>>detect:ifNone:
+%Array(SequenceableCollection)>>do:
+%[] in Array(Collection)>>detect:ifNone:
+%[] in [] in UndefinedObject>>DoIt
+%SmallInteger>>even
+%[] in [] in UndefinedObject>>DoIt
+%[] in Array(Collection)>>detect:ifNone:
+%Array(Collection)>>detect:
+%[] in UndefinedObject>>DoIt
+%
+%
+%or...
+%
+%
+%| last home indent |
+%last := nil.
+%home := thisContext.
+%indent := 0.
+%thisContext
+%	runSimulated: [#(1 2 3) detect: [:e| e even]]
+%	contextAtEachStep:
+%		[:c| | ctxt |
+%		c ~~ last ifTrue:
+%			[last := c.
+%			 indent := 0. ctxt := c sender.
+%			 [ctxt ~~ home] whileTrue:
+%				[ctxt := ctxt sender. indent := indent + 1].
+%			Transcript crtab: indent; print: c; flush]]
+%
+%[] in UndefinedObject>>DoIt
+%	Array(Collection)>>detect:
+%		Array(Collection)>>detect:ifNone:
+%			Array(SequenceableCollection)>>do:
+%				[] in Array(Collection)>>detect:ifNone:
+%					[] in [] in UndefinedObject>>DoIt
+%						SmallInteger>>even
+%					[] in [] in UndefinedObject>>DoIt
+%				[] in Array(Collection)>>detect:ifNone:
+%			Array(SequenceableCollection)>>do:
+%				[] in Array(Collection)>>detect:ifNone:
+%					[] in [] in UndefinedObject>>DoIt
+%						SmallInteger>>even
+%					[] in [] in UndefinedObject>>DoIt
+%				[] in Array(Collection)>>detect:ifNone:
+%	Array(Collection)>>detect:
+%[] in UndefinedObject>>DoIt
+%
+
+
+\section{Chapter conclusion}
+
+
+We want to thank Ben Coman for his english corrections and Eliot Miranda for the discussions and explanations about his implementation of fast closure for Squeak and Pharo. We thank Norbert Hartl for his feedback.
