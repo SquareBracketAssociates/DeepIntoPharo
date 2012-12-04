@@ -41,46 +41,52 @@
 %=================================================================
 \chapter{Athens}\chalabel{athens}
 
-
-\section{Basics}
-
-
-
-\subsection{Some handy extensions}
-
-\begin{code}{Cull: examples}
-[ 1 + 2 ] cull: 5 --> 3
-[ 1 + 2 ] cull: 5 cull: 6 --> 3
-[ :x | 2 + x ] cull: 5 --> 7
-[ :x | 2 + x ] cull: 5 cull: 3 --> 7
-[ :x :y | 1 + x + y ] cull: 5 cull: 2 --> 8
-[ :x :y | 1 + x + y ] cull: 5 ~-> error because the block needs 2 arguments.
-[ :x :y | 1 + x + y ] valueWithPossibleArgs: #(5)
-                      ~-> error because 'y' is nil and '+' does not accept nil as a parameter.
-\end{code}
+Athens in 4 points:  Athens is a modern graphics engine for PharoAthens is an object-oriented (smalltalk oriented) vector graphics library. It is not a
+wrapper of a C-library. 
+Athens offers one API and multiple backends (Cairo, openGl).
 
 
-\paragraph{Other messages.}
+\section{Why a new canvas?}
 
-Some messages are useful to profile execution (more information on Chapter~\ref{cha:Profiler}:
+\begin{itemize}\item Bitblt lacks of abstraction\item We living in pixelated world\item Balloon engine is built ''on top'' of BitBlt, not-so-nice integration. As result - existing Canvas and Morphic code is cumbersome and overloaded\item hard to maintain and improve (VM plugins written in slang)\item rendering quality
+\end{itemize}
 
-\begin{description}
-\item{\textsf{bench}}. Return how many times the receiver can get executed in 5 seconds.
+\paragraph{Canvas (the pre-Athens canvas)}
+\begin{itemize}\item  methodDict size returns 88\item coordinate system is fixed\item  many places assuming canvas have direct access to pixels
+\end{itemize}
 
-\item{\textsf{durationToRun}}. Answer the duration (instance of Duration) taken to execute the receiver block.
+\paragraph{AthensCanvas}\begin{itemize}\item  methodDict size returns 21\item free transformation of coordinate system 
+\item  no assumptions about output media
+\end{itemize}
 
-\item{\textsf{timeToRun}}. Answer the number of milliseconds taken to execute this block.
-\end{description}
-
-
+\section{Athens Design}
 
 
 \begin{figure}[!h]
 \begin{center}
-%\includegraphics[width=9cm]{variable}
-\caption{ Non local variable are looked in the method activation context where the block was created and not executed.\label{fig:variable}}
+\includegraphics[width=9cm]{AthensArchitecture}
+\caption{ Athens is the API that applications and infrastructure should use. \label{fig:AthensArchitecture}}
 \end{center}
 \end{figure}
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=9cm]{RoleBasedArchitecture}
+\caption{ \label{fig:RoleBasedArchitecture}}
+\end{center}
+\end{figure}
+
+\section{Main Architecture Players}
+
+\subsection{Surface}
+\ct{Surface} is an abstract class which represents an output media and defines backend which you will be using.
+A surface acts as a factory for creating paints, paths, canvas and other involved objects. It provides access to its canvas. Surfaces are ALWAYS backend-specific. 
+
+
+\subsection{Canvas}
+A canvas is associated to a surface. Canvas implements one, single drawing operation: \ct{canvas draw} \sd{is it the real method name?} 
+The canvas maintains current coordinate system transformations:\ct{canvas pathTransform}
+\ct{canvas paintTransform} maintains currently selected shape (selected using \ct{canvas setShape: ...}, and maintains currently selected paint (selected using \ct{canvas setPaint:} and the paint mode (not fully implemented). 
 
 
 
