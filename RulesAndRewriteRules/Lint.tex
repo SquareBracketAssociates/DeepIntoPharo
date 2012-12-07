@@ -117,7 +117,9 @@ The Critics Browser shows the results are grouped by rule kinds.
 The top level label labelled \ct{selected Rules (FP: 0, ToDo: 0, Total: 328} means the following: we got a total of 328 rule violations. Since we just started to check a new project, we did not mark any violations as false positive\footnote{A false positive is said to a violation that was detected by a tool but that was not true.}, this is why we have FP: 0, and since we did not flag violations as point to address in the future we have \ct{ToDo: 0}.
 
 
-Figure~\ref{unclassified} shows that in the rules related to style issues, the Kozen packages got two badly classified methods. Since moving the methods to a correct method category is easy, we did it and run the rules. We obtain then the situation described by Figure~\ref{reapplying}.
+Figure~\ref{unclassified} shows that in the rules related to style
+
+ issues, the Kozen packages got two badly classified methods. Since moving the methods to a correct method category is easy, we did it and run the rules. We obtain then the situation described by Figure~\ref{reapplying}.
 
 The Critics Browser shows the rules on the left pane. When one rule is selected, the violations appear in the right pane. You can search by typing in the top right input field. The pane at the bottom shows either the rule description or the entity exhibiting the violation. 
 
@@ -141,8 +143,8 @@ The Critics Browser shows the rules on the left pane. When one rule is selected,
 A more interesting case is the 'Bugs' category as shown by Figure~\ref{}
 
 
+\paragraph{Banning a single critic.}
 
-\paragraph{Banning a complete rule.}
 
 \begin{figure}[h]
 \centering
@@ -158,7 +160,10 @@ A more interesting case is the 'Bugs' category as shown by Figure~\ref{}
 \end{figure}
 
 
-\paragraph{Banning a single critic.}
+\paragraph{Banning a complete rule.}
+If a rule is irelevante for your project, you can ban this rule for all selected packages during the rules selection step. To do this, make a right click on the rule menu and select "Ban this rule for all package". After this, all  warnings of this rule are marked as false positive (see Figure~\ref{BanningTimeStampRules}). 
+
+
 
 \begin{figure}[h]
 \centering
@@ -169,41 +174,76 @@ A more interesting case is the 'Bugs' category as shown by Figure~\ref{}
 
 
 
-
-
-
-
-
-
-
-
-
-
 \section{Defining Your Own Rules}
+SmallLint provide three different way to define rules.
+\begin{itemize}
+	\item Block rules use the Smalltalk reflective API. These rules can be defined at two levels: class or method.
+	\item AST rules, these rules are working on ast methods. 
+	\item Transformation rules, these rules performs transformation on the ast methods.
+\end{itemize}
 
 \subsection{Block Rules}
 
 Block rules use the Smalltalk reflective API. They can be created to find methods that should be not invoked, style consistence such capitalization or variable name length, class or method size, classes not commented, variables not referenced, instance variables defined in all subclasses, among others. In resume, every thing that is possible to do using the Smalltalk reflective API can be used in a block rule. This includes access to the Smalltalk model which allows the easy navigation through classes (and their superclasses and subclasses), methods, variables, arguments, comments, invocations, etc.
 
 These rules are created by extending the class RBBlockLintRule.
+ Block rules can be defined at two levels, class or method. If the rule checks a class property or violation (eg, the presence of a class comment), this rule must implement #checkClass:. Similarly, a rule checks  a method property, the rule must implement #checkMethod:.
 
-TODO
+\paragraph{Defining Simple Rules}
+Take as example the definition of a simple rule:  when a class defines #=, it also have to defines  #hash. If #hash is not defined then the instances of the class might not be able to be used in sets since equal element must have the same hash.
 
-- Two levels: class and method.
+This rules (RBDefinesEqualNotHashRule) is a class property so we must implement #ckecClass:. Before, we implement #resultClass. This method returns the type of environement which will contains violations of the rule. For a rule at the level of class, the environment is RBClassEnvironment and RBMethodEnvironment for  a rule at the level of method.
 
-- Class level rules must implement the method \#checkClass: and method level rules must implemente the method \#checkMethod:
+\begin{code}{}
+RBDefinesEqualNotHashRule>>#resultClass
+	^ RBClassEnvironment
+\end{code}
 
-- Example
+The methods #checkClass: and #checkMethod: receive in parameter the object \emph{aContext},  instance of RBSmalllintContext. This object contains information about the method/class who is currently check. For example, the method RBSmalllintContext>>#selectedClass returns the class currently check. In the case where we access to this object from #checkClass:, \emph{aContext} can provide the currently compile method chech (RBSmalllintContext>>#compiledMethod) or all messages send from this method (RBSmalllintContext>>#messages).
+
+When the current class check violates the rule, this class is added to the enviroment which contains the set of found violation: result addClass: aContext selectedClass. 
+
+\begin{code}{}
+RBDefinesEqualNotHashRule>>#checkClass: aContext 
+	((aContext selectedClass includesSelector: #=) and: 
+		[ (aContext selectedClass includesSelector: #hash) not ])
+			 ifTrue: [ result addClass: aContext selectedClass ]
+\end{code}
+
+
+
+Finally, the RBLintRule interface provide three methods at implement for described (#name and #longDescription) and categorize this rule (#category). The categories are \emph{Bugs}, \emph{Potential Bugs}, \emph{Optimization}, \emph{Design Flaws}, \emph{Coding Idiom Violation} and \emph{Style}. It is possible to add new category.
+\begin{code}{}
+RBDefinesEqualNotHashRule>>#name
+	^ 'Defines = but not hash'
+\end{code}
+
+\begin{code}{}
+RBDefinesEqualNotHashRule>>#longDescription
+	^ 'This smell arises when a class defines #= also and not #hash. If #hash is not defined then the instances of the class might not be able to be used in sets since equal element must have the same hash.'
+\end{code}
+
+\begin{code}{}
+category 
+	^ 'Potential Bugs'
+\end{code}
 
 \subsection{Abstract Syntax Tree-Based Rules}
 
 These rules are based on the Smalltalk abstract syntax tree (AST). They can be created to find assignments with no effect, weak use of the API (pieces of code can be more efficient or legible), among others. In summaty, these rules performs operation in AST nodes to find smells.
 
-These rules are created by extending the class RBParseTreeLintRule.
+These rules are created by extending the class RBParseTreeLintRule. The last match must be defined in the initialize method.
 
-- Class level rules must implement the method \#checkClass: and method level rules must implemente the method \#checkMethod:
 
 - Example
+
+\begin{code}{}
+RBAssignmentWithoutEffectRule>>#initialize
+	super initialize.
+	self matcher 
+		matches: '`var := `var'
+		do: [ :node :answer | node ]
+\end{code}
 
 \subsection{Defining Simple Rules}
 
