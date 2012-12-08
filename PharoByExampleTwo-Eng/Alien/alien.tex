@@ -5,6 +5,7 @@
 % HISTORY:
 % 2010-08-01 - Luc
 %% 2011-09-11 - Migrated to PharoBox: svn checkout https://XXX@scm.gforge.inria.fr/svn/pharobooks/PharoByExampleTwo-Eng
+% 2012-12-98 - Luc (big pass -> deep changes)
 
 %=================================================================
 \ifx\wholebook\relax\else
@@ -34,19 +35,31 @@
 %=================================================================
 
 
-\newcommand{\Spock}[0]{Spock } %could be alius
-\chapter{Calling Foreign Code with Spock}\label{cha:alien}
+% \newcommand{\NativeBoost}[0]{Spock } %could be alius
+\newcommand{\NativeBoost}[0]{NativeBoost\xspace} % \luc{I putted NativeBoost because it really strange and confusing to speak sometimes about Spock and sometimes about NativeBoost}
+
+\chapter{Calling Foreign Code with \NativeBoost}\label{cha:alien}
 
 
-Interacting with the external world is a mandatory element of modern systems. Being able to call libraries is often key to business  success. In this chapter, we explain how to do that in Pharo using Foreign Function Interface. 
+Interacting with the external world is mandatory in modern systems. 
+Even more, being able to call external libraries is often a key to business success. 
+
+To interface or bridge two systems, one could use network communications.
+This is a simple and fast to develop solution.
+However, this is not a solution to interact with external libraries such as OpenGL or Cairo. 
+In such cases, one approach is to define a dedicated plugin for the Virtual Machine (VM). 
+However, dealing with VM internals can be complex and does not offer important advantages over using a Foreign Function Interface (FFI).
+
+
+Suppose you want to use the Cairo\footnote{Cairo is a C library to compute 2D ...} library. 
+%Then you will face a problem, because the OpenGL libraries %only know about C and nothing about Smalltalk. 
+The solution is to make a \emph{binding} of each C library function to a Pharo method, and then to call these methods from Pharo code. 
+But we should answer several questions: how does a binding call a C function? 
+How do you write such bindings? 
+How do we pass heap allocated objects? 
+The libraries and mechanisms in charge of doing this kind of work are usually called FFI, for Foreign Function Interface. 
 
 %Despite of our aim of doing as much as possible directly in Smalltalk (as deeper as the virtual machine itself cf. ChapXX), it is still required in some special cases to call external code written in other languages and compiled in a binary library.
-
-Suppose you want to use OpenGL in Pharo. %Then you will face a problem, because the OpenGL libraries
-%only know about C and nothing about Smalltalk. 
-The solution is to make a \emph{binding} of each C library function to a Smalltalk method,  and then to call these methods from Smalltalk code. But we should answer several questions: how does a binding call a 
-C function? How do you write such binding? How do we pass heap allocated objects? The libraries and mechanisms in charge of doing this kind of work are usually called FFI, for Foreign Function Interface. In this chapter we will help you to use this interface by exposing some practical examples of
-how to solve common problems faced when communicating with other languages.
 
 %There are other possibilities: imagine that you want
 %to optimize some piece of code. In the first approach,
@@ -57,67 +70,44 @@ how to solve common problems faced when communicating with other languages.
 %that case, you may ask, which is the way to communicate
 %the high-level smalltalk world with the low level one?
 
-Another approach to interact with the external world is by defining a
-dedicated plugin for the Virtual Machine. This approach is however
-more complex and offers no important advantage over using FFI.
-
-We will start to show you how to use \Spock, a new foreign function library. \Spock is based on NativeBoost and previous FFI libraries.\luc{Alien and FFI. cite them here no?}
+% In this chapter, we explain what is a FFI and how to use it in Pharo.
+In this chapter we will start by showing you how to use \NativeBoost, a new foreign function library. 
+\NativeBoost is based on NativeBoost and previous FFI libraries.
+We will also expose some practical examples and how to solve common problems faced when communicating with other languages.
 
 
 \section{Getting Started}
 
-\luc{Before the section ``calling Ext func'', I think we should first introduce the basics (part of the old ``What is a FFI and how it works?'' section). Because the reader will want to test while reading. And for that he probably will need a special VM (NativeBoost VM), an image with NativeBoost inside, ... }
+Right now to run \NativeBoost, you will need:
 
+\begin{itemize}
+	\item  a VM that has the NativeBoost plugin. 
+	One can be found on the Pharo's continuous integration server\footnote{\url{https://ci.lille.inria.fr/pharo/view/NativeBoost/}}.
+	
+	\item a Pharo image with the necessary packages. Execute the following code to load them:
+	
+	\begin{script}{Installing NativeBoost}
+	Gofer it
+	    squeaksource: 'NativeBoost';
+	    package: 'ConfigurationOfNativeBoost';
+	    load.
+	(Smalltalk at: #ConfigurationOfNativeBoost) load.
+	\end{script}
+	
+\end{itemize}
 
-Right now to run Spock, the new FFI library described in this chapter,
-you will need a vm that has the NativeBoost plugin. One can be found
-on the Pharo's continuous integration
-server.\footnote{\url{https://ci.lille.inria.fr/pharo/view/NativeBoost/}}
-
-To install the necessary packages, execute the following code:
-
-\begin{script}{Installing NativeBoost}
-Gofer it
-    squeaksource: 'NativeBoost';
-    package: 'ConfigurationOfNativeBoost';
-    load.
-(Smalltalk at: #ConfigurationOfNativeBoost) project lastVersion load.
-\end{script}
-
-Now check your installation: open the Test Runner from the World menu,
-select the NativeBoost-Tests package and run all tests.
-
-%\begin{description}
-%\item [C header.] \ 
-%
-%\begin{code}{}
-%
-%\end{code}
-%
-%\item [Pragma declaration.] \ 
-%
-%\begin{code}{}
-%
-%\end{code}
-%
-%
-%\item [Callout grouping.] \ 
-% 
-%\dothis{ }
-%
-%\end{description}
+You can now check your installation: open the Test Runner from the World menu, select the NativeBoost-Tests package and run all tests.
 
 
 \section{Calling a Simple External Function}
 
-
 Suppose you want to know the amount of time the image has been running
 by calling the underlying OS function named \ct{clock}. This function
-is part of the standard C library. Its C declaration
+is part of the standard C library (\texttt{libc}). Its C declaration
 is:\footnote{According to man its return type is \ct{clock\_t} instead
   of \ct{uint}, but we deliberately made it \ct{uint} for the sake of
   simplicity. We will see how to deal with typedefs in the following
-  sections}
+  sections.}
 
 \begin{script}{The C declaration of clock()}
 uint clock (void)
@@ -127,13 +117,10 @@ To call \ct{clock} from the image, you should write a binding: a
 normal Smalltalk method annotated with the \ct{<primitive:module:>}
 pragma. This pragma specifies that a native call should be performed
 using the NativeBoost plugin. The external function call is described
-using the message \ct{nbCall:module:} message.\footnote{Note, that
-  this is not the only message which you can use for defining a
-  callout. There are others, which we will discuss later, but for now
-  use this form for introduction} We will explain the full mechanism
-that lies behind Spock in the last sections, after explaining how to
-use it. For now, here is the full definition of the binding. We
-explain the details below.
+using the \ct{nbCall:module:} message\footnote{Note that it exists other messages to 
+define callouts. They will be discussed later.}. 
+% We will explain the full mechanism that lies behind \NativeBoost in the last sections, after explaining how to use it. 
+Here is the full definition of the binding of this \ct{clock} function. 
 
 \begin{script}{Defining our first binding}
 CExamples class>>ticksSinceStart
@@ -142,13 +129,11 @@ CExamples class>>ticksSinceStart
   ^ self nbCall: #( uint clock () ) module: NativeBoost CLibrary
 \end{script}
 
-In the above example, we define a class named \ct{CExamples} and
-define the method on its class side. NativeBoost imposes no constraint
-on the class where the method is added and programmers can choose to
+In the above example, we define a method named \ct{ticksSinceStart} on the class side of the class named \ct{CExamples}.
+\NativeBoost imposes no constraint on the class where the method should be added and programmers can choose to
 add their bindings either on the instance- or the class-side.
 
-To know the number of native clock ticks since the Pharo Virtual
-Machine started, execute the method and print its result:
+To know the number of native clock ticks since the Pharo Virtual Machine started, execute the method and print its result:
 
 \begin{script}{Invoking a C binding}
 CExamples ticksSinceStart
@@ -166,18 +151,15 @@ CExamples class>>ticksSinceStart
 \end{code}
 
 \paragraph{Callout.}
-What we have just done is usually named an FFI \emph{callout}. The
-\ct{#nbCall:module:} is a method provided by NativeBoost package and
-defined for Object class (so you can use it anywhere). It is
-responsible for generating an FFI callout. Calling a C function
-requires to marshall all arguments from Smalltalk to C, push them to
-the C stack, perform a call to the external function, and finally
-convert the return value from C to Smalltalk. \ct{#nbCall:module:}
-handles this using the description of the function you provide.
+What we have just done is usually named an FFI \emph{callout}. 
+\ct{#nbCall:module:} is a method provided by the NativeBoost package and defined in the \ct{Object} class (so you can use it anywhere). 
+It is responsible for generating an FFI callout.
+Calling a C function requires to marshall all arguments from Smalltalk to C, push them to the C stack, perform a call to the external function, and finally convert the return value from C to Smalltalk. 
+Note, that this message \ct{#nbCall:module:} should only be sent by methods that define a callout, because it does some context handling behind the scenes. 
 
-Note, that the given message \ct{#nbCall:module:} should be sent only by methods that define the callout, because it does some context handling behind the scenes.
-
-This message has two arguments: the \emph{signature of the function} that will be invoked and the \emph{module or library} where to look for it.  In this example we look for \ct{clock()} function in the standard C library. 
+\ct{#nbCall:module:} handles all of this using the description of the function you provided.
+Indeed, it has two arguments: the \emph{signature of the function} that will be invoked and the \emph{module or library} where to look for it.  
+In this example we look for \ct{clock()} function in the standard C library. 
 
 The signature is described by an array: here \ct{#(int clock ())}.
 \begin{itemize} 
@@ -186,72 +168,73 @@ The signature is described by an array: here \ct{#(int clock ())}.
 \item Its third element is also an array which describes the function parameters if there's any. 
 \end{itemize}
 
-Basically, if you strip down outer \#(), what is inside is a C function prototype, which is very close to normal C syntax. This is intentionally done so,
-that in most cases you can actually copy-and-paste a complete C function declaration, taken from header file or from documentation, and it is ready for use.
+Basically, if you strip down outer \#(), what is inside is a C function prototype, which is very close to normal C syntax. 
+This is intentionally done so, that in most cases you can actually copy-and-paste a complete C function declaration, taken from header file or from documentation, and it is ready for use.
 
-The second argument, \ct{#module:}, is where you should specify a
-module name or its handle, where to look up for given function.
-NativeBoost provides a convenience method named \ct{CLibrary} to
-obtain a handle of the standard C library. In other cases (suppose you
-want to use some standalone library), you must specify either a
-library name, or full path to it, or handle to already loaded library.
-You must use NativeBoost methods to load an external library (and
-hence obtain handle of it) before making any calls to it. For example:
-\ct{NativeBoost forCurrentPlatform loadModule: 'nameOfModule'} loads
-the module \ct{'nameOfModule'}.\footnote{Module names are platform
-  dependent, so for example to load OpenGL library you may want to use
-  'OpenGL32' on windows and 'libGL.so' or even '/usr/lib/libGL.so' on
-  linux }
+The second argument, \ct{#module:}, should be a module name or its handle, where to look up the given function.
+\NativeBoost provides a convenience method named \ct{CLibrary} to obtain a handle of the standard C library. 
+In other cases (suppose you want to use some standalone library), you must specify either a library name, or a full path to it, or an handle to the already loaded library.
+You must use \NativeBoost methods to load an external library (and hence obtain handle on it) before making any calls to its functions. For example:
+
+\begin{code}{}
+"Loads the module named 'nameOfModule' "
+NativeBoost forCurrentPlatform loadModule: 'nameOfModule'
+\end{code}
+
+Note that module names are platform dependent, so for example to load the OpenGL library you may want to use `OpenGL32' on windows and `libGL.so' or even  `/usr/lib/libGL.so' on linux.
 
 
-\paragraph{About marshaling.} The return type is \ct{int} and not \ct{SmallInteger}. This is the same as with function arguments. They are all described in terms of C language. In general you don't have to worry too much about this, because the \Spock library knows how to map standard C values to Smalltalk objects and viceversa. So, when this message is executed, the return value will be turned into a \ct{SmallInteger}. Also, you can define new mappings for C types defined elsewhere, for example when wrapping libraries that define new C types, we will show that later. This conversion process for types from different languages is called \emph{marshalling}. We will see more examples of automatic conversions in this Chapter. 
+\paragraph{About marshaling.} In the \ct{clock} callout example above, the return type is \ct{int} and not \ct{SmallInteger}. This is the same as with function arguments. They are all described in terms of C language. In general you don't have to worry too much about this, because the \NativeBoost library knows how to map standard C values to Smalltalk objects and viceversa. So, when this message is executed, the return value will be converted into a \ct{SmallInteger}. 
+You can also define new mappings from C types to Smalltalk objects. 
+This is useful when wrapping libraries that define new C types as we will show later. 
+
+This conversion process for types from different languages is called \emph{marshalling}. 
+We will see more examples of automatic conversions\footnote{By automatic, we mean that they are already defined in the \NativeBoost library.} in this Chapter. 
 
 \subsection{Presentation Conventions}
 
-There are always three things to take into account when doing callouts:  a C function, a specification of the binding between C and Smalltalk, and location for such declaration at the Smalltalk level. 
+There are always three things to take into account when doing callouts:  a C function, a specification of the binding between C and Pharo, and the location of the binding declaration at the Smalltalk level. 
 
 \begin{enumerate}
 
-\item First, of course, is the signature of the C function we will call, this definition is the definition of the function from a C point of view. Through this book we describe it in a C header box as follows:
-
-\begin{description}
-\item [C header.] \ 
-
+	\item First, of course, is the signature of the C function we will call, this definition is the definition of the function from a C point of view. Through this book we describe it in a C header box as follows:
+	
+\textbf{C header}. 
 \begin{code}{}
 int clock (void)
 \end{code}
-\end{description}
 
 
-\item Second, how do we communicate between the C and Smalltalk worlds. That's the \emph{Primitive pragma}, which instructs a VM to actually "do the thing", when you run the corresponding smalltalk method. Also, note, that there is no hidden complexity behind this primitive. It does only one thing: runs a generated machine code, while the code generation logic are found in image and ready for study and modification.
+	\item Second, how do we communicate between the C and Smalltalk worlds. 
+	That's the purpose of the \emph{binding} declaration.
+	It includes the \emph{Primitive pragma} which instructs the VM to actually "do the thing", when you run the corresponding Smalltalk method. 
+	Also, note, that there is no hidden complexity behind this primitive. 
+	It does only one thing: runs a generated machine code, while the code generation logic is at the image-level and ready for study and modification.
 
-\begin{description}
-\item [Pragma declaration.] \ 
-
+\textbf{Pragma declaration}.	
 \begin{code}{}
-	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 \end{code}
 
-\end{description}
+	\item Third, we have to see how we organize the C calls from the Smalltalk side. 
+	Often we create a class that groups callout definitions. 
+	Such a class can then be used as an entry point to perform callouts.
 
-\item Third, we have to see how we organize the C calls from the Smalltalk side. Often we create a class that groups callout definitions. Such a class can then be used as an entry point to perform callouts.
-
-\begin{description}
-\item [Callout grouping.] \
+\textbf{Callout grouping}.
 
 \dothis{CExamples ticksSinceStart}
-\end{description}
 
 \end{enumerate}
 
 \section{Passing arguments to a function}
 
-The previous example was the simplest we could find: we asked for the execution of a function without parameters and got the results. Now let's look how we can execute functions that take arguments. 
+The previous \ct{clock} example was the one of the simplest possible.
+It executes a function without parameters and we got the result. 
+Now let's look how we can call functions that take arguments. 
 
-\subsection{Passing an integer}
+\subsection{Passing a method parameter}
 
-Let's try with a really simple function, \ct{abs()}, which takes
-an integer and returns its absolute value.
+Let's start with a really simple function: \ct{abs()}, which takes an integer and returns its absolute value.
 
 \begin{description}
 \item [C header.] \ 
@@ -274,42 +257,68 @@ CExamples class>>abs: anInteger
 
 Compared to the previous example, we changed the name of the function and added an argument. 
 When functions have arguments you have to specify two things for each of them:
-their type and the object that you want to be sent to the C function. That is, in the arguments array, we put the type
-of the argument, and after that, the \emph{name of the Smalltalk variable} we pass as argument. 
+their type and the object that you want to be sent to the C function. 
+That is, in the arguments array, we put the type of the argument (\ct{int} in this example), and after that, the \emph{name of the Smalltalk variable} we pass as argument. 
 
-Here \ct{anInteger} in \ct{#(int abs (int anInteger)} means that the variable is bound to the \ct{abs:} method parameter and will be converted to C int,
-when executing a call. 
+Here \ct{anInteger} in \ct{#(int abs (int anInteger)} means that the variable is bound to the \ct{abs:} method parameter and will be converted to a C int, when executing a call. 
 
-This type-and-name pairs will be repeated, separated by comma for each argument,
-as we will show in the next examples. 
-
+This type-and-name pairs will be repeated, separated by comma for each argument, as we will show in the next examples. 
 
 Now you can try printing this:
 
 \dothis{CExamples abs: -20.}
 
-\subsubsection{About arguments}
+\subsection{About arguments}
 
-In the callout code/declaration, we are expressing not one but \emph{two} different aspects: the obvious one is the C function signature, the other
-is which objects we are passing as arguments to the C function when the method is invoked. In this second aspect there are many possibilities. In our example the argument of the C function is the method argument: \ct{anInteger}. But it is not always necessary the case.
-
-You can also use some constants, and in that case it's not always necessary to specify the type of the argument. This is
-because NativeBoost automatically uses them as C 'int's: \ct{nil} and \ct{false} are converted to 0, and \ct{true} to 1. Numbers are converted to their respective value, and can be positive and negative. As the type for these constants is int, there is no need to use: \ct{int abs (int -45)} when you can use \ct{int abs (-45)}. 
-
-
-\subsubsection{About constants}
-Often some functions in C libraries taking an options or flags, and
-have a number of them declared using \#define in C header.
-You can, of course take these constant values from header and put then
-into your callout. But it is preferable to use a symbolic names for
-constants, which much less confusing than just bare numbers.
-For using symbolic constants you can create a class variable or
-variable in shared pool, and then use the constant name as argument in
-your callout.
+In the callout code/binding declaration, we are expressing not one but \emph{two} different aspects: the obvious one is the C function signature, the other one is the objects to pass as arguments to the C function when the method is invoked. 
+In this second aspect there are many possibilities. 
+In our example the argument of the C function is the method argument: \ct{anInteger}.
+But it is not always necessary the case.
+You can also use some constants, and in that case it's not always necessary to specify the type of the argument. 
+This is because \NativeBoost automatically uses them as C 'int's: \ct{nil} and \ct{false} are converted to 0, and \ct{true} to 1. 
+Numbers are converted to their respective value, and can be positive and negative. 
+% As the type for these constants is int, there is no need to use: \ct{int abs (int -45)} when you can use \ct{int abs (-45)}. 
 
 
-For example, imagine that we always pass a MyConstant value to our
-function. For this we can define it as a class variable in our class:
+\subsection{Passing literals}
+
+Imagine that we want to have a wrapper that always calls the \ct{abs} function with the number -45. 
+Then we directly define it as follows:
+
+\begin{code}{}
+CExamples class>>absMinusFortyFive
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ NBFFICallout nbCall: #( int abs (-45) ) module: NativeBoost CLibrary
+\end{code}
+
+Note that we omitted the type of the argument and directly write  \ct{int abs (-45)} instead of writing \ct{int abs (int -45)} since by default arguments are automatically converted to C int.
+
+
+% \subsection{Default primitives types}
+
+% \NativeBoost automatically converts the object passed as argument based on the signature declaration. 
+But, if the C function takes a float/double as argument for example, you must specify it in the signature:
+
+\begin{code}{}
+CExamples class>>floor: aFloat
+	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+	
+	^ NBFFICallout nbCall: #( double floor(double aFloat) ) module: NativeBoost CLibrary
+\end{code}
+
+and then you can use this method as follows: \ct{self mymethod: 4.5}
+
+\luc{Examples with more complex literals: arrays, ...}
+
+\subsection{Passing variables}
+
+Often some functions in C libraries take flags as arguments whose values are declared using \#define in C headers.
+You can, of course take these constant values from header and put them into your callout.
+But it is preferable to use a symbolic names for constants, which is much less confusing than just bare numbers.
+To use a symbolic constant you can create an instance-variable, a class-variable or a variable in shared pool, and then use the variable name as an argument in your callout.
+
+For example, imagine that we always pass a constant value to our function that is stored in a class variable of our class:
 
 \begin{code}{}
 Object subclass: #MyClass
@@ -320,22 +329,20 @@ Object subclass: #MyClass
 Then don't forget to initialize it properly:
 
 \begin{code}{}
-MyClass>>initialize
+MyClass class>>initialize
 	MyConstant := -45.
 \end{code}
 
-And so, in callout code, we can use it like following:
+And finally, in the callout code, we can use it like following:
 
 \begin{code}{}
 MyClass class>>absMinusFortyFive
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
-	^ NBFFICallout cdecl: #( int abs (MyConstant) ) module: NativeBoost CLibrary
+	^ NBFFICallout nbCall: #( int abs (MyConstant) ) module: NativeBoost CLibrary
 \end{code}
 
-
-
-
-You can also put constants, \ct{self} or any instance variable as arguments to a C call. Suppose you want to add this \ct{abs} wrapper (let us call it \ct{absoluteValue}) to the class \ct{SmallInteger}, so that we can execute \ct{-50 absoluteValue}.
+You can also pass \ct{self} or any instance variable as arguments to a C call. 
+Suppose you want to add the \ct{abs} function binding to the class \ct{SmallInteger} in a method named  \ct{absoluteValue}, so that we can execute \ct{-50 absoluteValue}.
 
 In that case we simply add the \ct{absoluteValue} method to \ct{SmallInteger}, and we directly pass \ct{self} as illustrated below.
 
@@ -343,46 +350,34 @@ In that case we simply add the \ct{absoluteValue} method to \ct{SmallInteger}, a
 SmallInteger>>absoluteValue
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
-	^ NBFFICallout cdecl: #( int abs (int self) ) module: NativeBoost CLibrary
+	^ NBFFICallout nbCall: #( int abs (int self) ) module: NativeBoost CLibrary
 \end{code}
 
-Imagine that we want to have a wrapper that always calls the absolute function with the number -45. Then we directly define it as follows:
-
-\begin{code}{}
-CExamples class>>absMinusFortyFive
-	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
-	
-	^ NBFFICallout cdecl: #( int abs (-45) ) module: NativeBoost CLibrary
-\end{code}
-
-Note that this time we don't put the type of the argument. It is is also possible to pass an instance variable, but we let you do it as an exercise.
+It is is also possible to pass an instance variable, but we let you do it as an exercise.
 
 \subsection{Passing strings}
-As you may know strings in C are sequences of characters terminated with a special character \ct{\0}. It is then interesting to see how \Spock deals with them since they are an important data structure in C. For this, we will call the very well known \ct{strlen} function. This function requires a string as argument and returns its
-number of characters. 
+As you may know strings in C are sequences of characters terminated with a special character: \ct{\0}. 
+It is then interesting to see how \NativeBoost deals with them since they are an important data structure in C. 
+For this, we will call the very well known \ct{strlen} function. 
+This function requires a string as argument and returns its number of characters. 
 
-
-\begin{description}
-\item [C header.] \ 
-
+\textbf{C header}. 
 \begin{code}{}
 int strlen ( const char * str );
 \end{code}
 
-\item [Pragma declaration.] \ 
-
+\textbf{Smalltalk binding}. 
 \begin{code}{}
 CExamples class>>stringLength: aString
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
-	^ NBFFICallout cdecl: #( int strlen (String aString) ) module: NativeBoost CLibrary
+	^ NBFFICallout nbCall: #( int strlen (String aString) ) module: NativeBoost CLibrary
 \end{code}
 
+\textbf{Callout grouping}. 
 
-\item [Callout grouping.] \ 
- 
 \dothis{CExamples stringLength: 'awesome!'}
-\end{description}
+
 
 
 \paragraph{Example analysis.} You may have noticed that the callout description is not exactly the same as the C function header. 
@@ -391,24 +386,26 @@ In the signature \ct{#( int strlen (String aString) )} there are two differences
 \begin{itemize}
 \item  The first difference is the const keyword of the argument. For those not used to C, 
 that's only a modifier keyword that the compiler takes into account to
-make some static validations at compile time. It's has no
+make some static validations at compile time. It has no
 value when describing the signature for calling a function at
 runtime.
 
-\item The second difference, an important one, is that specify that the argument is \ct{String aString} instead of \ct{char * aString}. 
-With \ct{String aString}, \Spock will automatic do the arguments conversion from Smalltalk strings to C strings (null terminated).
+\item The second difference, an important one, is the specification of the argument.
+It is declared as \ct{String aString} instead of \ct{char * aString}. 
+With \ct{String aString}, \NativeBoost will automatically do the arguments conversion from Smalltalk strings to C strings (null terminated).
 Therefore it is important to use String and not \ct{char *}. 
 
 In the example, the string passed will be put in an external C \ct{char} array and a null termination character will be added to it. 
-Also, this array will be automatically released after the call ends. Using \ct{(String aString)} is equivalent to \ct{(someString copyWith: (Character value:0)} as in \ct{CExamples stringLength: (someString copyWith: (Character value:0)}. Conversely, \Spock
-will take the C result value of calling the C function and convert it to a proper Smalltalk object, an Integer in this particular case.
+Also, this array will be automatically released after the call ends. 
+This automatic memory management is very useful but we can also control it as we will see later.
+
+Using \ct{(String aString)} is equivalent to \ct{(someString copyWith: (Character value:0)} as in \ct{CExamples stringLength: (someString copyWith: (Character value:0)}. 
+Conversely, \NativeBoost will take the C result value of calling the C function and convert it to a proper Smalltalk  Integer in this particular case.
 \end{itemize}
 
 
 \subsubsection{Passing two strings}
-To continue with the examples we will call \ct{strcmp}, which takes
-two arguments and returns -1, 0 or 1 depending on the relationship
-between both strings.
+We will now call the \ct{strcmp} function, which takes two strings as arguments and returns -1, 0 or 1 depending on the relationship between both strings.
 
 \begin{description}
 \item [C header.] \ 
@@ -417,13 +414,13 @@ between both strings.
 int strcmp ( const char * str1, const char * str2 );
 \end{code}
 
-\item [Pragma declaration.] \ 
+\item [Smalltalk binding.] \ 
 
 \begin{code}{}
 CExamples class>>stringCompare: aString with: anotherString
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
-	^ NBFFICallout cdecl: #( int strcmp (String aString, String anotherString) ) module: NativeBoost CLibrary
+	^ NBFFICallout nbCall: #( int strcmp (String aString, String anotherString) ) module: NativeBoost CLibrary
 \end{code}
 
 
@@ -436,13 +433,63 @@ CExamples class>>stringCompare: aString with: anotherString
 Notice that you can add arguments by appending them to the arguments array,
 using a comma to separate them. Also notice that you have to explicitly tell
 which object is going to be sent for each argument, as already told. In this
-case, aString is the first one and anotherString is the second.
+case, aString is the first one and anotherString is the second one.
 
 
+%--------------------------------------
+\section{Getting return value from a function}\label{sec:return_values}
+%--------------------------------------
 
-\subsection{Handling Heap-based Objects: Passing an Array}
-So far we only used objects that were taken from the Smalltalk heap and pushed into the C stack (doing the corresponding marshalling). 
-That means that until now we only passed copies of the arguments, or that we passed them \emph{by-value}. With the next example we will show how \Spock supports to pass objects \emph{by-reference}, so that they can be modified by the external world.
+Symmetrically to arguments, returned values are also marshaled, it means that C values are converted to Smalltalk objects. 
+
+We already saw that implicitly through multiple examples since the beginning of the chapter.
+For example in the \ct{abs} example, the result is converted from an int to a SmallInteger.
+In the \ct{floor} example, the  result is converted from a double to a Float.
+\luc{verify return types. verify auto-conversions between SmallInteger <-> LargeInteger. Example: abs(-16rFFFFFFFF) where -16rFFFFFFFF is a LargeNegativeInteger whereas we defined the parameter as an int }
+
+
+\luc{find an example: a simple function that returns a pointer type}
+
+
+% Let's consider the function \ct{strchr} of the \texttt{libc} and the following binding:
+% \luc{BAD EXAMPLE because Strings are passed by copy and then the result makes no sense.}
+% 
+% \begin{description}
+% \item [C header.] \ 
+% 
+% \begin{code}{}
+% char * strchr(const char *s, int c);
+% \end{code}
+% 
+% \item [Smalltalk binding.] \ 
+% 
+% \begin{code}{}
+% CExamples class>>string: aString searchAsciiCode: asciiCode
+% 	"self string: 'awesome!' searchCharacter: ($m asciiValue)"
+% 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
+% 
+% 	^ NBFFICallout nbCall: #( String strchr(char* aString, int asciiCode) ) module: NativeBoost CLibrary
+% \end{code}
+% 
+% 
+% \item [Callout grouping.] \ 
+%  
+% \dothis{CExamples string: 'awesome!' searchCharacter: \$s}
+% 
+% \end{description}
+
+
+\luc{illustrate that when NULL (a pointer with value 0) is returned, it is automatically converted to nil}
+
+
+%--------------------------------------
+\section{About Heap Memory}\label{sec:aboutMemory}
+%--------------------------------------
+
+\subsection{Passing a Smalltalk object by reference}
+
+So far we only used objects that were taken from the Smalltalk heap and pushed into the C stack (doing the corresponding marshaling). 
+That means that until now we only passed copies of the arguments, or that we passed them \emph{by-value}. With the next example we will show how \NativeBoost supports to pass objects \emph{by-reference}, so that they can be modified by the external world.
 \sd{here}
 The next example adds a bit more complexity: we are going to send a ByteArray
 to the \ct{memset} function. \ct{memset} fills an array with one value (literally \ct{man} defines it as: "fill a byte string with a byte value").
@@ -455,61 +502,49 @@ void * memset ( void * ptr, int value, int num );
 \end{code}
 Sets the first num bytes of the block of memory pointed by ptr to the specified value
 
-\item [Pragma declaration.] \ 
+\item [Smalltalk binding.] \ 
 
 \begin{code}{}
 CExamples class>>memorySet: aByteArray with: anInteger for: aByteCount
 	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
 	
-	^ NBFFICallout cdecl: #( void* memset (char* aByteArray, int anInteger, int aByteCount) ) module: NativeBoost CLibrary
+	^ NBFFICallout nbCall: #( void* memset (char* aByteArray, int anInteger, int aByteCount) ) module: NativeBoost CLibrary
 \end{code}
 
 
 \item [Callout grouping.] \ 
  
 \dothis{ 
-\\array := ByteArray new: 10.\\
-CExamples memorySet: array with: 100 for: 5.\\
-array}
+array := ByteArray new: 10.\\
+\hspace*{0.8cm}CExamples memorySet: array with: 100 for: 5.\\
+\hspace*{0.8cm}array}
 
 \end{description}
 
-As you should notice, this time Spock takes care of finding out the memory address where aByteArray lives and pushes a pointer to it as the first argument of \ct{memset}. After executing the example you can see that the byte array elements were actually changed. 
+As you should notice, this time \NativeBoost takes care of finding out the memory address where aByteArray lives and pushes a pointer to it as the first argument of \ct{memset}. After executing the example you can see that the byte array elements were actually changed. 
 
-Then, there is an important difference between passing arrays and passing strings. The expert user would notice that string functions in C language expects to receive a pointer to contiguous memory bytes ending with a null character to delimit its length.  \Spock is responsible for copying the string to a bigger buffer and inserting this special end character. This means that strings are passed by-copy, while on the other hand byte arrays are passed by reference!
+Then, there is an important difference between passing arrays and passing strings. The expert user would notice that string functions in C language expects to receive a pointer to contiguous memory bytes ending with a null character to delimit its length.  \NativeBoost is responsible for copying the string to a bigger buffer and inserting this special end character. This means that Smalltalk String objects are passed by-copy, while on the other hand byte arrays are passed by reference!
 
-Also for expert users, you may notice that in this last example, as sending a reference, we are sending to a native library a pointer to an object that lives in Smalltalk's memory. We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially move the objects to other places, so we have to be careful about this special behavior. This is really important in the case of asynchronous calls, so in that case special measures may need to be taken to avoid strange behavior. We have to be very careful when facing with C pointer arguments to Smalltalk's memory. We will talk about asynchronous FFI on the latest sections.
+You also may notice in this last example that we are sending a pointer to an object that lives in Smalltalk's memory to a native library. 
+We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially moves objects to other places.
+This is really important because if we pass a pointer to an object to external function, then the GC moves this object and then the C function tries to directly access the memory where the object was, it will surely goes wrong.
+This problem must be addressed by a FFI that supports asynchronous calls because the GC may run during callouts.
+We will talk about asynchronous FFI on the latest sections.
 
-\subsection{Default primitives types}
+This method of passing object references (pointers to the Smalltalk's heap) to external functions is easy because it is automatically handled by \NativeBoost.
+Nevertheless, we have to be very careful when dealing with C pointer arguments to the Smalltalk's memory. 
 
-\Spock automatically converts the object passed as argument based on the signature declaration. 
-For example if function takes float/double argument you specify it in signature:
+\luc{how to deal with the result void*?}
 
-\begin{code}{}
-CExamples class>>mymethod: anArg
-	<primitive: #primitiveNativeCall module: #NativeBoostPlugin>
-	
-	^ NBFFICallout cdecl: #( int foo ( double anArg) )
-\end{code}
+\subsection{User-defined external objects} % (fold)
 
-and then you can use this method as follows: \ct{self mymethod: 4.5}
-
-
-
-
+\luc{todo}
 how to access "objects" in external memory: for example you call from smalltalk malloc for that you get an external pointer.
 
 
+\section{Using C structures}
 
-
-
-\section{Todo}
-
-\begin{itemize}
-\item instance variables as argument in C-function signature declaration including self.
-\item default options
-\item returned null value as nil
-\item external object (automatically has a handle)
+external object (automatically has a handle)
 CairoSurface inherits from NBExternalObject (which manages the opaque handle to the CairoSurface C structure then 
 
 \begin{code}{}
@@ -518,18 +553,27 @@ create
 	call: CairoSurface	fct 
 \end{code}	
 
-
-\item	
-	NBExternalObjectType is responsible for the generation of the code
-	
-\end{itemize}
+NBExternalObjectType is responsible for the generation of the code
 
 
-\section{Using C structures}
+\section{Callbacks}
+
 
 \section{Loading code from other libraries}
 
+
 \section{Asynchronous FFI}
+
+
+% ********************************************************************************
+\section{Todo}
+% ********************************************************************************
+
+\begin{itemize}
+\item default options \luc{what does it mean?}
+\item calling conventions: cdecl...
+\end{itemize}
+
 
 \section{Behind the scenes: NativeBoost naked!}
 
@@ -633,7 +677,7 @@ With most well written libraries, the contents of the structures
 they declare is private to their internals. They are opaque, in the
 sense that you may not know nor care what bits they have inside,
 because you only change them through calls to the library.
-For that kind of structures, Spock has the NBExternalObject.
+For that kind of structures, \NativeBoost has the NBExternalObject.
 Our wrapping classes inherit from NBExternalObject, which is
 made for this situation, where we don't need to fill the fields
 of the structs.
@@ -678,7 +722,7 @@ In the creation method, we declare the function as returning a
 NBCairoImageSurface, but actually it is returning a cairo\_surface\_t
 pointer. The same happens on the destroy method which is described
 as an NBCairoSurface, but actually is a cairo\_surface\_t pointer.
-In both cases, spock takes care of the conversion.
+In both cases, \NativeBoost takes care of the conversion.
 
 
 
@@ -912,188 +956,45 @@ AthensCairoSurface>>primWidth: aWidth height: aHeight
 % 
 % Next in the level of 
 
-\newpage
-\subsection{Original FFI stuff}
 
-Thanks to a Foreign Function Interface (FFI), it is possible to achieve this and interact with third-party libraries.
-Multiple FFI libraries are available in Pharo such as FFI (\url{http://wiki.squeak.org/squeak/1414}) and Alien (\url{http://www.squeaksource.com/Alien}).
-As an example the dynamic \texttt{OpenGL} library (.dll, .so or .dylib depending on the operating system) is used in Croquet through the FFI library and AlienOpenGL (\url{http://www.squeaksource.com/AlienOpenGL}) use it through the Alien library.
-
-In this chapter, we will describe what is a FFI library and how it works with the virtual machine. 
-We will then dive into the Alien library and learn how it can be used thanks to the AlienOpenGL example.
-
-\section{What is a FFI and how it works?}
-
-The Pharo image is loaded and executed by a virtual machine (VM) which is itself executed on the top of the operating system. 
-Two different virtual machines can be used for Pharo images: the squeak VM and the Cog VM.
-Regarding the general FFI mechanism, it is not really relevant to make a distinction\footnote{It worth noting that the Cog VM is younger and really faster than the Squeak VM but it still presents some small limitations and bugs at the time writing this book.} 
-Both are based on a plugin architecture.
-A plugin enable the Smalltalk code (in the image) to access third-party functionalities (outside the image and the VM).
-
-\begin{figure}[htbp]
-	\centering
-		\includegraphics[width=0.4\linewidth]{figs/plugins.pdf}
-	\caption{Pharo Architecture}
-	\label{fig:plugins}
-\end{figure}
-
-The Alien library uses the \emph{IA32ABI} plugin which ....
-
-
-
-\section{Using the Alien Library} \label{sec:the_alien_library} % (fold)
-
-\subsection{Installation} \label{sec:installation} % (fold)
-
-Alien is a Squeaksource project \url{http://www.squeaksource.com/Alien}. 
-Use the following code to install Alien in a Pharo 1.1 image:
-
-\begin{code}{}
-Gofer new
-	url: 'http://www.squeaksource.com/Alien' ;
-	package: 'ConfigurationOfAlien';
-	load.
-
-(Smalltalk at: #ConfigurationOfAlien) loadCore ; 
-	loadTests ; 
-	loadLibC.
-\end{code}
-
-Run the tests to ensure that Alien is well installed and that the VM plugin is correctly working.
-
-\subsection{First example} \label{subsec:first_example} % (fold)
-
-
-
-
-\subsection{Core Classes} 
-
-Figure~\ref{fig:alien_uml} shows an UML diagram of the Alien-Core package that contains the main classes of this library.
-
-\begin{figure}[htbp]
-	\centering
-		\includegraphics[width=0.9\linewidth]{figs/alien_uml}
-	\caption{Core classes of the Alien library}
-	\label{fig:alien_uml}
-\end{figure}
-
-
-
-\subsection{Memory management} \label{sec:memory_management} % (fold)
-
-
-\subsection{Calling an external C library from Smalltalk} \label{sec:calling_an_external_c_library_from_smalltalk} % (fold)
-
-
-\subsection{Callbacks from C to Smalltalk code} \label{sec:callbacks_from_c_to_smalltalk_code} % (fold)
-
-
-
-
-
-\section{Dissection of Alien} \label{sec:dissection_of_alien} % (fold)
-
-
-\paragraph{Alien}
-% copy/past from class comment
-% Instances of the Alien class represent actual parameters, return results and function pointers in FFI call-outs and call-backs and provide handles on external data.  See NewsqueakIA32ABIPlugin for the VM code that actually implements call-outs and call-backs.
+% ********************************************************************************
+% \subsection{OLD FFI stuff on Alien}
 % 
-% 	See the class-side examples category for some simple example workspaces.
+% Thanks to a Foreign Function Interface (FFI), it is possible to achieve this and interact with third-party libraries.
+% Multiple FFI libraries are available in Pharo such as FFI (\url{http://wiki.squeak.org/squeak/1414}) and Alien (\url{http://www.squeaksource.com/Alien}).
+% As an example the dynamic \texttt{OpenGL} library (.dll, .so or .dylib depending on the operating system) is used in Croquet through the FFI library and AlienOpenGL (\url{http://www.squeaksource.com/AlienOpenGL}) use it through the Alien library.
 % 
-% 	Aliens represent ABI (C language) data.  They can hold data directly in their bytes or indirectly by pointing to data on the C heap.  Alien instances are at least 5 bytes in length. The first 4 bytes of an Alien hold the size, as a signed integer, of the datum the instance is a proxy for.  If the size is positive then the Alien is "direct" and the actual datum resides in the object itself, starting at the 5th byte.  If the size is negative then the proxy is "indirect", is at least 8 bytes in length and the second 4 bytes hold the address of the datum, which is assumed to be on the C heap.  Any attempt to access data beyond the size will fail.  If the size is zero then the Alien is a pointer, the second 4 bytes hold a pointer, as for "indirect" Aliens, and accessing primitives indirect through the pointer to access data, but no bounds checking is performed.
+% In this chapter, we will describe what is a FFI library and how it works with the virtual machine. 
+% We will then dive into the Alien library and learn how it can be used thanks to the AlienOpenGL example.
+
+% \section{What is a FFI and how it works?}
 % 
-% 	When Aliens are used as parameters in FFI calls then all are "passed by value", so that e.g. a 4 byte direct alien will have its 4 bytes of data passed, and a 12-byte indirect alien will have the 12 bytes its address references passed.  Pointer aliens will have their 4 byte pointer passed.  So indirect and pointer aliens are equivalent for accessing data but different when passed as parameters, indirect Aliens passing the data and pointer Aliens passing the pointer.
+% The Pharo image is loaded and executed by a virtual machine (VM) which is itself executed on the top of the operating system. 
+% Two different virtual machines can be used for Pharo images: the squeak VM and the Cog VM.
+% Regarding the general FFI mechanism, it is not really relevant to make a distinction\footnote{It worth noting that the Cog VM is younger and really faster than the Squeak VM but it still presents some small limitations and bugs at the time writing this book.} 
+% Both are based on a plugin architecture.
+% A plugin enable the Smalltalk code (in the image) to access third-party functionalities (outside the image and the VM).
 % 
-% 	Class Variables:
-% 	GCMallocedAliens <AlienWeakTable of <Alien -> Integer>> - weak collection of malloced aliens, used to free malloced memory of Aliens allocated with newGC:
-% 	LoadedLibraries <Dictionary of <String -> Alien>> - library name to library handle map
-% 	
-
-\paragraph{FFICallbackReturnValue} 
-% copy/past from class comment
-% An instance of FFICallbackReturnValue specifies a return value to be passed to a callback callee.  It is intended to have overlaid the following struct:
+% \begin{figure}[htbp]
+% 	\centering
+% 		\includegraphics[width=0.4\linewidth]{figs/plugins.pdf}
+% 	\caption{Pharo Architecture}
+% 	\label{fig:plugins}
+% \end{figure}
 % 
-% \begin{verbatim}
-% /*
-%  * Returning values from callbacks is done through a CallBackReturnSpec
-%  * which contains a type tag and values.  It is designed to be overlaid upon
-%  * an FFICallbackReturnProxy created at the Smalltalk level to return values.
-%  */
-% typedef struct {
-%     long type;
-% # define retint32  0 
-% # define retint64  1
-% # define retdouble 2
-% # define retstruct 3
-%     long _pad; /* so no doubt that valflt64 & valint32 et al are at byte 8 */
-%     union {
-%         long valint32;
-%         struct { long low, high; } valint64;
-%         double valflt64;
-%         struct { void *addr; long size; } valstruct;
-%     } rvs;
-% } CallBackReturnSpec;
-% \end{verbatim}
-
-
-\paragraph{FFICallbackThunk} 
-% copy/past from class comment
-
-% An instance of FFICallbackThunk is a reference to a machine-code thunk/trampoline that calls-back into the VM.  The reference can be passed to C code which can use it as a function pointer through which to call-back into Smalltalk.  The machine-code thunk/trampoline is different for each instance, hence its address is a unique key that can be used to assocuate the Smalltalk side of the call-back (e.g. a block) with the thunk.  Since thunks must be executable and some OSs may not provide default execute permission on memory returned by malloc we may not be able to use malloc directly.  Instead we rely on a primitive to provide memory that is guaranteed to be executable.  The FFICallbackThunk class>>allocateExectablePage primitive answers an Alien that references an executable piece of memory that is some (possiby unitary) multiple of the pagesize.  Class-side code then parcels out pieces of a page to individual thunks.  These pieces are recycled when thunks are reclaimed.  Since the first byte of a thunk is non-zero we can use it as a flag indicating if the piece is in use or not.
-% 
-% See Callback for the higher-level construct that represents a Smalltalk block to be run in response to a callback.  Callbacks wrap instances of FFICallbackThunk and arbitrary Alien instances that describe the stack layout for receiving arguments.
-% 
-% Class Variables
-% AccessProtect <Semaphore> critical section for ExecutablePages (de)allocation
-% AllocatedThunks <AlienWeakTable of <FFICallbackThunk -> Integer>> - weak collection of thunks, used to return thunk storage to the executable page pool.
-% ExecutablePages <Set of: Alien "executable page"> - collection of pages with execute permissions used to provide executable thunks
-
-
-\paragraph{UnsafeAlien}
-% copy/past from class comment
-
-% Instances of UnsafeAlien represent the addresses of heap-resident non-pointer Smalltalk objects as actual parameters in FFI call-outs.  An UnsafeAlien on (e.g.) a ByteString used as a parameter in an FFI call causes the FFI machinery to pass the address of the first byte in the ByteString.  THIS IS UNSAFE!  It is unsafe because
-% a) the garbage collector can potentially move the ByteString (or any other object) during the call, because the call may call-back, invoking the garbage collector,
-% b) if external code retains the address for longer than the duration of the call and dereferences it in a subsequent call the object may have moved in the mean time,
-% c) the address of the object is passed without any other potentially necessary conversions such as null-termination
-% d) the hundred other problems this benighted author hasn't thought of.
-% Hence UnsafeAlien is to be used carefully by clients that know that the usage is safe.
-% You have been warned ;)
-% 
-% Create instances via
-% 	UnsafeAlien forPointerTo: 'You are on your own!', (ByteString with: (Character value: 0))
-
-\paragraph{AlienLibrary}
-% copy/past from class comment
-
-\paragraph{Callback}
-% copy/past from class comment
-% Callbacks encapsulate callbacks from the outside world.  They allow Smalltalk blocks to be evaluated and answer their results to external (e.g. C) callees.
-% 
-% Instance Variables:
-% block <BlockContext> - The Smalltalk code to be run in response to external code invoking the callback.
-% thunk <FFICallbackThunk> - the wrapper around the machine-code thunk that initiates the callback and whose address should be passed to C
-% argsProxy <Alien> - the wrapper around the thunk's incomming stack pointer, used to extract arguments from the stack.
-% resultProxy <FFICalbackReturnValue> - the specification of the block's return value and its C type so that the result can be passed back in the right low-level form.
-% 
-% Class Variables:
-% ThunkToCallbackMap <Dictionary of: thunkAddress <Integer> -> callback <Callback>> - used to lookup the Callback associated with a specific thunk address on callback.  See FFICallbackThunk.
-
-\paragraph{AlienWeakTable}
-% copy/past from class comment
-
-% This class supports simple post-mortem finalization of values associated with gc'ed objects.  An object to be finalized is registered in the table together with another object called 'the tag'. The finalizable object is held onto by the table weakly, the tag object--strongly. A table is initialized with the owner object, which is the object that performs the actual finalization. Some time after a finalizable object is garbage-collected, the owner is sent the \#finalize: message with the object's tag as the argument.
-% 
-% Instance Variables:
-% 	accessProtect <Semaphore>  - A mutex protecting state
-% 	firstUnusedIndex <Integer> - The lowest index in strongArray that is empty (an invariant)
-% 	lastUsedIndex <Integer> - The highest index in strongArray that is not empty (an invariant)
-% 	weakArray <WeakArray> - The array of objects whose death we're interested in.
-% 	strongArray <Array> - The array of corresponding objects that wll be passed to the owner when their corresponding element in weakArray is garbage collected.
-% 	owner <Object> - The object that is sent finalize: with the tag of an object that has been garbage-collected.
+% The Alien library uses the \emph{IA32ABI} plugin which ....
 % 
 
-\section{Study Case: the AlienOpenGL package} \label{sec:example_the_alienopengl_package} % (fold)
+% \subsection{Core Classes} 
+% 
+% Figure~\ref{fig:alien_uml} shows an UML diagram of the Alien-Core package that contains the main classes of this library.
+% 
+% \begin{figure}[htbp]
+% 	\centering
+% 		\includegraphics[width=0.9\linewidth]{figs/alien_uml}
+% 	\caption{Core classes of the Alien library}
+% 	\label{fig:alien_uml}
+% \end{figure}
 
 
 %=================================================================
