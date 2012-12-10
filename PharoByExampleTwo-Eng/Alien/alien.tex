@@ -481,6 +481,7 @@ In the \ct{floor} example, the  result is converted from a double to a Float.
 
 \luc{illustrate that when NULL (a pointer with value 0) is returned, it is automatically converted to nil}
 
+\luc{how to deal with the result void*?}
 
 %--------------------------------------
 \section{About Heap Memory}\label{sec:aboutMemory}
@@ -525,21 +526,78 @@ As you should notice, this time \NativeBoost takes care of finding out the memor
 
 Then, there is an important difference between passing arrays and passing strings. The expert user would notice that string functions in C language expects to receive a pointer to contiguous memory bytes ending with a null character to delimit its length.  \NativeBoost is responsible for copying the string to a bigger buffer and inserting this special end character. This means that Smalltalk String objects are passed by-copy, while on the other hand byte arrays are passed by reference!
 
-You also may notice in this last example that we are sending a pointer to an object that lives in Smalltalk's memory to a native library. 
-We already know that Smalltalk's memory is auto cleaned by a garbage collector that potentially moves objects to other places.
-This is really important because if we pass a pointer to an object to external function, then the GC moves this object and then the C function tries to directly access the memory where the object was, it will surely goes wrong.
+
+\subsubsection{Be careful with ownership-type pointers} 
+
+You also may notice in this last example that we are sending a regular Smalltalk object handle to a native library. 
+Indeed, the ByteArray objet lives in the Smalltalk's memory.
+\NativeBoost allows you to pass an objet handle as a pointer argument to a C function. 
+We call ownership-type pointers these kind of pointers whose values are addresses in the Smalltalk memory.
+
+But there are some kind of C functions where it is dangerous or impossible to do that.
+In such cases, no error or warning will happen, you will probably just get fatal consequences (memory corruption/segmentation fault followed by imminent crash).
+That is why it is important to understand these potential problems.
+
+A first problem comes from the Garbage Collector (GC). 
+It is responsible to auto cleaned the Smalltalk's memory and potentially moves objects to other places.
+So, if we pass an ownership-type pointer to an external function and hen the GC runs.
+During GC compaction phase any object in object memory can be relocated into different memory region.
+Finally, when the external library will try to access memory (read/write) using the ownership-type pointer, it will do it at previous object location, that results in fatal consequences.
 This problem must be addressed by a FFI that supports asynchronous calls because the GC may run during callouts.
-We will talk about asynchronous FFI on the latest sections.
+We will talk about asynchronous callouts later in this chapter.
 
-This method of passing object references (pointers to the Smalltalk's heap) to external functions is easy because it is automatically handled by \NativeBoost.
-Nevertheless, we have to be very careful when dealing with C pointer arguments to the Smalltalk's memory. 
+Another problem is when a function which stores (remembers) the ownership-type pointer value somewhere for later use. Since usually we cannot tell if an external library will store such a pointer, we cannot tell it to patch the pointer value each time the referenced object is relocated by the GC in the object memory.
+To know if a function takes an ownership on some pointer, which is passed as argument to it, refer to function documentation or check its implementation (if it is available). 
 
-\luc{how to deal with the result void*?}
+To sum up, this method of passing object references (pointers to the Smalltalk's heap) to external functions is easy and simple because it is automatically handled by \NativeBoost.
+Nevertheless, it is dangerous and we have to be very careful when dealing with C pointer arguments to the Smalltalk's memory. 
 
-\subsection{User-defined external objects} % (fold)
+If you're not sure, the rule is to avoid passing pointers to your data like byte arrays, residing in object memory to external functions.
+The alternative solution is to always use pointers to externally allocated memory as presented in the next section.
 
-\luc{todo}
-how to access "objects" in external memory: for example you call from smalltalk malloc for that you get an external pointer.
+\subsection{External heap management} % (fold)
+
+% \luc{todo}
+% how to access "objects" in external memory: for example you call from smalltalk malloc for that you get an external pointer.
+
+NativeBoost provides some external heap management functionalities, including: 
+
+\begin{itemize}
+	\item allocating/deallocating external memory (\ct{allocate:} and \ct{free:})
+	\item copying data between two memory locations (\ct{memCopy:to:size:})
+\end{itemize}
+
+\luc{find a real example and show the binding of \ct{externalFunction:} with the types.}
+
+Let's see a general example.
+
+\begin{code}{}	
+"Allocate memory in the external heap"
+mem := NativeBoost allocate: 10.
+
+"Allocate memory a ByteArray in the Smalltalk's heap"
+bytes := #[1 2 3 4 5 6 7 8 9 10] copy.
+
+"Copy data from Smalltalk heap to external heap"
+NativeBoost memCopy: bytes to: mem  size: 10. 	
+
+"Call external function passing data in the external heap"
+self externalFunction: mem.
+
+"Recopy data from the external heap to the Smalltalk's one"
+NativeBoost memCopy: mem to: bytes size: 10. 	
+
+"Free external heap memory"
+NativeBoost free: mem.
+\end{code}
+
+Note, that external memory must be freed explicitly (using \ct{free:}) since there is no garbage collection to clean it up.
+So, if you forget to free the external memory, this forms a resource leak, and eventually, if you do this repeatedly, you will no longer be able to allocate new memory, because there is no free memory left.
+
+
+
+
+
 
 
 \section{Using C structures}
