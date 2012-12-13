@@ -3,7 +3,7 @@
 % $Revision: 32942 $
 
 % HISTORY:
-% 2012-11-11: Stephane is doing a pass after Andre's one.
+% 2012-12-13: Jannik is fixing chapter to compile correctly
 
 %=================================================================
 \ifx\wholebook\relax\else
@@ -17,7 +17,6 @@
 		ignoreheadfoot
 	]{geometry}
 	\input{../common.tex}
-	\pagestyle{headings}
 	\setboolean{lulu}{true}
 % --------------------------------------------
 % A4:
@@ -27,16 +26,14 @@
 % --------------------------------------------
     \graphicspath{{figures/} {../figures/}}
 	\begin{document}
-	% \renewcommand{\nnbb}[2]{} % Disable editorial comments
-	\sloppy
 \fi
 %=================================================================
-
-%=================================================================
-
+%\renewcommand{\nnbb}[2]{} % Disable editorial comments
+\sloppy
 
 %\chapter{Validation et Transformations de code automatique en Pharo}
 \chapter{SmallLint: static analysis in Pharo}
+\chalabel{lint}
 
 \newcommand{\todo}[0]{ToDo}
 \newcommand{\todos}[0]{ToDos}
@@ -441,8 +438,12 @@ rulesGroupedFor: RBSpellingRule) name: 'Spelling')
 'Collections-Abstract'))
 \end{code}
 
+%=================================================================
 
-\end{document}
+\ifx\wholebook\relax\else\end{document}\fi
+%=================================================================
+
+%-----------------------------------------------------------------
 
 
 %%% Local Variables: 
