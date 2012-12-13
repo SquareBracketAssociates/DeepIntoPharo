@@ -46,8 +46,6 @@ Being able to check that the code of your application follows certain rules is i
 
 
 
-\ja{I cannot compile the latex because of the use of \#. what does it mean ? Is it a special character or could we remove them ?}
-
 \section{Ensuring Quality}
 
 %Agile, Tests, Checking
@@ -70,12 +68,7 @@ Basically, three types of smells can be found in source code at different levels
 %SimpleLatexDoc exportLatexDocForRules
 
 
-\section{Existing SmallLint Rules}\label{existingRules}
-SmallLint is a tool that analyses Pharo code and identifies bugs, design problems and other mismatches to recommanded idioms. 
 
-\ja{this section is really hard to read because it is a list of items that does not explain why I want to use them. Ideas to improve the section: for each subsection add a sentence explaining the title (Example: what is Style, or Potential bugs ?). I think also that this section should be just before "defining your own rules". Like that you have: introduction, then the use of the tools and the reader can play with rules, and the real things about implemented rules and how to implement new ones.}
-
-\input{SmallLint-rules}
 
 
 \section{Using Code Critics}
@@ -173,7 +166,12 @@ If a rule is irelevante for your project, you can ban this rule for all selected
 \caption{Looking at the undeclared variable bug (left) and Banning one single critic (right)}
 \end{figure}
 
+\section{Existing SmallLint Rules}\label{existingRules}
+SmallLint is a tool that analyses Pharo code and identifies bugs, design problems and other mismatches to recommended idioms. 
 
+\ja{this section is really hard to read because it is a list of items that does not explain why I want to use them. Ideas to improve the section: for each subsection add a sentence explaining the title (Example: what is Style, or Potential bugs ?). I think also that this section should be just before "defining your own rules". Like that you have: introduction, then the use of the tools and the reader can play with rules, and the real things about implemented rules and how to implement new ones.}
+
+\input{SmallLint-rules}
 
 
 \section{Defining Your Own Rules}
@@ -189,19 +187,19 @@ SmallLint provide three different way to define rules.
 Block rules use the Smalltalk reflective API. They can be created to find methods that should be not invoked, style consistence such capitalization or variable name length, class or method size, classes not commented, variables not referenced, instance variables defined in all subclasses, among others. In resume, every thing that is possible to do using the Smalltalk reflective API can be used in a block rule. This includes access to the Smalltalk model which allows the easy navigation through classes (and their superclasses and subclasses), methods, variables, arguments, comments, invocations, etc.
 
 These rules are created by extending the class RBBlockLintRule.
- Block rules can be defined at two levels, class or method. If the rule checks a class property or violation (eg, the presence of a class comment), this rule must implement #checkClass:. Similarly, a rule checks  a method property, the rule must implement #checkMethod:.
+ Block rules can be defined at two levels, class or method. If the rule checks a class property or violation (eg, the presence of a class comment), this rule must implement \ct{checkClass:}. Similarly, a rule checks  a method property, the rule must implement \ct{checkMethod:}.
 
 \paragraph{Defining Simple Rules}
-Take as example the definition of a simple rule:  when a class defines #=, it also have to defines  #hash. If #hash is not defined then the instances of the class might not be able to be used in sets since equal element must have the same hash.
+Take as example the definition of a simple rule:  when a class defines \ct{=}, it also have to defines  \ct{hash}. If \ct{hash} is not defined then the instances of the class might not be able to be used in sets since equal element must have the same hash.
 
-This rules (RBDefinesEqualNotHashRule) is a class property so we must implement #ckecClass:. Before, we implement #resultClass. This method returns the type of environement which will contains violations of the rule. For a rule at the level of class, the environment is RBClassEnvironment and RBMethodEnvironment for  a rule at the level of method.
+This rules (\ct{RBDefinesEqualNotHashRule}) is a class property so we must implement \ct{ckecClass:}. Before, we implement \ct{resultClass}. This method returns the type of environment which will contains violations of the rule. For a rule at the level of class, the environment is \ct{RBClassEnvironment} and \ct{RBMethodEnvironment} for  a rule at the level of method.
 
 \begin{code}{}
-RBDefinesEqualNotHashRule>>#resultClass
+RBDefinesEqualNotHashRule>>resultClass
 	^ RBClassEnvironment
 \end{code}
 
-The methods #checkClass: and #checkMethod: receive in parameter the object \emph{aContext},  instance of RBSmalllintContext. This object contains information about the method/class who is currently check. For example, the method RBSmalllintContext>>#selectedClass returns the class currently check. In the case where we access to this object from #checkClass:, \emph{aContext} can provide the currently compile method chech (RBSmalllintContext>>#compiledMethod) or all messages send from this method (RBSmalllintContext>>#messages).
+The methods \ct{checkClass:} and \ct{checkMethod:} receive in parameter the object \ct{aContext},  instance of RBSmalllintContext. This object contains information about the method/class who is currently check. For example, the method \ct{RBSmalllintContext>>selectedClass} returns the class currently check. In the case where we access to this object from \ct{checkClass:}, \ct{aContext} can provide the currently compiled method check (\ct{RBSmalllintContext>>compiledMethod}) or all messages send from this method (\ct{RBSmalllintContext>>messages}).
 
 When the current class check violates the rule, this class is added to the enviroment which contains the set of found violation: result addClass: aContext selectedClass. 
 
@@ -214,19 +212,20 @@ RBDefinesEqualNotHashRule>>#checkClass: aContext
 
 
 
-Finally, the RBLintRule interface provide three methods at implement for described (#name and #longDescription) and categorize this rule (#category). The categories are \emph{Bugs}, \emph{Potential Bugs}, \emph{Optimization}, \emph{Design Flaws}, \emph{Coding Idiom Violation} and \emph{Style}. It is possible to add new category.
+Finally, the RBLintRule interface provide three methods at implement for described (\ct{name} and \ct{longDescription}) and categorize this rule (\ct{category}). The categories are \emph{Bugs}, \emph{Potential Bugs}, \emph{Optimization}, \emph{Design Flaws}, \emph{Coding Idiom Violation} and \emph{Style}. It is possible to add new category.
+
 \begin{code}{}
-RBDefinesEqualNotHashRule>>#name
+RBDefinesEqualNotHashRule>>name
 	^ 'Defines = but not hash'
 \end{code}
 
 \begin{code}{}
-RBDefinesEqualNotHashRule>>#longDescription
+RBDefinesEqualNotHashRule>>longDescription
 	^ 'This smell arises when a class defines #= also and not #hash. If #hash is not defined then the instances of the class might not be able to be used in sets since equal element must have the same hash.'
 \end{code}
 
 \begin{code}{}
-category 
+RBDefinesEqualNotHashRule>>category 
 	^ 'Potential Bugs'
 \end{code}
 
@@ -256,6 +255,7 @@ RBAssignmentWithoutEffectRule>>#initialize
 
 
 \ja{what are the following sections ?}
+\sd{part to translate, parts to remove, part to move to the other chapter}
 
 \section{Junk}
 
