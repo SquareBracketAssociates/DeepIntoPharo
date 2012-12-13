@@ -46,7 +46,7 @@ Being able to check that the code of your application follows certain rules is i
 
 
 
-
+\ja{I cannot compile the latex because of the use of \#. what does it mean ? Is it a special character or could we remove them ?}
 
 \section{Ensuring Quality}
 
@@ -59,7 +59,7 @@ Also, software developers who are tasked with software maintenance (e.g., develo
 Awareness of smells enable designers to make well-informed design decisions and developers to avoid introducing smells in the software. 
 
 As defined by Martin Fowler, smells are certain structures in the code that suggest (sometimes they scream for) the possibility of refactoring.
-Basically, three types of smells can be found in source code at different levels: architectural, design and implementation. The architectural level includes smells such as "god package" and "cyclical dependency between packages". The design (or micro-architectural) level includes smells such as "cyclic hierarchy" and "large abstraction". Finally, the implementation level includes smells such as "improper name length" and "variables having constant value". Smalllint aims the detection of smells at design and implementation level, so this chapter is limited to such types of smells.
+Basically, three types of smells can be found in source code at different levels: architectural, design and implementation. \ja{remote the following sentence or explain each term. For a non expert, it is not clear what is behind each concept.}The architectural level includes smells such as "god package" and "cyclical dependency between packages". The design (or micro-architectural) level includes smells such as "cyclic hierarchy" and "large abstraction". Finally, the implementation level includes smells such as "improper name length" and "variables having constant value". Smalllint aims the detection of smells at design and implementation level, so this chapter is limited \ja{why limited ? it is a negative word. Maybe say: SmallInt has infinite possibilities that cannot be explained in this chapter, so we explain the main mechanisms by detailing such types of smell} to such types of smells.
 
 %This section can be automatically exported from the comments in #longDescription in each Smalllint rule:
 %Gofer new
@@ -72,6 +72,8 @@ Basically, three types of smells can be found in source code at different levels
 
 \section{Existing SmallLint Rules}\label{existingRules}
 SmallLint is a tool that analyses Pharo code and identifies bugs, design problems and other mismatches to recommanded idioms. 
+
+\ja{this section is really hard to read because it is a list of items that does not explain why I want to use them. Ideas to improve the section: for each subsection add a sentence explaining the title (Example: what is Style, or Potential bugs ?). I think also that this section should be just before "defining your own rules". Like that you have: introduction, then the use of the tools and the reader can play with rules, and the real things about implemented rules and how to implement new ones.}
 
 \input{SmallLint-rules}
 
@@ -253,7 +255,7 @@ RBAssignmentWithoutEffectRule>>#initialize
 
 
 
-
+\ja{what are the following sections ?}
 
 \section{Junk}
 
