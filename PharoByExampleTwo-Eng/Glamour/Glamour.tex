@@ -60,7 +60,7 @@ part, we will jump into details.
 
 To install Glamour on your \pharo{} image execute the following code:
 
-\ja{i cannot load this code in PharoCore 1.3. We need a stable version} \alex{Strange, I just tried and it works with a 13299} \ja{ok, I should try again. But I am not sure that we must have loadDefault. We need a fixed version, like that, the source code will work in 3 years.}\ab{We will check this before publishing the book}
+\ja{i cannot load this code in PharoCore 2.0. We need a stable version}\ja{I am not sure that we must have loadDefault. We need a fixed version, like that, the source code will work in 3 years.}\ab{We will check this before publishing the book}
 \begin{code}{}
 Gofer new
   squeaksource: 'Glamour'; 
@@ -184,6 +184,7 @@ browser show: [:a |
   		display: [:entry | [entry readStream contents]
                             on: Exception
                         	do:['Can''t display the content of this file']]].
+	
 browser openOn: FileSystem disk root.
 \end{code}     
                         
@@ -715,7 +716,7 @@ the name of the tab used to render the presentation.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=\linewidth]{mondrian-presentation.png}}
-\caption{Code editor sporting a Mondrian presentation in addition to a simple class list.}
+\caption{Code editor sporting a Mondrian \ja{is it still available ?} presentation in addition to a simple class list.}
 \label{fig:mondrian-presentation}
 \end{figure}
 
