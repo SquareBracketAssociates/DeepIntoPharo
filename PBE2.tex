@@ -102,8 +102,9 @@
 
 \input{Glamour/Glamour.tex}
 % 99.9%
-% veronica is doing a last pass
-% Minor comments are left, they need to be addressed just before publishing the book. The comments are about a ref to the Mondrian chapter and the Metacello invocation to load Glamour.
+% 21/12/2012 (end of the world) -- ConfigurationOfGlamour does not load in a Pharo 2.0.
+% There are some references to Mondrian. Does it work with Roassal ? If yes, we have to clean the text and the source code.
+% Minor comments are left, they need to be addressed just before publishing the book. The comments are about a ref to the Roassal chapter and the Metacello invocation to load Glamour.
 
 \input{Roassal/Roassal.tex}
 % 80%
@@ -127,17 +128,15 @@
 % verify source code
 % Part are missing.
 
-\input{Float/Float.tex} %% Alexandre
-% 60
-%% be merged with little number
-% verify source code
-
 \input{LittleNumbers/LittleNumbers.tex}
 % 90
 % to read
-% merge with float ?
 % verify source code
 % Quick pass is necessary
+
+\input{Float/Float.tex} %% Alexandre
+% 60
+% verify source code
 
 \part{Libraries}
 \input{FileSystem/FileSystem.tex} 
