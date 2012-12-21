@@ -43,7 +43,7 @@
 \chapter{PetitParser}
 \chalabel{petitparser}
 
-\chapterauthor{\authorlukas{}}
+\chapterauthor{\authorlukas{}, \authorjankurz{}, and \authorguillaume{}}
 
 \newcommand{\ppmthind}[1]{\clsmthind{PPParser}{#1}}
 
@@ -95,7 +95,7 @@ parser methodologies:
 
 Enough talking, let's get started. PetitParser is developed in Pharo,
 and there are also versions for Java and Dart available. A ready made
-image can be downloaded\footnotemark. To load PetitParser into an
+image can be downloaded.\footnotemark To load PetitParser into an
 existing image evaluate the following Gofer expression:
 
 \footnotetext{\url{http://hudson.lukas-renggli.ch/job/PetitParser/lastSuccessfulBuild/artifact/petitparser}}
@@ -116,7 +116,7 @@ analyze and transform grammars; and PetitGui is a Glamour IDE (see
 these packages for now.
 
 More information on how to get PetitParser can be found on the website of the 
-project\footnotemark.
+project.\footnotemark
 
 \footnotetext{\url{http://scg.unibe.ch/research/helvetia/petitparser}}
 
@@ -1567,13 +1567,15 @@ PPJsonGrammar>>start
 
 
 \section{PetitParser Browser}
-PetitParser is shipped with powerful browser that can help you with development of complex parsers.
-Browser provides graphical visualization, debugging support, refactoring support and some other features discussed later in this chapter. 
+
+PetitParser is shipped with a powerful browser that can help you with development of complex parsers.
+The PetitParser Browser provides graphical visualization, debugging support, refactoring support, and some other features discussed later in this chapter. 
 You will see that these features could be very useful while developing your own parser.
 
 \subsection{Loading PetitParser Browser}
-Before we can proceed with using the GUI tool we need to load PetitParser with the Glamour IDE.
-Simply evaluate following expression:
+
+Before we can use the browser we need to load PetitParser with the Glamour IDE.
+Simply evaluate the following expression: \dc{I think this should be moved to the beginning of the chapter}
 
 \begin{script}{Installing PetitParser with GUI tool}
 Gofer new
@@ -1590,11 +1592,12 @@ PPBrowser open.
 \end{script}
 
 \subsection{PetitParser Browser Overview}
-In \figref{pp/browser} you can see window of \clsind{PPBrowser}. 
-The left panel called Parsers contains list of all parsers in the system.
-You can see our \clsind{ExpressionGrammar} and its subclasses as well as \clsind{PPJsonGrammar} we defined earlier in this chapter.
-By selecting one of the parser you activate upper-right side of the browser.
-For each rule (\eg prim) you can see 5 tabs related to the rule.
+
+In \figref{pp/browser} you can see the \clsind{PPBrowser} window.
+The left panel, named Parsers, contains the list of all parsers in the system.
+You can see our \clsind{ExpressionGrammar} and its subclasses as well as the \clsind{PPJsonGrammar} we defined earlier in this chapter.
+Selecting one of the parsers in this pane activates the upper-right side of the browser.
+For each rule of the selected parser (\eg \ct{prim}) you can see 5 tabs related to the rule.
 
 \begin{figure}
   \begin{center}
@@ -1604,39 +1607,44 @@ For each rule (\eg prim) you can see 5 tabs related to the rule.
 \end{figure}
 
 \begin{description}
-	\item [Source] shows source code of the rule. 
-		The code can be updated and saved in this window.
-		Moreover, you can add a new rule simply by defining new method name and its body.
-	\item [Graph]  shows graphical representation of the rule. 
-		It is updated as the rule source is changed.
-	\item [Example] shows automatically generated example based on the definition of the rule. 
-		This is useful for verification of your rule definition.
-		Note the \textit{Reload} button (TODO how to refer to button? Use "", '', italics?, ...) in top right corner that regenerates the example.
-	\item [First] shows list of parsers that can be activated directly after the rule started.
-	\item [Follow] shows list of parsers that can be activated directly after the rule finished.
+\item[Source] shows the source code of the rule.
+  The code can be updated and saved in this window.
+  Moreover, you can add a new rule simply by defining the new method name and body.
+\item[Graph]  shows the graphical representation of the rule.
+  It is updated as the rule source is changed.\dc{show a screenshot}
+\item[Example] shows an automatically generated example based on the definition of the rule.
+  This is useful for verification of your rule definition.
+  Note the \ct{Reload} button in the top-right corner that regenerates the example.\dc{show a screenshot}
+\item[First] shows a list of parsers that can be activated directly
+  after the rule started.\dc{I don't understand, maybe list some
+    examples and say why}
+\item[Follow] shows a list of parsers that can be activated directly
+  after the rule finished.\dc{I don't understand either}
 \end{description}
 
-\noindent The lower-right side of the browser is related to particular parsing input.
+\noindent The lower-right side of the browser is related to a particular parsing input.
 You can specify the input by filling in the text area in the Sample tab.
-One may execute parsing by clicking play button or by pressing cmd-s. 
-After parsing you may inspect following:
+One may execute parsing by clicking the \ct{play} \textsf{\small{$\blacktriangleright$}} button or by pressing Cmd-s or Ctrl-s.
+You can then gain some insight on the parse result by inspecting the
+tabs on the bottom-right pane:
+
 \begin{description}
-	\item [Result] shows result of the parsing. 
-		Result can be inspected or explored by clicking \textit{Inspect} or \textit{Explore} button (TODO how to refer to button? Use "", '', italics?, ...).
-	\item [Debugger] shows tree view of steps that were performed during parsing.
-		This is very useful if you don't know what exactly is happening during parsing.
-		By selecting the step the subset of input is highlighted, so you can see which part of input was parsed by particular step.
-		For example, you can inspect how does the \clsind{PPJsonGrammar} work, what rules and in which order are called as is depicted in \figref{pp/debugger}.
-	\item [Tally] shows how many times was parser called during parsing of the input.
-		The percentage shows number of calls to total number of calls ratio.
-		This might be useful while optimizing performance of your parser.
-	\item [Profile] shows how much time was spend in a particular parser during parsing of the input.
-		The percentage shows time to total time ratio.
-		This might be useful while optimizing performance of your parser.
-	\item [Progress] shows position in a string on the x-axis and time on the y-axis.
-		The best case is when the x position is never or only a little decreased.
-		If you see too many backwards jumps \eg as depicted in \figref{pp/progressBacktracking}, your parser performs a lot of backtracking which degrades the performance.
-		In that case, you should reconsider the order of choice parsers or restructuralize your grammar.
+\item [Result] shows the result of the parsing that can be inspected by clicking either the \ct{Inspect} or \ct{Explore} buttons.
+\item [Debugger] shows a tree view of the steps that were performed during parsing.
+  This is very useful if you don't know what exactly is happening during parsing.
+  By selecting the step the subset of input is highlighted, so you can see which part of input was parsed by a particular step.
+  For example, you can inspect how does the \clsind{PPJsonGrammar} work, what rules  are called and in which order as is depicted in \figref{pp/debugger}.
+\item [Tally] shows how many times was parser called during parsing of the input.
+  The percentage shows number of calls to total number of calls ratio.
+  This might be useful while optimizing performance of your parser.
+\item [Profile] shows how much time was spent in a particular parser during parsing of the input.
+  The percentage shows the ratio of time to total time.
+  This might be useful while optimizing performance of your parser.
+\item [Progress] shows  position in a string on the x-axis and time on the y-axis.
+  The best case is when the x position is never or only a little decreased.
+  If you see too many backwards jumps \eg as depicted in \figref{pp/progressBacktracking}, your parser performs a lot of backtracking which degrades the performance.
+  In that case, you should reconsider the order of choice parsers or restructuralize your grammar. \dc{I don't understand this view. Maybe you could show 1 good and 1 bad diagram so we understand the difference?}
+\end{description}
 
 \begin{figure}
   \begin{center}
@@ -1652,7 +1660,6 @@ After parsing you may inspect following:
   \end{center}
 \end{figure}
 
-\end{description}
 
 \section{Chapter Conclusion}
 
