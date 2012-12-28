@@ -804,15 +804,10 @@ You can create a matcher using one of the following methods:
 \begin{itemize}
 \item You can send \mthind{String}{asRegex} or \mthind{String}{asRegexIgnoringCase} to the string.
 
-\item You can directly invoke the \ct{RxMatcher} constructor methods
+\item You can directly instantiate a \ct{RxMatcher} using one of its class methods:
   \mthind{RxMatcher}{forString:} or
   \mthind{RxMatcher}{forString:ignoreCase:} (which is what the
   convenience methods above will do).
-\mb{should be RxMatcher class in the mthind; I don't like 'invoke constructor methods'; better with: 'instantiate using one of its class methods}
-%
-%The \mthind{RxMatcher}{forString:} method is equivalent to \mthind{RxMatcher class}{forString: regexString ignoreCase: false}. A more convenient way is using one of the two matcher-created messages understood by \clsind{String}. 	 \cmind{RxMatcher}{regexString asRegex} is equivalent to \mthind{RxMatcher class}{forString: regexString}. 	 \ct{regexString asRegexIgnoringCase} is equivalent to \cmind{RxMatcher class}{forString: regexString ignoreCase: true}.
-
-%\item Sending a \mthind{RxMatcher class}{forString:ignoreCase:} message to \clsind{RxMatcher} class, with the regular expression string and a Boolean indicating whether case is ignored as arguments.
 \end{itemize}
 
 Here we send \mthind{RxMatcher}{matchesIn:} to collect all the matches found in a string:
