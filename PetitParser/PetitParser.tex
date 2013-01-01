@@ -8,6 +8,7 @@
 % could change returns by answers
 % Minor correction and new section about PPExpressionParser added by Guillaume Larcheveque
 
+\newcommand{\jk}[1]{\nnbb{JanKurs}{#1}} % Jan Kurs 
 
 %=================================================================
 \ifx%
@@ -103,17 +104,26 @@ existing image evaluate the following Gofer expression:
 \begin{script}{Installing PetitParser}
 Gofer new
   renggli: 'petit';
-  package: 'PetitParser';
-  package: 'PetitTests';
+  package: 'ConfigurationOfPetitParser';
   load.
+
+ConfigurationOfPetitParser loadDefault.
 \end{script}
 
-There are other packages in the same repository that provide additional 
-features: PetitSmalltalk is a complete Smalltalk grammar; PetitXml is an XML 
-grammar; PetitJson is a JSON grammar; PetitAnalyzer provides functionality to 
-analyze and transform grammars; and PetitGui is a Glamour IDE (see 
-\charef{glamour}) for writing complex grammars. We are not going to use any of 
-these packages for now.
+%\begin{script}{Installing PetitParser}
+%Gofer new
+%  renggli: 'petit';
+%  package: 'PetitParser';
+%  package: 'PetitTests';
+%  load.
+%\end{script}
+
+%There are other packages in the same repository that provide additional 
+%features: PetitSmalltalk is a complete Smalltalk grammar; PetitXml is an XML 
+%grammar; PetitJson is a JSON grammar; PetitAnalyzer provides functionality to 
+%analyze and transform grammars; and PetitGui is a Glamour IDE (see 
+%\charef{glamour}) for writing complex grammars. We are not going to use any of 
+%these packages for now.
 
 More information on how to get PetitParser can be found on the website of the 
 project.\footnotemark
@@ -1571,22 +1581,7 @@ PPJsonGrammar>>start
 PetitParser is shipped with a powerful browser that can help you with development of complex parsers.
 The PetitParser Browser provides graphical visualization, debugging support, refactoring support, and some other features discussed later in this chapter. 
 You will see that these features could be very useful while developing your own parser.
-
-\subsection{Loading PetitParser Browser}
-
-Before we can use the browser we need to load PetitParser with the Glamour IDE.
-Simply evaluate the following expression: \dc{I think this should be moved to the beginning of the chapter}
-
-\begin{script}{Installing PetitParser with GUI tool}
-Gofer new
-  renggli: 'petit';
-  package: 'ConfigurationOfPetitParser';
-  load.
-
-ConfigurationOfPetitParser loadDefault.
-\end{script}
-
-\noindent Now, we can open the PetitParser browser with this expression:
+To open the PetitParser simply evaluate this expression:
 \begin{script}{Opening PetitParser browser}
 PPBrowser open.
 \end{script}
@@ -1595,7 +1590,7 @@ PPBrowser open.
 
 In \figref{pp/browser} you can see the \clsind{PPBrowser} window.
 The left panel, named Parsers, contains the list of all parsers in the system.
-You can see our \clsind{ExpressionGrammar} and its subclasses as well as the \clsind{PPJsonGrammar} we defined earlier in this chapter.
+You can see \clsind{ExpressionGrammar} and its subclasses as well as the \clsind{PPJsonGrammar} that we defined earlier in this chapter.
 Selecting one of the parsers in this pane activates the upper-right side of the browser.
 For each rule of the selected parser (\eg \ct{prim}) you can see 5 tabs related to the rule.
 
@@ -1611,16 +1606,83 @@ For each rule of the selected parser (\eg \ct{prim}) you can see 5 tabs related 
   The code can be updated and saved in this window.
   Moreover, you can add a new rule simply by defining the new method name and body.
 \item[Graph]  shows the graphical representation of the rule.
-  It is updated as the rule source is changed.\dc{show a screenshot}
+  It is updated as the rule source is changed.
+  You can see graph of \ct{prim} rule in \figref{pp/browserGraph}.
+  \dc{show a screenshot}
+  \jk{better, or even more?}
 \item[Example] shows an automatically generated example based on the definition of the rule.
   This is useful for verification of your rule definition.
-  Note the \ct{Reload} button in the top-right corner that regenerates the example.\dc{show a screenshot}
-\item[First] shows a list of parsers that can be activated directly
-  after the rule started.\dc{I don't understand, maybe list some
-    examples and say why}
-\item[Follow] shows a list of parsers that can be activated directly
-  after the rule finished.\dc{I don't understand either}
+  Note the \ct{Reload} button in the top-right corner that regenerates the example.
+  From \ct{prim} examples in \figref{pp/browserExample1} and \figref{pp/browserExample2} you can see that \ct{prim} rule is either number, or parenthesis expression with term inside.
+  \dc{show a screenshot}
+  \jk{better?}
+\item[First] shows first set of specified rule.
+  The first set is useful for optimizing your grammar. 
+  It basically shows a list of rules that can be activated directly after the rule started.
+  As you can see on \figref{pp/browserFirst} the first set of \ct{prim} is either digit of opening parenthesis \ct{(}.
+  This means that once you start parsing \ct{prim} the input should start with either digit or \ct{(}.
+  
+  First set is computed from definition of \ct{prim} depicted in \scrref{pp/expressionGrammrPrimAndParens}. 
+  Digit comes from \ct{number} and \ct{(} comes from \ct{parens} rule.
+  In general, computation of first set could be complex and therefore \ct{PPBrowser} computes this information for us.
+  \dc{I don't understand, maybe list some examples and say why}
+  \jk{Better, or still not enough?}
+\item[Follow] shows follow set of specified rule.
+  The follow set (similarly to first set) is useful for optimizing your grammar.
+  As you can see on \figref{pp/browserFollow} the follow set of \ct{prim} is closing bracket character \ct{)}, star character \ct{*}, plus character \ct{+} or \ct{epsilon} (which states for empty string). 
+  This means that after you parse the \ct{prim} rule, the input continues with closing bracket, plus and star or input ends (because of \ct{epsilon}).
+  
+  Computation of follow set is even more complex than computation of first set and therefore \ct{PPBrowser} computes the follow set for us.
+  \dc{I don't understand either}
+  \jk{Better, or still not enough?}
 \end{description}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\linewidth]{PPBrowserGraph}
+    \caption{PetitParser Browser Graph visualization of \ct{prim} rule. \label{fig:pp/browserGraph}}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\linewidth]{PPBrowserExample1}
+    \caption{PetitParser Browser Example visualization of \ct{prim} rule. In this case \ct{prim} is a number. \label{fig:pp/browserExample1}}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\linewidth]{PPBrowserExample2}
+    \caption{PetitParser Browser Example visualization of \ct{prim} rule. In this case \ct{prim} is parenthesis expression with term inside. \label{fig:pp/browserExample2}}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\linewidth]{PPBrowserFirst}
+    \caption{PetitParser Browser First set of \ct{prim} rule. \label{fig:pp/browserFirst}}
+  \end{center}
+\end{figure}
+
+\begin{script}{\ct{prim} rule in \clsind{ExpressionGrammar} \label{scr:pp/expressionGrammrPrimAndParens}}
+ExpressionGrammar>>prim
+	^ parens / number
+
+ExpressionGrammar>>parens
+	^ $( asParser trim, term, $} asParser trim
+
+ExpressionGrammar>>number
+	^ #digit asParser plus flatten trim ==> [:str | str asNumber ]
+\end{script}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\linewidth]{PPBrowserFollow}
+    \caption{PetitParser Browser Follow set of \ct{prim} rule. \label{fig:pp/browserFollow}}
+  \end{center}
+\end{figure}
+
 
 \noindent The lower-right side of the browser is related to a particular parsing input.
 You can specify the input by filling in the text area in the Sample tab.
@@ -1634,22 +1696,41 @@ tabs on the bottom-right pane:
   This is very useful if you don't know what exactly is happening during parsing.
   By selecting the step the subset of input is highlighted, so you can see which part of input was parsed by a particular step.
   For example, you can inspect how does the \clsind{PPJsonGrammar} work, what rules  are called and in which order as is depicted in \figref{pp/debugger}.
-\item [Tally] shows how many times was parser called during parsing of the input.
+  
+  The grey rules are rules that failed.
+  This usually happens for ordered choice and you can see example for the \ct{value} rule.
+  At first, parser tried to parse string and number at position 0, but it failed so that it tried to parser object which succeeded.
+  You can see the situation depicted in \figref{pp/debugger} as well.
+\item [Tally] shows how many times was particular parser called during parsing of the input.
   The percentage shows number of calls to total number of calls ratio.
   This might be useful while optimizing performance of your parser.
-\item [Profile] shows how much time was spent in a particular parser during parsing of the input.
+\item [Profile] shows how much time was spent in particular parser during parsing of the input.
   The percentage shows the ratio of time to total time.
   This might be useful while optimizing performance of your parser.
 \item [Progress] shows  position in a string on the x-axis and time on the y-axis.
-  The best case is when the x position is never or only a little decreased.
-  If you see too many backwards jumps \eg as depicted in \figref{pp/progressBacktracking}, your parser performs a lot of backtracking which degrades the performance.
-  In that case, you should reconsider the order of choice parsers or restructuralize your grammar. \dc{I don't understand this view. Maybe you could show 1 good and 1 bad diagram so we understand the difference?}
+  The best for performance is when the x position is never decreased as depicted in \figref{pp/progressLinear}.
+  In this case input is parsed in linear time (compared to the length of input) since at each step at least one character is consumed and the position in input never goes back.
+  In another words, input of $n$ characters is parsed in $n$ steps.
+
+  Bad case scenario is depicted in \figref{pp/progressBacktracking}.
+  You can see that in the beginning the input is linearly consumed, but in the end the backtracking returns position of the input almost to the beginning and we have to start again.
+  So that we parsed input of $n$ characters but there was a failure in step $n$ and therefore we returned to position $1$ and again performed $n-1$ steps and in the end returned to the position $2$.
+  In the end, all input was parsed in $n!$ steps which is very bad.
+  If you see too many backwards jumps \eg as depicted in \figref{pp/progressBacktracking}, you should reconsider the order of choice parsers or restructuralize your grammar. \dc{I don't understand this view. Maybe you could show 1 good and 1 bad diagram so we understand the difference?}
+  \jk{I added some more details, is it more clear?}
 \end{description}
 
 \begin{figure}
   \begin{center}
     \includegraphics[width=\linewidth]{PPBrowserDebugger}
     \caption{Debugger output of \clsind{PPJsonGrammar}. \label{fig:pp/debugger}}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[scale=0.5]{PPBrowserProgressLinear}
+    \caption{Progress of Petit Parser that parses input in linear amount of steps. \label{fig:pp/progressLinear}}
   \end{center}
 \end{figure}
 
