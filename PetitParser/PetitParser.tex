@@ -1259,6 +1259,9 @@ PPJsonGrammar>>charNormal
 Special characters allowed after a slash and their meanings are
 defined in the \ct{CharacterTable} dictionary that we initialize in
 the \ct{initialize} class method.
+Please note that \ct{initialize} method on a class side is called when the class is loaded into the system. 
+If you just created the \ct{initialize} method class was loaded without the method. 
+To execeute it, you shoud evaluate \ct{PPJsonGrammar initialize} in your workspace.
 
 \begin{script}{Defining the JSON special characters and their meaning}
 PPJsonGrammar class>>initialize
