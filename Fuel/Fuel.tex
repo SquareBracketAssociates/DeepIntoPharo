@@ -1,0 +1,137 @@
+% $Author: ducasse $
+% $Date: 2009-08-24 10:17:33 +0200 (Mon, 24 Aug 2009) $
+% $Revision: 28563 $
+
+% HISTORY:
+% 2011-09-08: addressed mariano + nicolas paez comments
+% 2011-09-11 - Migrated to PharoBox: svn checkout https://XXX@scm.gforge.inria.fr/svn/pharobooks/PharoByExampleTwo-Eng
+% could change returns by answers 
+% 2011-09-28 - Alexandre doing a pass
+
+
+%=================================================================
+\ifx\wholebook\relax\else
+% --------------------------------------------
+% Lulu:
+	\documentclass[a4paper,10pt,twoside]{book}
+	\usepackage[
+		papersize={6.13in,9.21in},
+		hmargin={.75in,.75in},
+		vmargin={.75in,1in},
+		ignoreheadfoot
+	]{geometry}
+	\input{../common.tex}
+	\setboolean{lulu}{true}
+% --------------------------------------------
+% A4:
+%	\documentclass[a4paper,11pt,twoside]{book}
+%	\input{../common.tex}
+%	\usepackage{a4wide}
+% --------------------------------------------
+    \graphicspath{{figures/} {../figures/}}
+	\begin{document}
+\fi
+%=================================================================
+%\renewmessage{\nnbb}[2]{} % Disable editorial comments
+\sloppy
+%=================================================================
+
+\chapter{Fuel: a Fast Object Serializer}
+
+
+
+
+
+\section{Fuel: what is it?}
+
+
+Concrete
+We don't aspire to have a dialect-interchange format. This enables us to serialize special objects like contexts, block closures, exceptions, compiled methods and classes. Although there are ports to other dialects, Fuel development is Pharo-centric.
+
+Flexible
+Depending on the context, there could be multiple ways of serializing the same object. For example, a class can be considered either a global or a regular object. In the former case, it will be encoded just its name; in the latter case, the class will be encoded in detail, with its method dictionary, etc.
+
+Fast
+We worry about to have the best performance. We developed a complete benchmark suite to help analyse the performance with diverse sample sets, as well as compare against other serializers. Our pickling algorithm allows outstanding materialization performance, as well as very good serialization performance too.
+
+Object-Oriented Design
+From the beginning it was a constraint to have a good object-oriented design and to do not need any special support from the VM. In addition, Fuel has a complete test suite, with a high coverage. We also worry about writing comments on classes and methods.
+
+Fuel in a nutshell: 
+\begin{itemize}
+
+\item Is a fast, well-designed, concrete, general-purpose and flexible binary serializer.
+\item Can serialize/materialize not only plain objects but also classes, traits, methods, closures, contexts, packages, etc.
+\item Support for global references.
+\item Large number of hooks: ignore certain instance variables, substitute objects by others, post and pre serialization and materialization actions.
+\item Supports class rename and class reshape.
+\item 90\% (approx. 500 unit tests) of test coverage.
+\item Large suite of benchmarks.
+\item Object-Oriented design.
+\item No VM support needed.
+\item Modular (clear division of packages).
+\end{itemize}
+
+
+
+\begin{code}{A first example}
+| sourceArray loadedArray |
+sourceArray := Array with: 'a string' with: Transcript.
+"Store to a file"
+FLSerializer serialize: sourceArray toFileNamed: 'example.FL'.
+"Load from the file"
+loadedArray := FLMaterializer materializeFromFileNamed: 'example.FL'.
+"Check that the materialized Transcript is the right singleton instance."
+loadedArray second show: loadedArray first; flush.
+\end{code}
+
+
+
+\section{Basic Examples}
+
+
+show how do we save the stack in Pharo 2.0 and reload it in another image
+
+\section{Managing Globals}
+
+\section{Customizing the Graph}
+
+\section{Errors}
+sounds a bit dry. What do we do!
+
+
+\section{Class Migration}
+
+\section{Fuel Format Change and Migration}
+
+you have a file in format version 1 and you want to migrate to version 2 of the internal encodings.
+
+\section{Core Design and Package Structure}
+
+\section{Customization Hooks}
+
+\section{Debugging}
+
+
+
+
+%=========================================================
+\ifx\wholebook\relax\else
+   \bibliographystyle{jurabib}
+   \nobibliography{scg}
+   \end{document}
+\fi
+
+%=================================================================
+\ifx\wholebook\relax\else\end{document}\fi
+%=================================================================
+
+%-----------------------------------------------------------------
+
+%%% Local Variables:
+%%% coding: utf-8
+%%% mode: latex
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% ispell-local-dictionary: "english"
+%%% End:
