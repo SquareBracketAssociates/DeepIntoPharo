@@ -1581,8 +1581,8 @@ PPJsonGrammar>>start
 
 \section{PetitParser Browser}
 
-PetitParser is shipped with a powerful browser that can help you with development of complex parsers.
-The PetitParser Browser provides graphical visualization, debugging support, refactoring support, and some other features discussed later in this chapter. 
+PetitParser is shipped with a powerful browser that can help to develop complex parsers.
+The PetitParser Browser provides graphical visualization, debugging support, refactoring support, and some other features discussed later in this chapter.
 You will see that these features could be very useful while developing your own parser.
 To open the PetitParser simply evaluate this expression:
 \begin{script}{Opening PetitParser browser}
@@ -1610,140 +1610,190 @@ For each rule of the selected parser (\eg \ct{prim}) you can see 5 tabs related 
   Moreover, you can add a new rule simply by defining the new method name and body.
 \item[Graph]  shows the graphical representation of the rule.
   It is updated as the rule source is changed.
-  You can see graph of \ct{prim} rule in \figref{pp/browserGraph}.
-  \dc{show a screenshot}
-  \jk{better, or even more?}
-\item[Example] shows an automatically generated example based on the definition of the rule.
-  This is useful for verification of your rule definition.
-  Note the \ct{Reload} button in the top-right corner that regenerates the example.
-  From \ct{prim} examples in \figref{pp/browserExample1} and \figref{pp/browserExample2} you can see that \ct{prim} rule is either number, or parenthesis expression with term inside.
-  \dc{show a screenshot}
-  \jk{better?}
-\item[First] shows first set of specified rule.
-  The first set is useful for optimizing your grammar. 
-  It basically shows a list of rules that can be activated directly after the rule started.
-  As you can see on \figref{pp/browserFirst} the first set of \ct{prim} is either digit of opening parenthesis \ct{(}.
-  This means that once you start parsing \ct{prim} the input should start with either digit or \ct{(}.
-  
-  First set is computed from definition of \ct{prim} depicted in \scrref{pp/expressionGrammrPrimAndParens}. 
-  Digit comes from \ct{number} and \ct{(} comes from \ct{parens} rule.
-  In general, computation of first set could be complex and therefore \ct{PPBrowser} computes this information for us.
-  \dc{I don't understand, maybe list some examples and say why}
-  \jk{Better, or still not enough?}
-\item[Follow] shows follow set of specified rule.
-  The follow set (similarly to first set) is useful for optimizing your grammar.
-  As you can see on \figref{pp/browserFollow} the follow set of \ct{prim} is closing bracket character \ct{)}, star character \ct{*}, plus character \ct{+} or \ct{epsilon} (which states for empty string). 
-  This means that after you parse the \ct{prim} rule, the input continues with closing bracket, plus and star or input ends (because of \ct{epsilon}).
-  
-  Computation of follow set is even more complex than computation of first set and therefore \ct{PPBrowser} computes the follow set for us.
-  \dc{I don't understand either}
-  \jk{Better, or still not enough?}
-\end{description}
+  You can see the \ct{prim} visual representation in \figref{pp/browserGraph}.
+  \begin{figure}[ht]
+    \begin{center}
+      \includegraphics[width=.4\linewidth]{PPBrowserGraph}
+      \caption{Graph visualization of the \ct{prim}
+        rule. \label{fig:pp/browserGraph}}
+    \end{center}
+  \end{figure}
+\item[Example] shows an automatically generated example based on the
+  definition of the rule (see \figref{pp/browserExample1} for an
+  example for the \ct{prim} rule). In the top-right corner, the reload
+  button generates a new example for the same rule (see
+  \figref{pp/browserExample2} for another automatically generated
+  example of the \ct{prim} rule, this time with a parenthesized
+  expression).
+  \begin{figure}[ht]
+    \begin{center}
+      \includegraphics[width=.4\linewidth]{PPBrowserExample1}
+      \caption{An automatically generated example of the \ct{prim}
+        rule. In this case, the \ct{prim} example is a
+        number. \label{fig:pp/browserExample1}}
+    \end{center}
+  \end{figure}
+  \begin{figure}[ht]
+    \begin{center}
+      \includegraphics[width=.4\linewidth]{PPBrowserExample2}
+      \caption{Another automatically generated example of the
+        \ct{prim} rule, after having clicked the reload button. In
+        this case, the \ct{prim} example is a parenthesized
+        expression. \label{fig:pp/browserExample2}}
+    \end{center}
+  \end{figure}
 
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\linewidth]{PPBrowserGraph}
-    \caption{PetitParser Browser Graph visualization of \ct{prim} rule. \label{fig:pp/browserGraph}}
-  \end{center}
-\end{figure}
+\item[First] shows first set of specified rule\dc{first set of what?}.
+  The first set is useful for optimizing your grammar\dc{keep that for
+    the end of the bullet and explain how the reader can optimize with
+    this information}. It basically shows a list of rules that can be
+  activated directly after the rule started\dc{so why do I see '(' and
+    not 'parens' in the screenshot?}. As you can see on
+  \figref{pp/browserFirst} the first set of \ct{prim} is either digit
+  or opening parenthesis '\ct{(}'. This means that once you start
+  parsing \ct{prim} the input should start with either digit or
+  '\ct{(}'.
 
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\linewidth]{PPBrowserExample1}
-    \caption{PetitParser Browser Example visualization of \ct{prim} rule. In this case \ct{prim} is a number. \label{fig:pp/browserExample1}}
-  \end{center}
-\end{figure}
+  \begin{figure}[ht]
+    \begin{center}
+      \includegraphics[width=.4\linewidth]{PPBrowserFirst}
+      \caption{The 'first' set of the \ct{prim}
+        rule. \label{fig:pp/browserFirst}}
+    \end{center}
+  \end{figure}
 
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\linewidth]{PPBrowserExample2}
-    \caption{PetitParser Browser Example visualization of \ct{prim} rule. In this case \ct{prim} is parenthesis expression with term inside. \label{fig:pp/browserExample2}}
-  \end{center}
-\end{figure}
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\linewidth]{PPBrowserFirst}
-    \caption{PetitParser Browser First set of \ct{prim} rule. \label{fig:pp/browserFirst}}
-  \end{center}
-\end{figure}
-
-\begin{script}{\ct{prim} rule in \clsind{ExpressionGrammar} \label{scr:pp/expressionGrammrPrimAndParens}}
+  \begin{script}{\ct{prim} rule in \clsind{ExpressionGrammar} \label{scr:pp/expressionGrammrPrimAndParens}}
 ExpressionGrammar>>prim
-	^ parens / number
+    ^ parens / number
 
 ExpressionGrammar>>parens
-	^ $( asParser trim, term, $} asParser trim
+    ^ $( asParser trim, term, $} asParser trim
 
 ExpressionGrammar>>number
-	^ #digit asParser plus flatten trim ==> [:str | str asNumber ]
+    ^ #digit asParser plus flatten trim ==> [:str | str asNumber ]
 \end{script}
 
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\linewidth]{PPBrowserFollow}
-    \caption{PetitParser Browser Follow set of \ct{prim} rule. \label{fig:pp/browserFollow}}
-  \end{center}
-\end{figure}
+  First set is computed from definition of \ct{prim} depicted in
+  \scrref{pp/expressionGrammrPrimAndParens}. Digit comes from
+  \ct{number} and \ct{(} comes from \ct{parens} rule. In general,
+  computation of first set could be complex and therefore
+  \ct{PPBrowser} computes this information for us.
+\item[Follow] shows follow set of specified rule \dc{please improve
+    this bullet the same way you improve the previous one}. The follow
+  set (similarly to first set) is useful for optimizing your grammar.
+  As you can see on \figref{pp/browserFollow} the follow set of
+  \ct{prim} is closing bracket character \ct{)}, star character
+  \ct{*}, plus character \ct{+} or \ct{epsilon} (which states for
+  empty string). This means that after you parse the \ct{prim} rule,
+  the input continues with closing bracket, plus and star or input
+  ends (because of \ct{epsilon}).
 
+  Computation of follow set is even more complex than computation of
+  first set and therefore \ct{PPBrowser} computes the follow set for
+  us.\dc{why is this information important?}
+
+  \begin{figure}[ht]
+    \begin{center}
+      \includegraphics[width=.4\linewidth]{PPBrowserFollow}
+      \caption{The 'follow' set of the \ct{prim}
+        rule. \label{fig:pp/browserFollow}}
+    \end{center}
+  \end{figure}
+
+\end{description}
 
 \noindent The lower-right side of the browser is related to a particular parsing input.
-You can specify the input by filling in the text area in the Sample tab.
-One may execute parsing by clicking the \ct{play} \textsf{\small{$\blacktriangleright$}} button or by pressing Cmd-s or Ctrl-s.
+You can specify an input sample by filling in the text area in the Sample tab.
+One may  parse the input sample by clicking the \ct{play} \textsf{\small{$\blacktriangleright$}} button or by pressing Cmd-s or Ctrl-s.
 You can then gain some insight on the parse result by inspecting the
 tabs on the bottom-right pane:
 
 \begin{description}
-\item [Result] shows the result of the parsing that can be inspected by clicking either the \ct{Inspect} or \ct{Explore} buttons.
-\item [Debugger] shows a tree view of the steps that were performed during parsing.
-  This is very useful if you don't know what exactly is happening during parsing.
-  By selecting the step the subset of input is highlighted, so you can see which part of input was parsed by a particular step.
-  For example, you can inspect how does the \clsind{PPJsonGrammar} work, what rules  are called and in which order as is depicted in \figref{pp/debugger}.
-  
-  The grey rules are rules that failed.
-  This usually happens for ordered choice and you can see example for the \ct{value} rule.
-  At first, parser tried to parse string and number at position 0, but it failed so that it tried to parser object which succeeded.
-  You can see the situation depicted in \figref{pp/debugger} as well.
-\item [Tally] shows how many times was particular parser called during parsing of the input.
-  The percentage shows number of calls to total number of calls ratio.
-  This might be useful while optimizing performance of your parser.
-\item [Profile] shows how much time was spent in particular parser during parsing of the input.
-  The percentage shows the ratio of time to total time.
-  This might be useful while optimizing performance of your parser.
-\item [Progress] shows  position in a string on the x-axis and time on the y-axis.
-  The best for performance is when the x position is never decreased as depicted in \figref{pp/progressLinear}.
-  In this case input is parsed in linear time (compared to the length of input) since at each step at least one character is consumed and the position in input never goes back.
-  In another words, input of $n$ characters is parsed in $n$ steps.
 
-  Bad case scenario is depicted in \figref{pp/progressBacktracking}.
-  You can see that in the beginning the input is linearly consumed, but in the end the backtracking returns position of the input almost to the beginning and we have to start again.
-  So that we parsed input of $n$ characters but there was a failure in step $n$ and therefore we returned to position $1$ and again performed $n-1$ steps and in the end returned to the position $2$.
-  In the end, all input was parsed in $n!$ steps which is very bad.
-  If you see too many backwards jumps \eg as depicted in \figref{pp/progressBacktracking}, you should reconsider the order of choice parsers or restructuralize your grammar. \dc{I don't understand this view. Maybe you could show 1 good and 1 bad diagram so we understand the difference?}
-  \jk{I added some more details, is it more clear?}
-\end{description}
+\item[Result] shows the result of parsing the input sample  that can be inspected by
+  clicking either the \ct{Inspect} or \ct{Explore} buttons. Figure
+  \figref{pp/browserResult} shows the result of parsing \ct{(1+2)}.
+
+  \begin{figure}[ht]
+    \begin{center}
+      \includegraphics[width=.7\linewidth]{PPBrowserResult}
+      \caption{Result of parsing the \ct{(1+2)} sample expression \label{fig:pp/browserResult}}
+    \end{center}
+  \end{figure}
+
+\item[Debugger] shows a tree view of the steps that were performed
+  during parsing. This is very useful if you don't know what exactly
+  is happening during parsing. By selecting the step the subset of
+  input is highlighted, so you can see which part of input was parsed
+  by a particular step. For example, you can inspect how does the
+  \clsind{PPJsonGrammar} work, what rules are called and in which
+  order as is depicted in \figref{pp/debugger}. The grey rules are
+  rules that failed. This usually happens for ordered choice and you
+  can see example for the \ct{value} rule. At first, parser tried to
+  parse string and number at position 0, but it failed so that it
+  tried the \ct{object} parser which succeeded. \dc{isn't it possible
+    to the same for the expression grammar? I think it would be
+    more coherent with the rest of the section. If not, just delete my
+    comment.}
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=\linewidth]{PPBrowserDebugger}
+    \includegraphics[width=.8\linewidth]{PPBrowserDebugger}
     \caption{Debugger output of \clsind{PPJsonGrammar}. \label{fig:pp/debugger}}
   \end{center}
 \end{figure}
 
-\begin{figure}
-  \begin{center}
-    \includegraphics[scale=0.5]{PPBrowserProgressLinear}
-    \caption{Progress of Petit Parser that parses input in linear amount of steps. \label{fig:pp/progressLinear}}
-  \end{center}
-\end{figure}
+\item[Tally] shows how many times was particular parser called during
+  parsing of the input. The percentage shows number of calls to total
+  number of calls ratio. This might be useful while optimizing
+  performance of your parser.\dc{can you show a screenshot of that
+    please?}
+\item[Profile] shows how much time was spent in particular parser
+  during parsing of the input. The percentage shows the ratio of time
+  to total time. This might be useful while optimizing performance of
+  your parser.\dc{can you show a screenshot of that please?}
+\item[Progress] visually shows how a parser consumes input. The x-axis
+  represents how many characters where read in the input sample,
+  ranging from 0 (left margin) to the number of characters in the
+  input (right margin). The y-axis represents time, ranging from the
+  beginning of the parsing process (top margin) to its end (bottom
+  margin). A line going from top-left to bottom-right (such as the one
+  in \figref{pp/progressLinear}) shows that the parser completed its
+  task by only reading each character of the input sample once. This
+  is the best case scenario, parsing is linear in the length of the
+  input: In another words, input of $n$ characters is parsed in $n$
+  steps. When multiple lines are visible, it means that the parser had
+  to go back to a previously read character in the input sample to try
+  a different rule. This can be seen in
+  \figref{pp/progressBacktracking}. In this example, the parser had to
+  go back five times to correctly parse the whole input sample: all
+  input was parsed in $n!$ steps which is very bad. \dc{it would be
+    nice to have an example here so that the reader can reproduce your
+    experiment}
+  % but in the end the backtracking returns position
+  % of the input almost to the beginning and we have to start again.
+  % So that we parsed input of $n$ characters but there was a failure
+  % in
+  % step $n$ and therefore we returned to position $1$ and again
+  % performed $n-1$ steps and in the end returned to the position $2$.
+  If you see many backward jumps for a grammar, you should
+  reconsider the order of choice parsers or restructure your grammar.
 
-\begin{figure}
-  \begin{center}
-    \includegraphics[scale=0.5]{PPBrowserProgressBacktracking}
-    \caption{Progress of Petit Parser with a lot of backtracking. \label{fig:pp/progressBacktracking}}
-  \end{center}
-\end{figure}
+  \begin{figure}[ht]
+    \begin{center}
+      \includegraphics[scale=0.5]{PPBrowserProgressLinear}
+      \caption{Progress of Petit Parser that parses input in linear amount of steps. \label{fig:pp/progressLinear}}
+    \end{center}
+  \end{figure}
 
+  \begin{figure}[ht]
+    \begin{center}
+      \includegraphics[scale=0.5]{PPBrowserProgressBacktracking}
+      \caption{Progress of Petit Parser with a lot of backtracking. \label{fig:pp/progressBacktracking}}
+    \end{center}
+  \end{figure}
+
+\end{description}
 
 \section{Chapter Conclusion}
 
