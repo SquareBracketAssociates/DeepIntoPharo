@@ -323,6 +323,39 @@ We test this feature in \ct{FLBasicSerializationTest>>testNotSerializableObject}
 %=========================================================
 \section{Class Migration}
 
+Often, we need to load objects whose class has changed since it was saved. In this document how to load them in the different cases. The examples in \figref{ClassChanges} illustrate some of them. Imagine we serialized an instance of \ct{Point} and we need to materialize it when \ct{Point} class has changed.
+
+\begin{figure}[t]\centering
+        \includegraphics[width=\linewidth]{ClassChanges.png}
+        \caption{Some usual changes during class evolution which require migration.\figlabel{ClassChanges}}
+\end{figure}
+
+Let's start with the easier cases. If a variable was \emph{inserted}, its value will be \ct{nil}. If \emph{removed}, it is also obvious: the serialized value will be ignored. In the case the variables are the same the the \emph{order changed}, Fuel also tolerates it automatically.
+
+A more interesting case is when a variable was \emph{renamed}, where the user can map old names to new ones. In our example:
+
+\begin{code}
+FLMaterializer newDefault
+	migrateClassNamed: #Point
+	variables: {'x' -> 'posX'. 'y' -> 'posY'}.
+\end{code}
+
+Not surprisingly, if nothing specified the change will be understood by Fuel as two independent operations, an insertion and a removal.
+
+The last change in the figure is a \emph{class rename}. This should be specified this way:
+
+\begin{code}
+FLMaterializer newDefault
+	migrateClassNamed: #Point
+	toClass: Coordinate.
+\end{code}
+
+It is also available \ct{migrateClassNamed:toClass:variables:} to combine both \emph{class and variable rename}.
+
+Although not illustrated in the figure, a class could also change its \emph{layout}. For example, Point could change from being \emph{fixed} to \emph{variable}. This should be also automatically tolerated by Fuel. Unfortunately, the inverse (variable to fixed) is not supported so far.
+
+You can find tests related to this guide in \ct{FLMigrationTest}.
+
 
 %=========================================================
 \section{Fuel Format Change and Migration}
