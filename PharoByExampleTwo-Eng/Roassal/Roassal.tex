@@ -19,7 +19,28 @@
 %	\usepackage{a4wide}
 % --------------------------------------------
     \graphicspath{{figures/} {../figures/}}
-	\begin{document}
+    \DeclareGraphicsExtensions{.png,.jpg,.pdf,.eps,.gif}
+	\newcommand{\fig}[4]{
+		\begin{figure}[#1]
+			\centering
+			\includegraphics[width=#2\textwidth]{#3}
+			\caption{\label{fig:#3}#4}
+		\end{figure}}
+
+	\newcommand{\largefig}[4]{
+		\begin{figure*}[#1]
+			\centering
+			\includegraphics[width=#2\textwidth]{#3}
+			\caption{\label{fig:#3}#4}
+		\end{figure*}}
+		
+	\newcommand{\asdf}[4]{
+		\begin{subfigure}[\label{fig:#3}]
+                \centering
+                \includegraphics[width=\textwidth]{#3}
+                \caption{\label{fig:#3}#4}                
+        \end{subfigure}}
+\begin{document}
 \fi
 %=================================================================
 %\renewcommand{\nnbb}[2]{} % Disable editorial comments
@@ -31,7 +52,7 @@
 
 Giving a meaning to a a large amount of data is challenging without adequate tools. Textual outputs are known to be limited in their expression and interactions. 
 
-Roassal is an agile visualization engine. It is made to visualize and interact with any arbitrary data, defined in terms of objects and their relationships. Roassal is commonly employed in producing interacting visualization. Roassal is used by the Moose community to visualize software. This chapter introduces Roassal's principles and describes its expressive commands to quickly render your data. After its reading, you will be able to create interactive and visual representation.
+Roassal is an agile visualization engine. It is made to visualize and interact with any arbitrary data, defined in terms of objects and their relationships. Roassal is commonly employed in producing interacting \vp{interactive?} visualization. Roassal is used by the Moose community to visualize software. This chapter introduces Roassal's principles and describes its expressive commands to quickly render your data. After its reading, you will be able to create interactive and visual representation.
 
 %=====================
 \section{Installation and first visualization}
@@ -67,23 +88,352 @@ view open
 
 \section{Roassal Core Model}
 
-\alex{Describe the core of Roassal: Element, shape, view and camera. We should simply use ``ROElement new'', no need to mention \#on: for now}
+Each Roassal visualization is an instance of the class \textbf{ROView}, which is the container for all the data to be visualize.
+Data is represented by instances of \textbf{ROElement} that will be added to the visualization. The value of the data is stored in its \ct{model} instance variable.
 
-\alex{We need to find a small example that we enhance in the chapter. Maybe a System complexity built by hand (ie. without the Mondrian builder).}
+The following code to creates and open a visualization with the representation of the \ct{Collection} class:
+
+\begin{code}{}
+view := ROView new.
+collectionRepresentation := ROElement new model: Collection.
+view add: collectionRepresentation.
+view open.
+\end{code}
+
+
+However, by executing this code nothing appears in the visualization. The ROElement is there but we haven't told how \ct{collectionRepresentation} should look like. The look of a ROElement is given by shapes, instances of the class \textbf{ROShape}. Let's add some shape to \ct{collectionRepresentation}:
+
+\begin{code}{}
+view := ROView new.
+collectionRepresentation := ROElement new model: Collection.
+collectionRepresentation 
+	+ ROLabel. "-> add shape"
+view add: collectionRepresentation.
+view open.
+\end{code}
+
+To add a ROShape to an instance of ROElement, we send the \textbf{\#+} message with the ROShape wanted to added. For this example the ROLabel shape is used which, as its name suggests, adds a label to the ROElement with the value of its model. There are several other shapes that can be added and they can even be composed. \secref{shapes} details how to make more complex looks.
+
+A ROElement can also have interactions, allowing it to answer to events. For instance, they can be dragged by the mouse. To add an interaction to a ROElement send the \textbf{\#@} message with the interaction as parameter: 
+
+\begin{code}{}
+view := ROView new.
+collectionRepresentation := ROElement new model: Collection.
+collectionRepresentation 
+	+ ROLabel; "-> add shape"
+	@ RODraggable. "-> add interaction"
+view add: collectionRepresentation.
+view open.
+\end{code}
+
+Having a visualization with only one represented Object is not very useful. You can add more elements to a ROView by sending the message \#addAll: with a collection of ROElements. You can later access them by using the \#elements accessor. 
+
+\begin{code}{}
+view := ROView new.
+view addAll: (Array with: ROElement new with: ROElement new).
+view elements do: [:el | el + ROBorder; @ RODraggable].
+view open.
+\end{code}
+
+When a visualization contains more than one element it is hard to setup each position by hand. Roassal provides defined layouts to arrange ROElement's. Layouts are explained in  \secref{layouts}.
+
+\vp{not sure if the camera should be explained here. What can be added here about the camera that helps you to build a visualization?}
+Another important component of a ROView is the camera, represented by an instance of a \textbf{ROCamera}. A ROCamera is the point of view from which a view object is actually viewed.
+
+\subsubsection*{The Collection hierarchy example}
+\vp{I am not sure if this is the right order of if I will not add color}
+As an example we will visualize the Collection hierarchy through the chapter. We will build it by executing the following steps:
+\begin{enumerate}
+\item Add all the data with no particular shape. In this case: Collection with all its subclasses;
+\item make the classes look according to metrics of each them;
+\item add links between a class and its superclass;
+\item arrange the elements as an hierarchy with a layout.
+\end{enumerate}
+
+In this section, we start with the first step: adding all the data.
+
+\begin{code}{}
+view := ROView new.
+classes := ROElement forCollection: Collection withAllSubclasses.
+classes 
+	do: [:c | c + ROBorder.
+			c @RODraggable ].
+view addAll: classes.
+ROHorizontalLineLayout new on: view elements.
+view open.
+\end{code}
+
+The \#forCollection: selector of ROElement is just a helper to build ROElement's more easily from a collection. Each resulting ROElement represents each element of the collection parameter. We make them draggable to be more easy to manipulate.
+Finally to identify each element easily, we apply a default layout. More explanation of how layouts works will be explained later on. 
+
+%\alex{Describe the core of Roassal: Element, shape, view and camera. We should simply use ``ROElement new'', no need to mention \#on: for now}
+%
+%\alex{We need to find a small example that we enhance in the chapter. Maybe a System complexity built by hand (ie. without the Mondrian builder).}
 
 
 %=====================
-\section{More on Shapes}
+\section{More on Shapes} \seclabel{shapes}
 
-\alex{Show some shapes here}
+A ROElement can be shaped by sending the \textbf{\#+} message to an instance of a ROShape or to a ROShape class. When sending to the class, the element is shaped with default values for each attribute.
 
-\alex{Composing shapes with the chain}
+Some of the shapes available in Roassal are ROLabel, ROBorder, ROBox and ROCircle. By default, \textbf{ROLabel} will display the data of the element associated as string, but it is also possible to set a custom text (\figref{label}). When applying \textbf{ROBorder}, \textbf{ROBox} and \textbf{ROCircle} to a ROElement, the shape will be adapted to the bounds of the element. It is also possible to set attributes as color, border color o border width to a shape. This is shown in \figref{border}, \figref{box} and \figref{circle}.
+
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
+     \begin{code}
+     
+	ROElement new 
+		size: 100; 
+		+ (ROLabel text: 'hello!').	\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.4\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.4\textwidth]{label}
+   \end{minipage}
+\caption{ROLabel}
+\label{fig:label}
+\end{figure}
+
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
+     \begin{code}
+     
+	ROElement new 
+		size: 100; 
+		+ ROBorder.	\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.4\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.25\textwidth]{border}
+   \end{minipage}
+\caption{ROBorder}
+\label{fig:border}
+\end{figure}  
+
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
+     \begin{code}
+     
+ROElement new 
+	size: 200; 
+	+ (ROBox new 
+				color: Color green; 
+				borderColor: Color red; 
+				borderWidth: 4 ).	\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.4\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.5\textwidth]{box}
+   \end{minipage}
+\caption{ROBox}
+\label{fig:box}
+\end{figure} 
+
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
+     \begin{code}
+     
+ROElement new 
+	size: 100; 
+	+ (ROCircle new 
+				color: Color yellow; 
+				borderColor: Color blue; 
+				borderWidth: 2 ).	\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.4\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.25\textwidth]{circle}     
+   \end{minipage}
+\caption{ROCircle}
+\label{fig:circle}
+\end{figure}
+
+To create more complex looks we can compose shapes. To have an element shaped with more than one ROShape, we send the \textbf{\#+} message several times with the desired shapes (\figref{composed}). This builds a chain of shapes associated to the element.
+
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
+     \begin{code}
+     
+ROElement new 
+	size: 180;  
+	+ (ROLabel new text: 'composed shape');
+	+ (ROBorder new color: Color red); 
+	+ (ROCircle new color: Color yellow; 
+					borderWidth: 0 ).	\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.4\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.4\textwidth]{composed}
+   \end{minipage}
+\caption{Composing shapes}
+\label{fig:composed}
+\end{figure} 
+
+\subsubsection*{The Collection hierarchy example}
+We now will add some shape to the \ct{Collection} example. Each element representing a class will have a width according to the number of instance variables of the class and a height according to the number of its methods. Like this we are applying metrics to have a polymetric representation of the class.
+
+\begin{code}{}
+view := ROView new.
+classes := ROElement forCollection: Collection withAllSubclasses.
+classes do: [:c | 
+	c width: c model instVarNames size.
+	c height: c model methods size.
+	c + ROBorder. 
+	c @ RODraggable ].
+view addAll: classes.
+ROHorizontalLineLayout new on: view elements.
+view open.
+\end{code}
+
 
 %=====================
-\section{More on Camera}
+\section{Edges: linking elements} \seclabel{edges}
 
-\alex{MiniMap}
-\alex{Semantic zooming: Making objects appear when the camera goes down}
+In Roassal it is possible to build links between elements to represent relationships between them. A link between elements is an instance of the class \textbf{ROEdge}. An edge needs two elements: one to be the starting point and another to be the end point. It is important to notice than an edge also needs to be shaped. The following code shows a very simple example of how to build an edge between two ROElement's.
+
+\begin{code}{}
+view := ROView new.
+fromElement := (ROElement on: 1) + ROBorder red; @RODraggable.
+toElement := (ROElement on: 2)+ ROBorder red ; @RODraggable.
+
+edge := ROEdge from: fromElement to: toElement.
+edge + ROLine new. "-> an edge needs to be shaped too"
+view 
+	add: fromElement; 
+	add: toElement; 
+	add: edge.
+view open.
+\end{code}
+
+There are several ways to shape a ROEdge. Some examples are shown in \figref{line}, \figref{arrowEdge} and \figref{orthoEdge}.
+
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
+     \begin{code}{}
+edge + ROLine new. \end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.4\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.4\textwidth]{line}
+   \end{minipage}
+\caption{Simple edge}
+\label{fig:line}
+\end{figure} 
+
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
+     \begin{code}{}
+edge + (ROLine new add: ROArrow new). \end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.4\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.4\textwidth]{arrowEdge}
+   \end{minipage}
+\caption{Arrowed edge}
+\label{fig:arrowEdge}
+\end{figure} 
+
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
+     \begin{code}{}
+edge + (ROOrthoHorizontalLineShape new add: ROHorizontalArrow new)\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.4\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.4\textwidth]{orthoEdge}
+   \end{minipage}
+\caption{Orthogonal edge with horizontal oriented arrow}
+\label{fig:orthoEdge}
+\end{figure} 
+
+\subsubsection*{The Collection hierarchy example}
+Now we know how to make links between elements. With the following code we can create edges between each class to its superclass. To do so, we first need to create a collection of associations of the elements in our view. Each association represents the starting point of the ROEdge to create as the association key and the ending point as the association value. For this example each association goes from a ROElement representing a class to a ROElement that represents its superclass. After having the associations we create the instances of ROEdge by using the \#linesFor: selector.
+
+\begin{code}{}
+view := ROView new.
+classes := ROElement forCollection: Collection withAllSubclasses.
+classes do: [:c | 
+	c width: c model instVarNames size.
+	c height: c model methods size.
+	c + ROBorder. 
+	c @ RODraggable ].
+view addAll: classes.
+associations := classes 
+					collect: [:c | 	(c model superclass = Object)
+										ifFalse: [ (view elementFromModel: c model superclass) -> c]]
+					thenSelect: [:assoc | assoc isNil not ].
+edges := ROEdge linesFor: associations.
+view addAll: edges.
+ROHorizontalLineLayout new on: view elements.
+view open
+\end{code}
+
+Now we have the class \ct{Collection} with the shape we want and connected with each superclass. However we don't see an hierarchy. This is because we need an appropriate layout to arrange all the elements of the view. Next sections covers how to apply layouts to elements.
+
+
+%=====================
+\section{More on Layouts} \seclabel{layouts}
+
+A layout is applied to the elements of a view to arrange them. Layouts in Roassal inherits from the \textbf{ROLayout} class. 
+\vp{moar, moar}
+
+
+\subsubsection*{The Collection hierarchy example}
+There are several layout available in Roassal. As we need an hierarchy, a \textbf{ROTreeLayout} will be useful to obtain the Collection hierarchy.
+
+\begin{code}{}
+view := ROView new.
+classes := ROElement forCollection: Collection withAllSubclasses.
+classes do: [:c | 
+	c width: c model instVarNames size.
+	c height: c model methods size.
+	c + ROBorder. 
+	c @ RODraggable ].
+view addAll: classes.
+associations := classes collect: [:c | 
+	(c model superclass = Object)
+		ifFalse: [ (view elementFromModel: c model superclass) -> c]
+	 ] thenSelect: [:assoc | assoc isNil not ].
+edges := ROEdge linesFor: associations.
+view addAll: edges.
+ROTreeLayout new on: view elements.
+view open
+\end{code}
+
+We did it! The resulting visualization can be seen in \figref{collectionHierarchy}.
+
+\largefig{}{0.5}{collectionHierarchy}{Collection class hierarchy}
+
+%=====================
+\section{The Interaction hierarchy}
+
+\alex{Present the hierarchy of the interaction}
+
+\alex{Give some examples with buttons and animations}
 
 %=====================
 
@@ -93,11 +443,12 @@ view open
 
 
 %=====================
-\section{The Interaction hierarchy}
+\section{More on Camera}
 
-\alex{Present the hierarchy of the interaction}
+\alex{MiniMap}
+\alex{Semantic zooming: Making objects appear when the camera goes down}
 
-\alex{Give some examples with buttons and animations}
+
 
 
 %=====================
