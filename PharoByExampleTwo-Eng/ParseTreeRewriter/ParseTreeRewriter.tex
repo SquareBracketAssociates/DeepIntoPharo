@@ -35,6 +35,67 @@
 \chapter{Checking and Transforming Programs with Rewrite rules}\chalabel{rewrite}
 
 
+
+
+\section{Automatic manipulation of Code}
+
+
+
+
+\section{Basic Knowledge on AST and other concepts}
+
+
+\begin{code}{a Simple method}
+< aPoint 	"Answer whether the receiver is above and to the left of aPoint."	^x < aPoint x and: [y < aPoint y]
+\end{code}
+	
+	
+\begin{code}{Getting the AST of a method}
+( Point >> #<) parseTree
+\end{code}	
+
+
+\subsection{Basic on ProgramNodes and Subclasses}
+Classes represent different nodes
+
+ProgramNode is the superclass
+
+Implement several useful methods: parent, nodesDo:, isVariable....
+
+
+
+\subsection{Unification}
+The pattern matchin algorithm in the parser tree rewriter is accomplished by a unification algorithm. This algorithm takes as input a tree (to search) and a pattern (a structure containing pattern variables).
+
+The output of the algorithm is either False (there is no match found) or true and a set of assignments describing the variables. 
+
+The set of assignments contains the values of the pattern variables that make the match between the tree and the pattern variables succeed. 
+
+For example:
+\begin{code}{}
+self X matches self open if X = 'open'
+
+X Y matches self open if X = 'self' and Y = 'foo'
+
+X X does not match self open.
+\end{code}
+
+
+
+\section{Getting Started}
+
+\begin{code}{Matching}
+| className realClass replacer category |
+className := #MyClass.
+realClass := Smalltalk at: className.
+category := #accessing.
+
+\end{code}
+
+
+
+
+
 If you really just want the string 'tabs', the string 'tabs' with the
 quotes is the search expression.
 
