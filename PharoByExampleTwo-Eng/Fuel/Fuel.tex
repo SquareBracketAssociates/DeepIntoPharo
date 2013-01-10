@@ -181,14 +181,14 @@ When more complete and sophisticated serialization is needed, and you can specif
 
 By this hook you can specify a list of instance variables that won't be serialized. The way to do it is to implement in a particular class the method \ct{fuelIgnoredInstanceVariableNames}. Let's say we have the class \ct{User} and we do not want to serialize the instance variables \ct{'acumulatedLogins'} and \ct{'applications'}. So we implement:
 
-\begin{code}
+\begin{code}{Ignoring instance variables example}
 User class >> fuelIgnoredInstanceVariableNames
     ^#('acumulatedLogins' 'applications')
 \end{code}
 
 When materialized, such instance variables will be nil. If you want to re-initialize and set values to those instance variables, you can use \ct{fuelAfterMaterialization} for that.
 
-Be aware that in case of renaming those instance variables, you should rename that method as well. Notice also that the method \ct{fuelIgnoredInstanceVariableNames} is implemented at class side. This means that ""all"" instances of such class will ignore the defined instances variables. 
+Be aware that in case of renaming those instance variables, you should rename that method as well. Notice also that the method \ct{fuelIgnoredInstanceVariableNames} is implemented at class side. This means that \emph{all} instances of such class will ignore the defined instances variables. 
 
 In \ct{StOMP} serializer this same hook is called \ct{stompTransientInstVarNames} and in \ct{SIXX} it is \ct{sixxIgnorableInstVarNames}. 
 
@@ -199,7 +199,7 @@ We test this feature in \ct{FLIgnoredVariablesTest}.
 
 The method \ct{fuelAfterMaterialization} let us execute something once an object has been materialized. For example, let's say we would like to set back the instance variable \ct{'acumulatedLogins'} during materialization. Hence, we can implement:
 
-\begin{code}
+\begin{code}{Post-materialization action example}
 User >> fuelAfterMaterialization
  acumulatedLogins := 0. 
 \end{code}
@@ -216,7 +216,8 @@ You can establish a pluggable substitution to a particular serializer instance.
 
 Let's illustrate with an example, where your graph includes a \ct{Stream} and you want to serialize \ct{nil} instead. 
 
-\begin{code}
+\begin{code}{Substitutes on serialization in the \emph{dynamic way}}
+| objectToSerialize |
 objectToSerialize := Array with: 'hello' with: '' writeStream.
 
 FileStream forceNewFileNamed: 'demo.fuel' do: [ :aStream |
@@ -240,21 +241,21 @@ You have to override \ct{fuelAccept:} in the class of the object to be substitut
 
 As an example, imagine we want to replace an object directly with nil. In other words, we want to make a whole object transient, say \ct{CachedResult}. For that, we should implement:
 
-\begin{code}
+\begin{code}{Substitute on serialization by \ct{nil} in the \emph{static way}}
 CachedResult >> fuelAccept: aGeneralMapper
     ^ aGeneralMapper visitSubstitution: self by: nil
 \end{code}
 
 As another example, we have a \ct{Proxy} class and when serializing we want to serialize its \ct{target} instead of the proxy. So we implement:
 
-\begin{code}
+\begin{code}{Substitute on serialization by \ct{an arbitrary object} in the \emph{static way}}
 Proxy >> fuelAccept: aGeneralMapper
     ^ aGeneralMapper visitSubstitution: self by: target
 \end{code}
 
 Notice that \ct{fuelAccept:} is the same as the previous example. The last example is when an object needs to change the value of its instance variables. Say we have again the class \ct{User} and we want to \ct{nil} the instance variable \ct{'history'} when its size is greater than 100. 
 
-\begin{code}
+\begin{code}{Custom substitution on serialization in the \emph{static way}}
 User >> fuelAccept: aGeneralMapper
     ^self history size > 100 
         ifTrue: [ 
@@ -266,7 +267,7 @@ User >> fuelAccept: aGeneralMapper
 
 Note: we are substituting the original user by another instance of \ct{User}, which Fuel will visit with the same \ct{fuelAccept:} method. We could easily fall in an infinite sequence of substitutions if we don't take care. To avoid this problem, it is useful \ct{visitSubstitution:by:onRecursionDo:}, where you define an alternative mapping for the case of mapping an object which is already a substitute of another one:
 
-\begin{code}
+\begin{code}{Avoiding infinite recursion when substituting on serialization in the \emph{static way}}
 User >> fuelAccept: aGeneralMapper
     aGeneralMapper 
         visitSubstitution: self 
@@ -286,7 +287,7 @@ You can see tests for this functionality at \ct{FLHookedSubstitutionTest}.
 
 Suppose we have a special instance of \ct{User} that represents the admin user, and it is an unique instance in the image. In case the admin user is referenced in our graph, we want to treat that object as a global. We can do that in this way:
 
-\begin{code}
+\begin{code}{Global send example}
 User >> fuelAccept: aGeneralMapper
     ^self == User admin
         ifTrue: [ 
@@ -306,7 +307,7 @@ We test this feature in \ct{FLGlobalSendSerializationTest}.
 
 You may want to be sure that some objects are not serialized. For this case we provide \ct{visitNotSerializable:}, which in next example forbids serialization of any instance of \ct{MyNotSerializableObject}.
 
-\begin{code}
+\begin{code}{Not serializable object example}
 MyNotSerializableObject >> fuelAccept: aGeneralMapper
     aGeneralMapper visitNotSerializable: self
 \end{code}
@@ -334,7 +335,7 @@ Let's start with the easier cases. If a variable was \emph{inserted}, its value 
 
 A more interesting case is when a variable was \emph{renamed}, where the user can map old names to new ones. In our example:
 
-\begin{code}
+\begin{code}{Migrating a variable rename}
 FLMaterializer newDefault
 	migrateClassNamed: #Point
 	variables: {'x' -> 'posX'. 'y' -> 'posY'}.
@@ -344,7 +345,7 @@ Not surprisingly, if nothing specified the change will be understood by Fuel as 
 
 The last change in the figure is a \emph{class rename}. This should be specified this way:
 
-\begin{code}
+\begin{code}{Migrating a class rename}
 FLMaterializer newDefault
 	migrateClassNamed: #Point
 	toClass: Coordinate.
@@ -375,6 +376,147 @@ You can find tests related to this guide in \ct{FLMigrationTest}.
 \section{Debugging}
 
 
+There are a couple of packages that help us debugging Fuel. To understand the output of the tools in this guide, you should know some basics of how Fuel internally works. 
+
+
+\subsection{Serialization}
+The most important thing to remark is that serialization is split in two main steps: analysis and encoding.
+
+
+\subsubsection{Analysis}
+It consists in a graph iteration, mapping each traversed object to its correspondent grouping, called \emph{cluster}. 
+
+
+\subsubsection{Encoding}
+After analysis, we linearly write on the stream, in these steps:
+
+
+\begin{enumerate}
+
+\item header
+
+\item for each cluster, instances part
+
+\item for each cluster, references part
+
+\item trailer
+
+\end{enumerate}
+
+
+\subsection{Materialization}
+
+It consists on progressively recreating the graph.
+
+
+\subsubsection{Decoding}
+This is done by linearly reading from the stream. So, steps are obviously analogous to the ones above:
+
+
+\begin{enumerate}
+
+\item header
+
+\item for each cluster, instances part
+\item for each cluster, references part
+\item trailer
+
+\end{enumerate}
+
+
+\subsection{Debug Tools}
+Ensure you have them with:
+
+
+\begin{code}{Loading debugging tools}
+(ConfigurationOfFuel project version: '1.8.1') 
+    load: #(FuelDebug FuelPreview).
+\end{code}
+
+Next, a transcript of some useful class comments. 
+
+
+\subsubsection{FLGraphViewBuilder}
+
+I add draw capabilities to analysis in ==FuelDebug== package.
+
+Right-click a node for inspect it. Some examples:
+
+
+\begin{code}{}
+(FLAnalyzer newDefault
+    setDebug;
+    analysisFor: #((1) (2) (3) (4)))
+    open.
+\end{code}
+
+
+\begin{code}{}
+(FLAnalyzer newDefault
+    setDebug;
+    analysisFor: #((1) (2) (3) (4)))
+    openPathsTo: 3.
+\end{code}
+
+
+\begin{code}{}
+(FLAnalyzer newDefault
+    setDebug;
+    analysisFor: #((1) (2) (3) (4)))
+    openPathsToEvery: [:o | o isNumber and: [o > 2] ].
+\end{code}
+
+
+They look like in \figref{FuelPreview}.
+
+
+\begin{figure}[t]\centering
+        \includegraphics[width=0.8\linewidth]{FuelPreview.png}
+        \caption{Some usual changes during class evolution which require migration.\figlabel{FuelPreview}}
+\end{figure}
+
+
+\subsubsection{FLDebugSerialization}
+
+I am a serialization which facilitates debugging, by logging the stream position before and after main steps of \ct{FLSerialization}, including cluster information. Obviously, you should be familiar with such class and the algorithm to understand the output log.
+
+To use, send \ct{setDebug} to your serializer and run as usually. For example:
+
+
+\begin{code}{}
+FileStream forceNewFileNamed: 'debug.fuel' do: [:aFile |
+    FLSerializer newDefault
+        setDebug;
+        serialize: ''hello'' on: aFile binary ]
+\end{code}
+
+Then, inspect the output log:
+
+
+\begin{code}{}
+FLDebugSerialization last log
+\end{code}
+
+
+\subsubsection{FLDebugMaterialization}
+
+I am a materialization which facilitates debugging, by logging the stream position before and after main steps of \ct{FLMaterialization}, including cluster information. Obviously, you should be familiar with such class and the algorithm to understand the output log.
+
+To use, send \ct{setDebug} to your serializer and run as usually. For example:
+
+
+\begin{code}{}
+FileStream oldFileNamed: 'debug.fuel' do: [:aFile |
+    FLMaterializer newDefault
+        setDebug;
+        materializeFrom: aFile binary ]
+\end{code}
+
+Then, inspect the output log:
+
+\begin{code}{}
+FLDebugMaterialization last log
+\end{code}
 
 
 %=========================================================
