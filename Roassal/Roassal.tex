@@ -176,7 +176,7 @@ view open.
 \label{fig:ex3}
 \end{figure}
 
-By executing this code a visualization with two elements, both placed in the top left part of the visualization. A ROElement can be translated using the \#translateBy: or \#translateTo: selector.
+By executing this code a visualization with two elements appears, both placed in the top left part. A ROElement can be translated using the \#translateBy: or \#translateTo: selector.
 
 \begin{figure}[H]
       \begin{minipage}[t]{0.5\textwidth}
@@ -498,13 +498,13 @@ view open
 
 \fig{H}{0.6}{hier3}{Adding links between each class and its superclass}
 
-Now we have each class in the \ct{Collection} hierarchy with the shape we want and connected with each superclass. However we don't see a real hierarchy. This is because we need an appropriate layout to arrange all the elements of the view. Next sections covers how to apply layouts to elements.
+Now we have each class in the \ct{Collection} hierarchy with the shape we want and connected with each superclass. However we don't see a real hierarchy. This is because we need an appropriate layout to arrange all the elements of the view. Next section covers how to apply layouts to elements.
 
 
 %=====================
 \section{More on Layouts} \seclabel{layouts}
 
-A layout is applied to  a collection of elements to arrange them. Layouts in Roassal inherits from the \textbf{ROLayout} class. To apply  layout use the \#on: selector with a collection of ROElement's, as shown in \figref{ROGrid}.
+A layout is applied to  a collection of elements to arrange them. Layouts inherits from the \textbf{ROLayout} class. To apply  layout use the \#on: selector with a collection of ROElement's, as shown in \figref{ROGrid}.
 
 
 \begin{figure}[H]
@@ -522,13 +522,15 @@ view open.
    \begin{minipage}[t]{0.6\textwidth}
       \vspace{0pt} \raggedright
        \centering
-		\includegraphics[width=0.3\textwidth]{ROGrid}
+		\includegraphics[width=0.3\textwidth]{ROGrid} %layout1?
    \end{minipage}
 \label{fig:ROGrid}
 \caption{ROGridLayout applied to a group of ROElements}
 \end{figure} 
 
 The selector \#spriteOn: creates a collection of ROElement's, each with size 50, shaped with a red border and draggables.
+
+Some of the layouts available in Roassal can be seen in \figref{roLayouts}.
 
 \begin{figure} [H]
         \centering
@@ -542,7 +544,7 @@ The selector \#spriteOn: creates a collection of ROElement's, each with size 50,
 \end{figure}
 
 When dealing with nested ROElement's, layouts can be relative to each element container.
-To apply a layout
+
 \begin{figure}[H]
       \begin{minipage}[t]{0.61\textwidth}
       \vspace{0pt}
@@ -590,25 +592,138 @@ view open
 \end{code}
 \end{figure}
 
-We did it! The resulting visualization can be seen in \figref{collectionHierarchy}.
+We did it! :) \vp{<-ok, maybe remove this} The resulting visualization can be seen in \figref{collectionHierarchy}.
 
-\largefig{}{0.5}{collectionHierarchy}{Collection class hierarchy}
+\fig{H}{0.4}{collectionHierarchy}{Collection class hierarchy}
 
 %=====================
 
 \section{Events and Callbacks}
 
-Roassal allows any visible component in a visualization, including itself, to react to events. There are two kind of events defined in Roassal. In the first kind are those responding to external events, like mouse clicks, mouse move o key pressing. The second kind includes all events triggered by internal manipulation of the ROView or its components, like when a view needs to be refreshed.
+Roassal allows any visible component in a visualization, including itself, to react to events. There are two kind of events defined in Roassal. In the first kind are those responding to external events, like mouse clicks, mouse move o key pressing. The second kind of events includes all those triggered by internal manipulation of the ROView or its components, like when a view needs to be refreshed.
+All events inherits from the \textbf{ROEvent} class.
 
-To manage external
+There are several event classes to deal with mouse events: \textbf{ROMouseClick}, \textbf{ROMouseMove}, \textbf{ROMouseEnter} and \textbf{ROMouseLeave}, among others. To deal with key pressing, \textbf{ROKeyDown} is the event class to be used.
 
+\vp{explain the following code}
 
-\alex{How to define callbacks}
-\alex{What are the different events we can handle}
+\begin{figure}[H]
+      \begin{minipage}[t]{0.61\textwidth}
+      \vspace{0pt}
+     \begin{code}{}
+view := ROView new.
+el := ROElement sprite.
+view add: el.
+view 
+	on: ROMouseLeftClick 
+	do: [ :event | 
+		ROLinearMove new
+			nbCycles: 180;
+			for: el to: event position.
+	].
+view open.
+  \end{code}
+   \end{minipage}
+   \hfill
+\caption{Move a ROElement by a ROMouseLeftClick event on its view }
+\end{figure} 
+
+\textbf{ROLinearMove} belongs to the Roassal interactions. As its name suggest, makes an animation for an element to be translated in a linear move. More about interactions are explained in next section.
+
+%
+%\alex{How to define callbacks}
+%\alex{What are the different events we can handle}
 
 
 %=====================
 \section{The Interaction hierarchy}
+
+\vp{working here!}
+
+As previously presented, a ROElement can respond to events by adding it interactions. The root class of all the interactions is \textbf{ROInteraction}.
+
+\vp{Say a bit more about interactions a clasification? 1) apply directly to an object with defined callbacls (RODraggable, ROPopup) and 2) Animations}
+From the interactions availables in Roassal, in this chapter we will present 3
+
+\subsubsection*{ROAbstractPopup}
+
+\begin{figure}[H]
+      \begin{minipage}[t]{1\textwidth}
+      \vspace{0pt}
+     \begin{code}{}
+view := ROView new.
+el := ROElement spriteOn: 'Roassal'.
+el @ ROPopup.
+view add: el.
+view open.
+  \end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{1\textwidth}
+	 \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.7\textwidth]{popup}
+   \end{minipage}
+\label{fig:popup}
+\caption{ROPopup}
+\end{figure} 
+
+\begin{figure}[H]
+      \begin{minipage}[t]{1\textwidth}
+      \vspace{0pt}
+     \begin{code}{}
+view := ROView new.
+el := ROElement spriteOn: 'Roassal'.
+
+"create the view to popup"
+viewToPopup := ROView new.
+viewToPopup 
+	addAll: (ROElement forCollection: (1 to: 4 )).
+viewToPopup 
+	elementsDo: [:e | e size: 20. e + ROBox  ].
+ROGridLayout 
+	on: viewToPopup elements.
+	
+el := ROElement spriteOn: 'Roassal'.
+el @ (ROPopupView view: viewToPopup).
+view add: el.
+view open.
+  \end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{1\textwidth}
+	 \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.7\textwidth]{popupView}
+   \end{minipage}
+\label{fig:popupView}
+\caption{ROPopupView}
+\end{figure} 
+
+\subsubsection*{ROAnimation}
+
+\subsubsection*{ROMenuActivable}
+
+\begin{figure}[H]
+      \begin{minipage}[t]{1\textwidth}
+      \vspace{0pt}
+     \begin{code}{}
+view := ROView new.
+el := ROElement sprite.
+el @ (ROMenuActivable new item: 'inspect' action: #inspect).
+view add: el.
+view open.
+  \end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{1\textwidth}
+	 \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.7\textwidth]{menuActivable}
+   \end{minipage}
+\label{fig:menuActivable}
+\caption{ROMenuActivable applied to a ROElement}
+\end{figure} 
 
 \alex{Present the hierarchy of the interaction}
 
