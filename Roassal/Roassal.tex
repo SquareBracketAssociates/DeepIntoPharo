@@ -40,6 +40,7 @@
                 \includegraphics[width=\textwidth]{#3}
                 \caption{\label{fig:#3}#4}                
         \end{subfigure}}
+
 \begin{document}
 \fi
 %=================================================================
@@ -91,51 +92,143 @@ view open
 Each Roassal visualization is an instance of the class \textbf{ROView}, which is the container for all the data to be visualize.
 Data is represented by instances of \textbf{ROElement} that will be added to the visualization. The value of the data is stored in its \ct{model} instance variable.
 
-The following code to creates and open a visualization with the representation of the \ct{Collection} class:
+The following code to creates and open a visualization with a simple ROElement, which size its 100:
 
+
+
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
 \begin{code}{}
 view := ROView new.
-collectionRepresentation := ROElement new model: Collection.
-view add: collectionRepresentation.
+element := 
+	ROElement new size: 100.
+view add: element.
 view open.
 \end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.6\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.6\textwidth]{ex1}
+   \end{minipage}
+\label{fig:ex1}
+\end{figure}
 
+However, by executing this code nothing appears in the visualization. The element is there but we haven't set how it should look like. The look of a ROElement is given by shapes, instances of subclasses of the abstract class \textbf{ROShape}. Let's add some shape to our element:
 
-However, by executing this code nothing appears in the visualization. The ROElement is there but we haven't told how \ct{collectionRepresentation} should look like. The look of a ROElement is given by shapes, instances of the class \textbf{ROShape}. Let's add some shape to \ct{collectionRepresentation}:
-
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
 \begin{code}{}
 view := ROView new.
-collectionRepresentation := ROElement new model: Collection.
-collectionRepresentation 
-	+ ROLabel. "-> add shape"
-view add: collectionRepresentation.
+element := ROElement new size: 100.
+element 
+	+ ROBorder. "-> add shape"
+view add: element.
 view open.
 \end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.6\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.6\textwidth]{ex2}
+   \end{minipage}
+\label{fig:ex2}
+\end{figure}
 
-To add a ROShape to an instance of ROElement, we send the \textbf{\#+} message with the ROShape wanted to added. For this example the ROLabel shape is used which, as its name suggests, adds a label to the ROElement with the value of its model. There are several other shapes that can be added and they can even be composed. \secref{shapes} details how to make more complex looks.
+To add a ROShape to an instance of ROElement, we send the \textbf{\#+} message with the ROShape wanted to added. For this example we added the ROBorder shape. As its name suggests, ROBorder adds a border to the ROElement. As default, the color of created border is black. There are several other shapes that can be added and they can even be composed. \secref{shapes} details more on shapes and explains how to create more complex looks.
 
 A ROElement can also have interactions, allowing it to answer to events. For instance, they can be dragged by the mouse. To add an interaction to a ROElement send the \textbf{\#@} message with the interaction as parameter: 
 
 \begin{code}{}
 view := ROView new.
-collectionRepresentation := ROElement new model: Collection.
-collectionRepresentation 
-	+ ROLabel; "-> add shape"
+element := ROElement new size: 100.
+element 
+	+ ROBorder; "-> add shape"
 	@ RODraggable. "-> add interaction"
-view add: collectionRepresentation.
+view add: element.
 view open.
 \end{code}
 
-Having a visualization with only one represented Object is not very useful. You can add more elements to a ROView by sending the message \#addAll: with a collection of ROElements. You can later access them by using the \#elements accessor. 
+Visualization are usualy composed of more than one data value. You can add more elements to a ROView by sending the message \#addAll: with a collection of ROElements. You can later access them by using the \#elements accessor. 
 
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
 \begin{code}{}
 view := ROView new.
-view addAll: (Array with: ROElement new with: ROElement new).
+element1 := (ROElement new size: 100).
+element2 := (ROElement new size: 50).
+view addAll: (Array with: element1 with: element2).
 view elements do: [:el | el + ROBorder; @ RODraggable].
 view open.
 \end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.6\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.6\textwidth]{ex3}
+   \end{minipage}
+\label{fig:ex3}
+\end{figure}
+
+By executing this code a visualization with two elements, both placed in the top left part of the visualization. A ROElement can be translated using the \#translateBy: or \#translateTo: selector.
+
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
+\begin{code}{}
+view := ROView new.
+element1 := (ROElement new size: 100).
+element2 := (ROElement new size: 50).
+element2 translateBy: 150@150.
+view addAll: (Array with: element1 with: element2).
+view elements do: [:el | el + ROBorder; @ RODraggable].
+view open.
+\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.6\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.6\textwidth]{ex4}
+   \end{minipage}
+\label{fig:ex4}
+\end{figure}
+
 
 When a visualization contains more than one element it is hard to setup each position by hand. Roassal provides defined layouts to arrange ROElement's. Layouts are explained in  \secref{layouts}.
+
+A ROElement can also contain other ROElement's, creating nested elements:
+
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
+\begin{code}{}
+view := ROView new.
+parent := ROElement new 
+				size: 100;
+				+ ROBorder.
+children := ROElement new 
+				size: 50;
+				+ ROBorder red.
+parent add: children.
+view add: parent.
+view open.
+\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.6\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.6\textwidth]{ex5}
+   \end{minipage}
+\label{fig:ex5}
+\end{figure}
 
 \vp{not sure if the camera should be explained here. What can be added here about the camera that helps you to build a visualization?}
 Another important component of a ROView is the camera, represented by an instance of a \textbf{ROCamera}. A ROCamera is the point of view from which a view object is actually viewed.
@@ -150,8 +243,8 @@ As an example we will visualize the Collection hierarchy through the chapter. We
 \item arrange the elements as an hierarchy with a layout.
 \end{enumerate}
 
-In this section, we start with the first step: adding all the data.
-
+In this section, we start with the first step: adding all the data:
+\begin{figure}[H]
 \begin{code}{}
 view := ROView new.
 classes := ROElement forCollection: Collection withAllSubclasses.
@@ -162,6 +255,9 @@ view addAll: classes.
 ROHorizontalLineLayout new on: view elements.
 view open.
 \end{code}
+\end{figure}
+
+\fig{H}{0.6}{hier1}{Adding the data}
 
 The \#forCollection: selector of ROElement is just a helper to build ROElement's more easily from a collection. Each resulting ROElement represents each element of the collection parameter. We make them draggable to be more easy to manipulate.
 Finally to identify each element easily, we apply a default layout. More explanation of how layouts works will be explained later on. 
@@ -300,25 +396,33 @@ ROHorizontalLineLayout new on: view elements.
 view open.
 \end{code}
 
+\fig{H}{0.6}{hier2}{Adding some shape for each class}
+
 
 %=====================
 \section{Edges: linking elements} \seclabel{edges}
 
 In Roassal it is possible to build links between elements to represent relationships between them. A link between elements is an instance of the class \textbf{ROEdge}. An edge needs two elements: one to be the starting point and another to be the end point. It is important to notice than an edge also needs to be shaped. The following code shows a very simple example of how to build an edge between two ROElement's.
 
-\begin{code}{}
+
+\begin{figure}[H]
+ \begin{code}{}
 view := ROView new.
-fromElement := (ROElement on: 1) + ROBorder red; @RODraggable.
-toElement := (ROElement on: 2)+ ROBorder red ; @RODraggable.
+fromElement := (ROElement on: 1) size:20; + ROBorder red.
+toElement := (ROElement on: 2)  size:20; + ROBorder red.
+toElement translateBy: 50@50.
 
 edge := ROEdge from: fromElement to: toElement.
 edge + ROLine new. "-> an edge needs to be shaped too"
 view 
 	add: fromElement; 
 	add: toElement; 
-	add: edge.
-view open.
-\end{code}
+	add: edge. "-> and added to the visualization"
+view inspect.
+\end{code}   
+\caption{Simple edge}
+\label{fig:simpleEdge}
+\end{figure} 
 
 There are several ways to shape a ROEdge. Some examples are shown in \figref{line}, \figref{arrowEdge} and \figref{orthoEdge}.
 
@@ -392,19 +496,80 @@ ROHorizontalLineLayout new on: view elements.
 view open
 \end{code}
 
-Now we have the class \ct{Collection} with the shape we want and connected with each superclass. However we don't see an hierarchy. This is because we need an appropriate layout to arrange all the elements of the view. Next sections covers how to apply layouts to elements.
+\fig{H}{0.6}{hier3}{Adding links between each class and its superclass}
+
+Now we have each class in the \ct{Collection} hierarchy with the shape we want and connected with each superclass. However we don't see a real hierarchy. This is because we need an appropriate layout to arrange all the elements of the view. Next sections covers how to apply layouts to elements.
 
 
 %=====================
 \section{More on Layouts} \seclabel{layouts}
 
-A layout is applied to the elements of a view to arrange them. Layouts in Roassal inherits from the \textbf{ROLayout} class. 
-\vp{moar, moar}
+A layout is applied to  a collection of elements to arrange them. Layouts in Roassal inherits from the \textbf{ROLayout} class. To apply  layout use the \#on: selector with a collection of ROElement's, as shown in \figref{ROGrid}.
 
+
+\begin{figure}[H]
+      \begin{minipage}[t]{0.5\textwidth}
+      \vspace{0pt}
+     \begin{code}{}
+view := ROView new.
+view 
+	addAll: (ROElement spritesOn: (1 to: 4)).
+ROGridLayout on: view elements.
+view open.
+  \end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.6\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.3\textwidth]{ROGrid}
+   \end{minipage}
+\label{fig:ROGrid}
+\caption{ROGridLayout applied to a group of ROElements}
+\end{figure} 
+
+The selector \#spriteOn: creates a collection of ROElement's, each with size 50, shaped with a red border and draggables.
+
+\begin{figure} [H]
+        \centering
+		\subfigure[ROGridLayout]{\includegraphics[width=0.15\textwidth]{ROGrid}} \hfill
+		\subfigure[ROCircleLayout]{\includegraphics[width=0.15\textwidth]{ROCircle}}\hfill
+		\subfigure[ROTreeLayout]{\includegraphics[width=0.11\textwidth]{ROTree}} \\ 
+		\subfigure[ROMapTreeLayout]{\includegraphics[width=0.2\textwidth]{ROMapTree}} \hfill
+		\subfigure[ROVerticalLineLayout]{\includegraphics[width=0.06\textwidth]{ROVertical}}\hfill
+		\subfigure[ROHorizontalLineLayout]{\includegraphics[width=0.25\textwidth]{ROHorizontal}}
+        \caption{Some of the layouts availables in Roassal applied to a group of ROElement's}\label{fig:roLayouts}
+\end{figure}
+
+When dealing with nested ROElement's, layouts can be relative to each element container.
+To apply a layout
+\begin{figure}[H]
+      \begin{minipage}[t]{0.61\textwidth}
+      \vspace{0pt}
+     \begin{code}{}
+view := ROView new.
+elements := (ROElement spritesOn: (1 to: 2)).
+elements 
+	do: [:el | el addAll: (ROElement spritesOn: (1 to: 3)). 
+			   ROGridLayout on: el elements.].			   
+view addAll: elements.
+ROHorizontalLineLayout on: view elements.
+view open.
+  \end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{0.6\textwidth}
+      \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.6\textwidth]{nestedLayout}
+   \end{minipage}
+\label{fig:nestedLayout}
+\caption{Nested elements with different layouts }
+\end{figure} 
 
 \subsubsection*{The Collection hierarchy example}
-There are several layout available in Roassal. As we need an hierarchy, a \textbf{ROTreeLayout} will be useful to obtain the Collection hierarchy.
-
+As we need an hierarchy, the \textbf{ROTreeLayout} will be useful to obtain the Collection hierarchy.
+\begin{figure}[H]
 \begin{code}{}
 view := ROView new.
 classes := ROElement forCollection: Collection withAllSubclasses.
@@ -423,10 +588,24 @@ view addAll: edges.
 ROTreeLayout new on: view elements.
 view open
 \end{code}
+\end{figure}
 
 We did it! The resulting visualization can be seen in \figref{collectionHierarchy}.
 
 \largefig{}{0.5}{collectionHierarchy}{Collection class hierarchy}
+
+%=====================
+
+\section{Events and Callbacks}
+
+Roassal allows any visible component in a visualization, including itself, to react to events. There are two kind of events defined in Roassal. In the first kind are those responding to external events, like mouse clicks, mouse move o key pressing. The second kind includes all events triggered by internal manipulation of the ROView or its components, like when a view needs to be refreshed.
+
+To manage external
+
+
+\alex{How to define callbacks}
+\alex{What are the different events we can handle}
+
 
 %=====================
 \section{The Interaction hierarchy}
@@ -434,12 +613,6 @@ We did it! The resulting visualization can be seen in \figref{collectionHierarch
 \alex{Present the hierarchy of the interaction}
 
 \alex{Give some examples with buttons and animations}
-
-%=====================
-
-\section{Events and Callbacks}
-\alex{How to define callbacks}
-\alex{What are the different events we can handle}
 
 
 %=====================
