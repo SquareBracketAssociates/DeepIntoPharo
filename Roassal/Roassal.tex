@@ -503,8 +503,7 @@ Now we have each class in the \ct{Collection} hierarchy with the shape we want a
 
 %=====================
 \section{More on Layouts} \seclabel{layouts}
-
-A layout is applied to  a collection of elements to arrange them. Layouts inherits from the \textbf{ROLayout} class. To apply  layout use the \#on: selector with a collection of ROElement's, as shown in \figref{ROGrid}.
+A layout defines how a collection of ROElement can be arranged automatically. Layouts inherits from the \textbf{ROLayout} class. To apply  layout use the \#on: selector with a collection of ROElement's, as shown in \figref{ROGrid}.
 
 
 \begin{figure}[H]
@@ -603,9 +602,9 @@ We did it! :) \vp{<-ok, maybe remove this} The resulting visualization can be se
 Roassal allows any visible component in a visualization, including itself, to react to events. There are two kind of events defined in Roassal. In the first kind are those responding to external events, like mouse clicks, mouse move o key pressing. The second kind of events includes all those triggered by internal manipulation of the ROView or its components, like when a view needs to be refreshed.
 All events inherits from the \textbf{ROEvent} class.
 
-There are several event classes to deal with mouse events: \textbf{ROMouseClick}, \textbf{ROMouseMove}, \textbf{ROMouseEnter} and \textbf{ROMouseLeave}, among others. To deal with key pressing, \textbf{ROKeyDown} is the event class to be used.
+There are several event classes to deal with mouse events: \textbf{ROMouseClick}, \textbf{ROMouseMove}, \textbf{ROMouseEnter} and \textbf{ROMouseLeave}, among others; and to deal with key pressing, the \textbf{ROKeyDown} class.
 
-\vp{explain the following code}
+To see how events work, we will make a visualization to react to mouse clicks, translating its only element to where the click was made. For this, we make the visualization to react to ROLeftMouseClick. The reaction will create an animation to translate the element to the event position.
 
 \begin{figure}[H]
       \begin{minipage}[t]{0.61\textwidth}
@@ -618,7 +617,6 @@ view
 	on: ROMouseLeftClick 
 	do: [ :event | 
 		ROLinearMove new
-			nbCycles: 180;
 			for: el to: event position.
 	].
 view open.
@@ -638,14 +636,19 @@ view open.
 %=====================
 \section{The Interaction hierarchy}
 
-\vp{working here!}
+As previously presented, a ROElement can respond to events by adding interactions to it. The root class of all Roassal interactions is \textbf{ROInteraction}.
 
-As previously presented, a ROElement can respond to events by adding it interactions. The root class of all the interactions is \textbf{ROInteraction}.
+There are interactions that makes elements to react to events, such as \textbf{RODraggable}, that allows an element to be dragged by the mouse, or \textbf{ROGrowable}, that makes an element to increase its size when clicked. Some of this interactions can be more complex like popups elements, accesible by the subclasses of \textbf{ROAbstractPopup}, which are displayed when the mouse is over an element. 
 
-\vp{Say a bit more about interactions a clasification? 1) apply directly to an object with defined callbacls (RODraggable, ROPopup) and 2) Animations}
-From the interactions availables in Roassal, in this chapter we will present 3
+Animations are also interactions in Roassal. Some animations allows elements to be translated, like \textbf{ROLinearMove}. \textbf{ROZoomInMove} and \textbf{ROZoomOutMove} allow the view to be zoomed in or out, respectively. All animations are subclasses of \textbf{ROAnimation}.
+
+From the availables interactions in Roassal, two examples are presented: \textbf{ROAbstractPopup} and \textbf{ROAnimation}.
 
 \subsubsection*{ROAbstractPopup}
+
+ROAbstractPopup allows elements to react to mouse over events by displaying a popup. There are two kind of popups, (i) \textbf{ROPopup}, which by default displays a box with the String of the value of the ROElement; and (ii) \textbf{ROPopupView}, that displays a custom view.
+
+To add a popup to an element just send the \#@ selector with the ROPopup class. It is also possible to setup a custom text using the \#text: selector with the custom String.
 
 \begin{figure}[H]
       \begin{minipage}[t]{1\textwidth}
@@ -653,7 +656,7 @@ From the interactions availables in Roassal, in this chapter we will present 3
      \begin{code}{}
 view := ROView new.
 el := ROElement spriteOn: 'Roassal'.
-el @ ROPopup.
+el @ ROPopup. "Or with custom text -> (ROPopup text: 'this is custom text')"
 view add: el.
 view open.
   \end{code}
@@ -668,25 +671,28 @@ view open.
 \caption{ROPopup}
 \end{figure} 
 
+ROPopupView is slightly more complex as it needs the view to popup definition. This interaction can be created by sending the \#view: selector to the \textbf{ROPopupView} class with the view to be displayed. The parameter can also be a block with one parameter, which will be evaluated with the element where the interaction belongs to.
+
 \begin{figure}[H]
       \begin{minipage}[t]{1\textwidth}
       \vspace{0pt}
      \begin{code}{}
 view := ROView new.
-el := ROElement spriteOn: 'Roassal'.
-
+elements := ROElement spritesOn: (1 to: 5).
 "create the view to popup"
-viewToPopup := ROView new.
-viewToPopup 
-	addAll: (ROElement forCollection: (1 to: 4 )).
-viewToPopup 
-	elementsDo: [:e | e size: 20. e + ROBox  ].
-ROGridLayout 
-	on: viewToPopup elements.
-	
-el := ROElement spriteOn: 'Roassal'.
-el @ (ROPopupView view: viewToPopup).
-view add: el.
+viewToPopup :=
+	[:el |
+		|v| 
+		v := ROView new.
+		v addAll: (ROElement forCollection: (1 to: el model )).
+		v elementsDo: [:e | e size: 20; + ROBox ].
+		ROGridLayout on: v elements.
+		v].
+elements 
+	do: [:e | e + ROLabel; 
+				@ (ROPopupView view: viewToPopup)].
+view addAll: elements.
+ROHorizontalLineLayout on: view elements.
 view open.
   \end{code}
    \end{minipage}
@@ -694,36 +700,64 @@ view open.
    \begin{minipage}[t]{1\textwidth}
 	 \vspace{0pt} \raggedright
        \centering
-		\includegraphics[width=0.7\textwidth]{popupView}
+		\includegraphics[width=0.7\textwidth]{popupView2}
    \end{minipage}
 \label{fig:popupView}
 \caption{ROPopupView}
 \end{figure} 
 
+
+%first example
+%view := ROView new.
+%el := ROElement spriteOn: 'Roassal'.
+%
+%"create the view to popup"
+%viewToPopup := ROView new.
+%viewToPopup 
+%	addAll: (ROElement forCollection: (1 to: 4 )).
+%viewToPopup 
+%	elementsDo: [:e | e size: 20. e + ROBox  ].
+%ROGridLayout 
+%	on: viewToPopup elements.
+%	
+%el := ROElement spriteOn: 'Roassal'.
+%el @ (ROPopupView view: viewToPopup).
+%view add: el.
+%view open.
+
+
+%
+%\vp{not sure if present this one}
+%\subsubsection*{ROMenuActivable}
+%
+%\begin{figure}[H]
+%      \begin{minipage}[t]{1\textwidth}
+%      \vspace{0pt}
+%     \begin{code}{}
+%view := ROView new.
+%el := ROElement sprite.
+%el @ (ROMenuActivable new item: 'inspect' action: #inspect).
+%view add: el.
+%view open.
+%  \end{code}
+%   \end{minipage}
+%   \hfill
+%   \begin{minipage}[t]{1\textwidth}
+%	 \vspace{0pt} \raggedright
+%       \centering
+%		\includegraphics[width=0.7\textwidth]{menuActivable}
+%   \end{minipage}
+%\label{fig:menuActivable}
+%\caption{ROMenuActivable applied to a ROElement}
+%\end{figure} 
+
 \subsubsection*{ROAnimation}
 
-\subsubsection*{ROMenuActivable}
+\vp{working here!}
+An animation is as a set of .
+By
+It also allows to set a block to be executed after the animation is finished, using the \#after: selector. It is important to notice that any action to be done when the animation is finished must be set before the animation is triggered, otherwise it will not be executed.
 
-\begin{figure}[H]
-      \begin{minipage}[t]{1\textwidth}
-      \vspace{0pt}
-     \begin{code}{}
-view := ROView new.
-el := ROElement sprite.
-el @ (ROMenuActivable new item: 'inspect' action: #inspect).
-view add: el.
-view open.
-  \end{code}
-   \end{minipage}
-   \hfill
-   \begin{minipage}[t]{1\textwidth}
-	 \vspace{0pt} \raggedright
-       \centering
-		\includegraphics[width=0.7\textwidth]{menuActivable}
-   \end{minipage}
-\label{fig:menuActivable}
-\caption{ROMenuActivable applied to a ROElement}
-\end{figure} 
 
 \alex{Present the hierarchy of the interaction}
 
