@@ -44,7 +44,7 @@
 \chapter{PetitParser}
 \chalabel{petitparser}
 
-\chapterauthor{\authorlukas{}, \authorjankurz{}, and \authorguillaume{}}
+\chapterauthor{\authorlukas{}, \authorjankurs{}, and \authorguillaume{}}
 
 \newcommand{\ppmthind}[1]{\clsmthind{PPParser}{#1}}
 
@@ -1643,26 +1643,41 @@ For each rule of the selected parser (\eg \ct{prim}) you can see 5 tabs related 
     \end{center}
   \end{figure}
 
-\item[First] shows first set of specified rule\dc{first set of what?}.
-  The first set is useful for optimizing your grammar\dc{keep that for
-    the end of the bullet and explain how the reader can optimize with
-    this information}. It basically shows a list of rules that can be
-  activated directly after the rule started\dc{so why do I see '(' and
-    not 'parens' in the screenshot?}. As you can see on
-  \figref{pp/browserFirst} the first set of \ct{prim} is either digit
-  or opening parenthesis '\ct{(}'. This means that once you start
-  parsing \ct{prim} the input should start with either digit or
-  '\ct{(}'.
+\item[First] shows set of terminal parsers that can be activated directly 
+    after the rule started.
+  As you can see on \figref{pp/browserFirst}, the first set of \ct{prim} is 
+    either digit or opening parenthesis '\ct{(}'. 
+  This means that once you start parsing \ct{prim} the input should continue 
+    with either digit or '\ct{(}'.
+  
+  One can use first set to double-check that the grammar is specified correctly.
+  For example, if you see '\ct{+}' in the first set of \ct{prim}, there is 
+    something wrong with the definitions, because the \ct{prim} rule was never 
+    ment to start with binary operator.
+  
+  Terminal parser is a parser that does not delegate to any other parser.
+  Therefore you don't see \ct{parens} in \ct{prim} first set because \ct{parens}
+    delegates to another parsers -- trimming and sequence parsers 
+    (see \scrref{pp/expressionGrammarPrimAndParens}).
+  You can see '\ct{(}' which is first set of \ct{parens}.
+  The same states for \ct{number} rule which creates action parser delegating to
+    trimming parser delegating to flattening parser delegating to repeating parser 
+    delegating to \ct{#digit} parser
+    (see \scrref{pp/expressionGrammarPrimAndParens}).
+  The \ct{#digit} parser is terminal parser and therefore you can see 
+    'digit expected' in a first set.
+  In general, computation of first set could be complex and therefore
+    \ct{PPBrowser} computes this information for us.
 
   \begin{figure}[ht]
     \begin{center}
       \includegraphics[width=.4\linewidth]{PPBrowserFirst}
-      \caption{The 'first' set of the \ct{prim}
+      \caption{The first set of the \ct{prim}
         rule. \label{fig:pp/browserFirst}}
     \end{center}
   \end{figure}
 
-  \begin{script}{\ct{prim} rule in \clsind{ExpressionGrammar} \label{scr:pp/expressionGrammrPrimAndParens}}
+  \begin{script}{\ct{prim} rule in \clsind{ExpressionGrammar} \label{scr:pp/expressionGrammarPrimAndParens}}
 ExpressionGrammar>>prim
     ^ parens / number
 
@@ -1673,32 +1688,32 @@ ExpressionGrammar>>number
     ^ #digit asParser plus flatten trim ==> [:str | str asNumber ]
 \end{script}
 
-  First set is computed from definition of \ct{prim} depicted in
-  \scrref{pp/expressionGrammrPrimAndParens}. Digit comes from
-  \ct{number} and \ct{(} comes from \ct{parens} rule. In general,
-  computation of first set could be complex and therefore
-  \ct{PPBrowser} computes this information for us.
-\item[Follow] shows follow set of specified rule \dc{please improve
-    this bullet the same way you improve the previous one}. The follow
-  set (similarly to first set) is useful for optimizing your grammar.
-  As you can see on \figref{pp/browserFollow} the follow set of
-  \ct{prim} is closing bracket character \ct{)}, star character
-  \ct{*}, plus character \ct{+} or \ct{epsilon} (which states for
-  empty string). This means that after you parse the \ct{prim} rule,
-  the input continues with closing bracket, plus and star or input
-  ends (because of \ct{epsilon}).
 
-  Computation of follow set is even more complex than computation of
-  first set and therefore \ct{PPBrowser} computes the follow set for
-  us.\dc{why is this information important?}
-
+\item[Follow] shows set of terminal parsers that can be activated directly 
+    after the rule finished.
+  As you can see on \figref{pp/browserFollow}, the follow set of \ct{prim} is 
+    closing bracket character parser '\ct{)}', star character parser '\ct{*}', 
+    plus character parser '\ct{+}' or \ct{epsilon} parser (which states for empty string).
+  In another words, once you finished parsing \ct{prim} rule the input should
+    continue with one of '\ct{)}', '\ct{*}', '\ct{+}' characters or the string should
+    the input should be completely consumed.
+  
+  One can use follow set to double-check that the grammar is specified correctly.
+  For example if you see '\ct{(}' in \ct{prim} follow set, something is wrong
+    in the definition of your grammar. 
+  The \ct{prim} rule should be followed by binary operator or closing bracket, not 
+    by opening bracket.
+  
   \begin{figure}[ht]
     \begin{center}
       \includegraphics[width=.4\linewidth]{PPBrowserFollow}
-      \caption{The 'follow' set of the \ct{prim}
+      \caption{The follow set of the \ct{prim}
         rule. \label{fig:pp/browserFollow}}
     \end{center}
   \end{figure}
+  
+  In general, computation of follow could be even more complex than computation
+    of first and therefore \ct{PPBrowser} computes this information for us.  
 
 \end{description}
 
@@ -1725,21 +1740,43 @@ tabs on the bottom-right pane:
   during parsing. This is very useful if you don't know what exactly
   is happening during parsing. By selecting the step the subset of
   input is highlighted, so you can see which part of input was parsed
-  by a particular step. For example, you can inspect how does the
-  \clsind{PPJsonGrammar} work, what rules are called and in which
-  order as is depicted in \figref{pp/debugger}. The grey rules are
-  rules that failed. This usually happens for ordered choice and you
-  can see example for the \ct{value} rule. At first, parser tried to
-  parse string and number at position 0, but it failed so that it
-  tried the \ct{object} parser which succeeded. \dc{isn't it possible
-    to the same for the expression grammar? I think it would be
-    more coherent with the rest of the section. If not, just delete my
-    comment.}
+  by a particular step. 
+
+  For example, you can inspect how does the \clsind{ExpressionGrammar} work, 
+    what rules are called and in which order.
+  This is depicted in \figref{pp/debugger}. 
+  The grey rules are rules that failed. 
+  This usually happens for choice parsers and you can see an example for the \ct{prod} rule 
+    (the definition is in \scrref{pp/expressionGrammarProd}). 
+  When parser was parsing $12 + 3 * 4$ term, the parser tried to parse \ct{mul} rule 
+    as a first option in \ct{prod}.
+  But \ct{mul} required star character '\ct{*}' at position 2 which is not present, so that the 
+    \ct{mul} failed and instead the \ct{prim} with value $12$ was parsed.
+
+  \begin{script}{\ct{prod} rule in \clsind{ExpressionGrammar} \label{scr:pp/expressionGrammarProd}}
+ExpressionGrammar>>prod
+	^ mul / prim
+ExpressionGrammar>>mul
+	^ prim, $* asParser trim, prod 
+
+\end{script}
+
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=.8\linewidth]{PPBrowserDebugger}
-    \caption{Debugger output of \clsind{PPJsonGrammar}. \label{fig:pp/debugger}}
+    \includegraphics[width=.8\linewidth]{PPBrowserDebugger3}
+    \caption{Debugger output of \clsind{ExpressionGrammar} for input $12+3*4$. \label{fig:pp/debugger}}
+  \end{center}
+\end{figure}
+
+  Compare what happens during parsing when we change from $12 + 3 * 4$ to $12 * 3 * 4$.
+  What rules are applied know, which of them fails?
+  The second debugger output is in \figref{pp/debugger2}, but give it your own try.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=.8\linewidth]{PPBrowserDebugger4}
+    \caption{Debugger output of \clsind{ExpressionGrammar} for input $12*3*4$. \label{fig:pp/debugger2}}
   \end{center}
 \end{figure}
 
@@ -1748,12 +1785,16 @@ tabs on the bottom-right pane:
   number of calls ratio. This might be useful while optimizing
   performance of your parser.\dc{can you show a screenshot of that
     please?}
+  \jk{I will give it a try, right now there is a rendering problem and
+    first few pixels are not visible}
 \item[Profile] shows how much time was spent in particular parser
   during parsing of the input. The percentage shows the ratio of time
   to total time. This might be useful while optimizing performance of
   your parser.\dc{can you show a screenshot of that please?}
+  \jk{I will give it a try, right now there is a rendering problem and
+    first few pixels are not visible}
 \item[Progress] visually shows how a parser consumes input. The x-axis
-  represents how many characters where read in the input sample,
+  represents how many characters were read in the input sample,
   ranging from 0 (left margin) to the number of characters in the
   input (right margin). The y-axis represents time, ranging from the
   beginning of the parsing process (top margin) to its end (bottom
@@ -1762,14 +1803,17 @@ tabs on the bottom-right pane:
   task by only reading each character of the input sample once. This
   is the best case scenario, parsing is linear in the length of the
   input: In another words, input of $n$ characters is parsed in $n$
-  steps. When multiple lines are visible, it means that the parser had
+  steps. 
+
+  When multiple lines are visible, it means that the parser had
   to go back to a previously read character in the input sample to try
   a different rule. This can be seen in
   \figref{pp/progressBacktracking}. In this example, the parser had to
-  go back five times to correctly parse the whole input sample: all
+  go back several times to correctly parse the whole input sample: all
   input was parsed in $n!$ steps which is very bad. \dc{it would be
     nice to have an example here so that the reader can reproduce your
     experiment}
+  \jk{I added example further}
   % but in the end the backtracking returns position
   % of the input almost to the beginning and we have to start again.
   % So that we parsed input of $n$ characters but there was a failure
@@ -1793,7 +1837,39 @@ tabs on the bottom-right pane:
     \end{center}
   \end{figure}
 
+  As an exercise, try to update a \clsind{BacktrackingParser} from \scrref{pp/backtrackingParser} 
+    so that it does not perform so much backtracking.
+  Try '\ct{aaaaaaaaaaaaac}' and '\ct{aaaaaaaaaaaaaab}' as input and observe what happens.
+  Do not forget to use debugger to understand what is going on. 
+
 \end{description}
+
+
+\begin{script}{Parser that accepts regular expressions '\ct{a*b}' or '\ct{a*c}'. Unfortunatelly, it performs a lot of backtracking as well. \label{scr:pp/backtrackingParser}}
+PPCompositeParser subclass: #BacktrackingParser
+	instanceVariableNames: 'ab ap c p'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PetitTutorial'
+
+BacktrackingParser>>ab
+  ^ 'a' asParser star, 'b' asParser
+
+BacktrackingParser>>c
+  ^ 'c' asParser
+
+BacktrackingParser>>p 
+  ^ ab / ap / c
+
+BacktrackingParser>>start 
+  ^ p
+
+
+BacktrackingParser>>ap
+  ^ 'a' asParser, p! !
+\end{script}
+
+
 
 \section{Chapter Conclusion}
 
