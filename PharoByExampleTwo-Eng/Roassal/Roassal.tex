@@ -102,7 +102,7 @@ view open
 Each Roassal visualization is an instance of the class \ct{ROView}, which is the container for all the data to be visualized.
 Data is represented by instances of \ct{ROElement} that are added to the visualization. \sd{In general a visualization element is holding or referencing to a domain object, that we call its model and that is accessible via the model message.} %The data's value is stored in the \ct{model} instance variable.
 
-The following code creates and opens a visualization with a single element of 100 size:
+\paragraph{Adding an element.} The following code creates and opens a visualization with a single element of 100 size:
 
 
 \begin{figure}[H]
@@ -147,6 +147,7 @@ view open.
 \label{fig:ex2}
 \end{figure}
 
+\paragraph{Adding a Shape.}
 To add a shape to an element, we send the \ct{+} message with the wanted shape. For this example we added the \ct{ROBorder} shape. As its name suggests, \ct{ROBorder} adds a border to the \ct{ROElement}. By default, the color for a \ct{ROBorder} is black. There are several other shapes (such as \sd{}) that can be used and they can be composed to create more complex looks. \secref{shapes} details more on shapes and explains how to create more complex looks.
 
 A \ct{ROElement} can also have interactions, allowing it to answer to events. For instance, they can be dragged by the mouse. To add an interaction to a \ct{ROElement} send the \ct{@} message with the interaction as parameter. \ct{RODraggable} allows an element to react to mouse drag. So let's make our element to be draggable. More about interactions is presented in \secref{interactions}.
@@ -162,8 +163,8 @@ view open.
 \end{code}
 
 
-
-Visualization are usually composed of more than one data value. You can add more elements to a ROView by sending the message \ct{addAll:} with a collection of ROElements. You can later access them by using the \ct{elements} accessor. 
+\paragraph{More Elements.}
+Visualizations are usually composed of more than one data value \sd{element?/data value does not fly}. You can add more elements to a \ct{ROView} by sending the message \ct{addAll:} with a collection of \ct{ROElements}. You can later access them by using the \ct{elements} accessor. \sd{the figure does not show the two boxes. strange on the paper version it does.}
 
 \begin{figure}[H]
       \begin{minipage}[t]{0.5\textwidth}
@@ -186,7 +187,8 @@ view open.
 \label{fig:ex3}
 \end{figure}
 
-By executing this code a visualization with two elements appears, both placed in the top left part. A ROElement can be translated using the \#translateBy: or \#translateTo: selector.
+By executing this code a visualization with two elements appears, both placed in the top left part. A ROElement can be translated using the \ct{translateBy:} or \ct{translateTo:} selector.
+\sd{what are the axes?}
 
 \begin{figure}[H]
       \begin{minipage}[t]{0.5\textwidth}
@@ -211,9 +213,11 @@ view open.
 \end{figure}
 
 
-When a visualization contains more than one element it is hard to setup each position by hand. Roassal provides defined layouts to arrange ROElements. A layout in Roassal is a subclass of \ct{ROLayout}. Layouts are explained in  \secref{layouts}.
+\paragraph{Nesting Elements.}
+When a visualization contains more than one element it is hard to setup each position by hand. Roassal provides defined layouts to arrange elements. A layout in Roassal is a subclass of \ct{ROLayout}. Layouts are explained in  \secref{layouts}.
+A ROElement can also contain other ROElement's, creating nested elements. \sd{In addition as shown by the following example, the location of children is relative to the one of the parent. A translation is relative to the parent coordinates.} \sd{it would be good to translate the parent so that we show that the children are translated too. In addition you should show that a child can be translated relative to its parent.}
 
-A ROElement can also contain other ROElement's, creating nested elements:
+
 
 \begin{figure}[H]
       \begin{minipage}[t]{0.5\textwidth}
@@ -245,9 +249,9 @@ Finally, the ROElement model looks like \figref{ROElementModel}.
 \fig{H}{0.5}{ROElementModel}{ROElement model}
 
 %\vp{not sure if the camera should be explained here. What can be added here about the camera that helps you to build a visualization?}
-A visualization also answers to the \#translateBy: and \#translateTo: methods. However, even if it's looks like, is not the view which change its position but its camera. The camera component of a view, represented by an instance of a \ct{ROCamera}, is the point of view from which a visualization object is actually viewed. More about the ROCamera in \secref{camera}
+A visualization \sd{view?} also answers to the \ct{translateBy:} and \ct{translateTo:} messages \sd{we do not answers to methods but to messages}. However, even if it's looks like, is not the view which changes its position but its camera. The camera component of a view, represented by an instance of \ct{ROCamera}, is the point of view from which a visualization object is actually viewed. More about the ROCamera in \secref{camera}
 
-\subsubsection*{The Collection hierarchy example}
+\subsection*{The Collection hierarchy example}
 \vp{I am not sure if this is the right order of if I will not add color}
 As an example we will visualize the Collection hierarchy through the chapter. We will build it by executing the following steps:
 \begin{enumerate}
