@@ -591,15 +591,17 @@ view open.
 \caption{Nested elements with different layouts }
 \end{figure} 
 
-\subsubsection*{The Collection hierarchy example}
+\subsection*{The Collection hierarchy example}
+\sd{would be nice to have an example showing that you have different layout for certain nodes.}
 As we need an hierarchy, the \ct{ROTreeLayout} will be useful to obtain the visualization we want.
+\sd{why do we have @ RODraggable and + ROBorder}
+
 \begin{figure}[H]
 \begin{code}{}
 view := ROView new.
-"Add the data"
 classes := ROElement forCollection: Collection withAllSubclasses.
 
-"Make it look as their characteristics"
+"Make each element reflect their model characteristics"
 classes do: [:c | 
 	c width: c model instVarNames size.
 	c height: c model methods size.
@@ -607,7 +609,7 @@ classes do: [:c |
 	c @ RODraggable ].
 view addAll: classes.
 
-"Add edges between each class and it subclass"
+"Add edges between each class and its superclass (or its subclasseS)"
 associations := classes collect: [:c | 
 	(c model superclass = Object)
 		ifFalse: [ (view elementFromModel: c model superclass) -> c]
@@ -617,51 +619,39 @@ view addAll: edges.
 
 "Arrange all the elements as a hierarchy"
 ROTreeLayout new on: view elements.
-
-"Finally, open to see the result"
 view open
 \end{code}
 \end{figure}
 
 We did it! :) \vp{<-ok, maybe remove this} The resulting visualization can be seen in \figref{collectionHierarchy}.
 
-\fig{H}{0.4}{collectionHierarchy}{Collection class hierarchy}
+\fig{H}{0.4}{collectionHierarchy}{Collection class hierarchy with width reflecting instance variable number and height number of methods.}
 
 %=====================
 
 \section{Events and Callbacks}
 
-Roassal allows any visible component in a visualization, including itself, to react to events. There are two kind of events defined in Roassal. In the first kind are those responding to external events, like mouse clicks, mouse move or key pressing. The second kind of events includes those triggered by internal manipulation of the ROView or its components, like when a view needs to be refreshed.
-All events inherits from the \ct{ROEvent} class.
+Roassal allows any visible component in a visualization, including itself, to react to events. There are two kinds of events defined in Roassal. In the first kind are those responding to external events, like mouse clicks, mouse move or key press. The second kind of events includes those triggered by internal manipulation of the ROView or its components, like when a view needs to be refreshed. All events inherits from the \ct{ROEvent} class.
 
-To see how events work, we will make a visualization to react to mouse clicks, translating an element to where the click was made. 
+To see how events work, we define a visualization to react to mouse clicks, translating an element to where the click was made. 
 There are several event classes to deal with mouse events: \ct{ROMouseClick}, \ct{ROMouseMove}, \ct{ROMouseEnter} and \ct{ROMouseLeave}, among others; and to deal with key pressing, the \ct{ROKeyDown} class.
-We will make the visualization to react to the left click of the mouse using the ROLeftMouseClick event. The reaction will create an animation to translate the element to the event position.
+We will make the visualization to react to the left click of the mouse using the \ct{ROLeftMouseClick} event. The reaction will create an animation to translate the element to the event position.
 
-\begin{figure}[H]
-      \begin{minipage}[t]{0.61\textwidth}
-      \vspace{0pt}
-     \begin{code}{}
+
+\begin{code}{}
 view := ROView new.
 el := ROElement sprite.
 view add: el.
 view 
 	on: ROMouseLeftClick 
 	do: [ :event | 
-		ROLinearMove new
-			for: el to: event position.
-	].
+	        ROLinearMove new	for: el to: event position].
 view open. 
-  \end{code}
-   \end{minipage}
-   \hfill
-\caption{Move a ROElement by a ROMouseLeftClick event on its view}
-\label{fig:mouseClick}
-\end{figure} 
+\end{code}
 
-We use the \#on:do: method to set a Roassal object to react to an event. The first parameter must be the class of the expected event and the second one a block which defines the action to be executed when the event is received.
+We use the \ct{on:do:} message to set a Roassal object to react to an event. The first parameter must be the class of the expected event and the second one a block which defines the action to be executed when the event is received.
 
-\ct{ROLinearMove} belongs to the Roassal interactions. As its name suggest, makes an animation for an element to be translated in a linear move. More about interactions are explained in next section.
+\ct{ROLinearMove} is one of the Roassal interactions. As its name suggest, it creates an animation for an element to be translated in a linear move. More about interactions are explained in next section.
 
 %
 %\alex{How to define callbacks}
@@ -669,12 +659,11 @@ We use the \#on:do: method to set a Roassal object to react to an event. The fir
 
 
 %=====================
-\section{The Interaction hierarchy} \seclabel{interactions}
+\section{The interaction hierarchy} \seclabel{interactions}
 
 A ROElement can respond to events by setting callbacks or interactions. We already presented how to set callbacks, so here we will show the interactions. 
 
-The root class of all Roassal interactions is \ct{ROInteraction}. An interaction is set to an element by sending the \#@ message with a ROInteraction as parameter.
-There are diverse interactions that can be set to a Roassal element.
+The root class of all Roassal interactions is \ct{ROInteraction}. An interaction is set to an element by sending the \ct{@} message with an instance of \ct{ROInteraction} as parameter. There are diverse interactions that can be set to a Roassal element \sd{such what?}.
  \ct{RODraggable} allows an element to be dragged by the mouse and \ct{ROGrowable} makes an element to increase its size when clicked. Try the following code. Click the element to make it bigger and drag it to move it on the view.
 
 \begin{code}{}
@@ -692,20 +681,18 @@ view open.
 
 Some interactions are more complex like popups elements, displayed when the mouse is over an element. 
 
-
 %There are interactions that makes elements to react to events, such as \ct{RODraggable}, that allows an element to be dragged by the mouse, or \ct{ROGrowable}, that makes an element to increase its size when clicked. Some of this interactions are more complex like popups elements, accesible by the subclasses of \ct{ROAbstractPopup}, which are displayed when the mouse is over an element. 
 
-
-
-Animations are also interactions in Roassal. Some animations allows elements to be translated, like \ct{ROLinearMove}. \ct{ROZoomInMove} and \ct{ROZoomOutMove} allow the view to be zoomed in or out, respectively. All animations are subclasses of \ct{ROAnimation}.
+\subsection{Animations} Animations are also interactions in Roassal. Some animations allows elements to be translated, like \ct{ROLinearMove}. \ct{ROZoomInMove} and \ct{ROZoomOutMove} zoom in or out, respectively. All animations are subclasses of \ct{ROAnimation}.
 
 From the availables interactions in Roassal, two examples are presented: one for \ct{ROAbstractPopup} and one for \ct{ROAnimation}.
 
 \subsubsection*{ROAbstractPopup}
 
-ROAbstractPopup allows elements to react to mouse over events by displaying a popup. There are two kind of popups, (i) \ct{ROPopup}, which by default displays a box with the String of the value of the ROElement; and (ii) \ct{ROPopupView}, that displays a custom view.
+\ct{ROAbstractPopup} allows elements to react to mouse over events by displaying a popup. There are two kind of popups, (i) \ct{ROPopup}, which by default displays a box with the string representation of the element value \sd{is printString used?}; and (ii) \ct{ROPopupView} that displays a custom view.
 
-To add a popup to an element just send the \#@ selector with the ROPopup class. It is also possible to setup a custom text using the \#text: selector with the custom String.
+To add a popup to an element just send the \ct{@} message with the \ct{ROPopup} class as argument. It is also possible to setup a custom text using the \ct{text:} message with a custom string.
+\sd{I do not understand ROElement spriteOn: 'Roassal'.}
 
 \begin{figure}[H]
       \begin{minipage}[t]{1\textwidth}
@@ -728,10 +715,10 @@ view open.
 \caption{ROPopup}
 \end{figure} 
 
-ROPopupView is slightly more complex as it needs the definition of the view to popup. This interaction can be created by sending the \#view: selector to the ROPopupView class with the view to be displayed. The parameter can also be a block with one value to be evaluated with the element where the interaction belongs to.
+\ct{ROPopupView} is slightly more complex as it needs the definition of the view to popup. This interaction can be created by sending the \ct{view:} message to the \ct{ROPopupView} class with the view to be displayed. The parameter can also be a block with one value to be evaluated with the element where the interaction belongs to. \sd{unclears}
 
-The following example creates a view with five elements. Each one reacts when the mouse is over by displaying a popup. The popup is defined as a block which creates a view with the same amount of nodes as the data value of the element where the mouse is. For example, and as \figref{popupView} shows, when passing the mouse over the node ``3'', a popup with \textit{three} gray boxes appears.
-
+The following example creates a view with five elements. Each one reacts when the mouse is over by displaying a popup. The popup is defined as a block which creates a view with the same amount of nodes as the element model where the mouse is. For example, and as \figref{popupView} shows, when passing the mouse over the node ``3'', a popup with \textit{three} gray boxes appears.
+\sd{cool example!}
 \begin{figure}[H]
       \begin{minipage}[t]{1\textwidth}
       \vspace{0pt}
@@ -739,31 +726,25 @@ The following example creates a view with five elements. Each one reacts when th
 view := ROView new.
 elements := ROElement spritesOn: (1 to: 5).
 "create the view to popup"
-viewToPopup :=
-	[:el |
-		|v| 
-		v := ROView new.
-		"Add as much elements as the value represented"
-		v addAll: (ROElement forCollection: (1 to: el model )).
-		v elementsDo: [:e | e size: 20; + ROBox ].
-		ROGridLayout on: v elements.
-		v].
-elements 
-	do: [:e | e + ROLabel; 
-				@ (ROPopupView view: viewToPopup)].
+viewToPopup := [ :el | |v| 
+	              	              v := ROView new.
+	              	              "Add as much elements as the value represented"
+	              	              v addAll: (ROElement forCollection: (1 to: el model)).
+	              	              v elementsDo: [ :e | e size: 20; + ROBox ].
+	              	              ROGridLayout on: v elements.
+	              	              v ].
+elements do: [ :e | e + ROLabel;  @ (ROPopupView view: viewToPopup)].
 view addAll: elements.
 ROHorizontalLineLayout on: view elements.
 view open.
-  \end{code}
-   \end{minipage}
-   \hfill
-   \begin{minipage}[t]{1\textwidth}
+\end{code}
+\end{minipage}\hfill\begin{minipage}[t]{1\textwidth}
 	 \vspace{0pt} \raggedright
        \centering
 		\includegraphics[width=0.7\textwidth]{popupView2}
    \end{minipage}
 \label{fig:popupView}
-\caption{ROPopupView}
+\caption{\ct{ROPopupView} \sd{better title please}}
 \end{figure} 
 
 
@@ -811,15 +792,13 @@ view open.
 %\caption{ROMenuActivable applied to a ROElement}
 %\end{figure} 
 
-\subsubsection*{ROAnimation}
+\subsubsection*{\ct{ROAnimation}}
+Any animation is an instance of a subclass of the \ct{ROAnimation} class. Some examples are \ct{ROLinearMove}, \ct{ROZoomInMove} and \ct{ROZoomOutMove}.
 
+Each animation has a number of cycles to complete, executing each one by sending the \ct{doStep} message.
+A \ct{ROAnimation} also allows one to set a block to be executed after the animation is finished, using the \ct{after:} message. It is important to notice that any action to be done after the animation is finished must be set before the animation is triggered, otherwise it will not be executed. \sd{do you have a before: message.}
 
-Any animation in Roassal is an instance of a subclass of the \ct{ROAnimation} class. Some examples are \ct{ROLinearMove}, \ct{ROZoomInMove} and \ct{ROZoomOutMove}.
-
-Each animation has a number of cycles to complete, executing each one by calling the \#doStep method.
-A ROAnimation also allows to set a block to be executed after the animation is finished, using the \#after: selector. It is important to notice that any action to be done after the animation is finished must be set before the animation is triggered, otherwise it will not be executed.
-
-\figref{mouseClick} presents ROLinearMove. The following code allows an element to be animated in a sin curve, using the \ct{ROFunctionMove}.
+\figref{mouseClick} presents \ct{ROLinearMove}. The following code allows an element to be animated in a sin curve, using the \ct{ROFunctionMove}.
 
 \begin{figure}[H]
 \begin{code}{}
@@ -846,9 +825,10 @@ view open.
 
 
 %=====================
-\section{More on Camera} \seclabel{camera}
+\section{Understanding Camera} \seclabel{camera}
 
-A view's camera represents the point of view from it is actually viewed. It has a position, where is set on the visualization; an extent, which is what we are seeing; a real extent which represents the far extent and the window size of the visualization. A camera's directions is always perpendicular to the view.
+A view's camera represents the point of view from it is actually viewed. It has a position, where it is located on the visualization; an extent, which is what we are seeing; a real extent which represents the far extent and the window size of the visualization. A camera's directions is always perpendicular to the view. \sd{it would be good to have a diagram to show.}
+\sd{what about a height method}
 
 The extent of the view's camera affects the way a view is drawn in a canvas. When rendering a view, each point, rectangle or other shape that needs to be drawn will be plotted according to the camera extent. This is done by transforming each absolute position or size in \emph{virtual} points or rectangles relative to the camera's vision.
 
