@@ -827,47 +827,44 @@ view open.
 %=====================
 \section{Understanding Camera} \seclabel{camera}
 
-A view's camera represents the point of view from it is actually viewed. It has a position, where it is located on the visualization; an extent, which is what we are seeing; a real extent which represents the far extent and the window size of the visualization. A camera's directions is always perpendicular to the view. \sd{it would be good to have a diagram to show.}
+A view's camera represents the point of view from \sd{which} it is actually viewed. It has a position, where it is located on the visualization; an extent, which is what we are seeing; a real extent which represents the far extent and the window size of the visualization. A camera's directions is always perpendicular to the view. \sd{it would be good to have a diagram to show.}
 \sd{what about a height method}
 
 The extent of the view's camera affects the way a view is drawn in a canvas. When rendering a view, each point, rectangle or other shape that needs to be drawn will be plotted according to the camera extent. This is done by transforming each absolute position or size in \emph{virtual} points or rectangles relative to the camera's vision.
 
-When \#translateBy: or \#translateTo: are called by a view, what actually happens is that its camera moves, no the visualization itself. 
-And varying the altitude simulates the zooming facility of Roassal. By moving the camera down, i.e. when a view is zoomed in, what it can be seen changes, defining a smaller rectangle that must be adapted to the real extent, and because of this making everything bigger.% the position and extent of the camera changes, defining smaller bounds and seeing everything bigger. 
+When \ct{translateBy:} or \ct{translateTo:} are called by a view, what actually happens is that its camera moves, no the visualization itself. And changing the altitude simulates the zooming facility of Roassal \sd{how can we change the altitude?}. By moving the camera down (\ie the view is zoomed in), it changes what will be shown: it defines a smaller rectangle that must be adapted to the real extent, and because of this making everything bigger.% the position and extent of the camera changes, defining smaller bounds and seeing everything bigger. 
 
-This is used by the \ct{ROZoomMove}, which is used by ROZoomInMove and ROZoomOutMove. This is also used by the \ct{ROMiniMap} interaction.
+This is used by the \ct{ROZoomMove}, which is used by \ct{ROZoomInMove} and \ct{ROZoomOutMove}. This is also used by the \ct{ROMiniMap} interaction.
 
-The ROMiniMap allows to have a complete vision of a visualization for better navigation. It is composed of a smaller version of the visualization and a ``lupa'', which represents the current visible part of the view's window. To add this interaction just send the \ct{@ROMiniMap} message to a view and press ``m'' to open it (\figref{miniMap}).
+The \ct{ROMiniMap} allows one to have a complete vision of a visualization for better navigation. It is composed of a smaller version of the visualization and a ``lupa'', which represents the current visible part of the view's window. To add this interaction, just send the \ct{@ROMiniMap} message to a view and press ``m'' to open it (\figref{miniMap}). \sd{how the communication between the MiniMap and the other view is done?}
 
-\fig{H}{0.9}{miniMap}{ROMiniMap applied to the Collection Hierarchy example}
+\fig{H}{0.9}{miniMap}{\ct{ROMiniMap} applied to the Collection Hierarchy example}
 
 The smaller version of the view is displayed by a \ct{ROMiniMapDisplayer}, subclass of \ct{ROViewDisplayer}. 
 As their name suggest it, they are shapes that display a view on a ROElement. The difference between both is that \ct{ROMiniMapDisplayer} uses its own camera, which has a different extent to the view's camera. This allows \sd{one} to see the same view with different size. 
 
-The lupa  size represents the visible part of the window and its position is related to the view's camera position. When the view is translated to a point, the lupa follows it by changing its position: the point representing the camera position is translated to a point on the ROMiniMapDisplayer camera extent. And when the view is zoomed in or zoomed out the extent of the camera is changed, increasing o decreasing the lupa's size.
+The lupa  size represents the visible part of the window and its position is related to the view's camera position. When the view is translated to a point, the lupa follows it by changing its position: the point representing the camera position is translated to a point on the \ct{ROMiniMapDisplayer} camera extent. And when the view is zoomed in or zoomed out the extent of the camera is changed, increasing o decreasing the lupa's size.
 
 %\alex{MiniMap}
 %\alex{Semantic zooming: Making objects appear when the camera goes down}
 
-
-
-
 %=====================
 \section{The Mondrian DSL}
-\vp{Not sure exactly what to add in this chapter}
+\sd{Mondrian is an older visualization framework developed by D. Girba and M Meer and maintained by A. Bergel. It influenced the design of Roassal. It supports visualization scripting based on a dedicated DSL: the DSL is based on a stack model where elements on the top can be parametrized. Roassal is designed to be a flexible framework and it is not tight to a DSL. Now Roassal can be extended to support Mondrian-like DSL scripting. This is what we present in this Section.}
 
-A \textbf{ROMondrianViewBuilder} models the Mondrian~\footnote{\url{http://www.moosetechnology.org/tools/mondrian}} Domain Specific Language. It is mostly compatible with the original Mondrian language.% (cf., Mondrian paper and website).
+
+A \ct{ROMondrianViewBuilder} models the Mondrian DSL\footnote{\url{http://www.moosetechnology.org/tools/mondrian}}. It is mostly compatible with the original Mondrian language.% (cf., Mondrian paper and website).
 
 %ROMondrianBuilder acts as a translation between the Mondrian DSL and the Roassal model.
-A ROMondrianViewBuilder internally contains an instance of a ROView, called raw view. Its accessor is \#raw. All scripting  using the ROMondrianViewBuilder will result in creating ROElements with the shapes and interactions set by the script, and added to the raw view. To start a visualization with the builder, you can use the following code:
+A \ct{ROMondrianViewBuilder} internally contains an instance of a \ct{ROView}, called raw view. Its accessor is \ct{raw}. All scripting  using the \ct{ROMondrianViewBuilder} result in creating \ct{ROElement}s with the shapes and interactions set by the script, and added to the raw view. To start a visualization with the builder, you can use the following code:
 
 \begin{code}{}
 view := ROMondrianViewBuilder new.
 view open.
 \end{code}
 
-A Mondrian builder can also be initialized with an instance of a ROView. However it is important to notice that this is not required, as the builder by default will create its own raw view.
-When working with the builder, is it possible to work with the Mondrian DSL, sending messages to an instance of the ROMondrianViewBuilder, or directly with the raw view. %However the main benefit of the builder it to use the Mondrian scripting.
+A Mondrian builder can also be initialized with an instance of a ROView. However it is important to understand that this is not required, as the builder by default will create its own raw view.
+When working with the builder, is it possible to use the Mondrian DSL, sending messages to an instance of the \ct{ROMondrianViewBuilder}, or directly with the raw view. %However the main benefit of the builder it to use the Mondrian scripting.
 
 \begin{code}{}
 rawView := ROView new.
@@ -877,7 +874,7 @@ view open.
 
 A small summary of the Mondrian DSL is offered here. To more detailed information, please refer to the dedicated Moose book chapter~\footnote{\url{http://themoosebook.org/book/internals/mondrian}}.
 
-To add a node to the visualization, which be internally translated as a ROElement later on, use the selector \#node: with the object you want to represent on the instance of the builder.
+To add a node to the visualization, which be internally translated as a ROElement later on, use the selector \ct{node:} with the object you want to represent on the instance of the builder.
 
 \begin{figure}[H]
       \begin{minipage}[t]{1\textwidth}
@@ -900,7 +897,7 @@ view open.
 
 
 
-To define shapes, use the \#shape selector followed by the desired shape with its characteristics, before the node or nodes definition. This will locally define the shape for the nodes.
+To define shapes, use the \ct{shape} message followed by the desired shape with its characteristics, before the node or nodes definition. This will locally define the shape for the nodes.
 
 \begin{figure}[H]
       \begin{minipage}[t]{1\textwidth}
@@ -924,7 +921,7 @@ view open.
 \end{figure} 
 
 
-By using the \#nodes:  selectors with a collection of objects you can create several nodes.
+By using the \ct{nodes:} message with a collection of objects you can create several nodes.
 
 \begin{figure}[H]
       \begin{minipage}[t]{1\textwidth}
@@ -947,9 +944,7 @@ view open.
 \label{fig:mondrian3}
 \end{figure} 
 
-
-
-If the node or nodes have nested nodes, use the \#node:forIt: or \#nodes:forEach: selector to add them. The second parameter is a block which will add the nested nodes, as the following code shows:
+If the node or nodes have nested nodes, use the \ct{node:forIt:} or \ct{nodes:forEach:} message to add them. The second parameter is a block which will add the nested nodes, as the following code shows:
 
 \begin{figure}[H]
       \begin{minipage}[t]{1\textwidth}
@@ -994,7 +989,7 @@ view open.
 %view open.
 %\end{code}
 
-It is possible to create edges by using the \#edgesFromAssociations: selector with a collection of associations between the model of the nodes.
+It is possible to create edges by using the \ct{edgesFromAssociations:} message with a collection of associations between the model of the nodes.
 
 \begin{figure}[H]
       \begin{minipage}[t]{1\textwidth}
@@ -1020,7 +1015,7 @@ view open.
 
 
 
-Similar to the \ct{Collection} hierarchy example we need an appropriate layout. By default the builder applies a horizontal line layout and we need a tree layout. We use the \#treeLayout to apply it.
+Similar to the \ct{Collection} hierarchy example we need an appropriate layout. By default the builder applies a horizontal line layout and we need a tree layout. We use the \ct{treeLayout} to apply it.
 
 \begin{figure}[H]
       \begin{minipage}[t]{1\textwidth}
@@ -1050,12 +1045,8 @@ view open.
 
 \subsection*{The Collection Hierarchy example}
 
-The Mondrian DSL allows a simpler scripting to the Collection hierarchy visualization than the one constructed through the chapter.
-By setting how each ROElement and ROEdge must be created, it is not necessary for us to create them by hand.
+The Mondrian DSL allows a simpler scripting to the Collection hierarchy visualization than the one constructed through the chapter. By setting how each element and edge must be created, it is not necessary for us to create them by hand.
 The following code can be replaced for the earlier version:
-
-
-\begin{figure}[H]
 
 \begin{code}{}
 view := ROMondrianViewBuilder new.
@@ -1067,11 +1058,6 @@ view edgesFrom: #superclass.
 view treeLayout.
 view open.
 \end{code}
-\label{fig:mondrian}
-\caption{The Collection hierarchy example using the Mondrian Builder in Roassal}
-\end{figure}
-
-%alex{How the builder works}
 
 %=====================
 \section{Roassal Easel}
@@ -1081,7 +1067,7 @@ Pharo's World menu offers an item for launching the Easel. The easel is composed
 
 The easel offers lots of examples to see visualizations and learn how to make them, including a tutorial separated by steps. Examples are separated in two categories: \textbf{ROMondrianViewBuilder} and \textbf{ROExample}.
 
-The first category includes examples done with the builder, using Mondrian DSL to make each script. The second one shows examples of how do directly interact with the ROView class, making possible to reproduce them without the builder.
+The first category includes examples done with the builder, using Mondrian DSL to make each script. The second one shows examples of how do directly interact with the \ct{ROView} class, making possible to reproduce them without the builder.
 
 It also includes how to add buttons to zoom in and zoom out the visualization, export it to different formats and save it, among other actions. This buttons are not included by default in the Mondrian builder or the ROView, so the easel teach how to do it.
 %=====================
@@ -1102,8 +1088,7 @@ In top of this components, you application will be build.
 In the platform dependent packages several classes must be implemented. The main ones are a native canvas class, where a view can be rendered, and a widget factory class, which can return an object to contain the canvas and receive and delegate all the external events.
 The first must be subclass of ROAbstractCanvas and the second must be subclass of RONativeWidgetFactory.
 
-The \textbf{ROPlatform} class defines how the bridge between the core and the dependent packages must be implemented. This class defines instance variables, like \ct{canvasClass} and \ct{widgetFactory}, which store the correspondent class to use according to their name. 
-Each platform dependent package must implement its own platform class, make it subclass of ROPlatform and reference all the implemented platform dependent classes.
+The \ct{ROPlatform} class defines how the bridge between the core and the dependent packages must be implemented. This class defines instance variables, like \ct{canvasClass} and \ct{widgetFactory}, which store the correspondent class to use according to their name. Each platform dependent package must implement its own platform class, make it subclass of ROPlatform and reference all the implemented platform dependent classes.
 Internally, every time one of this classes is needed, the core relies in the current instance of a ROPlatform to return the needed class.
 
 \fig{H}{0.3}{structure}{Roassal structure}
