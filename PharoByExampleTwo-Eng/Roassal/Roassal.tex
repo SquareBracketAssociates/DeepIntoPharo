@@ -62,7 +62,7 @@ For more information, please visit Roassal website: \url{http://objectprofile.co
 \sd{First we show how to load and get a first visualization.}
 
 Roassal is available via a Metacello configuration. Just open a workspace and type:
-\ja{we need a stable version before the publishing}
+
 \begin{code}{}
 Gofer new
 	squeaksource: 'Roassal'; 
@@ -444,7 +444,7 @@ view inspect.
 \label{fig:simpleEdge}
 \end{figure} 
 
-There are several ways to shape a ROEdge. Some examples are shown in \figref{line}, \figref{arrowEdge} and \figref{orthoEdge}.
+There are several ways to shape a \ct{ROEdge}. Some examples are shown in \figref{line}, \figref{arrowEdge} and \figref{orthoEdge}.
 
 \begin{figure}[H]
       \begin{minipage}[t]{0.5\textwidth}
@@ -830,6 +830,8 @@ view open.
 A view's camera represents the point of view from \sd{which} it is actually viewed. It has a position, where it is located on the visualization; an extent, which is what we are seeing; a real extent which represents the far extent and the window size of the visualization. A camera's directions is always perpendicular to the view. \sd{it would be good to have a diagram to show.}
 \sd{what about a height method}
 
+\sd{how can we position the camera by hand without animation}
+
 The extent of the view's camera affects the way a view is drawn in a canvas. When rendering a view, each point, rectangle or other shape that needs to be drawn will be plotted according to the camera extent. This is done by transforming each absolute position or size in \emph{virtual} points or rectangles relative to the camera's vision.
 
 When \ct{translateBy:} or \ct{translateTo:} are called by a view, what actually happens is that its camera moves, no the visualization itself. And changing the altitude simulates the zooming facility of Roassal \sd{how can we change the altitude?}. By moving the camera down (\ie the view is zoomed in), it changes what will be shown: it defines a smaller rectangle that must be adapted to the real extent, and because of this making everything bigger.% the position and extent of the camera changes, defining smaller bounds and seeing everything bigger. 
@@ -1065,7 +1067,9 @@ view open.
 
 Pharo's World menu offers an item for launching the Easel. The easel is composed by two windows, the one on the left-hand side contains the visualization and the one in the right hand a workspace containing the script to be executed. By accepting (Cmd-S, Alt-S) in the editor, the changes will be displayed in the visualization window.
 
-The easel offers lots of examples to see visualizations and learn how to make them, including a tutorial separated by steps. Examples are separated in two categories: \textbf{ROMondrianViewBuilder} and \textbf{ROExample}.
+The easel offers lots of examples to see visualizations and learn how to make them, including a tutorial separated by steps. Examples are separated in two categories: \textbf{ROMondrianViewBuilder} and \textbf{ROExample}. 
+
+\sd{picture?}
 
 The first category includes examples done with the builder, using Mondrian DSL to make each script. The second one shows examples of how do directly interact with the \ct{ROView} class, making possible to reproduce them without the builder.
 
