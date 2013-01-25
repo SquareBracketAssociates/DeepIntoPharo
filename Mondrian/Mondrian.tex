@@ -25,26 +25,24 @@
 %\renewcommand{\nnbb}[2]{} % Disable editorial comments
 \sloppy
 %=================================================================
-\chapter{Mondrian}
+\chapter{Scripting Visualizations with Mondrian}
 \chalabel{mondrian}
 
 
 Giving a meaning to a a large amount of data is challenging without adequate tools. Textual outputs are known to be limited in their expression and interactions. 
 
-Mondrian is an agile visualization engine. It is made to visualize and interact with any arbitrary data, defined in terms of objects and their relationships. Mondrian is commonly employed in software assessment activities. Mondrian excels at visualizing software source code. This chapter introduces Mondrian's principles and describes its expressive commands to quickly make up your data. After its reading, you will be able to create interactive and visual representation.
+Mondrian is a DSL to script visualizations. Its latest implementation runs on top of Roassal (see Chapter~\ref{cha:roassal}).  
+It is made to visualize and interact with any arbitrary data, defined in terms of objects and their relationships. Mondrian is commonly employed in software assessment activities. Mondrian excels at visualizing software source code. This chapter introduces Mondrian's principles and describes its expressive commands to quickly make up your data. After its reading, you will be able to create interactive and visual representation.
 
 %=====================
 
 \section{Installation and first visualization}
 
 Mondrian is available via a Metacello configuration. Just open a workspace and type:
-\ja{we need a stable version before the publishing}
+
 \begin{code}{}
-Gofer new
-	squeaksource: 'Mondrian'; 
-	package: 'ConfigurationOfMondrian';
-	load.
-(Smalltalk at: #ConfigurationOfMondrian) loadDefault
+
+
 \end{code}
 
 There are essentially two ways to work with Mondrian, either using the easel or a view renderer. 
@@ -56,6 +54,8 @@ We will first use Mondrian in its easiest way, by using the easel. To open an ea
 \begin{code}{}
 MOEasel open.
 \end{code}
+
+\sd{to change}
 
 In the easel you have just opened, you can see two panels: the one on top is the visualization panel, the second one is the script panel. In the script panel, enter the following code and press the \emph{generate} button:
 
@@ -144,7 +144,15 @@ view treeLayout.
 The message \ct{edgesFrom:} is used to draw one edge at most per node. A variant of it is \ct{edges:from:toAll:}. It support the definition of several edges starting from a given node. Consider the dependencies between classes. The script: 
 
 \begin{code}{}
-view shape rectangle	size: [:cls | cls referencedClasses size ];	withText.view nodes: ArrayedCollection withAllSubclasses.view shape arrowedLine.view 	edges: ArrayedCollection withAllSubclasses from: #yourself toAll: #referencedClasses.view circleLayout\end{code}
+view shape rectangle
+	size: [:cls | cls referencedClasses size ];
+	withText.
+view nodes: ArrayedCollection withAllSubclasses.
+view shape arrowedLine.
+view 
+	edges: ArrayedCollection withAllSubclasses from: #yourself toAll: #referencedClasses.
+view circleLayout
+\end{code}
 
 The obtained visualization is given in \figref{classDependencies}.
 
