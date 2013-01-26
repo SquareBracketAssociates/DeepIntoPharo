@@ -73,25 +73,28 @@ Gofer new
 \sd{having stable version would be better}
 
 
-\subsection{A First Visualization}
-\begin{code}{}
-| view |
-view := ROMondrianViewBuilder new.
-view shape rectangle 
-	width:  [ :cls | cls numberOfVariables * 5 ];  
-	height: #numberOfMethods;
-	linearFillColor: #numberOfLinesOfCode within:  Collection withAllSubclasses.
-		
-view interaction action: #browse.
-
-view nodes: ROShape withAllSubclasses.
-view edgesFrom: #superclass.
-view treeLayout.
-view open
-\end{code}
+\subsection{A first visualization.}
+\sd{please not a mondrian one}
 
 
 \sd{add a screenshot}
+
+%=====================
+\subsection{Roassal Easel}
+
+
+Pharo's World menu offers an item for launching the Easel. The easel is composed by two windows, the one on the left-hand side contains the visualization and the one in the right hand a workspace containing the script to be executed. By accepting (Cmd-S, Alt-S) in the editor, the changes will be displayed in the visualization window.
+
+The easel offers lots of examples to see visualizations and learn how to make them, including a tutorial separated by steps. Examples are separated in two categories: \textbf{ROMondrianViewBuilder} and \textbf{ROExample}. 
+
+\sd{picture?}
+
+The first category includes examples done with the builder, using Mondrian DSL to make each script. The second one shows examples of how do directly interact with the \ct{ROView} class, making possible to reproduce them without the builder.
+
+It also includes how to add buttons to zoom in and zoom out the visualization, export it to different formats and save it, among other actions. This buttons are not included by default in the Mondrian builder or the ROView, so the easel teach how to do it.
+%=====================
+
+
 %=====================
 
 \section{Roassal Core Model}
@@ -850,231 +853,8 @@ The lupa  size represents the visible part of the window and its position is rel
 %\alex{MiniMap}
 %\alex{Semantic zooming: Making objects appear when the camera goes down}
 
-%=====================
-\section{The Mondrian DSL}
-\sd{Mondrian is an older visualization framework developed by D. Girba and M Meer and maintained by A. Bergel. It influenced the design of Roassal. It supports visualization scripting based on a dedicated DSL: the DSL is based on a stack model where elements on the top can be parametrized. Roassal is designed to be a flexible framework and it is not tight to a DSL. Now Roassal can be extended to support Mondrian-like DSL scripting. This is what we present in this Section.}
 
 
-A \ct{ROMondrianViewBuilder} models the Mondrian DSL\footnote{\url{http://www.moosetechnology.org/tools/mondrian}}. It is mostly compatible with the original Mondrian language.% (cf., Mondrian paper and website).
-
-%ROMondrianBuilder acts as a translation between the Mondrian DSL and the Roassal model.
-A \ct{ROMondrianViewBuilder} internally contains an instance of a \ct{ROView}, called raw view. Its accessor is \ct{raw}. All scripting  using the \ct{ROMondrianViewBuilder} result in creating \ct{ROElement}s with the shapes and interactions set by the script, and added to the raw view. To start a visualization with the builder, you can use the following code:
-
-\begin{code}{}
-view := ROMondrianViewBuilder new.
-view open.
-\end{code}
-
-A Mondrian builder can also be initialized with an instance of a ROView. However it is important to understand that this is not required, as the builder by default will create its own raw view.
-When working with the builder, is it possible to use the Mondrian DSL, sending messages to an instance of the \ct{ROMondrianViewBuilder}, or directly with the raw view. %However the main benefit of the builder it to use the Mondrian scripting.
-
-\begin{code}{}
-rawView := ROView new.
-view := ROMondrianViewBuilder view: rawView.
-view open.
-\end{code}
-
-A small summary of the Mondrian DSL is offered here. To more detailed information, please refer to the dedicated Moose book chapter~\footnote{\url{http://themoosebook.org/book/internals/mondrian}}.
-
-To add a node to the visualization, which be internally translated as a ROElement later on, use the selector \ct{node:} with the object you want to represent on the instance of the builder.
-
-\begin{figure}[H]
-      \begin{minipage}[t]{1\textwidth}
-      \vspace{0pt}
-\begin{code}{}
-view := ROMondrianViewBuilder new.
-view node: 1.
-view open.
-\end{code}
-   \end{minipage}
-   \hfill
-   \begin{minipage}[t]{1\textwidth}
-	 \vspace{0pt} \raggedright
-       \centering
-		\includegraphics[width=0.7\textwidth]{mondrian1}
-   \end{minipage}
-\label{fig:mondrian1}
-\end{figure} 
-
-
-
-
-To define shapes, use the \ct{shape} message followed by the desired shape with its characteristics, before the node or nodes definition. This will locally define the shape for the nodes.
-
-\begin{figure}[H]
-      \begin{minipage}[t]{1\textwidth}
-      \vspace{0pt}
-\begin{code}{}
-view := ROMondrianViewBuilder new.
-view shape rectangle 
-	size: 10;
-	color: Color red.
-view node: 1.
-view open.
-\end{code}
-   \end{minipage}
-   \hfill
-   \begin{minipage}[t]{1\textwidth}
-	 \vspace{0pt} \raggedright
-       \centering
-		\includegraphics[width=0.7\textwidth]{mondrian2}
-   \end{minipage}
-\label{fig:mondrian2}
-\end{figure} 
-
-
-By using the \ct{nodes:} message with a collection of objects you can create several nodes.
-
-\begin{figure}[H]
-      \begin{minipage}[t]{1\textwidth}
-      \vspace{0pt}
-\begin{code}{}
-view := ROMondrianViewBuilder new.
-view shape rectangle 
-	size: 10;
-	color: Color red.
-view nodes: (1 to: 5).
-view open.
-\end{code}
-   \end{minipage}
-   \hfill
-   \begin{minipage}[t]{1\textwidth}
-	 \vspace{0pt} \raggedright
-       \centering
-		\includegraphics[width=0.7\textwidth]{mondrian3}
-   \end{minipage}
-\label{fig:mondrian3}
-\end{figure} 
-
-If the node or nodes have nested nodes, use the \ct{node:forIt:} or \ct{nodes:forEach:} message to add them. The second parameter is a block which will add the nested nodes, as the following code shows:
-
-\begin{figure}[H]
-      \begin{minipage}[t]{1\textwidth}
-      \vspace{0pt}
-\begin{code}{}
-view := ROMondrianViewBuilder new.
-view shape rectangle 
-	size: 10;
-	color: Color red.
-view 
-	nodes: (1 to: 5) 	
-	forEach:[:each |
-		view shape rectangle 
-			size: 5;
-			color: Color yellow.
-		view nodes: (1 to: 2).
-	].
-view open.
-\end{code}
-   \end{minipage}
-   \hfill
-   \begin{minipage}[t]{1\textwidth}
-	 \vspace{0pt} \raggedright
-       \centering
-		\includegraphics[width=0.7\textwidth]{mondrian4}
-   \end{minipage}
-\label{fig:mondrian4}
-\end{figure} 
-
-
-
-%The shapes must be defined before the nodes definition.
-%To define shapes, use the \#shape selector followed by the desired shape with its characteristics, before the node or nodes definition. This will locally define the shape for the nodes.
-
-%\begin{code}{}
-%view := ROMondrianViewBuilder new.
-%view shape rectangle size: 20.
-%view node: 1 forIt:[
-%	view shape rectangle size: 20; color: Color red.
-%	view nodes: (1 to: 3)
-%].
-%view open.
-%\end{code}
-
-It is possible to create edges by using the \ct{edgesFromAssociations:} message with a collection of associations between the model of the nodes.
-
-\begin{figure}[H]
-      \begin{minipage}[t]{1\textwidth}
-      \vspace{0pt}
-\begin{code}{}
-view := ROMondrianViewBuilder new.
-view shape rectangle 
-	color: Color red.
-view nodes: (1 to: 4).
-view 
-	edgesFromAssociations: (Array with: 1-> 2 with: 2 -> 3 with: 2 -> 4).
-view open.
-\end{code}
-   \end{minipage}
-   \hfill
-   \begin{minipage}[t]{1\textwidth}
-	 \vspace{0pt} \raggedright
-       \centering
-		\includegraphics[width=0.7\textwidth]{mondrian5}
-   \end{minipage}
-\label{fig:mondrian5}
-\end{figure} 
-
-
-
-Similar to the \ct{Collection} hierarchy example we need an appropriate layout. By default the builder applies a horizontal line layout and we need a tree layout. We use the \ct{treeLayout} to apply it.
-
-\begin{figure}[H]
-      \begin{minipage}[t]{1\textwidth}
-      \vspace{0pt}
-\begin{code}{}
-view := ROMondrianViewBuilder new.
-view shape rectangle 
-	size: 10;
-	color: Color red.
-view nodes: (1 to: 4).
-view edgesFromAssociations: (Array with: 1-> 2 with: 2 -> 3 with: 2 -> 4).
-view treeLayout.
-view open.
-\end{code}
-   \end{minipage}
-   \hfill
-   \begin{minipage}[t]{1\textwidth}
-	 \vspace{0pt} \raggedright
-       \centering
-		\includegraphics[width=0.7\textwidth]{mondrian6}
-   \end{minipage}
-\label{fig:mondrian6}
-\end{figure} 
-
-
-
-
-\subsection*{The Collection Hierarchy example}
-
-The Mondrian DSL allows a simpler scripting to the Collection hierarchy visualization than the one constructed through the chapter. By setting how each element and edge must be created, it is not necessary for us to create them by hand.
-The following code can be replaced for the earlier version:
-
-\begin{code}{}
-view := ROMondrianViewBuilder new.
-view shape rectangle
-	width: [ :cls | cls instVarNames size ]; 
-	height: [ :cls | cls methods size ].
-view nodes: Collection withAllSubclasses.
-view edgesFrom: #superclass.
-view treeLayout.
-view open.
-\end{code}
-
-%=====================
-\section{Roassal Easel}
-
-
-Pharo's World menu offers an item for launching the Easel. The easel is composed by two windows, the one on the left-hand side contains the visualization and the one in the right hand a workspace containing the script to be executed. By accepting (Cmd-S, Alt-S) in the editor, the changes will be displayed in the visualization window.
-
-The easel offers lots of examples to see visualizations and learn how to make them, including a tutorial separated by steps. Examples are separated in two categories: \textbf{ROMondrianViewBuilder} and \textbf{ROExample}. 
-
-\sd{picture?}
-
-The first category includes examples done with the builder, using Mondrian DSL to make each script. The second one shows examples of how do directly interact with the \ct{ROView} class, making possible to reproduce them without the builder.
-
-It also includes how to add buttons to zoom in and zoom out the visualization, export it to different formats and save it, among other actions. This buttons are not included by default in the Mondrian builder or the ROView, so the easel teach how to do it.
-%=====================
 \section{Beyond Pharo}
 
 Roassal have been designed to be easily ported to other Smalltalk dialects. Currently it has been ported to VisualWorks, Amber and VA Smalltalk.
