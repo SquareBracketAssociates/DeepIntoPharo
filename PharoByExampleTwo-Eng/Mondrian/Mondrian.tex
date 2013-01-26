@@ -31,7 +31,7 @@
 
 Giving a meaning to a a large amount of data is challenging without adequate tools. Textual outputs are known to be limited in their expression and interactions. 
 
-Mondrian is a DSL to script visualizations. Its latest implementation runs on top of Roassal (see Chapter~\ref{cha:roassal}).  
+Mondrian is a Domain Specific Language to script visualizations. Its latest implementation runs on top of Roassal (see Chapter~\ref{cha:roassal}).  
 It is made to visualize and interact with any arbitrary data, defined in terms of objects and their relationships. Mondrian is commonly employed in software assessment activities. Mondrian excels at visualizing software source code. This chapter introduces Mondrian's principles and describes its expressive commands to quickly make up your data. After its reading, you will be able to create interactive and visual representation.
 
 %=====================
@@ -44,6 +44,247 @@ Mondrian is available via a Metacello configuration. Just open a workspace and t
 
 
 \end{code}
+
+
+\subsection{A First Visualization}
+You can get a first visualization by entering and executing the following code in a workspace. 
+Each of these parts will be explain later.
+
+\begin{code}{}
+| view |
+view := ROMondrianViewBuilder new.
+view shape rectangle 
+	width:  [ :cls | cls numberOfVariables * 5 ];  
+	height: #numberOfMethods;
+	linearFillColor: #numberOfLinesOfCode within:  Collection withAllSubclasses.
+		
+view interaction action: #browse.
+
+view nodes: ROShape withAllSubclasses.
+view edgesFrom: #superclass.
+view treeLayout.
+view open
+\end{code}
+
+
+
+\section{Starting with Mondrian}
+
+%=====================
+%\section{The Mondrian DSL}
+\sd{I pasted the part from the roassal chapter}
+\sd{Mondrian is an older visualization framework developed by D. Girba and XXX and maintained by A. Bergel. It influenced the design of Roassal. It supports visualization scripting based on a dedicated DSL: the DSL is based on a stack model where elements on the top can be parametrized. Roassal is designed to be a flexible framework and it is not tight to a DSL. Now Roassal can be extended to support Mondrian-like DSL scripting. This is what we present in this Section.}
+
+
+A \ct{ROMondrianViewBuilder} models the Mondrian DSL\footnote{\url{http://www.moosetechnology.org/tools/mondrian}}. It is mostly compatible with the original Mondrian language.% (cf., Mondrian paper and website).
+
+%ROMondrianBuilder acts as a translation between the Mondrian DSL and the Roassal model.
+A \ct{ROMondrianViewBuilder} internally contains an instance of a \ct{ROView}, called raw view. Its accessor is \ct{raw}. All scripting  using the \ct{ROMondrianViewBuilder} result in creating \ct{ROElement}s with the shapes and interactions set by the script, and added to the raw view. To start a visualization with the builder, you can use the following code:
+
+\begin{code}{}
+view := ROMondrianViewBuilder new.
+view open.
+\end{code}
+
+A Mondrian builder can also be initialized with an instance of a ROView. However it is important to understand that this is not required, as the builder by default will create its own raw view.
+When working with the builder, is it possible to use the Mondrian DSL, sending messages to an instance of the \ct{ROMondrianViewBuilder}, or directly with the raw view. %However the main benefit of the builder it to use the Mondrian scripting.
+
+\begin{code}{}
+rawView := ROView new.
+view := ROMondrianViewBuilder view: rawView.
+view open.
+\end{code}
+
+A small summary of the Mondrian DSL is offered here. To more detailed information, please refer to the dedicated Moose book chapter~\footnote{\url{http://themoosebook.org/book/internals/mondrian}}.
+
+To add a node to the visualization, which be internally translated as a ROElement later on, use the selector \ct{node:} with the object you want to represent on the instance of the builder.
+
+\begin{figure}[H]
+      \begin{minipage}[t]{1\textwidth}
+      \vspace{0pt}
+\begin{code}{}
+view := ROMondrianViewBuilder new.
+view node: 1.
+view open.
+\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{1\textwidth}
+	 \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.7\textwidth]{mondrian1}
+   \end{minipage}
+\label{fig:mondrian1}
+\end{figure} 
+
+
+
+
+To define shapes, use the \ct{shape} message followed by the desired shape with its characteristics, before the node or nodes definition. This will locally define the shape for the nodes.
+
+\begin{figure}[H]
+      \begin{minipage}[t]{1\textwidth}
+      \vspace{0pt}
+\begin{code}{}
+view := ROMondrianViewBuilder new.
+view shape rectangle 
+	size: 10;
+	color: Color red.
+view node: 1.
+view open.
+\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{1\textwidth}
+	 \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.7\textwidth]{mondrian2}
+   \end{minipage}
+\label{fig:mondrian2}
+\end{figure} 
+
+
+By using the \ct{nodes:} message with a collection of objects you can create several nodes.
+
+\begin{figure}[H]
+      \begin{minipage}[t]{1\textwidth}
+      \vspace{0pt}
+\begin{code}{}
+view := ROMondrianViewBuilder new.
+view shape rectangle 
+	size: 10;
+	color: Color red.
+view nodes: (1 to: 5).
+view open.
+\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{1\textwidth}
+	 \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.7\textwidth]{mondrian3}
+   \end{minipage}
+\label{fig:mondrian3}
+\end{figure} 
+
+If the node or nodes have nested nodes, use the \ct{node:forIt:} or \ct{nodes:forEach:} message to add them. The second parameter is a block which will add the nested nodes, as the following code shows:
+
+\begin{figure}[H]
+      \begin{minipage}[t]{1\textwidth}
+      \vspace{0pt}
+\begin{code}{}
+view := ROMondrianViewBuilder new.
+view shape rectangle 
+	size: 10;
+	color: Color red.
+view 
+	nodes: (1 to: 5) 	
+	forEach:[:each |
+		view shape rectangle 
+			size: 5;
+			color: Color yellow.
+		view nodes: (1 to: 2).
+	].
+view open.
+\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{1\textwidth}
+	 \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.7\textwidth]{mondrian4}
+   \end{minipage}
+\label{fig:mondrian4}
+\end{figure} 
+
+
+
+%The shapes must be defined before the nodes definition.
+%To define shapes, use the \#shape selector followed by the desired shape with its characteristics, before the node or nodes definition. This will locally define the shape for the nodes.
+
+%\begin{code}{}
+%view := ROMondrianViewBuilder new.
+%view shape rectangle size: 20.
+%view node: 1 forIt:[
+%	view shape rectangle size: 20; color: Color red.
+%	view nodes: (1 to: 3)
+%].
+%view open.
+%\end{code}
+
+It is possible to create edges by using the \ct{edgesFromAssociations:} message with a collection of associations between the model of the nodes.
+
+\begin{figure}[H]
+      \begin{minipage}[t]{1\textwidth}
+      \vspace{0pt}
+\begin{code}{}
+view := ROMondrianViewBuilder new.
+view shape rectangle 
+	color: Color red.
+view nodes: (1 to: 4).
+view 
+	edgesFromAssociations: (Array with: 1-> 2 with: 2 -> 3 with: 2 -> 4).
+view open.
+\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{1\textwidth}
+	 \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.7\textwidth]{mondrian5}
+   \end{minipage}
+\label{fig:mondrian5}
+\end{figure} 
+
+
+
+Similar to the \ct{Collection} hierarchy example we need an appropriate layout. By default the builder applies a horizontal line layout and we need a tree layout. We use the \ct{treeLayout} to apply it.
+
+\begin{figure}[H]
+      \begin{minipage}[t]{1\textwidth}
+      \vspace{0pt}
+\begin{code}{}
+view := ROMondrianViewBuilder new.
+view shape rectangle 
+	size: 10;
+	color: Color red.
+view nodes: (1 to: 4).
+view edgesFromAssociations: (Array with: 1-> 2 with: 2 -> 3 with: 2 -> 4).
+view treeLayout.
+view open.
+\end{code}
+   \end{minipage}
+   \hfill
+   \begin{minipage}[t]{1\textwidth}
+	 \vspace{0pt} \raggedright
+       \centering
+		\includegraphics[width=0.7\textwidth]{mondrian6}
+   \end{minipage}
+\label{fig:mondrian6}
+\end{figure} 
+
+
+
+
+\subsection*{The Collection Hierarchy example}
+
+The Mondrian DSL allows a simpler scripting to the Collection hierarchy visualization than the one constructed through the chapter. By setting how each element and edge must be created, it is not necessary for us to create them by hand.
+The following code can be replaced for the earlier version:
+
+\begin{code}{}
+view := ROMondrianViewBuilder new.
+view shape rectangle
+	width: [ :cls | cls instVarNames size ]; 
+	height: [ :cls | cls methods size ].
+view nodes: Collection withAllSubclasses.
+view edgesFrom: #superclass.
+view treeLayout.
+view open.
+\end{code}
+
+
+
+
 
 There are essentially two ways to work with Mondrian, either using the easel or a view renderer. 
 The easel is a tool in which users may interactively and incrementally build a visualization by means of a script.  The easel is particularly useful when prototyping.
