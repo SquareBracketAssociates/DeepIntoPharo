@@ -518,7 +518,7 @@ Gofer new
 \section{Some useful scripts}
 Gofer offers a nice facility to get all the packages in a given repository via the message \ct{allResolved}. 
 
-\begin{script}[]{Getting the number of package in a repository.}
+\begin{script}[]{Getting the number of packages in a repository.}
 (Gofer new
 	squeaksource: 'Pharo';
 	allResolved) size
@@ -532,6 +532,14 @@ The following script groups the package versions by packages and returns a dicti
 	groupedBy: [:each | each packageName])
 \end{script}
 
+
+\begin{script}[]{Getting the package list.}
+(Gofer new
+	squeaksource3: 'Kozen';
+	allResolved)
+	groupedBy: [:each | each packageName]) keys
+\end{script}
+
 \subsection{Fetching packages}
 Here is a script to fetch all the packages of a given repository. This is useful to grab all your files and get a version locally.
 
@@ -541,9 +549,8 @@ go := Gofer new squeaksource: 'Pharo'.
 go allResolved
 	do: [:each |
 			self crLog: each packageName.
-			go 
-				package: each packageName;
-				fetch]
+			go package: each packageName;
+			     fetch]
 \end{script}
 
 \begin{script}[]{Fetching all the refactoring packages from Pharo2.0 repository}
@@ -577,7 +584,14 @@ go repository: (MCHttpRepository
 					do: [:f | go version: ('.' join: (f findTokens: $.) allButLast); push]
 \end{script}
 
+
+
+
+
+
 The following script uses the new filesystem library, we also show how we can get the package name and not the versions.
+The script also pays attention to only pubslish mcz files. It can be extended to publish selectively specific packages.
+
 \begin{script}[]{How to publish package files to a new repository using Pharo 20}
 | go |
 go := Gofer new.
@@ -587,7 +601,7 @@ go repository: (MCHttpRepository
 	password: '').
 
 (((FileSystem disk workingDirectory / 'package-cache')
-	allFiles select: [:each | '*Refactoring*.mcz' match: each basename]) 
+	allFiles select: [:each | '*.mcz' match: each basename]) 
 		groupedBy:  [:each | (each base copyUpToLast: $-) ]) 
 			keys do: [:name | go package: name; push]
 \end{script}
