@@ -40,29 +40,26 @@ The DBXTalk suite, within its set of tools, provides GLORP, an Object-Relational
 
 In this chapter we will present DBXTalk core ideas, the tools it provides, and finally use them to build step by step a little application.
 
-\section{DBXTalk Architecture}
-The DBXTalk Driver relies on several components in order to connect to different relational databases:
-\begin{itemize}
-\item The OpenDBXDriver package talks to the OpenDBX library and handles the engines differences.
-\item OpenDBX is a C library which stands as an adapter between the different database engines 
-and our Pharo image, and provides a common interface to interact with through foreign function interface (FFI).
-\item We will need the corresponding client database library that OpenDBX will talk to.
-\end{itemize}
+\section{DBXTalk Architecture Overview}
+The DBXTalk suite architecture (\autoref{fig:dbxarchitecture}) is based on the communication of several components. The DBXTalk driver is the backbone of the suite. It makes possible the communication with the database engines outside the Pharo environment through a Foreign Function Interface (FFI) library. On the one side, inside the Pharo environment, tools such as Phoseydon or GLORP make use of the DBXTalk driver. On the other side, outside the  Pharo environment, the DBXTalk driver relies on a native library named OpenDBX.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=.6\linewidth]{dbxarchitecture}
-\caption{Architecture of the DBXTalk suite of tools}
+\caption{Architecture of the DBXTalk suite of tools \label{fig:dbxarchitecture}}
 \end{center}
 \end{figure}
+
+The OpenDBX library provides the ability to communicate to several database engines. In particular, it enables the communication with vendors such as Oracle and MSSQL, that do not provide an open protocol, via native libraries those vendors provide. The OpenDBX library, though being a native library, fulfills the role of an adaptor pattern to DBXTalk (\autoref{fig:opendbx}). This means that OpenDBX handles the API differences between the native database libraries, providing an unified abstract API to the DBXTalk driver.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=\linewidth]{Tools}
-\caption{To redo and introduce}
+\includegraphics[width=.6\linewidth]{opendbx_interaction}
+\caption{OpenDBX as an adaptor, interacting with database engines and DBXTalk \label{fig:opendbx}}
 \end{center}
 \end{figure}
 
+\gp{probably should mention in architecture the problems of FFI blocking the VM, the active wait...?}
 
 \section{DBXTalk Installation}
 To install DBXTalk library, we need to install the previously detailed components: the OpenDBXDriver as well as some databases.
