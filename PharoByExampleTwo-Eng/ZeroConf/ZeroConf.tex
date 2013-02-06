@@ -30,10 +30,24 @@
 \sloppy
 %=================================================================
 
-\chapter{Zero Configuration}
+\chapter{Pharo Zero Conf}
 
 
-\section{Getting the VM and the Image}
+
+
+Aren't you  fed up to not be able to launch Pharo from a single command line? Pharo developers where extremely annoyed to 
+Using a nice debugger and interactive environment does not 
+mean that Pharo developer do not value automatic scripts. 
+
+A zero configuration is then a script that automatically download everything you need to get started. 
+
+In this chapter we will show how to get the zeroConf for Pharo as well as how you can pass argument to the environment from the command-line.
+
+
+
+
+
+\section{Getting the latest VM and the Image}
 
 \begin{code}{}
 wget http://pharo.gforge.inria.fr/ci/script/ciPharo20PharoVM.sh
@@ -125,6 +139,134 @@ wget --quiet -qO - http://pharo.gforge.inria.fr/ci/script/ciPharoVM.sh | bash
 wget --quiet -qO - http://pharo.gforge.inria.fr/ci/script/ciPharo20.sh | bash
 \end{verbatim}
 \end{scriptsize}
+
+\section{Scripting the Image from the commandLine}
+
+
+\subsection{How to find our way}
+
+\begin{code}{}
+./vm.sh Pharo.image --help
+\end{code}
+
+\begin{code}{}
+Usage: [<subcommand>] [--help] [--copyright] [--version] [--list]
+	--help       print this help message
+	--copyright  print the copyrights
+	--version    print the version for the image and the vm
+	--list       list a description of all active command line handlers
+	<subcommand> a valid subcommand in --list
+	
+Documentation:
+A DefaultCommandLineHandler handles default command line arguments and options.
+The DefaultCommandLineHandler is activated before all other handlers. 
+It first checks if another handler is available. If so it will activate the found handler.
+\end{code}
+
+\begin{code}{}
+./vm.sh Pharo.image --version
+M:    NBCoInterpreter NativeBoost-CogPlugin-IgorStasenko.15 uuid: 44b6b681-38f1-4a9e-b6ee-8769b499576a Dec 18 2012
+NBCogit NativeBoost-CogPlugin-IgorStasenko.15 uuid: 44b6b681-38f1-4a9e-b6ee-8769b499576a Dec 18 2012
+git://gitorious.org/cogvm/blessed.git Commit: 452863bdfba2ba0b188e7b172e9bc597a2caa928 Date: 2012-12-07 16:49:46 +0100 By: Esteban Lorenzano <estebanlm@gmail.com> Jenkins build #5922
+\end{code}
+
+
+\begin{code}{}
+./vm.sh Pharo.image --list
+Currently installed Command Line Handlers:
+    st              handles .st source files
+    Fuel            Handles fuel files
+    config          Install and inspect Metacello Configurations from the command line
+    save            Rename the image and changes file
+    test            A command line test runner
+    update          load updates
+    printVersion    Print image version
+    eval            directly evaluates passed in one line scripts
+\end{code}    
+    
+
+\subsection{Evaluating Pharo Expressions}
+
+\begin{code}{}
+./vm.sh Pharo.image eval '1+2'
+\end{code}
+
+
+\begin{code}{}
+./vm.sh Pharo.image eval --help 
+Usage: eval [--help] <smalltalk expression>
+	--help    list this help message
+	<smallltalk expression>  a valid Smalltalk expression which is evaluated and 
+	                         the result is printed on stdout
+
+Documentation:
+A CommandLineHandler that reads a string from the command line, outputs the evaluated result and quits the image. 
+
+This handler either evaluates the arguments passed to the image:
+	$PHARO_VM my.image eval  1 + 2
+	
+or it can read directly from stdin:
+
+	echo "1+2" | $PHARO_VM my.image eval 
+\end{code}
+
+
+\subsection{Loading Metacello Configuration}
+
+\begin{code}{}
+./vm.sh Pharo.image config --help
+Usage: config [--help] <repository url> [<configuration>] [--install[=<version>]] [--group=<group>] [--username=<username>] [--password=<password>]
+	--help              show this help message
+	<repository url>    A Monticello repository name 
+	<configuration>     A valid Metacello Configuration name
+	<version>           A valid version for the given configuration
+	<group>             A valid Metacello group name
+	<username>          An optional username to access the configuration's repository
+	<password>          An optional password to access the configuration's repository
+	
+Examples:
+	# display this help message
+	$PharoVM My.image config
+	
+	# list all configurations of a repository
+	$PharoVM My.image config $MC_REPOS_URL
+	
+	# list all the available versions of a confgurtation
+	$PharoVM My.image config $MC_REPOS_URL ConfigurationOfFoo
+	
+	# install the stable version
+	$PharoVM My.image config $MC_REPOS_URL ConfigurationOfFoo --install
+	
+	#install a specific version '1.5'
+	$PharoVM My.image config $MC_REPOS_URL ConfigurationOfFoo --install=1.5
+	
+	#install a specific version '1.5' and only a specific group 'Tests'
+	$PharoVM My.image config $MC_REPOS_URL ConfigurationOfFoo --install=1.5 --group=Tests
+\end{code}
+
+\section{Using Zero conf on Jenkins}
+
+For example here is the configuration for Athens.
+
+\begin{code}{}
+wget --quiet -qO - http://pharo.gforge.inria.fr/ci/script/ciPharo20NBCogVM.sh | sh
+wget http://pharo.gforge.inria.fr/ci/image/PharoV10.sources
+
+./vm.sh Pharo.image save $JOB_NAME --delete-old
+
+REPO=http://squeaksource.com/Athens
+./vm.sh $JOB_NAME.image config $REPO ConfigurationOfAthens --install=last
+./vm.sh $JOB_NAME.image test --junit-xml-output "Athens-.*"
+
+zip -r $JOB_NAME.zip $JOB_NAME.image $JOB_NAME.changes
+\end{code}
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=\textwidth]{Jenkins}
+	\caption{ZeroConf \label{fig:jenkins}.}
+\end{figure}
+
 
 \section{Conclusion}
 As conclusion, you have now tools to quickly create UIs and to reuse them. Since the reuse is really a strong value for specs, keep in mind that your tools can be reused. So do not forget to provide a proper API for it.
