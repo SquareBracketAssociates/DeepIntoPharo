@@ -1758,11 +1758,12 @@ ExpressionGrammar>>prod
 	^ mul / prim
 ExpressionGrammar>>mul
 	^ prim, $* asParser trim, prod 
-
 \end{script}
 
+% $ <-- please don't remove, that is used to close the \$ in the
+% previous script (bug in Emacs)
 
-\begin{figure}
+\begin{figure}[ht]
   \begin{center}
     \includegraphics[width=.8\linewidth]{PPBrowserDebugger3}
     \caption{Debugger output of \clsind{ExpressionGrammar} for input $12+3*4$. \label{fig:pp/debugger}}
@@ -1773,7 +1774,7 @@ ExpressionGrammar>>mul
   What rules are applied know, which of them fails?
   The second debugger output is in \figref{pp/debugger2}, but give it your own try.
 
-\begin{figure}
+\begin{figure}[ht]
   \begin{center}
     \includegraphics[width=.8\linewidth]{PPBrowserDebugger4}
     \caption{Debugger output of \clsind{ExpressionGrammar} for input $12*3*4$. \label{fig:pp/debugger2}}
@@ -1890,7 +1891,9 @@ chapter.
 
 \bibliographystyle{jurabib}
 \nobibliography{scg}
+
 \end{document}
+
 \fi
 %=============================================================
 
