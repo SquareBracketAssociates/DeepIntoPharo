@@ -48,18 +48,20 @@ pass argument to the environment from the command-line.
 
 
 
-
-
 \section{Getting the latest VM and the Image}
+First here is a way to download a zero configration script that downloads the latest 2.0 Pharo image and vm. 
 
 \begin{code}{}
-wget http://pharo.gforge.inria.fr/ci/script/ciPharo20PharoVM.sh
+wget http://files.pharo.org/script/ciPharo20PharoVM.sh
 \end{code}
 
+To execute the script you should change its right accesses using \ct{chmod a+x}  or invoke it via bash as follows. Here we just want to have a look at the help of the script.
 
 \begin{code}{}
 bash ./ciPharo20PharoVM.sh --help 
 \end{code}
+
+What the help mentions is that the script will download the current vm and put it into the vm folder, a script to launch the system, the image and its associated changes. 
 
 \begin{code}{}
 This script will download the latest Pharo 2.0 image and VM
@@ -71,9 +73,12 @@ Result in the current directory:
     Pharo.changes    The corresponding pharo changes
 \end{code}
 
-%% in the vm directory
 
 \paragraph{Grabbing it and executing it}
+
+\begin{code}{}
+curl http://files.pharo.org/script/ciPharo20PharoVM.sh | bash
+\end{code}
 
 \begin{code}{}
 curl http://pharo.gforge.inria.fr/ci/script/ciPharo20PharoVM.sh | bash
