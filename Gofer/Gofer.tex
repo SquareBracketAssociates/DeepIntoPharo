@@ -606,6 +606,22 @@ go repository: (MCHttpRepository
 			keys do: [:name | go package: name; push]
 \end{script}
 
+\begin{script}[]{How to publish Fame to SmalltalkHub}
+|go repo|
+repo := MCSmalltalkhubRepository
+   owner: 'Moose'
+   project: 'Fame'
+   user: 'StephaneDucasse'
+   password: 'xxxx'.
+
+go := Gofer new.
+go repository: repo.
+(((FileSystem disk workingDirectory / 'package-cache')
+	allFiles select: [:each | '*Fame*.mcz' match: each basename])
+		groupedBy: [:each | (each base copyUpToLast: $-) ]) keys 
+			do: [:name | go package: name; push]
+\end{script}
+
 \section{Chapter Summary}
 Gofer provides a robust and stable implementation to script the
 management of your packages. Now when you project grows you should
