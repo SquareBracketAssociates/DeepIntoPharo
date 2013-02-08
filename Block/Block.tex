@@ -839,27 +839,12 @@ therefore when this binding is modify from the body of the begin expression, the
 and this is why it returns 4 and not 0 because.
 
 
-\section{Notes from eliot blog}
-
-- way to control execution -> block closures
-- way to store arg and temp -> method context
-- a way of accessing locals in enclosing block or method activations
-but to implement access to locals in enclosing activations without access through those activations.
-
-
-
-
-
-
-
-
-
 
 	\subsection{Handling Temporary Variables}
 \sd{to rewrite}
 
 \paragraph{Temporary Variables.}
-Temporary variables are created for a particular execution of a CompiledMethod and cease to exist when the execution is complete. The CompiledMethod indicates to the interpreter how many temporary variables will be required. The arguments of the in- voking message and the values of the temporary variables are stored together in the temporary frame (method context???). The arguments are stored first and the temporary variable values immediately after.
+Temporary variables are created for a particular execution of a CompiledMethod and cease to exist when the execution is complete. The CompiledMethod indicates to the interpreter how many temporary variables will be required. The arguments of the invoking message and the values of the temporary variables are stored together in the temporary frame (method context???). The arguments are stored first and the temporary variable values immediately after.
 
 
 

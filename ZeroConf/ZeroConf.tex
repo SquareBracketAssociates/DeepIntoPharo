@@ -55,6 +55,8 @@ First here is a way to download a zero configration script that downloads the la
 wget http://files.pharo.org/script/ciPharo20PharoVM.sh
 \end{code}
 
+Note that files.pharo.org is an alias for pharo.gforge.inria.fr/ci.
+
 To execute the script you should change its right accesses using \ct{chmod a+x}  or invoke it via bash as follows. Here we just want to have a look at the help of the script.
 
 \begin{code}{}
@@ -63,9 +65,7 @@ bash ./ciPharo20PharoVM.sh --help
 
 What the help mentions is that the script will download the current vm and put it into the vm folder, a script to launch the system, the image and its associated changes. 
 
-\begin{code}{}
-This script will download the latest Pharo 2.0 image and VM
-
+\begin{code}{Output of ciPharo20PharoVM.sh --help }
 Result in the current directory:
     vm               VM directory
     vm.sh            Script forwarding to the VM in vm
@@ -75,26 +75,26 @@ Result in the current directory:
 
 
 \paragraph{Grabbing it and executing it}
+If you just want to directly execute the script you can also 
+
+%Why this is not working.
+%\begin{code}{}
+%curl http://files.pharo.org/script/ciPharo20PharoVM.sh | bash
+%\end{code}
 
 \begin{code}{}
-curl http://files.pharo.org/script/ciPharo20PharoVM.sh | bash
-\end{code}
-
-\begin{code}{}
-curl http://pharo.gforge.inria.fr/ci/script/ciPharo20PharoVM.sh | bash
+wget http://pharo.gforge.inria.fr/ci/script/ciPharo20PharoVM.sh | bash
 \end{code}
 
 
 \section{Getting the latest VM only}
+You can also use different script. For example \ct{ciPharoVM.sh} only downloads the latest vm.
 
 \begin{code}{}
 wget http://pharo.gforge.inria.fr/ci/script/ciPharoVM.sh
 \end{code}
 
-\begin{code}{}
-bash ciPharoVM.sh --help
-
-
+\begin{code}{Output of ciPharoVM.sh --help}
 This script will download the latest Pharo VM
 
 Result in the current directory:
@@ -103,16 +103,17 @@ Result in the current directory:
 \end{code}
 
 
-
-
-
-\section{The scripts}
+Figure~\ref{fig:website} shows the list of scripts available that you can get at \url{http://pharo.gforge.inria.fr/ci/script/}.
 
 \begin{figure}[!h]
 	\centering
 	\includegraphics[width=\textwidth]{webSite}
 	\caption{All the scripts are available at \ct{http://pharo.gforge.inria.fr/ci/script/} \label{fig:website}.}
 \end{figure}
+
+
+\section{The scripts}
+
 	
 
 

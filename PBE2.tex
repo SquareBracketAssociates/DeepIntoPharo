@@ -45,10 +45,13 @@
 	{Glamour/figures/}
 	{Profiling/figures/}
 	{Regex/figures/}
+	{ZeroConf/figures/}
 	{Omnibrowser/figures/}
 	{Exceptions/figures/}
 	{Roassal/figures/}
+	{Mondrian/figures/}
 	{Metacello/figures/}
+	{DBXTalk/figures/}
 	{LittleNumbers/figures/}
 	{Announcements/figures/}
 	{Sockets/figures/}
@@ -81,8 +84,7 @@
 	Damien Cassou\quad
 	St\'ephane Ducasse\quad
 	Jannik Laval\quad}
-\title{\Huge\bf Deep into Pharo\\[1ex]
-\small with the participation of O. Nierstrasz, D. Henrichs, ... }
+\title{\Huge\bf Deep into Pharo}
 \isodate
 \date{\emph{Version of \today}}
 \maketitle
@@ -97,6 +99,63 @@
 \input{Preface/Preface2.tex}
 %=================================================================
 
+
+
+
+
+\part{Libraries}
+
+\input{ZeroConf/ZeroConf.tex}
+%% stef is doing pass
+
+\input{FileSystem/FileSystem.tex} 
+%% stef...
+% 60 
+% adapting
+% adding some graffle 
+% to read
+% to adapt with the last version
+% verify source code
+% A conclusion has to be added
+
+%\input{Announcements/Announcements.tex} %%
+%30
+% to read
+% verify source code
+
+\input{Sockets/Sockets.tex}
+%99.9
+% verify source code
+
+\input{Settings/Settings.tex} %% stef
+% 99 + add summary at the end?
+% text is finished
+% verify source code
+
+\input{Regex/Regex.tex}
+% 99
+% to read
+% verify source code
+
+
+
+\part{Source Management}
+\input{Monticello/Monticello.tex} %stef
+% screenshot
+% Smalltlk hub au lieu de squeaksource
+% verify source code
+
+\input{Gofer/Gofer.tex}
+% verify source code
+
+\input{Metacello/Metacello.tex}
+% 95 
+% to read
+% verify source code
+% Add a list of important points in the conclusion
+
+
+
 \part{Frameworks}
 
 %\input{Omnibrowser/Omnibrowser.tex}
@@ -108,14 +167,39 @@
 % There are some references to Mondrian. Does it work with Roassal ? If yes, we have to clean the text and the source code.
 % Minor comments are left, they need to be addressed just before publishing the book. The comments are about a ref to the Roassal chapter and the Metacello invocation to load Glamour.
 
+
+\input{Mondrian/Mondrian.tex}
+%% Alex should roassalize the chapter
+
+\newcommand{\fig}[4]{
+		\begin{figure}[#1]
+			\centering
+			\includegraphics[width=#2\textwidth]{#3}
+			\caption{\label{fig:#3}#4}
+		\end{figure}}
+
+	\newcommand{\largefig}[4]{
+		\begin{figure*}[#1]
+			\centering
+			\includegraphics[width=#2\textwidth]{#3}
+			\caption{\label{fig:#3}#4}
+		\end{figure*}}
+		
+	\newcommand{\asdf}[4]{
+		\begin{subfigure}[\label{fig:#3}]
+                \centering
+                \includegraphics[width=\textwidth]{#3}
+                \caption{\label{fig:#3}#4}                
+        \end{subfigure}}
 \input{Roassal/Roassal.tex}
 % 80%
-% alex should to a pass to roassalize the chapter
 % Minor comments are left, they need to be addressed just before publishing the book. 
 % verify source code
 
+
 \input{RulesAndRewriteRules/Lint.tex}
 % 60%
+%simon
 
 \part{Language}
 \input{Exceptions/Exceptions.tex} %% stef
@@ -125,7 +209,7 @@
 % verify source code
 
 \input{Block/Block.tex} % stef 
-%% 50 
+%% 80 
 % to read
 % verify source code
 % Part are missing.
@@ -138,55 +222,12 @@
 
 \input{Float/Float.tex} %% Alexandre
 % 60
+% scaled decimal
+% the end is unfinished
 % verify source code
 
-\part{Libraries}
-\input{FileSystem/FileSystem.tex} 
-%% stef...
-% 60 
-% adapting
-% adding some graffle 
-% to read
-% to adapt with the last version
-% verify source code
-% A conclusion has to be added
 
-\input{Announcements/Announcements.tex} %%
-%30
-% to read
-% verify source code
 
-\input{Sockets/Sockets.tex}
-%99.9
-% verify source code
-
-\input{Settings/Settings.tex} %% stef
-% 80
-% text is finished
-% verify source code
-
-\input{Regex/Regex.tex}
-% 99
-% to read
-% verify source code
-
-\input{Fuel/Fuel.tex}
-%  wait for martin
-
-\part{Source Management}
-\input{Monticello/Monticello.tex} %stef
-% screenshot
-% verify source code
-
-\input{Gofer/Gofer.tex}
-% verify source code
-
-\input{Metacello/Metacello.tex}
-% 95 
-% to read
-%% need a two pages summary
-% verify source code
-% Add a list of important points in the conclusion
 
 \part{Tools}
 \input{Profiling/Profiling.tex}
@@ -199,10 +240,7 @@
 % a lot of code but no much text. 
 % add a list of important points in the conclusion
 
-\input{BasicWidgets/BasicWidgets.tex}
-% 60
-% to read
-% verify source code
+
 
 
 
