@@ -1,0 +1,204 @@
+% $Arnaud Jean-baptiste$
+% $22 juin 2011 $
+% $v1$
+
+% HISTORY: []
+% 2011-june-22 :: first commit
+
+
+%=================================================================
+\ifx\wholebook\relax\else
+% --------------------------------------------
+% Lulu:
+	\documentclass[a4paper,10pt,twoside]{book}
+	\usepackage[
+		papersize={6.13in,9.21in},
+		hmargin={.75in,.75in},
+		vmargin={.75in,1in},
+		ignoreheadfoot
+	]{geometry}
+	\input{../common.tex}
+	\pagestyle{headings}
+	\setboolean{lulu}{true}
+% --------------------------------------------
+% A4:
+%	\documentclass[a4paper,11pt,twoside]{book}
+%	\input{../common.tex}
+%	\usepackage{a4wide}
+% --------------------------------------------
+    \graphicspath{{figures/} {../figures/}}
+	\begin{document}
+	%\renewcommand{\nnbb}[2]{} % Disable editorial comments
+	\sloppy
+\fi
+
+
+\newcommand{\opal}[0]{Opal\xspace} % Ducasse
+%=================================================================
+\chapter{The Opal Compiler} \chalabel{opal}
+
+Imagine you want to test the Stack class, and your first test just
+creates a test and checks if it's empty.
+
+Then in your second test, you create the same empty stack, but now
+push an element 'apple' and check if the size is one.
+
+Then in your third test, you do all the same, and then you pop the
+element and check that it is an apple.
+
+Wouldn't it be great if you could write your test cases such that they
+could expand on one another? If you didn't need to copy paste the code
+of the previous test and just say that you require the previous one!
+
+Well, that's what PhExample lets you do. And as a bonus, tests are
+ignored if the test they expand on does not pass. This gives you less
+failed tests, because examples are executed only if the examples they
+expand on pass too! That gives you the simplest failing examples in
+your set to look at!
+
+And best of all, you can run all examples with ye old TestRunner!
+
+The example discussed above would read in code as follows:
+
+
+EGExample subclass: #ForExampleStack
+       É
+
+
+shouldBeEmpty
+       "Create the empty stack"
+       | stack |
+       stack := Stack new.
+       stack should be isEmpty.
+       stack size should = 0.
+       ^ stack
+
+
+shouldPushElement
+       "Push one element"
+       | stack |
+       stack := self given: #shouldBeEmpty.
+       stack push: 42.
+       stack should not be isEmpty.
+       stack size should = 1.
+       stack top should = 42.
+       ^ stack
+
+
+shouldPopElement
+       "And pop it again"
+       | stack |
+       stack := self given: #shouldPushElement.
+       stack pop should = 42.
+       stack should be isEmpty.
+       stack size should = 0.
+
+Phexample is the new black in unit testing for Smalltalk. It extends SUnit with two features: test dependencies, and RSpec-like expectation matchers. Test dependencies are covered on NikoÕs blog, whoÕs developing Phexample with me, as well as on the JExample website. I shall thus focus on expectation matchers here.
+
+Expectation matchers let you set expectations on your object. Expectations are also useful if you just use plain old SUnit test cases. They throw the same test failure as SUnitÕs assertion, but are more readable in the source code as well as throw more readable failures messages.
+
+LetÕs start with an example.
+
+Get yourself the latest Pharo image and
+
+Gofer it
+    squeaksource: 'phexample';
+    addPackage: 'Phexample;
+    load
+then open a workspace and evaluate
+
+stack := Stack new.
+stack size should = 0.
+this creates a new stack and asserts that its size should be zero. For the sake of the example, letÕs evaluate a failing expectation
+
+stack push: 42.
+stack top should = 4711.
+which raises TestFailure: expected 4711 but got 42 (using =).
+
+There are expectation matchers for all basic comparisons: greater than, less than, et cetera. If you need to negate a comparison just write
+
+stack top should not = 4711.
+There are special matchers to set expectations on boolean return values.
+
+stack isEmpty should be true.
+alternatively you can write
+
+stack should be isEmpty.
+which often reads like LOLCAT SPEAK, but works quite nice with selectors that do not include a verb such as
+
+42 should be even.
+Note: matching of boolean expectations is an open issue. We would love to allow you to write stack should be empty, which is not only be more readable but would also allow us to provide better failure messages since we know that you wanted to test isEmpty. However, we fear that breaking PharoÕs senders-of feature as well as rename and other refactorings might not be worth the added value in reabability.
+
+We welcome your feedback on this issue. For example, Oscar suggested to use
+
+stack isEmpty wouldyaknow
+however, we are not sure how serious this suggestion is to be taken :)
+
+Back on topic.
+
+If you expect some code to raise an error, just write
+
+stack := Stack new.
+[ stack pop ] should signal: Error
+and to check the error message
+
+[ stack pop ] should signal: Error withMessageText: 'this stack is empty'.
+or even
+
+[ stack pop ] should signal: Error withMessageText: [ :m |
+    m should beKindOf: String.
+    m isEmpty should not be true.
+    m should endWith: 'is empty' ]
+which leads us to more matchers, such as
+
+stack should beKindOf: Collection.
+which sets an expectation on the type of an object.
+
+Note: it seems sensible to add more expectations that match the dynamic type of objects, such as duck typing and responds-to. We plan on doing this, please let us know if you have a specific use case.
+
+string should startWith: prefix.
+string should endWith: prefix.
+string should matchRegex: regexString.
+are some expectations that you can set on strings.
+
+Certainly there are more common expectations on basic types such as strings and collections. Again, please let us know if you have a specific use case. One of the things we want to do with Phexample is to be driven by user needs rather than planning upfront which features you might need (and nevertheless always guessing wrongÉ)
+
+A last one, suggest by Lukas. If you expect some code to run within a given duration, just write
+
+[ ... ] should runWithin: 20 milliSeconds.
+which aborts with a failure if the given code takes longer than 20 milliseconds to run.
+
+You can find the full list of expectation matchers in the expecting protocols of the PhexMatcher class. All matchers are well covered with tests, thus for plenty examples of their use just refer to the ForExampleMatcher class (which, of course, sublcasses the Phexample class, thus all its test methods start with should..).
+
+
+
+
+%=========================================================
+\ifx\wholebook\relax\else
+   \bibliographystyle{jurabib}
+   \nobibliography{scg}
+   \end{document}
+\fi
+%=========================================================
+
+%Other stuff:
+%- anonymous classes (uses compile: and primitiveChangeClassTo:) ???
+%- collect direct senders; class collaborations
+%- Object primitiveChangeClassTo: become: and becomeForward: (see tests and slides with minimal object example)
+%- PointerFinder?
+%- anonymous classes (see slides) ?
+
+%Test  Coverage using ObjectsAsMethodsWrap package:
+%\begin{code}{}
+%category := 'SCGPier'.
+%w := (ObjectAsOneTimeMethodWrapper installOnClassCategory: category).
+%tr := TestRunner new.
+%ToolBuilder open: tr.
+%[tr
+%	categoryAt: (tr categoryList indexOf: 'SCGPier') put: true;
+%	selectAllClasses;
+%	runAll.]
+%ensure: [[w do: [:each| each uninstall ]] valueUnpreemptively].
+%((w select: [:each | each executed not ])
+%	collect: [:each | each wrappedClass name, '>>', each selector name ]) explore.
+%\end{code}
