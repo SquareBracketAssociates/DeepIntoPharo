@@ -1,9 +1,7 @@
-% $Author: oscar $
+% $Author:  $
 % $Date: 2009-07-06 10:21:47 +0200 (Mon, 06 Jul 2009) $
 % $Revision: 27886 $
-
 % HISTORY:
-% 2009-07-06 - Oscar opened new template (no contents)
 
 %=================================================================
 \ifx\wholebook\relax\else
@@ -34,25 +32,29 @@
 %=================================================================
 \chapter{Preface}\chalabel{intro}
 
-\on{Need preface for book2}
+Pharo by Example (freely available at \ct{http://pharobyexample.org}) is an important book to help newcomers to feel confident with Pharo. 
+The current book, Deep into Pharo, proposes to the reader a deeper travel into important parts of Pharo. It covers new libraries such as FileSystem, frameworks such as Roassal, under documented aspects such as exceptions or blocks. 
+
+The first part of the book covers more system aspect of Pharo with FileSystem a new file library, Settings new way to manage preferences, zero configuration scripts, sockets and regular expressions. The second part focuses on the package system of Pharo: it presents Monticello, Gofer to script and Metacello to build large projects and specify their dependencies. 
 
 %=================================================================
 \section*{Acknowledgments}
 
-% We would like to thank various people who have contributed to this book.
-% In particular, we thank
-%We would like to thank Hilaire Fernandes and Serge Stinckwich who allowed us to translate parts of their columns on \st, and Damien Cassou for contributing the chapter on streams.
+We would like to thank various people who have contributed to this book. We would like to thank:
+\begin{itemize}
+\item Lukas Renggli for PetitParser and his work on the refactoring engine and smallLint rules. 
+\item Colin Putney for the initial version of FileSystem and Camillo Bruni for his review of FileSystem and his rewrite of the Pharo Core.
+\item Alain Plantec for the Settings framework and its effort to integrate it into Pharo. 
+\item Doru Girba for Glamour and the first documentation.
+\end{itemize}
 
-%We especially thank Lukas Renggli and Orla Greevy for their comments on drafts of the first release.
+We would like to thanks Hernan Wilkinson and Carlos Ferro for their reviews, Nicolas Cellier for the feedback on the number chapter, and Vassili Bykov for permission to adapt his Regex documentation.
 
-%We thank the University of Bern, Switzerland, for graciously supporting this open-source project and for hosting the web site of this book.
+We thank Inria Lille Nord Europe for supporting this open-source project and for hosting the web site of this book.
 
-%We also thank the Squeak community for their enthusiastic support of this project, and for informing us of the errors found in the first edition of this book.
-%Finally we thank the team that developed Squeak in the first place for making this amazing development environment available to us.
+We also thank the Pharo community for their enthusiastic support of this project, and for informing us of the errors found in the first edition of this book.
 
-\on{Add ACKs for new chapters!}
 
-Thanks to Vassili Bykov for permission to adapt his Regex documentation.
 
 %=============================================================
 \ifx\wholebook\relax\else
