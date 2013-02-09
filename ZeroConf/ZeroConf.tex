@@ -33,9 +33,10 @@
 \chapter{Pharo Zero Conf}
 
 
-Weren't you fed up not be able to launch Pharo from a single command line? 
+Weren't you fed up not be able to install Pharo from a single command line or to pass it nice argument? 
 Using a nice debugger and an interactive environment development does not 
-mean that Pharo developers do not value automatic scripts and love command line.
+mean that Pharo developers do not value automatic scripts and love command line. Yes we do and we want the best of
+both worlds.
 Since Pharo 2.0, Pharo supports a really nice way to define and handle command line argument. 
 We will present that in this chapter. 
 
@@ -74,7 +75,7 @@ Result in the current directory:
 \end{code}
 
 
-\paragraph{Grabbing it and executing it}
+\paragraph{Grabbing it and executing it.}
 If you just want to directly execute the script you can also 
 
 %Why this is not working.
@@ -83,9 +84,13 @@ If you just want to directly execute the script you can also
 %\end{code}
 
 \begin{code}{}
-wget http://pharo.gforge.inria.fr/ci/script/ciPharo20PharoVM.sh | bash
+wget http://files.pharo.org/ci/script/ciPharo20PharoVM.sh | bash
 \end{code}
 
+For the fan of curl do not use the aliased version but the full one.
+\begin{code}{}
+curl pharo.gforge.inria.fr/ci/script/ciPharo20PharoVM.sh | bash
+\end{code}
 
 \section{Getting the latest VM only}
 You can also use different script. For example \ct{ciPharoVM.sh} only downloads the latest vm.
