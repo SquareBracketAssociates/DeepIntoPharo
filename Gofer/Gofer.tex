@@ -529,15 +529,15 @@ The following script groups the package versions by packages and returns a dicti
 ((Gofer new
 	squeaksource: 'Pharo';
 	allResolved)
-	groupedBy: [:each | each packageName])
+	groupedBy: [ :each | each packageName])
 \end{script}
 
 
-\begin{script}[]{Getting the package list.}
+\begin{script}[]{Getting the package list for the Kozen project hosted on SS3.}
 ((Gofer new
 	squeaksource3: 'Kozen';
 	allResolved)
-	groupedBy: [:each | each packageName]) keys
+	groupedBy: [ :each | each packageName]) keys
 \end{script}
 
 \subsection{Fetching packages}
@@ -547,7 +547,7 @@ Here is a script to fetch all the packages of a given repository. This is useful
 | go |
 go := Gofer new squeaksource: 'Pharo'.
 go allResolved
-	do: [:each |
+	do: [ :each |
 			self crLog: each packageName.
 			go package: each packageName;
 			     fetch]
@@ -557,8 +557,8 @@ go allResolved
 | go |
 go := Gofer new.
 go squeaksource3: 'Pharo20'.
-(go allResolved select: [:each | 'Refactoring*' match: each packageName])
-	do: [:pack| 
+(go allResolved select: [ :each | 'Refactoring*' match: each packageName])
+	do: [ :pack | 
 		self crLog: pack packageName. 
 		go package: pack packageName; fetch]
 \end{script}
@@ -580,8 +580,8 @@ go repository: (MCHttpRepository
 ((FileDirectory on:
 	(FileDirectory default fullNameFor: 'package-cache'))
 	fileAndDirectoryNames
-		select: [:each | '*.mcz' match: each])
-					do: [:f | go version: ('.' join: (f findTokens: $.) allButLast); push]
+		select: [ :each | '*.mcz' match: each])
+					do: [ :f | go version: ('.' join: (f findTokens: $.) allButLast); push]
 \end{script}
 
 
