@@ -534,7 +534,7 @@ The following script groups the package versions by packages and returns a dicti
 
 
 \begin{script}[]{Getting the package list.}
-(Gofer new
+((Gofer new
 	squeaksource3: 'Kozen';
 	allResolved)
 	groupedBy: [:each | each packageName]) keys
@@ -560,7 +560,7 @@ go squeaksource3: 'Pharo20'.
 (go allResolved select: [:each | 'Refactoring*' match: each packageName])
 	do: [:pack| 
 		self crLog: pack packageName. 
-		package: pack packageName; fetch]
+		go package: pack packageName; fetch]
 \end{script}
 
 	
