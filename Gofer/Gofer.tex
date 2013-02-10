@@ -543,7 +543,7 @@ The following script groups the package versions by packages and returns a dicti
 \subsection{Fetching packages}
 Here is a script to fetch all the packages of a given repository. This is useful to grab all your files and get a version locally.
 
-\begin{script}[]{Fetching all the packages of a repository}
+\begin{script}[]{Fetching all the packages of a repository (here from Pharo)}
 | go |
 go := Gofer new squeaksource: 'Pharo'.
 go allResolved
@@ -553,7 +553,7 @@ go allResolved
 			     fetch]
 \end{script}
 
-\begin{script}[]{Fetching all the refactoring packages from Pharo2.0 repository}
+\begin{script}[]{Fetching all the refactoring packages from the Pharo2.0 repository}
 | go |
 go := Gofer new.
 go squeaksource3: 'Pharo20'.
