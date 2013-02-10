@@ -929,6 +929,82 @@ ConfigurationOfCoolToolSet >>baseline02: spec
 \end{code}
 
 
+\section{About dependency granularity}
+We want to discuss the difference between depending on a package, depending on a project and the different ways to express it.
+Imagine the following baseline1.1 from Fame. 
+
+\begin{code}{}
+baseline11: spec
+	<version: '1.1-baseline'>
+
+	spec for: #'common' do: [
+		spec blessing: #'baseline'.
+		spec description: 'Baseline 1.1 first version on SmalltalkHub, copied from baseline 1.0 on SqueakSource'.
+		spec repository: 'http://www.smalltalkhub.com/mc/Moose/Fame/main'.
+		spec 
+			package: 'Fame-Core';
+			package: 'Fame-Util';
+			package: 'Fame-ImportExport' with: [spec requires: #('Fame-Core' ) ];
+			package: 'Fame-SmalltalkBinding' with: [spec requires: #('Fame-Core' ) ];
+			package: 'Fame-Example';
+			package: 'Phexample' with: [spec repository: 'http://www.squeaksource.com/phexample' ];
+			package: 'Fame-Tests-Core' with: [spec requires: #('Fame-Core' 'Fame-Example' 'Phexample' ) ].
+		spec 
+			group: 'Core' with: #('Fame-Core' 'Fame-ImportExport' 'Fame-Util' 'Fame-SmalltalkBinding' );
+			group: 'Tests' with: #('Fame-Tests-Core' ) ].
+\end{code}
+
+In this baseline, \ct{package: 'Phexample' with: [spec repository: 'http://www.squeaksource.com/phexample' ];}
+expresses that there is one package that can be found in the specified repository.
+However such approach is not good because this way you are just downloading a package from a repository and Metacello is not involved. For example if PhexampleCore has dependencies they will not be loaded.
+
+In the following baseline1.2 we express dependencies between projects as presented above.
+\begin{code}{}
+baseline12: spec
+	<version: '1.2-baseline'>
+
+	spec for: #'common' do: [
+		spec blessing: #'baseline'.
+		spec description: 'Baseline 1.2 to make explicit that Fame depends on HashTable and Phexample (now on smalltalkHub and with working configurations'.
+		spec repository: 'http://www.smalltalkhub.com/mc/Moose/Fame/main'.
+		
+		spec project: 'HashTable' with: [
+				spec
+					versionString: #stable;
+					repository: 'http://www.smalltalkhub.com/mc/Moose/HashTable/main' ].
+				
+		spec project: 'Phexample' with: [
+				spec
+					versionString: #stable;
+					repository: 'http://www.smalltalkhub.com/mc/Phexample/main' ].		
+		spec 
+			package: 'Fame-Core' with: [spec requires: 'HashTable'];
+			package: 'Fame-Util';
+			package: 'Fame-ImportExport' with: [spec requires: #('Fame-Core' ) ];
+			package: 'Fame-SmalltalkBinding' with: [spec requires: #('Fame-Core' ) ];
+			package: 'Fame-Example';
+			package: 'Fame-Tests-Core' with: [spec requires: #('Fame-Core' 'Fame-Example') ].
+		spec 
+			group: 'Core' with: #('Fame-Core' 'Fame-ImportExport' 'Fame-Util' 'Fame-SmalltalkBinding' );
+			group: 'Tests' with: #('Fame-Tests-Core' ) ].
+\end{code}
+
+Now when we express dependencies between projects we lose the fact that this is the package Fame-Tests-Core that depends on Phexample and this is a loss of information. 
+
+To keep such information we can simply define in our configuration a new project named for example PhexampleCore and we will be able to express that Fame-Tests-Core is dependent from PhexampleCore as follows. 
+
+
+\begin{code}{}
+spec 
+	project: 'PhexampleCore' 
+	with: [ spec
+               versionString: #stable;
+               loads: #('Core');
+               repository: 'http://www.smalltalkhub.com/mc/Phexample/main' ].
+	....
+	'Fame-Tests-Core' with: [spec requires: #('Fame-Core' 'Fame-Example' 'PhexampleCore' ) ].
+\end{code}
+
 
 \section{Executing code before and after installation}
 Occasionally, you may find that you need to execute some code either before or after a package or project is loaded. For example, if you are installing a System Browser it would be a good idea to register it as default after it is loaded. Or maybe you want to open some workspaces after the installation. 
