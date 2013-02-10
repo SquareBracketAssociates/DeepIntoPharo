@@ -526,7 +526,7 @@ Gofer offers a nice facility to get all the packages in a given repository via t
 
 The following script groups the package versions by packages and returns a dictionary with. It can be handy to get some idea of the most committed package.
 \begin{script}[]{Grouping versions by package names.}
-(Gofer new
+((Gofer new
 	squeaksource: 'Pharo';
 	allResolved)
 	groupedBy: [:each | each packageName])
