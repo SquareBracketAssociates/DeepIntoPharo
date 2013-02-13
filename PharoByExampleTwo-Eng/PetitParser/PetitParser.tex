@@ -402,12 +402,13 @@ the messages \ppmthind{==>}, \ppmthind{flatten}, \ppmthind{token} and
 \begin{table}[h]
   \centering
   \begin{tabular}{ll}
-    \textbf{Action Parsers} & 	\textbf{Description}                                                  \\
+    \textbf{Action Parsers} & \textbf{Description}                                               \\
     \midrule
-    p flatten               & Creates a string from the result of p.                                      \\
-    p token                 & Similar to \lct{flatten} but returns a \lct{PPToken} with more information. \\
-    p trim                  & Trims white spaces before and after p.                                       \\
-    p ==> aBlock            & Performs the transformation given in \lct{aBlock}.                          \\
+    p flatten               & Creates a string from the result of \lct{p}.                       \\
+    p token                 & Similar to \lct{flatten} but returns a \lct{PPToken} with details. \\
+    p trim                  & Trims white spaces before and after \lct{p}.                       \\
+    p trim: trimParser      & Trims whatever \lct{trimParser} can parse (\eg{} comments).        \\
+    p ==> aBlock            & Performs the transformation given in \lct{aBlock}.                 \\
   \end{tabular}
   \caption{PetitParser pre-defines a multitude of action parsers}
   \label{tab:action-parsers}
@@ -435,15 +436,30 @@ collection.
 Sending the message \ppmthind{trim} configures the parser to ignore
 white spaces at the beginning and end of the parsed result. In the
 following, using the first parser on the input leads to an error
-because the parser does not accept the starting spaces. With the
-second parser, spaces are ignored.
+because the parser does not accept the spaces. With the
+second parser, spaces are ignored and removed from the result.
 
-\begin{script}{Using trim to remove spaces }
+\begin{script}{Using \ppmthind{trim} to ignore spaces}
 |identifier|
 identifier := (#letter asParser , #word asParser star) flatten.
 identifier parse: '  ajka   '          -->  letter expected at 0
 
 identifier trim parse: '  ajka   '          --> 'ajka'
+\end{script}
+
+Sending the message \ct{trim} is equivalent to calling \ppmthind{trim:} with
+\ct{#space}~\ct{asParser} as a parameter. That means \ct{trim:} can be
+useful to ignore other data from the input, source code comments for
+example:
+
+\begin{script}{Using \ppmthing{trim:} to ignore comments}
+| identifier comment ignorable line |
+identifier := (#letter asParser , #word asParser star) flatten.
+comment := '//' asParser, #newline asParser negate star.
+ignorable := comment / #space asParser.
+line := identifier trim: ignorable.
+line parse: '// This is a comment
+oneIdentifier // another comment'          --> 'oneIdentifier'
 \end{script}
 
 The message \ppmthind{==>} lets you specify a block to be executed
