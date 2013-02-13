@@ -452,7 +452,7 @@ Sending the message \ct{trim} is equivalent to calling \ppmthind{trim:} with
 useful to ignore other data from the input, source code comments for
 example:
 
-\begin{script}{Using \ppmthing{trim:} to ignore comments}
+\begin{script}{Using \ppmthind{trim:} to ignore comments}
 | identifier comment ignorable line |
 identifier := (#letter asParser , #word asParser star) flatten.
 comment := '//' asParser, #newline asParser negate star.
