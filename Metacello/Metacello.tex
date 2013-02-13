@@ -61,14 +61,14 @@
 \noindent
 Have you ever had this problem when trying to load a project: you get an error because a package that you were not even aware of is missing?  Or worse\,---\,it is present, but you have the wrong version? This situation can easily occur, even though the project loads fine for its developers, when the developers are working in a context that is different from yours. 
 
-The solution is for the project developers to use a \emph{package management system} to explicitly manage the dependencies between the packages that make up a project.  
+The solution for the project developers is to use a \emph{package dependency management system} to explicitly manage the dependencies between the packages that make up a project.  
 This chapter shows you how to use Metacello, Pharo's package management system, and the benefits of using it. 
 
 \section{Introduction}
 
 We say that Metacello is a \emph{package management system} for Monticello. 
 But what, exactly, does that mean?
-A package management system is a collection of tools that automate the process of installing, upgrading, configuring, and removing \emph{sets} of software packages. Metacello groups packages to simplify things for the user, and manages dependencies, \ie which versions of what components should be loaded to make sure that the whole set of packages is coherent. 
+A package management system is a collection of tools that automate the process of installing, upgrading, configuring, and removing \emph{groups} of software packages. Metacello groups packages to simplify things for the user and manages dependencies, \ie which versions of what components should be loaded to make sure that the whole set of packages is coherent. 
 
 A package management system provides a consistent way to install packages. 
 Indeed, package management systems are sometimes incorrectly referred to as installers. This can lead to confusion, because a package management system does a lot more than install software.  You may have used package management systems in other contexts: examples include Envy (in VisualAge Smalltalk), Maven (in Java), and apt-get/aptitude (in Debian and Ubuntu).
