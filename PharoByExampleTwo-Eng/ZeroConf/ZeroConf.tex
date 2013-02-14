@@ -33,11 +33,11 @@
 \chapter{Pharo Zero Conf}
 
 
-Weren't you fed up not be able to install Pharo from a single command line or to pass it nice argument? 
+Weren't you fed up not be able to install Pharo from a single command line or to pass it arguments? 
 Using a nice debugger and an interactive environment development does not 
 mean that Pharo developers do not value automatic scripts and love command line. Yes we do and we want the best of
 both worlds.
-Since Pharo 2.0, Pharo supports a really nice way to define and handle command line argument. 
+Since Pharo 2.0, Pharo supports a way to define and handle command line argument. 
 We will present that in this chapter. 
 
 Did you ever want to have one single command to install the latest Pharo version on your machine?
@@ -50,7 +50,7 @@ pass argument to the environment from the command-line.
 
 
 \section{Getting the latest VM and the Image}
-First here is a way to download a zero configration script that downloads the latest 2.0 Pharo image and vm. 
+First here is a way to download a zero configuration script that downloads the latest 2.0 Pharo image and vm. 
 
 \begin{code}{}
 wget http://files.pharo.org/script/ciPharo20PharoVM.sh
@@ -58,7 +58,7 @@ wget http://files.pharo.org/script/ciPharo20PharoVM.sh
 
 Note that files.pharo.org is an alias for pharo.gforge.inria.fr/ci.
 
-To execute the script you should change its right accesses using \ct{chmod a+x}  or invoke it via bash as follows. Here we just want to have a look at the help of the script.
+To execute the script you should change its  permissions using \ct{chmod a+x}  or invoke it via bash as follows. Here we just want to have a look at the help of the script.
 
 \begin{code}{}
 bash ./ciPharo20PharoVM.sh --help 
@@ -68,14 +68,14 @@ What the help mentions is that the script will download the current vm and put i
 
 \begin{code}{Output of ciPharo20PharoVM.sh --help }
 Result in the current directory:
-    vm               VM directory
-    vm.sh            Script forwarding to the VM in vm
-    Pharo.image      The latest pharo image
+    vm                        VM directory
+    vm.sh                   Script forwarding to the VM in vm
+    Pharo.image        The latest pharo image
     Pharo.changes    The corresponding pharo changes
 \end{code}
 
 
-\paragraph{Grabbing it and executing it.}
+\paragraph{Grabbing and executing it.}
 If you just want to directly execute the script you can also 
 
 %Why this is not working.
@@ -87,13 +87,13 @@ If you just want to directly execute the script you can also
 wget http://files.pharo.org/ci/script/ciPharo20PharoVM.sh | bash
 \end{code}
 
-For the fan of curl do not use the aliased version but the full one.
+For the fan of curl, do not use the aliased version but the full one.
 \begin{code}{}
 curl pharo.gforge.inria.fr/ci/script/ciPharo20PharoVM.sh | bash
 \end{code}
 
 \section{Getting the latest VM only}
-You can also use different script. For example \ct{ciPharoVM.sh} only downloads the latest vm.
+You can also use different scripts. For example \ct{ciPharoVM.sh} only downloads the latest vm.
 
 \begin{code}{}
 wget http://pharo.gforge.inria.fr/ci/script/ciPharoVM.sh
@@ -103,7 +103,7 @@ wget http://pharo.gforge.inria.fr/ci/script/ciPharoVM.sh
 This script will download the latest Pharo VM
 
 Result in the current directory:
-    vm               directory containing the VM
+    vm                 directory containing the VM
     vm.sh            script forwarding to the VM inside vm
 \end{code}
 
