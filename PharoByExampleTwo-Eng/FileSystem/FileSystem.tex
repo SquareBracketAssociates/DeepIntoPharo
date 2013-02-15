@@ -39,14 +39,14 @@
 \chapter{Files with FileSystem }\chalabel{filesystem}
 \chapterauthor{Max Leske}
  
-Filesystem is the new file system library for Pharo. It is integrated in the system since Pharo 2.0. 
-Filesystem has been originally developed by Colin Putney. Camillo Bruni made some changes to the original design or API and integrated it into Pharo with the help of Esteban Lorenzano and Guillermo Polito - This is this version that we describe in this chapter. This chapter is a quick start that shows how to get started. 
+FileSystem is the new file system library for Pharo. It is integrated in the system since Pharo 2.0. 
+FileSystem has been originally developed by Colin Putney. Camillo Bruni made some changes to the original design or API and integrated it into Pharo with the help of Esteban Lorenzano and Guillermo Polito - This is this version that we describe in this chapter. This chapter is a quick start that shows how to get started. 
 
 \section{Getting started}
 The framework supports different kinds of filesystems that can be used interchangeably and that can transparently work with each other. The most obvious one is the filesystem on your hard disk. We are going to work with that one for now. 
-\ct{FileSystem} is the factory to access different filesystem. 
 
-Sending the message \mthind{FileSystem}{disk} to \ct{FileSystem}, returns a file system as on your physical hard-drive. Another less used possibility is \ct{memory} to create a file system at the system of the image. 
+\ct{FileSystem} is the factory to access different filesystems. 
+Sending the message \mthind{FileSystem}{disk} to \ct{FileSystem}, returns a file system as on your physical hard-drive. Sending \ct{memory} creates a file system at the system of the image. 
 
 \begin{code}{}
 | working |
@@ -57,16 +57,16 @@ working := FileSystem disk workingDirectory class
 --> FileReference
 \end{code} 
 
-The message \mthind{FileReference}{workingDirectory} above returns a reference to the working directory. References are instances of the class \ct{FileReference}.  As we will see references are the central objects of the framework and provide the primary mechanisms for working with files and directories. 
+The message \mthind{FileReference}{workingDirectory} above returns a reference to the directory of your Pharo image. A references is an instance of the class \ct{FileReference}. References are the central objects of the framework and provide the primary mechanisms for working with files and directories. 
 
-Filesystem defines four classes that are important for the end-user: \ct{FileSystem}, \ct{FileReference}, \ct{FileLocator}, and \ct{FileSystemDirectoryEntry}. These classes are grouped in the 'FileSystem-Core-Public' category.
+FileSystem defines four classes that are important for the end-user: \ct{FileSystem}, \ct{FileReference}, \ct{FileLocator}, and \ct{FileSystemDirectoryEntry}. \ct{FileSystem} is the root class given the correct file system. A \ct{FileReference} is a reference to a repository or a file. A \ct{FileLocator} is a late binding reference. A \ct{FileSystemDirectoryEntry} allows one to get the additional information of a file or a directory.These classes are grouped in the 'FileSystem-Core-Public' category, and explained below in the chapter.
 
-You should do not use platform specific classes such as \ct{UnixStore} or \ct{WindowsStore}, these are internal classes. All code snippets below work on \ct{FileReference} instances.
+You should not use platform specific classes such as \ct{UnixStore} or \ct{WindowsStore}, these are internal classes. All code snippets below work on \ct{FileReference} instances.
 
 
-\section{Navigating the Filesystem}
+\section{Navigating the FileSystem}
 
-Now let's do some more interesting things. To list the immediate children of your working directory, execute the following expression:
+Now let's play with the API. To list the immediate children of your working directory, execute the following expression:
 
 \begin{code}{}
 | working |
@@ -119,11 +119,11 @@ parent = working
 You can check for various properties of the cache directory by executing the following expressions:
 
 \begin{code}{}
-cache exists.				--> true
-cache isSymLink.				--> false
-cache isFile.				--> false
-cache isDirectory.			--> true
-cache basename.			--> 'package-cache'
+cache exists.														--> true
+cache isSymLink. "ask if it is a symbolic link"		--> false
+cache isFile.														--> false
+cache isDirectory.												--> true
+cache basename.						    					 --> 'package-cache'
 cache fullName           
   --> '/Users/ducasse/Workspace/FirstCircle/Pharo/20/package-cache'
 cache parent fullName    
@@ -248,11 +248,11 @@ backup := working / 'cache-backup'.
 backup createDirectory.
 backup isDirectory.
 	--> true
-back children.
+backup children.
 	--> #()
 \end{code} 
 
-To then you can  copy the contents of the complete package-cache to that directory simply use \mthind{FileReference}{copyAllTo:}:
+Then you can  copy the contents of the complete package-cache to that directory simply use \mthind{FileReference}{copyAllTo:}:
 
 \begin{code}{}
 cache !\textbf{copyAllTo:}! backup.
@@ -276,7 +276,7 @@ backup !\textbf{deleteAll}!.
 
 
 \section{The main entry point: FileReference}
-While FileSystem is built over different concepts and classes such as FileSystem, Path and FileReference. FileReference is the most important as
+While FileSystem is built over different concepts and classes such as FileSystem, Path and FileReference. FileReference is the most important for
 a end-user. FileReference offers a set of operations to manipulate files. We saw some of them until now and here is a more complete list of operations.
 At the design level, a FileReference combines two lower level entities: a path (\ct{Path}) and a filesystem (\ct{FileSystem}) into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FileSystem}, but without the need to track paths and filesystem separately.
 
@@ -322,8 +322,6 @@ pf path
 
 
 \begin{code}{}
-| pf |
-pf := (FileSystem disk workingDirectory / 'package-cache' ) children second.
 pf humanReadableSize 
 	--> '182.78 kB'
 pf size 
@@ -340,9 +338,9 @@ pf := (FileSystem disk workingDirectory / 'package-cache' ) children second.
 pf creationTime.
 	--> 2012-06-10T10:43:19+02:00
 pf modificationTime.
-	-->  2012-06-10T10:43:19+02:00
+	--> 2012-06-10T10:43:19+02:00
 pf permissions
-	-->  rw-r--r--
+	--> rw-r--r--
 \end{code}
 
 Entries are objects that represent all the metadata of a single file. 
@@ -366,7 +364,6 @@ There are several operations on files such as \ct{delete} (deletes the file if i
 (FileSystem disk workingDirectory / 'paf' ) createDirectory.
 [(FileSystem disk workingDirectory / 'paf' ) createDirectory] on: DirectoryExists do: [:ex| true].
 	--> true
-(FileSystem disk workingDirectory / 'paf' ) delete.
 (FileSystem disk workingDirectory / 'paf' ) delete.
 (FileSystem disk workingDirectory / 'paf' ) ensureDirectory.
 (FileSystem disk workingDirectory / 'paf' ) ensureDirectory.
@@ -402,10 +399,10 @@ The following origins are currently supported:
 \end{itemize}
 
 Applications may also define their own origins, but the system will not be able to resolve them automatically. Instead, the user will be asked to manually choose a directory. This choice is then cached so that future resolution requests will not require user interaction.
-
+\ja{how can I do that ?}
 
 \paragraph{\ct{absolutePath} vs. \ct{path}.} The message  \ct{absolutePath} (previously \ct{fullPath}) returns the absolute path of the receiver. When the file reference is not virtual the messages \ct{path} and \ct{absolutePath} provide similar results.
-Now when the file is a late bound reference (instance of \ct{FileLocator}), \ct{absolutePath} will resolve the file and return the full path, while \ct{path} will return an unresolved file reference as shown below.
+When the file is a late bound reference (instance of \ct{FileLocator}), \ct{absolutePath} will resolve the file and return the full path, while \ct{path} will return an unresolved file reference as shown below.
 
 
 \begin{code}{}
@@ -420,8 +417,70 @@ Now when the file is a late bound reference (instance of \ct{FileLocator}), \ct{
 \end{code}
 
 
+\subsection{Enumeration}
+
+References and Locators also provide simple methods for dealing with whole directory trees:
+
+\begin{description}
+\item[allChildren.]
+
+This will answer an array of references to all the files and directories in the directory tree rooted at the receiver. If the receiver is a file, the array will contain a single reference, equal to the receiver.
+
+\item[allEntries.]
+This method is similar to \ct{allChildren}, but it answers an array of \ct{FileSystemDirectoryEntries}, rather than references.
+
+\item[copyAllTo: aReference.]
+
+This will perform a deep copy of the receiver, to a location specified by the argument. If the receiver is a file, the file will be copied; if a directory, the directory and its contents will be copied recursively. The argument must be a reference that doesn't exist; it will be created by the copy.
+
+\item[deleteAll.]
+
+This will perform a recursive delete of the receiver. If the receiver is a file, this has the same effect as \ct{delete}.
+\end{description}
+
+
+\section{Looking at FileSystem internals}
+\sd{put an uml diagram?}
+Now we explain the key classes of FileSystem. 
+
 \section{FileReference = FileSystem + Path}
-Paths and filesystems are the lowest level of the FileSystem API. A \ct{FileReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FileSystem}, but without the need to track paths and filesystem separately.
+Paths and filesystems are the lowest level of the FileSystem API. A \ct{FileReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files.
+
+
+References implement the path protocol with methods like \ct{/}, \ct{parent} and \ct{resolve:}.
+\sd{we should talk about resolve:}
+
+\ja{from here to the end, we need to check the code and the text: it is not updated with the current class names}
+
+\subsection{FileSystem}
+
+A filesystem is an interface to access hierarchies of directories and files. "The filesystem," provided by the host operating system, is represented by \ct{DiskStore} and its platform-specific subclasses. However, the user should not access them directly but using \ct{FileSystem} as we show previously. Other kinds of filesystems are also possible. The memory filesystem provides a RAM disk filesystem where all files are stored as ByteArrays in the image. The zip filesystem represents the contents of a zip file.
+
+Each filesystem has its own working directory, which is used to resolve any relative paths that are passed to it. Some examples:
+
+\begin{code}{}
+fs := Filesystem memory.
+fs workingDirectoryPath: (Path / 'plonk').
+griffle := Path / 'plonk' / 'griffle'.
+nurp := Path * 'nurp'.
+    
+fs resolve: nurp.            --> /plonk/nurp
+    
+fs createDirectory: (Path / 'plonk').  --> "/plonk created"
+(fs writeStreamOn: griffle) close.  --> "/plonk/griffle created"
+fs isFile: griffle.         --> true
+fs isDirectory: griffle.         --> false
+fs copy: griffle to: nurp.       --> "/plonk/griffle copied to /plonk/nurp"
+fs exists: nurp.             --> true
+fs delete: griffle.          --> "/plonk/griffle" deleted
+fs isFile: griffle.          --> false
+fs isDirectory: griffle.         --> false
+\end{code}
+	
+
+\subsection{Path}
+Paths are the most fundamental element of the FileSystem API. They represent filesystem paths in a very abstract sense, and provide a high-level protocol for working with paths without having to manipulate strings. Here are some examples showing how to 
+define absolute paths (\mthind{Path}{/}), relative paths (\mthind{Path}{*}), file extension (\mthind{Path}{,}), parent navigation (\mthind{Path}{parent}).
 Normally you do not need to use Path but here are some examples.
 
 \begin{code}{}
@@ -443,118 +502,58 @@ nurp exists.
 griffle delete       
 \end{code}    
 
-References also implement the path protocol with methods like \ct{/}, \ct{parent} and \ct{resolve:}.
-\sd{we should talk about resolve:}
-
-
-\subsection{Filesystem}
-
-A filesystem is an interface to access hierarchies of directories and files. "The filesystem," provided by the host operating system, is represented by \ct{FSDiskFilesystem} and its platform-specific subclasses. However, the user should not access them directly but using \ct{FSFilesystem} as we show previously. Other kinds of Filesystems are also possible. The memory filesystem provides a RAM disk filesystem where all files are stored as ByteArrays in the image. The zip filesystem represents the contents of a zip file.
-
-Each filesystem has its own working directory, which it uses to resolve any relative paths that are passed to it. Some examples:
-
-\begin{code}{}
-fs := FSFilesystem memory.
-fs workingDirectoryPath: (FSPath / 'plonk').
-griffle := FSPath / 'plonk' / 'griffle'.
-nurp := FSPath * 'nurp'.
-    
-fs resolve: nurp.            --> /plonk/nurp
-    
-fs createDirectory: (FSPath / 'plonk').  --> "/plonk created"
-(fs writeStreamOn: griffle) close.  --> "/plonk/griffle created"
-fs isFile: griffle.         --> true
-fs isDirectory: griffle.         --> false
-fs copy: griffle to: nurp.       --> "/plonk/griffle copied to /plonk/nurp"
-fs exists: nurp.             --> true
-fs delete: griffle.          --> "/plonk/griffle" deleted
-fs isFile: griffle.          --> false
-fs isDirectory: griffle.         --> false
-\end{code}
-	
-
-
-
-\section{Looking at FileSystem internals}
-\sd{put an uml diagram?}
-Now we explain the key classes of Filesystem. 
-
-
-
-
-
-
-\subsection{Path}
-Paths are the most fundamental element of the Filesystem API. They represent filesystem paths in a very abstract sense, and provide a high-level protocol for working with paths without having to manipulate strings. Here are some examples showing how to 
-define absolute paths (\mthind{FSPath}{/}), relative paths (\mthind{FSPath}{*}), file extension (\mthind{FSPath}{,}), parent navigation (\mthind{FSPath}{parent})
-
 \begin{code}{}
 "absolute path"
-FSPath / 'plonk' / 'feep'       --> /plonk/feep
+Path / 'plonk' / 'feep'       --> /plonk/feep
     
 "relative path"
-FSPath * 'plonk' / 'feep'       --> plonk/feep
+Path * 'plonk' / 'feep'       --> plonk/feep
 
 "relative path with extension"
-FSPath * 'griffle' , 'txt'      --> griffle.txt
+Path * 'griffle' , 'txt'      --> griffle.txt
     
 "changing the extension"
-FSPath * 'griffle.txt' , 'jpeg'     --> griffle.jpeg
+Path * 'griffle.txt' , 'jpeg'     --> griffle.jpeg
     
 "parent directory"
-(FSPath / 'plonk' / 'griffle') parent   --> /plonk
+(Path / 'plonk' / 'griffle') parent   --> /plonk
     
 "resolving a relative path"
-(FSPath / 'plonk' / 'griffle') resolve: (FSPath * '..' / 'feep')
+(Path / 'plonk' / 'griffle') resolve: (Path * '..' / 'feep')
                    --> /plonk/feep
     
 "resolving an absolute path"
-(FSPath / 'plonk' / 'griffle') resolve: (FSPath / 'feep')
+(Path / 'plonk' / 'griffle') resolve: (Path / 'feep')
                    --> /feep
                                            
 "resolving a string"
-(FSPath * 'griffle') resolve: 'plonk'   --> griffle/plonk
+(Path * 'griffle') resolve: 'plonk'   --> griffle/plonk
                         
 "comparing"
-(FSPath / 'plonk') contains: (FSPath / 'griffle' / 'nurp')
+(Path / 'plonk') contains: (Path / 'griffle' / 'nurp')
                      --> false
 \end{code}
 
-Note that some of the path protocol (messages like \ct{/}, \ct{parent} and \ct{resolve:}) are also available on references --- references are a combination of path and filesystem. 
+Note that some of the path protocol (messages like \ct{/}, \ct{parent} and \ct{resolve:}) are also available on references.
 
-\subsection{Enumeration}
 
-References and Locators also provide simple methods for dealing with whole directory trees:
 
-\begin{description}
-\item[allChildren.]
 
-This will answer an array of references to all the files and directories in the directory tree rooted at the receiver. If the receiver is a file, the array will contain a single reference, equal to the receiver.
 
-\item[allEntries.]
-This method is similar to \ct{allChildren}, but it answers an array of \ct{FSDirectoryEntries}, rather than references.
+ 
 
-\item[copyAllTo: aReference.]
-
-This will perform a deep copy of the receiver, to a location specified by the argument. If the receiver is a file, the file will be copied; if a directory, the directory and its contents will be copied recursively. The argument must be a reference that doesn't exist; it will be created by the copy.
-
-\item[deleteAll.]
-
-This will perform a recursive delete of the receiver. If the receiver is a file, this has the same effect as \ct{delete}.
-\end{description}
 
 \subsection{Visitors}
 
 The above methods are sufficient for many common tasks, but application developers may find that they need to perform more sophisticated operations on directory trees.
 
-The visitor protocol is very simple. A visitor needs to implement \ct{visitFile:} and \ct{visitDirectory:}. The actual traversal of the filesystem is handled by a guide. A guide works with a visitor, crawling the filesystem and notifying the visitor of the files and directories it discovers. There are three Guide classes, \ct{FSPreorderGuide}, \ct{FSPostorderGuide} and \ct{FSBreadthFirstGuide} , which traverse the filesystem in different orders. To arrange for a guide to traverse the filesystem with a particular visitor is simple. Here's an example:
+The visitor protocol is very simple. A visitor needs to implement \ct{visitFile:} and \ct{visitDirectory:}. The actual traversal of the filesystem is handled by a guide. A guide works with a visitor, crawling the filesystem and notifying the visitor of the files and directories it discovers. There are three Guide classes, \ct{PreorderGuide}, \ct{PostorderGuide} and \ct{BreadthFirstGuide} , which traverse the filesystem in different orders. To arrange for a guide to traverse the filesystem with a particular visitor is simple. Here's an example:
 
 \begin{code}{}
-    FSBreadthFirstGuide show: aReference to: aVisitor
+    BreadthFirstGuide show: aReference to: aVisitor
 \end{code}	
 
-The enumeration methods described above are implemented with visitors; see \ct{FSCopyVisitor}, \ct{FSDeleteVisitor}, and \ct{FSCollectVisitor} for examples.
-
+The enumeration methods described above are implemented with visitors; see \ct{CopyVisitor}, \ct{DeleteVisitor}, and \ct{CollectVisitor} for examples.
 
 
 %=========================================================
