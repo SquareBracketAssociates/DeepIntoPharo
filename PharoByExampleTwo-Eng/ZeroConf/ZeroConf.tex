@@ -31,16 +31,15 @@
 %=================================================================
 
 \chapter{Pharo Zero Conf}
-
+\chapterauthor{Camillo Bruni}
 
 Weren't you fed up not be able to install Pharo from a single command line or to pass it arguments? 
 Using a nice debugger and an interactive environment development does not 
 mean that Pharo developers do not value automatic scripts and love command line. Yes we do and we want the best of
-both worlds.
+both worlds!
 Since Pharo 2.0, Pharo supports a way to define and handle command line argument. 
 We will present that in this chapter. 
 
-Did you ever want to have one single command to install the latest Pharo version on your machine?
 We really wanted it to free our mind of retaining arbitrary information. 
 A zero configuration is then a script that automatically download everything you need to get started. 
 
@@ -50,21 +49,24 @@ pass argument to the environment from the command-line.
 
 
 \section{Getting the latest VM and the Image}
-First here is a way to download a zero configuration script that downloads the latest 2.0 Pharo image and vm. 
+First here is a way to download a zero configuration script that downloads a script to download the latest 2.0 Pharo image and vm. 
 
 \begin{code}{}
 wget http://files.pharo.org/script/ciPharo20PharoVM.sh
 \end{code}
 
-Note that files.pharo.org is an alias for pharo.gforge.inria.fr/ci.
+Note that \url{files.pharo.org} is an alias for \url{pharo.gforge.inria.fr/ci}. So we suggest to use \ct{wget} instead of \ct{curl} because \ct{curl} does not deal
+well with redirections.
 
-To execute the script you should change its  permissions using \ct{chmod a+x}  or invoke it via bash as follows. Here we just want to have a look at the help of the script.
+To execute the script you should change its  permissions using \ct{chmod a+x}  or invoke it via bash as follows. We
+suggest you also to have a look at the script help.
 
 \begin{code}{}
 bash ./ciPharo20PharoVM.sh --help 
 \end{code}
 
-What the help mentions is that the script will download the current vm and put it into the vm folder, a script to launch the system, the image and its associated changes. 
+What the help mentions is that the script will download the current vm and put it into the vm folder, \ct{vm.sh} a script to launch the system, 
+\ct{vm-ui.sh} a script to launch the image in ui mode, the image and its associated changes. 
 
 \begin{code}{Output of ciPharo20PharoVM.sh --help }
 Result in the current directory:
@@ -87,17 +89,32 @@ If you just want to directly execute the script you can also
 wget http://files.pharo.org/ci/script/ciPharo20PharoVM.sh | bash
 \end{code}
 
+If you do not like the log of web use \ct{--quiet -O}.
+
+\begin{code}{}
+wget --quiet -O - http://files.pharo.org/ci/script/ciPharo20PharoVM.sh | bash
+\end{code}
+
 For the fan of curl, do not use the aliased version but the full one.
 \begin{code}{}
-curl pharo.gforge.inria.fr/ci/script/ciPharo20PharoVM.sh | bash
+curl http://pharo.gforge.inria.fr/ci/script/ciPharo20PharoVM.sh | bash
 \end{code}
+
+
+\paragraph{Note for the believers in automated tasks.} The scripts are fetched automatically from 
+our jenkins server (\url{https://ci.inria.fr/pharo/job/Scripts-download/}) from the gitorious server \url{https://gitorious.org/pharo-build/pharo-build}.
+Yes we believe in automated tasks that free our energy. 
+
+
 
 \section{Getting the latest VM only}
 You can also use different scripts. For example \ct{ciPharoVM.sh} only downloads the latest vm.
 
 \begin{code}{}
-wget http://pharo.gforge.inria.fr/ci/script/ciPharoVM.sh
+wget http://pharo.gforge.inria.fr/ci/script/ciPharoVM.sh | bash
 \end{code}
+
+Again as any script you can always check its help message.
 
 \begin{code}{Output of ciPharoVM.sh --help}
 This script will download the latest Pharo VM
@@ -117,12 +134,12 @@ Figure~\ref{fig:website} shows the list of scripts available that you can get at
 \end{figure}
 
 
+Note that scripts 
+
 \section{The scripts}
-
+Here is a typical script. We list it here for archival purpose and the definition may change in the future
+but you should get the idea.
 	
-
-
-
 \paragraph{ciPharo20PharoVM.sh.}
 
 \begin{scriptsize}
@@ -154,8 +171,16 @@ wget --quiet -qO - http://pharo.gforge.inria.fr/ci/script/ciPharo20.sh | bash
 \end{verbatim}
 \end{scriptsize}
 
+Now that you get ready to launch Pharo nearly everywhere, let us look at the way you 
+can always script the image from the command-line. 
+
+
 \section{Scripting the Image from the commandLine}
 
+Now let us have a look at how the command line is handled in Pharo (2.0). As usual we will start to show you how 
+to find your way alone.
+
+\sd{here}
 
 \subsection{How to find our way}
 
