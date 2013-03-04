@@ -896,7 +896,7 @@ ConfigurationOfKozen>>version12: spec
                spec blessing: #release.
                spec author: 'StephaneDucasse'.
                spec timestamp: '12/03/2012 21:45'.
-			  !\textbf{spec project: 'Citezen' with: \#'develoment'.}!
+			  !\textbf{spec project: 'Citezen' with: \#'development'.}!
                spec 
                        package: 'Kozen' with: 'Kozen-StephaneDucasse.32';
                        package: 'KoCizen' with: 'KoCizen-StephaneDucasse.6'.]
@@ -1233,6 +1233,7 @@ In this example, for Pharo we use a different repository than for Gemstone. Howe
 In addition, the addons and tests are not available for Gemstone, and thus, those packages and groups are not included. So, as you can see, all what we have been doing inside the \ct{for: #common: do:} can be done inside another \ct{for:do:} for a specific dialect. 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Symbolic Versions}
 In any large evolving application, it is difficult to know which version of a configuration to use with a specific version. 
 \ct{ConfigurationOfOmniBrowser} provides a good example of the problem: version 1.1.3 is used in the Pharo1.0 one-click image,  version 1.1.3 cannot be loaded into Pharo1.2, version 1.1.5 is for Pharo1.1, version 1.2.3 is for Pharo1.2, and it cannot load in Pharo1.0, etc. 
@@ -1250,7 +1251,9 @@ OmniBrowser>>stable: spec
 Symbolic versions can be used anywhere that a literal version can be used. From a load expressions such as 
 
 \begin{code}{}
-(ConfigurationOfOmniBrowser project version: #stable) load
+(ConfigurationOfXMLParser project version: #stable) load
+
+(ConfigurationOfXMLParser project version: #stable) load: 'Tests'
 \end{code}
 
 to a project reference in a baseline version:
@@ -1291,21 +1294,17 @@ Note that the \ct{#stable} here override the bleeding edge loading behavior that
 A couple of standard symbolic versions are defined:
 
 \begin{description}
-\item[stable.] A symbolic version that specifies the stable literal version for a particular platform and version of such a platform. The stable version is the version that should be used for loading. With the exception of the \ct{bleedingEdge} version (which has a pre-defined default defined), you will need to edit your configuration to add the \ct{stable} or \ct{development} version information. \emph{I want a certified version for the platform.}
+\item[stable.] A symbolic version that specifies the stable literal version for a particular platform and version of such a platform. The stable version is the version that should be used for loading. With the exception of the \ct{bleedingEdge} version (which has a pre-defined default defined \sd{what does it means: that default load the bleedingEdge?}), you will need to edit your configuration to add the \ct{stable} or \ct{development} version information. \emph{I want a certified version for the platform.}
 
-\item[development.] A symbolic version that specifies the literal version to use under development (i.e., whose blessing is \ct{development}). Typically a \ct{development} version is used by developers for managing pre-release activities as the project transitions from \ct{bleedingEdge} to \ct{stable}. There are a number of \ct{MetacelloToolBox} methods that take advantage of the \ct{development} symbolic version. \emph{I want a certified version for the platform but in development mode.}
+\item[development.] A symbolic version that specifies the literal version to use under development (i.e., whose blessing is \ct{development}). Typically a \ct{development} version is used by developers for managing pre-release activities as the project transitions from \ct{bleedingEdge} to \ct{stable}. %There are a number of \ct{MetacelloToolBox} methods that take advantage of the \ct{development} symbolic version. 
+It means: \emph{I want a certified version for the platform but in development mode.}
 
-\mmp{did we speak already about MetacelloToolBox?}
+%\mmp{did we speak already about MetacelloToolBox?}
 
 
 \item[bleedingEdge.]  A symbolic version that specifies the latest mcz files and project versions. By default the \ct{bleedingEdge} symbolic version is defined as the latest \emph{baseline} version available. The default specification for \ct{bleedingEdge} is defined for all projects. The \ct{bleedingEdge} version is primarily for developers who know what they are doing. There are no guarantees that the \ct{bleedingEdge} version will even load, let alone function correctly. \emph{I want the latest published file.}
 
 \end{description}
-
-\sd{I have the impression that this is not clear. it would be good to have an example from something stable and may from moose?}
-\sd{How do I say that default is load stable? should I say it? same question for the other ones like bleedingEdge}
-\mmp{default for what EXACTLY? The only 'default' we talked so far is just to now which packages to load by default, that is, when using load. But that is to an especific version. But this (bleedingEdge, stable, etc) is about which version to load. There is no default. I mean...what do you want to do it exactly?  Lets say I have ConfigurationOfProject project version: xxx.  Where is the default? what do you want to do? ConfigurationOfProject load  ??   I dont understand....  }
-
 
 
 When specifying a symbolic version with a \ct{symbolicVersion:} pragma it is legal to use another symbolic version like the following definition for the symbolic version \ct{stable}:
@@ -1337,7 +1336,21 @@ Using a symbolic version that resolves to \ct{notDefined} will result in a \ct{M
 
 
 
+For the development symbolic version you can use any version that you'd like (including another symbolic version). As the following code shows it, we can specify a specific version, a baseline (which will load the latest versions specified by the baseline) or a stable version.
 
+\begin{code}{}
+development: spec
+       <symbolicVersion: #'development'>
+       spec for: #'common' version: '1.1'
+
+development: spec
+       <symbolicVersion: #'development'>
+       spec for: #'common' version: '1.1-baseline'
+
+development: spec
+       <symbolicVersion: #'development'>
+       spec for: #'common' version: #stable
+\end{code}
 
 
 
