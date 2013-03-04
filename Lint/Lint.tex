@@ -101,17 +101,17 @@ Once you have selected the packages on which you want to run the rules, you can 
 \centering
 \includegraphics[width=6cm]{selectingRules}
 \caption{Selecting rules. By default running all the rules is a good idea. \label{ruleselection}}
+
 \end{figure}
 
 
 \paragraph{First look at Results.} Once the rules are run you get a browser showing you the results as shown in Figure~\ref{unclassified}. 
 The Critics Browser shows the results are grouped by rule kinds. 
-The top level label labelled \ct{selected Rules (FP: 0, ToDo: 0, Total: 328} means the following: we got a total of 328 rule violations. Since we just started to check a new project, we did not mark any violations as false positive\footnote{A false positive is said to a violation that was detected by a tool but that was not true.}, this is why we have FP: 0, and since we did not flag violations as point to address in the future we have \ct{ToDo: 0}.
+The top level label labelled \ct{selected Rules (FP: 0, ToDo: 0, Unclassified: 316} means the following: since we just started to check a new project, we did not mark any violations as false positive\footnote{A false positive is said to a violation that was detected by a tool but that was not true.}, this is why we have FP: 0, and since we did not flag violations as point to address in the future we have \ct{ToDo: 0}. So we have 316 rules unclassified. We must check these rules to fix them or classify them as toDo or FP.
 
 
-Figure~\ref{unclassified} shows that in the rules related to style
 
- issues, the Kozen packages got two badly classified methods. Since moving the methods to a correct method category is easy, we did it and run the rules. We obtain then the situation described by Figure~\ref{reapplying}.
+Figure~\ref{unclassified} shows that in the rules related to style issues, the Kozen packages got two badly classified methods. Since moving the methods to a correct method category is easy, we did it and run the rules. We obtain then the situation described by Figure~\ref{reapplying}.
 
 The Critics Browser shows the rules on the left pane. When one rule is selected, the violations appear in the right pane. You can search by typing in the top right input field. The pane at the bottom shows either the rule description or the entity exhibiting the violation. 
 
@@ -132,23 +132,29 @@ The Critics Browser shows the rules on the left pane. When one rule is selected,
 
 
 
-A more interesting case is the 'Bugs' category as shown by Figure~\ref{}
-
-
-\paragraph{Banning a single critic.}
-
-
+A more interesting case is the 'Bugs' category as shown by Figure~\ref{LookingAtBugs}
 \begin{figure}[h]
 \centering
 \includegraphics[width=6cm]{LookingAtBugs}
-\caption{Looking at the 'Bugs' rule category.}
+\caption{Looking at the 'Bugs' rule category.\label{LookingAtBugs}}
 \end{figure}
 
 
 \begin{figure}[h]
 \centering
+\includegraphics[width=6cm]{OneUndeclaredRefence}\includegraphics[width=6cm]{BanningOneViolation}
+\caption{Looking at the undeclared variable bug (left) and Banning one single critic (right)\label{BanningOneViolation}}
+\end{figure}
+
+\paragraph{Banning a single critic.}
+Figure~\ref{BanningOneViolation} shows a false violation for the rule \emph{references an undeclared variable} in the method \ct{Citeseer>>getCiteseerPage}. Indeed,  this violation does not need to be fixed and is exploration was a loss of time. So, we classified this violation as False Positive. This is does by clicking on the False Positive buttom or from the rule menu. Time to time, do not forget to the false positives and todos in manifests.
+
+
+
+\begin{figure}[h]
+\centering
 \includegraphics[width=6cm]{BanningTimeStampRules}
-\caption{Banning the rule for the complete selected packages.}
+\caption{Banning the rule for the complete selected packages.\label{BanningTimeStampRules}}
 \end{figure}
 
 
@@ -157,22 +163,20 @@ If a rule is irelevante for your project, you can ban this rule for all selected
 
 
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=6cm]{OneUndeclaredRefence}\includegraphics[width=6cm]{BanningOneViolation}
-\caption{Looking at the undeclared variable bug (left) and Banning one single critic (right)}
-\end{figure}
+
 
 \section{Existing SmallLint Rules}\label{existingRules}
 SmallLint is a tool that analyses Pharo code and identifies bugs, design problems and other mismatches to recommended idioms. 
 
 \ja{this section is really hard to read because it is a list of items that does not explain why I want to use them. Ideas to improve the section: for each subsection add a sentence explaining the title (Example: what is Style, or Potential bugs ?). I think also that this section should be just before "defining your own rules". Like that you have: introduction, then the use of the tools and the reader can play with rules, and the real things about implemented rules and how to implement new ones.}
 
+%\input{SmallLint-rules} 
 
 \subsection{Style}
 \textbf{Class variable capitalization} (RBClassVariableCapitalizationRule): This smell arises when class or pool variable names do not start with an uppercase letter, which is a standart style in Smalltalk
 
 \textbf{Instance variable capitalization} (RBInstanceVariableCapitalizationRule): This smell arises when instance variable names (in instance and class side) do not start with an lowercase letter, which is a standart style in Smalltalk.
+
 
 \textbf{Redundant class name in selector} (RBClassNameInSelectorRule): This smell arises when the class name is found in a selector. This is redundant since to call the you must already refer to the class name. For example, \#openHierarchyBrowserFrom: is a redundant name for HierarchyBrowser.
 
@@ -184,7 +188,8 @@ SmallLint is a tool that analyses Pharo code and identifies bugs, design problem
 \textbf{Defines = but not hash} (RBDefinesEqualNotHashRule): This smell arises when a class defines \#= also and not \#hash. If \#hash is not defined then the instances of the class might not be able to be used in sets since equal element must have the same hash.
 
 \subsection{Design Flaws}
-\textbf{Methods equivalently defined in superclass} (RBEquivalentSuperclassMethodsRule): This smell arises when a method is equivalent to its superclass method. The methods are equivalent when they have the same abstract syntax tree, except for variables names. Such method does not add anything to the computation and can be removed since the superclass method have the same behaviour. Furthermore, the methods \#new and \#initialize are ignored once they are often overridden for compatilbity with other platforms. The ignored methods can be edited in RBEquivalentSuperclassMethodsRule$>>$ignoredSelectors
+\textbf{Methods equivalently defined in superclass} (RBEquivalentSuperclassMethodsRule): This smell arises when a method is equivalent to its superclass method. The methods are equivalent when they have the same abstract syntax tree, except for variables names. Such method does not add anything to the computation and can be removed since the superclass method have the same behaviour. Furthermore, the methods \#ne
+w and \#initialize are ignored once they are often overridden for compatilbity with other platforms. The ignored methods can be edited in RBEquivalentSuperclassMethodsRule$>>$ignoredSelectors
 
 \textbf{Excessive inheritance depth} (RBExcessiveInheritanceRule): This smell arises when a deep inheritance is found (depth of ten or more), which is usually a sign of a design flaw. It should be broken down and reduced to something manageable. The defined inheritance depth can be edited in RBExcessiveInheritanceRule$>>$inheritanceDepth.
 
@@ -263,7 +268,7 @@ The methods \ct{checkClass:} and \ct{checkMethod:} receive in parameter the obje
 When the current class check violates the rule, this class is added to the enviroment which contains the set of found violation: result addClass: aContext selectedClass. 
 
 \begin{code}{}
-RBDefinesEqualNotHashRule>>#checkClass: aContext 
+RBDefinesEqualNfotHashRule>>#checkClass: aContext 
 	((aContext selectedClass includesSelector: #=) and: 
 		[ (aContext selectedClass includesSelector: #hash) not ])
 			 ifTrue: [ result addClass: aContext selectedClass ]
