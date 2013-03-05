@@ -49,12 +49,6 @@
 \chapter{Versioning your code with \Mont}
 \chapterauthor{\authoroscar{}}
 
-\alex{Maybe a section on MC Configuration maps may be given}
-\on{what are they?}
-
-\on{Instead of a chapter on Installer, wouldn't a short section on Scripting Monticello suffice?}
-
-
 \lr{
 Subject: Re: [Pharo-project] Create a changeset for an entire package?\\
 Reply-To: Pharo-project@lists.gforge.inria.fr\\
@@ -101,7 +95,7 @@ the Patch Browser.'}
 
 A versioning system helps you to store and log multiple versions of your code. In addition it may help you to manage concurrent accesses to a common source code repository. It keeps track of all changes to a set of documents and enables several developers to collaborate. As soon as the size of your software increases beyond a few classes, you probably need a versioning system.
 
-Many different versioning systems are available. \ind{CVS}\footnote{\url{http://www.nongnu.org/cvs}} and \ind{Subversion}\footnote{\url{http://subversion.tigris.org}} are probably the most popular.
+Many different versioning systems are available. \ind{CVS}\footnote{\url{http://www.nongnu.org/cvs}}, \ind{Subversion}\footnote{\url{http://subversion.tigris.org}}, and \ind{Git}\footnote{\url{http://git-scm.com/}} are probably the most popular.
 In principle you could use them to manage the development of \pharo software projects, but such a practice would disconnect the versioning system from the \pharo environment.
 In addition, CVS-like tools only version plain text files and not individual packages, classes or methods. We would therefore lack the ability to track changes at the appropriate level of granularity. 
 If the versioning tools know that you store classes and methods instead of plain text,
@@ -110,11 +104,11 @@ they can do a better job of supporting the development process.
 %\ab{It would be better to say concretely why this would be a bad idea, rather than resorting to name-calling.  Many people think that files are good.  Let's tell the reader about the disadvantages!}
 
 %\indmain{Monticello}
-\index{SqueakSource}
-\emph{\indmain{\Mont{}}} is  a versioning system for \pharo in which classes and methods, rather than lines of text,
-are the units of change. \emph{\sqsrc{}} is a central online repository in which you can store versions of your applications using \Mont. \sqsrc is the equivalent of \ind{SourceForge}, and \Mont the equivalent of CVS. 
+There are multiple repositories to store your projects. SmalltalkHub\footnote{\url{http://smalltalkhub.com/}} and Squeaksource 3\footnote{\url{http://ss3.gemstone.com/}} are the two main and free-to-use repositories.
+They are versioning systems for \pharo in which classes and methods, rather than lines of text,
+are the units of change. In this chapter we will use SmalltalkHub, but Squeaksource 3 can be use samely. \emph{SmalltalkHub} is a central online repository in which you can store versions of your applications using \Mont. SmalltalkHub is the equivalent of \ind{SourceForge}, and \Mont the equivalent of CVS. 
 
-In this chapter, you will learn how to use use \Mont and \sqsrc to manage your software. We have already met \Mont briefly in earlier chapters\footnote{``A first application'' and ``The Pharo programming environment''}.
+In this chapter, you will learn how to use use \Mont and SmalltalkHub to manage your software. We have already met \Mont briefly in earlier chapters\footnote{``A first application'' and ``The Pharo programming environment''}.
 % These chapters are in book1, so we can't cross-reference them!
 % (\charef{firstApp} and \charef{env}).
 This chapter delves into the details of \Mont{} and describes some additional features that are useful for versioning large applications.
@@ -143,17 +137,15 @@ Of course these tests will fail as we have not yet implemented the \ct{isPerfect
 \subsection{Launching \Mont}
 
 \Mont is included in the standard \pharo distribution.
-We will assume that \Mont is already installed in your image.
 \menu{\Mont Browser} can be selected from the \emph{World} menu.
 \index{Monticello!browser}
+In \figref{monticelloMain}, we see that the \Mont Browser consists of two list panes and one button pane. The left pane lists installed packages and the right panes shows known repositories.
+Various operations may be performed via the button pane and the menus of the two list panes.
 
 \begin{figure}[ht]\centering
 	\includegraphics[width=\textwidth]{monticelloBrowser}
 	\caption{The \Mont Browser.\figlabel{monticelloMain}}
 \end{figure}
-
-In \figref{monticelloMain} we see that the \Mont Browser consists of two list panes and one button pane. The left pane lists installed packages and the right panes shows known repositories.
-Various operations may be performed via the button pane and the menus of the two list panes.
 
 %-----------------------------------------------------------------
 \subsection{Creating a package}
@@ -194,7 +186,7 @@ Our new package named \pkg{Perfect} contains:
 Note in \figref{perfect} that the \button{Save} button is disabled (greyed out).
 
 Before we save our \ct{Perfect} package, we need to specify \emph{where} we want to save it. A \emph{repository} is a package container, which may either be local to your machine or remote (accessed over the network). 
-Various protocols may be used to establish a connection between your \pharo image and a repository. As we will see later (\secref{monti:repositories}), \Mont supports a large choice of repositories, though the most commonly used is HTTP, since this is the one used by \sqsrc.
+Various protocols may be used to establish a connection between your \pharo image and a repository. As we will see later (\secref{monti:repositories}), \Mont supports a large choice of repositories, though the most commonly used is HTTP, since this is the one used by SmalltalkHub.
 
 \index{package-cache}
 At least one repository, called \ct{package-cache}, is set up by default, and is shown as the first entry in the list of repositories on the right-hand side of your \MCB (see \figref{monticelloMain}).
@@ -398,12 +390,12 @@ Congratulations! You have now created a new branch of the \ct{Perfect} package.
 
 \index{Monticello!merging}
 \index{Monticello!merge tool}
-This section describes the conventional merging facility of Monticello.
-To use it, make sure that the preference \ct{useNewDiffToolsForMC} is disabled.
-You can either use the Preference Browser, or you can do this programmatically by evaluating the following expression:
-\begin{code}{}
-Preferences disable: #useNewDiffToolsForMC
-\end{code}
+%This section describes the conventional merging facility of Monticello.
+%To use it, make sure that the preference \ct{useNewDiffToolsForMC} is disabled.
+%You can either use the Preference Browser, or you can do this programmatically by evaluating the following expression:
+%\begin{code}{}
+%Preferences disable: #useNewDiffToolsForMC
+%\end{code}
 
 % \alex{This subsection will need a major overhaul when turning the chapter for Pharo. The merging tool is radically different}\sd{Is it not. There is a preference to get the one shown in this section. We should just say useDiff....}
 You can merge one version of a package with another using the \button{Merge} button in the \MCB. Typically you will want to do this when (i) you discover that you have been working on a out-of-date version, or (ii) branches that were previously independent have to be re-integrated. Both scenarios are common when multiple developers are working on the same package.
@@ -485,8 +477,8 @@ If you now refresh the \RI, you will see that there are no more versions shown i
 \section{Exploring \Mont repositories}
 \seclabel{monti:exploring}
 
-\Mont has many other useful features. As we can see in \figref{monticelloMain}, the \MCB window has nine buttons. We have already used four of them\,---\,\button{+Package}, \button{Save}, \button{+Repository} and \button{Open}.
-We will now look at \button{Browse}, \button{Changes} and \button{History}, which are used to explore the state and history of repositories
+\Mont has many other useful features. As we can see in \figref{monticelloMain}, the \MCB window has eight buttons. We have already used four of them\,---\,\button{+Package}, \button{Save}, \button{+Repository} and \button{Open}.
+We will now look at \button{Browse} and \button{Changes} which are used to explore the state and history of repositories
 
 %-----------------------------------------------------------------
 \subsection{Browse}
@@ -541,10 +533,17 @@ PerfectTest>>>testPerfectTo1000
 As usual, {\actclick}ing on a change offers you a choice of contextual operations.
 
 %-----------------------------------------------------------------
+
+%=================================================================
+\section{Advanced topics}
+\seclabel{monti:advanced}
+
+Now we will have a look at several advanced topics, including history, managing dependencies, making configuration, and class initialization.
+
 \subsection{History} 
 
 \index{Monticello!history browser}
-The \button{History} button opens a version history viewer that displays the comments committed along with each version of the selected package (see \figref{historyviewer}).  
+By action-clicking on a package, you can select the item \button{History}. It opens a version history viewer that displays the comments committed along with each version of the selected package (see \figref{historyviewer}).  
 The versions of the package, in this case \ct{Perfect}, are listed on the left,
 while information about the selected version is displayed on the right.
 
@@ -557,54 +556,48 @@ while information about the selected version is displayed on the right.
 
 By {\actclick}ing on a particular version, you can explore the changes with respect to the current working copy of the package loaded in the image, or spawn a new history browser relative to the selected version.
 
-%=================================================================
-\section{Advanced topics}
-\seclabel{monti:advanced}
-
-Now we will have a look at several advanced topics, including backporting, managing dependencies, and class initialization.
-
 %-----------------------------------------------------------------
-\subsection{Backporting}
-
-\alex{I am wondering how useful this is. I personally never used it}
-
-\index{Monticello!backporting}
-Sometimes we want to port changes from one branch to another, without actually being forced to merge those branches.
-Backporting is a process of applying selected changes from one version of a package to an ancestor so that these changes can be merged into later branches.  This is especially useful when corrections to software defects must be merged into multiple branches.
-
-The process is illustrated in \figref{backport}.
-Suppose that the main branch of our software system consists of versions A and B, maintained by Manny.
-A contributor, Conny, has developed a separate experimental branch, C, with changes X and Y.
-Change X fixes a nasty problem in versions A and B, so Manny asks Conny to prepare a backported branch D containing \emph{only} change X.
-Now Manny can merge B and D to produce a new version E that fixes the defect.
-Conny can continue to further develop her independent branch C.
-
-\begin{figure}[ht]
-\centering
-	\includegraphics[width=\textwidth]{{backport}}
-	\caption{Change X is backported from version C to version A, producing a new branch D. D can then be merged into B, without affecting C.\figlabel{backport}}
-\end{figure}
-
-The system records the fact that this new version was backported from a later version, and will make use of that information when merging.
-
-To use \button{Backport}, you must have just saved your package\,---\,if your package is marked with the modified *, \button{Backport} is disabled.  When you press \button{Backport}, you will first be asked to pick the ancestor version you want to backport to.  You will then be presented with a multi-select list of all the changes between that ancestor and the current version.   Choose only the changes you want to backport, and then press \button{Select}.
-
-Let us see how this works in practice. Recall that we earlier rejected the implementation of \ct{isPerfect} when we merged versions 2 and 3 of the \ct{Perfect} package. Now we will recover that change as a backport to version 1.  (Versions 1, 2 and 3 play the roles of versions A, B and C, respectively, in \figref{backport}.)
-
-\dothis{Unload the \ct{Perfect} package. Now open a \RI on your \ct{package-cache} and load \ct{Perfect} version 3. In the \MCB select \ct{Perfect} and click on the \button{Backport} button. Select version 1 as the ancestor. You should be able to browse the changes between version 3 and 1, as shown in \figref{changes}.  Now select the \ct{Integer>>>isPerfect} method and click on \button{Select}.}
-
-\begin{figure}[ht]
-\centering
-	\includegraphics[width=0.8\textwidth]{{changes}}
-	\caption{Backporting changes from version 3 to version 1 of the \ct{Perfect} package.\figlabel{changes}}
-\end{figure}
-
-
-Congratulations! You have now backported the \ct{isPerfect} method from version 3 to version 1 of \ct{Perfect}.
-Any changes you didn't select were reverted; that is, your image will now contain only the code from the ancestor version 1, plus the changes that you chose.
-In the \MCB you should see that the currently loaded version of \ct{Perfect} is now version 1 (not version 3). If you click on \button{Changes}, you will see that the only change is the \ct{isPerfect} method.
-You can now save this backported version, merge it into something else, or whatever you like.
-
+%\subsection{Backporting}
+%
+%\alex{I am wondering how useful this is. I personally never used it}
+%
+%\index{Monticello!backporting}
+%Sometimes we want to port changes from one branch to another, without actually being forced to merge those branches.
+%Backporting is a process of applying selected changes from one version of a package to an ancestor so that these changes can be merged into later branches.  This is especially useful when corrections to software defects must be merged into multiple branches.
+%
+%The process is illustrated in \figref{backport}.
+%Suppose that the main branch of our software system consists of versions A and B, maintained by Manny.
+%A contributor, Conny, has developed a separate experimental branch, C, with changes X and Y.
+%Change X fixes a nasty problem in versions A and B, so Manny asks Conny to prepare a backported branch D containing \emph{only} change X.
+%Now Manny can merge B and D to produce a new version E that fixes the defect.
+%Conny can continue to further develop her independent branch C.
+%
+%\begin{figure}[ht]
+%\centering
+%	\includegraphics[width=\textwidth]{{backport}}
+%	\caption{Change X is backported from version C to version A, producing a new branch D. D can then be merged into B, without affecting C.\figlabel{backport}}
+%\end{figure}
+%
+%The system records the fact that this new version was backported from a later version, and will make use of that information when merging.
+%
+%To use \button{Backport}, you must have just saved your package\,---\,if your package is marked with the modified *, \button{Backport} is disabled.  When you press \button{Backport}, you will first be asked to pick the ancestor version you want to backport to.  You will then be presented with a multi-select list of all the changes between that ancestor and the current version.   Choose only the changes you want to backport, and then press \button{Select}.
+%
+%Let us see how this works in practice. Recall that we earlier rejected the implementation of \ct{isPerfect} when we merged versions 2 and 3 of the \ct{Perfect} package. Now we will recover that change as a backport to version 1.  (Versions 1, 2 and 3 play the roles of versions A, B and C, respectively, in \figref{backport}.)
+%
+%\dothis{Unload the \ct{Perfect} package. Now open a \RI on your \ct{package-cache} and load \ct{Perfect} version 3. In the \MCB select \ct{Perfect} and click on the \button{Backport} button. Select version 1 as the ancestor. You should be able to browse the changes between version 3 and 1, as shown in \figref{changes}.  Now select the \ct{Integer>>>isPerfect} method and click on \button{Select}.}
+%
+%\begin{figure}[ht]
+%\centering
+%	\includegraphics[width=0.8\textwidth]{{changes}}
+%	\caption{Backporting changes from version 3 to version 1 of the \ct{Perfect} package.\figlabel{changes}}
+%\end{figure}
+%
+%
+%Congratulations! You have now backported the \ct{isPerfect} method from version 3 to version 1 of \ct{Perfect}.
+%Any changes you didn't select were reverted; that is, your image will now contain only the code from the ancestor version 1, plus the changes that you chose.
+%In the \MCB you should see that the currently loaded version of \ct{Perfect} is now version 1 (not version 3). If you click on \button{Changes}, you will see that the only change is the \ct{isPerfect} method.
+%You can now save this backported version, merge it into something else, or whatever you like.
+%
 %-----------------------------------------------------------------
 \subsection{Dependencies}
 
@@ -669,6 +662,11 @@ Here is the reason why:
 
 \important{Do not name your top level package with a suffix (\eg \ct{Perfect}) that could match your subpackages. Do not define \ct{Perfect} as a required package of \ct{Perfect-Extensions} or \ct{PerfectTest}. You would get in trouble since \Mont would save all the classes for three packages while you only want two packages and an empty one at the top level.}
 %-----------------------------------------------------------------
+
+%\subsection{Making a Configuration} 
+
+To build more flexible dependencies between packages, we recommend to use a Metacello configuration (see \charef{metacello}). The \button{+Config} button creates a kind of configuration structure. The only thing to do is to add the dependencies.
+
 \subsection{Class initialization}
 
 \index{class!initialization}
@@ -695,6 +693,7 @@ TestCaseExtension class>>initialize
 \end{code}
 
 When our package is loaded, this code will be evaluated and the instance variable will be added, if it does not already exist.
+Note that if you change a class that is not in your package, the other package will become dirty. In the previous example, the package SUnit contains TestCase. After installing TestCaseExtension, the package SUnit will become dirty.
 
 
 %As an illustration, let us suppose an extension of the Lights Out game to support unchangeable cells. Those cells are located randomly on the board. Generate numbers need to be generated. This can be done by adding a variable \ct{randomNumber} to the class \ct{LOGame}. This kind of extension is not well supported by \Mont. A package cannot define the variable \ct{randomNumber} as an extension of \ct{LOGame}. \Mont supports method extension only.
@@ -735,15 +734,15 @@ The difference between two Monticello versions may be easily captured by creatin
 \seclabel{monti:repositories}
 
 \index{Monticello!repository}
-Several kinds of repositories are supported by \Mont, each with different characteristics and uses. Repositories can be read-only, write-only or read-write. Access rights may be defined globally or can be tied to a particular user (as in \sqsrc, for example).
+Several kinds of repositories are supported by \Mont, each with different characteristics and uses. Repositories can be read-only, write-only or read-write. Access rights may be defined globally or can be tied to a particular user (as in SmalltalkHub, for example).
 % and are related to the way of storing data used.
 
 \index{Monticello!HTTP repository}
-\paragraph{HTTP.} HTTP repositories are probably the most popular kind of repository since this is the kind supported by \sqsrc. % (Such servers can also be configured for read-only access. Saving versions via HTTP uses the PUT method \ab{Is ``put'' the right word}, which must be enabled on the server.)
+\paragraph{HTTP.} HTTP repositories are probably the most popular kind of repository since this is the kind supported by SmalltalkHub. % (Such servers can also be configured for read-only access. Saving versions via HTTP uses the PUT method \ab{Is ``put'' the right word}, which must be enabled on the server.)
 
 The nice thing about HTTP repositories is that it's easy to link directly to specific versions from web sites. With a little configuration work on the HTTP server, HTTP repositories can be made browsable by ordinary web browsers, WebDAV clients, and so on.
 
-HTTP repositories may be used with an HTTP server other than \ind{\sqsrc}. For example, a simple configuration\footnote{\url{http://www.visoracle.com/squeak/faq/monticello-1.html}} turns \ind{Apache} into a \Mont repository with restricted access rights:
+HTTP repositories may be used with an HTTP server other than \ind{SmalltalkHub}. For example, a simple configuration\footnote{\url{http://www.visoracle.com/squeak/faq/monticello-1.html}} turns \ind{Apache} into a \Mont repository with restricted access rights:
 
 \begin{code}{}
 "My apache2 install worked as a Monticello repository right out of the box on my
@@ -779,7 +778,7 @@ It's a read-write repository, so it makes a good ``working'' repository where ve
 
 \index{Monticello!directory repository}
 \index{package-cache}
-\paragraph{Directory.} A directory repository stores versions in a directory in the local file system. Since it requires very little work to set up, it's handy for private projects; since it requires no network connection, it's the only option for disconnected development. The \ct{package-cache} we have been using in the exercises for this chapter is an example of this kind of repository. Versions in a directory repository may be copied to a public or shared repository at a later time. \sqsrc supports this feature by allowing package versions (.mcz files) to be imported for a given project. Simply log in to \sqsrc, navigate to the project, and click on the \menu{Import Versions} link.
+\paragraph{Directory.} A directory repository stores versions in a directory in the local file system. Since it requires very little work to set up, it's handy for private projects; since it requires no network connection, it's the only option for disconnected development. The \ct{package-cache} we have been using in the exercises for this chapter is an example of this kind of repository. Versions in a directory repository may be copied to a public or shared repository at a later time. SmalltalkHub supports this feature by allowing package versions (.mcz files) to be imported for a given project. Simply log in to SmalltalkHub, navigate to the project, and click on the \menu{Import Versions} link.
 
 \paragraph{Directory with Subdirectories.}  A ``directory with subdirectories'' is very similar to ``directory'' except that it looks in subdirectories to retrieve list of available packages. Instead of having a flat directory that contains all package versions, such as repository may be hierarchically  structured with  subdirectories.
 
@@ -824,44 +823,40 @@ It's a read-write repository, so it makes a good ``working'' repository where ve
 %-----------------------------------------------------------------
 \subsection{Using SmalltalkHub}
 
-\subsection{Using \sqsrc}
-
-\indmain{\sqsrc} is a online repository that you can use to store your \Mont packages. An instance is running and accessible from \url{http://www.squeaksource.com}. At the time this chapter is being written, over 1500 projects are registered on \sqsrc and nearly 2000 people have an account. \figref{squeaksource} shows the main web page.  
+\indmain{SmalltalkHub} is a online repository that you can use to store your \Mont packages. An instance is running and accessible from \url{http://smalltalkhub.com/}. %At the time this chapter is being written, over 1500 projects are registered on SmalltalkHub and nearly 2000 people have an account. \figref{squeaksource} shows the main web page.  
 
 \begin{figure}[ht]\centering
 	\includegraphics[width=\textwidth]{squeaksource2}
-	\caption{\sqsrc, the online \Mont code repository.\figlabel{squeaksource}}
+	\caption{SmalltalkHub, the online \Mont code repository.\figlabel{squeaksource}}
 \end{figure}
 
-\dothis{Use a web browser to visit the \pbe project at
-  \url{http://www.squeaksource.com/PharoByExample.html}. This project
-  contains the Lights Out project from the first volume of this book.
-  In the registration section on that web page you should see this
+\dothis{Use a web browser to visit the main page
+  \url{http://smalltalkhub.com/}. When you select a project, you should see this kind of 
   \emph{repository expression:}}
 
 \begin{code}{}
 MCHttpRepository
-    location: 'http://www.squeaksource.com/PharoByExample'
+    location: 'http://smalltalkhub.com/mc/PharoExtras/Phexample/main'
     user: ''
     password: ''
 \end{code}
 \noindent
 \emph{Add this repository to \Mont by clicking \button{+Repository},
   and then selecting \menu{HTTP}. Fill out the template with the URL
-  corresponding to the Lights Out project\,---\,you can copy the above
+  corresponding to the project\,---\,you can copy the above
   repository expression from the web page and paste it into the
   template. Since you are not going to commit new versions of this
   package, you do not need to fill in the user and password.
   \button{Open} the repository, select the latest version and click
   \button{Load}.}
 
-Pressing the \link{Register Member} link on the \sqsrc home page will probably be your first step if you do not have a \sqsrc account. 
+Pressing the \link{Join} link on the SmalltalkHub home page will probably be your first step if you do not have a SmalltalkHub account. 
 Once you are a member, \link{Register Project} allows you to create a new project. 
 
 
 \begin{figure}[ht]\centering
 	\includegraphics[width=\textwidth]{squeaksourcesetting}
-	\caption{Repositories under \sqsrc are highly configurable.\figlabel{squeaksourcesetting}}
+	\caption{Repositories under SmalltalkHub are highly configurable.\figlabel{squeaksourcesetting}}
 \end{figure}
 
 \Mont offers a large range of options (cf. \figref{squeaksourcesetting}) to configure a project repository: tags may be assigned, a license may be chosen, access for people who are not part of the project may be restricted (read/write, read, no access), emails may be sent upon commits, mailing list may be managed, and users may be defined to be members of the project (as administrator, developer, or guest).
@@ -873,8 +868,8 @@ Once you are a member, \link{Register Project} allows you to create a new projec
 %\item Is your computer turned on?
 %\item Is your network cable plugged in?
 %\item Can you reach \url{http://squeaksource.com/} with a web browser from the same host as the image?
-%\item Are people on IRC (or any other forum) ranting about \sqsrc being down again?
-%\item Is \sqsrc accessible from other sites?\footnote{A handy link to check this is: \url{http://downforeveryoneorjustme.com/squeaksource.com}}
+%\item Are people on IRC (or any other forum) ranting about SmalltalkHub being down again?
+%\item Is SmalltalkHub accessible from other sites?\footnote{A handy link to check this is: \url{http://downforeveryoneorjustme.com/squeaksource.com}}
 %\item Can you ping \url{http://squeaksource.com/} from Pharo?:\\
 %   \ct{Socket pingPorts: #(80) on: 'squeaksource.com' timeOutSecs: 30}.
 %\item Can you load packages using \Mont from \\\url{http://squeaksource.com/}?
@@ -940,7 +935,7 @@ It basically says that the version \ct{AA-ab.3} has an empty log message, was cr
 %=================================================================
 \section{Chapter Summary}
 
-%This chapter explained how to use \Mont and \sqsrc to manage the source code of your application.
+%This chapter explained how to use \Mont and SmalltalkHub to manage the source code of your application.
 
 This chapter has presented the functionality of \Mont in detail.
 The following points were covered:
@@ -951,7 +946,7 @@ The following points were covered:
 
 \item When you modify any methods or classes in a package, it will be marked as ``dirty'' in \Mont, and can be saved to a repository.
 
-\item There are many kinds of repositories, the most popular being HTTP repositories, such as those hosted by \sqsrc.
+\item There are many kinds of repositories, the most popular being HTTP repositories, such as those hosted by SmalltalkHub.
 
 \index{package-cache}
 \item Saved packages are caches locally in a directory called \ct{package-cache}.
@@ -962,7 +957,7 @@ The following points were covered:
 
 \item Branches can be \emph{merged}. \Mont offers a fine degree of control over the resolution of conflicts between merged versions. The merged version will have as its ancestor the two versions it was merged from.
 
-\item Alternatively, selected changes of a branch can be \emph{backported} to an arbitrary earlier version. This will create a new version that can be merged with any other version that needs those changes. The original backported branch remains independent in this case.
+%\item Alternatively, selected changes of a branch can be \emph{backported} to an arbitrary earlier version. This will create a new version that can be merged with any other version that needs those changes. The original backported branch remains independent in this case.
 
 \item \Mont can keep track of dependencies between packages. When a package with dependencies to required packages is saved, a new version of that package is created, which then depends on the latest versions of all the required packages.
 
@@ -974,11 +969,11 @@ The following points were covered:
 
 %\item \Mont is used to manage your packages. \Mont is part of the Pharo standard distribution.
 
-%\item \sqsrc is a remote online central repository in which you can store your code.
+%\item SmalltalkHub is a remote online central repository in which you can store your code.
 
 %\item \Mont packages are mapped to categories. 
 
-%\item After having created a package in \Mont, you may store it in a remote repository such as that offered by \sqsrc.
+%\item After having created a package in \Mont, you may store it in a remote repository such as that offered by SmalltalkHub.
 
 %\item Merging and backporting are feature provided by \Mont that allow changes to cross different version line and to move along a same package version line.
 
