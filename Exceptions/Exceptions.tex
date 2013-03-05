@@ -841,7 +841,7 @@ outerResume --> 2    "resumes to where outer was sent"
 \section{Exceptions and \ct{ensure:/ifCurtailed:} interaction}
 \index{sec:ensure}
 
-Now that we saw how exceptions work, we present the interplay between  exceptions and the \ct{ensure:} and \ct{ifCurtailed:} semantics. Exception handlers are executed then ct{ensure:} or \ct{ifCurtailed:} blocks are executed.
+Now that we saw how exceptions work, we present the interplay between  exceptions and the \ct{ensure:} and \ct{ifCurtailed:} semantics. Exception handlers are executed then \ct{ensure:} or \ct{ifCurtailed:} blocks are executed.
 \ct{ensure:} argument is always executed while \ct{ifCurtailed:} argument is only executed when its receiver execution led to a  stack got unwind. 
 
 

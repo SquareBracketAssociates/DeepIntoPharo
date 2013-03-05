@@ -57,13 +57,13 @@ framework is what we will look at now.
 Setting supports an object-oriented approach to \index{preference} preferences definition and manipulation. What we want to express by this sentence is that:
 \begin{enumerate}
 \item each package or subsystem should define its own customization points (often represented as a variable or a class variable). The code of a subsystem then freely accesses such customization value and use it to change its behavior to reflect the preference.
-\item Using Settings, a subsystem describes its preferences so that the end user can manipulate them. However, at not point in time, the code of a subsystem will explicitly refer to setting objects to adapt its behavior. 
+\item a subsystem describes its preferences so that the end-user can manipulate them. However, at not point in time, the code of a subsystem will explicitly refer to setting objects to adapt its behavior. 
 \end{enumerate}
 
 The control flow of a subsystem does not involve Settings. This is the major point of difference between Settings and the preference system available in Pharo1.0.
 
 \subsubsection{Vocabulary}
-A \index{preference} \emph{preference} is a particular \emph{value} which is usually accessible. Basically such a preference value is stored in a class variable or in an instance variable of a singleton and is directly managed through the use of simple accessors. Pharo contains numerous preferences such as the user interface theme, the desktop background color or a boolean flag to allow or prohibit the use of sound are currently declared as preferences. We will show how we can define a preference in Section~\ref{sec:DeclaringASetting}. 
+A \index{preference} \emph{preference} is a particular \emph{value} which is usually accessible. Basically such a preference value is stored in a class variable or in an instance variable of a singleton and is directly managed through the use of simple accessors. Pharo contains numerous preferences such as the user interface theme, the desktop background color or a boolean flag to allow or prohibit the use of sound. We will show how we can define a preference in Section~\ref{sec:DeclaringASetting}. 
 
 A \index{setting}\emph{setting} is a \emph{declaration} (description) of a preference value. To be viewed and updated through the setting browser, a preference value must be described by a setting. Such a setting is built by a particular method tagged with a pragma (see Figure~\ref{fig:modularflow}). Section~\ref{sec:DeclaringASetting} explains how to declare a setting.
 
@@ -81,11 +81,11 @@ Pharo users need to browse existing preferences and eventually change their valu
 Figure~\ref{fig:modularflow} shows important points of the architecture put in place by Settings: The \emph{Settings} package can be unloaded and a package defining preferences does not depend on the \emph{Settings} package. This architecture is supported by the following points:
 
 \begin{description}
-\item[Customization points.] Each application should defined its customization points. For example, the class \ct{RealStateAgent} of the package \emph{UI-Basic} defines the class variable \ct{UsedStrategy} which defines how the windows. The flow of the package \emph{UI-Basic} is modular and self-contained: the class \ct{RealStateAgent} does not depend on the settings framework.  The class  \ct{RealStateAgent} has been designed to be parametrized.
+\item[Customization points.] Each application should defined its customization points. In \figref{modularflow}, the class \ct{RealStateAgent} of the package \emph{UI-Basic} defines the class variable \ct{UsedStrategy} which defines where the windows appear. The flow of the package \emph{UI-Basic} is modular and self-contained: the class \ct{RealStateAgent} does not depend on the settings framework.  The class  \ct{RealStateAgent} has been designed to be parametrized.
 
-\item[Description of customization point.] The Settings framework supports the description of the setting \ct{UsedStrategy}. In Figure~\ref{fig:modularflow}, the package \emph{UI-Basic Setting} defines a method (it could be an extension to the class \ct{RealStateAgent} or another class. The important point is that the method declaring the setting does not refer directly to Setting classes but describes the setting using a builder. This way this description could even be present in the \emph{UI-Basic} package without introducing a reference.
+\item[Description of customization point.] The Settings framework supports the description of the setting \ct{UsedStrategy}. In Figure~\ref{fig:modularflow}, the package \emph{UI-Basic Setting} defines a method (it could be an extension to the class \ct{RealStateAgent} or another class. The important point is that the method declaring the setting does not refer directly to Setting classes but describes the setting using a builder. This way the description could even be present in the \emph{UI-Basic} package without introducing a reference.
 
-\item[Collecting setting for user presentation.] The Settings package defines tools to manage settings such as a \setbrowser that the user uses to change his preference. The \setbrowser collects settings and uses their description to change the values of preferences.
+\item[Collecting setting for user presentation.] The Settings package defines tools to manage settings such as a \setbrowser that the user opens to change his preferences. The \setbrowser collects settings and uses their description to change the value of preferences.
 The control flow of the program and the dependencies are always from the package Settings to the package that has preferences and not the inverse. 
 \end{description}
 
@@ -141,7 +141,7 @@ Depending on the selected setting, they may be different. Three versions of it a
 Pharo contains a lot of settings and finding one of them can be tedious. 
 You can filter the settings list by entering something in the search text field of the top bar of the SettingsBrowser. Then, only the settings which name or description contains the text you've entered will be shown. The text can be a regular expression if the "Regexp" checkbox is checked.
 
-Another way to filter the list of settings is to choose them by package. Just click on the "Choose package" button, then a dialog is opened with the list of packages in which some settings are declared. If you choose one or several of them, then, only settings which are declared in the selected packages are shown. Notice that the bottom right text pane is updated with the name of the selected packages.
+Another way to filter the list of settings is to choose them by package. Just click on the "Choose package" button, then a dialog is opened with the list of packages in which some settings are declared. If you choose one or several of them, only settings which are declared in the selected packages are shown. Notice that the bottom right text pane is updated with the name of the selected packages.
 
 Depending on where and when you are using Pharo, you may have to change preferences repeately. As an example, when you are doing a demonstration, you may want to have bigger fonts, at work you may need to set a proxy whereas at home none is needed. Having to change a set of preferences depending on where you are and what you are doing can be very tedious and boring. With the \setbrowser, it is possible to save the current set of preference values in a named style that can be reloaded later. Setting style management is presented in Section~\ref{sec:SettingStylesManagement}.
 
@@ -678,7 +678,7 @@ Once this method is compiled, open the Setting Browser and popup the \textit{Sty
 \section{Extending the \setbrowser}
 \index{Settings browser!tuning}
 \label{sec:ExtendingTheSettingsBrowser}
-As explained in the section \ref{sec:browsing-settings}, the \setbrowser is by default able to manage a simple preference types. These default possibilities are generally enough. But there are some situations where it can be very helpful to be able to handle more complex preference values. 
+As explained in the section \ref{sec:browsing-settings}, the \setbrowser is by default able to manage simple preference types. These default possibilities are generally enough. But there are some situations where it can be very helpful to be able to handle more complex preference values. 
 
 As an example, let focus on the text selection preferences. We have the primary selection and three other optional kinds of text selection, the secondary selection, the find and replace selection and the selection bar. For all selections, a background color can be set. For the primary, the secondary and the find and replace selection, a text color can also be chosen.
 
@@ -732,7 +732,7 @@ TextSelectionPreference class>>primarySelection
 						!\textbf{mandatory: true}!;
 						yourself]
 \end{code}
-You can notice that the \ct{mandatory} attribute is initialize to \ct{true}.
+You can notice that the \ct{mandatory} attribute is initialized to \ct{true}.
 
 Another example with the selection bar preference:
 \begin{code}{}
