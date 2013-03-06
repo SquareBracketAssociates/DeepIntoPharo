@@ -55,10 +55,10 @@ First here is a way to download a zero configuration script that downloads a scr
 wget http://files.pharo.org/script/ciPharo20PharoVM.sh
 \end{code}
 
-Note that \url{files.pharo.org} is an alias for \url{pharo.gforge.inria.fr/ci}. So we suggest to use \ct{wget} instead of \ct{curl} because \ct{curl} does not deal
-well with redirections.
+Note that \url{files.pharo.org} is an alias for \url{pharo.gforge.inria.fr/ci}. 
+So we suggest to use \ct{wget} instead of \ct{curl} because \ct{curl} does not deal well with redirections.
 
-To execute the script you should change its  permissions using \ct{chmod a+x}  or invoke it via bash as follows. We
+To execute the script that we just downloaded, you should change its  permissions using \ct{chmod a+x}  or invoke it via bash as follows. We
 suggest you also to have a look at the script help.
 
 \begin{code}{}
@@ -75,15 +75,11 @@ Result in the current directory:
     Pharo.image        The latest pharo image
     Pharo.changes    The corresponding pharo changes
 \end{code}
+\sd{update to last version}
 
 
 \paragraph{Grabbing and executing it.}
-If you just want to directly execute the script you can also 
-
-%Why this is not working.
-%\begin{code}{}
-%curl http://files.pharo.org/script/ciPharo20PharoVM.sh | bash
-%\end{code}
+If you just want to directly execute the script you can also do the following
 
 \begin{code}{}
 wget http://files.pharo.org/ci/script/ciPharo20PharoVM.sh | bash
@@ -94,12 +90,6 @@ If you do not like the log of web use \ct{--quiet -O}.
 \begin{code}{}
 wget --quiet -O - http://files.pharo.org/ci/script/ciPharo20PharoVM.sh | bash
 \end{code}
-
-For the fan of curl, do not use the aliased version but the full one.
-\begin{code}{}
-curl http://pharo.gforge.inria.fr/ci/script/ciPharo20PharoVM.sh | bash
-\end{code}
-
 
 \paragraph{Note for the believers in automated tasks.} The scripts are fetched automatically from 
 our jenkins server (\url{https://ci.inria.fr/pharo/job/Scripts-download/}) from the gitorious server \url{https://gitorious.org/pharo-build/pharo-build}.
@@ -123,6 +113,8 @@ Result in the current directory:
     vm                 directory containing the VM
     vm.sh            script forwarding to the VM inside vm
 \end{code}
+\sd{update the script to the latest version which should include vm-ui.sh}
+
 
 
 Figure~\ref{fig:website} shows the list of scripts available that you can get at \url{http://pharo.gforge.inria.fr/ci/script/}.
