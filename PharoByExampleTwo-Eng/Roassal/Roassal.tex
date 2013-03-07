@@ -146,20 +146,17 @@ The \ct{ROMondrianExample} category includes examples created with Mondrian, a d
 
 \section{Roassal Core Model}
 
-Each visualization is an instance of the class \ct{ROView}, which is the container for all the data to be visualized.
-Data is represented by instances of \ct{ROElement} that are added to the visualization. Usually, a visualization element is holding or referencing to a domain object, which it is called its model and that is accessible via the \ct{model} message. 
+The root of each visualization is an instance of the class \ct{ROView}, which is the container for all the graphical components to be rendered.
+Such components are instances of a subclass of \ct{ROAbstractComponent}, typically instances of \ct{ROElement} and \ct{ROEdge}. Usually, a graphical component holds a reference to a \emph{domain object}. Some visual properties (such as the size or color) may be directly deduced from the domain object. We will shortly come back on that point. For now, we will illustrate basic and fundamental operations.
 
-\paragraph{Adding an element.} The following code creates and opens a visualization with a single element of 100 size which models the ``foo'' string:
-
+\paragraph{Adding an element.} The very first step to see graphical components, is to add them in a view, and then open the view. This is exactly what the following code snippet does.
 
 \begin{figure}[H]
       \begin{minipage}[t]{0.5\textwidth}
       \vspace{0pt}
 \begin{code}{}
 view := ROView new.
-element := ROElement new 
-				model: 'foo'; 
-				size: 100.
+element := ROElement new size: 100.
 view add: element.
 view open.
 \end{code}
@@ -173,7 +170,9 @@ view open.
 \label{fig:ex1}
 \end{figure}
 
-However, by executing this code nothing appears in the visualization. The element is there but we haven't set how it should look like. The look of an element is given by shapes, instances of subclasses of \ct{ROShape}. By default, every element has a empty shape which is an instance of \ct{RONullShape}. Let's add some shape (a border) to our element: 
+It creates and opens a visualization with a single element of a squared size of 100 pixel. However, by executing this code nothing appears in the visualization. The element has effectively been added to the view, but we have not told the element how it should be rendered. 
+
+\paragraph{Adding a Shape.} The visual aspect of an element is given by shapes, instances of subclasses of \ct{ROShape}. By default, every element has no shape\footnote{Actually an element has always a shape, instance of \ct{RONullShape}. The null object design pattern is here employed}. Let's add some shape (a border) to our element: 
 
 \begin{figure}[H]
       \begin{minipage}[t]{0.5\textwidth}
@@ -181,8 +180,7 @@ However, by executing this code nothing appears in the visualization. The elemen
 \begin{code}{}
 view := ROView new.
 element := ROElement new size: 100.
-element 
-	+ ROBorder. "-> add shape"
+element addShape: ROBorder. "added line"
 view add: element.
 view open.
 \end{code}
@@ -196,10 +194,28 @@ view open.
 \label{fig:ex2}
 \end{figure}
 
-\paragraph{Adding a Shape.}
-To add a shape to an element, we send the \ct{+} message with the wanted shape. For this example we added the \ct{ROBorder} shape. As its name suggests, \ct{ROBorder} adds a border to the \ct{ROElement}. By default, the color for a \ct{ROBorder} is black. There are several other shapes such as labels, circles or filled rectangles, and they can be customized. It is also possible to compose them to create more complex looks. \secref{shapes} details more on shapes.
+Unsurprisingly, adding a shape to an element is simply realized by sending the \ct{addShape:} message with the shape we want to add. Since this is a frequent operation, one can use the \ct{+} message to achieve the same effect. We could have instead written \ct{element + ROBorder}. 
+
+In this example we added the \ct{ROBorder} shape. As its name suggests, \ct{ROBorder} adds a squared border to the \ct{ROElement}. By default, the color for a \ct{ROBorder} is black. Many other shapes are available, including customizable labels, circles or filled rectangles. Such shapes may also be composed to create sophisticated visual aspects. The notion of shapes will be detailed in \secref{shapes}.
 
 \paragraph{Reacting to events.}
+Currently, our lonely element can not do much. To make our element aware of user actions, such as clicking, drag-and-drop, keystroking, we need to specific events callback. 
+
+As in most user interface and graphical frameworks, each actions a user may do emit an event object. Such event is an instance of a subclass of \ct{ROEvent}. To make the graphical element responsive to an event, a block has to be associated to an event class and attached to the graphical element.
+
+For example, to make our square responsive to user click, we need to add an event handler, \ie the block that will be executed when the event occurs:
+
+\begin{code}{}
+view := ROView new.element := ROElement new size: 100.element + ROBorder. element on: ROMouseClick do: [ :event | event inspect ].view add: element.view open.
+\end{code}
+
+Clicking on the square will now open an inspector. In the meantime, we favor the message \ct{+} over \ct{addShape:} since it is shorter and as much informative.
+
+\paragraph{Interaction for complex response.}
+Although widely used in common graphical framework, directly answering to user actions is often too simple to handle complex situation. Consider drag-and-dropping, which happens by moving the mouse while maintaining pressed a mouse button. Although a common operation, drag-and-drop is quite complex. For example the mouse step needs to be translated in the plan of the element and the visualization need to be refreshed. Since this is a common operation, we will refrain the programmer from using a construct like \ct{element on: ROMouseDrag do: [ ... ]}.
+
+Instead, we provide \emph{iterations}, \alex{@@HERE}
+
 A \ct{ROElement} can also have interactions, allowing it to answer to events. For instance, an element can be dragged by the mouse. To add an interaction to a \ct{ROElement} send the \ct{@} message with the interaction as parameter. \ct{RODraggable} allows an element to react to mouse drag. So let's make our element to be draggable. More about interactions is presented in \secref{interactions}.
 
 \begin{code}{}
