@@ -51,23 +51,22 @@
 \chalabel{roassal}
 
 
-\chapterauthor{Vanessa Pena-Araya}
+\chapterauthor{Vanessa Pe\~{n}a-Araya}
 
-Giving a meaning to a large amount of data is challenging without adequate tools. Textual outputs are known to be limited in their expression and interactions. 
+Giving a meaning to a large amount of data is challenging without adequate tools. Textual outputs are known to be limited in their expressiveness and support for interaction. 
 
 Roassal is an agile visualization engine. Roassal is made to visualize and interact with arbitrary data, defined in terms of objects and their relationships. Roassal is commonly employed to produce interactive visualizations. The range of applications using Roassal is diverse. For example, the Moose community uses Roassal to visualize software. 
-Roassal also supports the Mondrian DSL, allowing one to use a simpler scripting to create the same visualization than the Roassal framework
+Mondrian is a domain specific language that is built at the top of Roassal. Mondrian is made to easily create static visualization. Mondrian is presented in the next chapter. 
 
-
-This chapter introduces Roassal's principles and describes its expressive commands to quickly render your data. After its reading, you will be able to create interactive and visual representation. Next chapter covers how to create them using the Mondrian DSL with Roassal.
+This chapter introduces Roassal's principles and describes its expressive commands to quickly render your data. After its reading, you will be able to create interactive and visual representation. 
 
 For more information, please visit Roassal website: \url{http://objectprofile.com/roassal}
 
 %=====================
 \section{Installation and first visualization}
-First we show how to load Roassal using Gofer and we then get a first visualization.
+Roassal is distributed with Moose. So, if you are using Moose, then you already have Roassal. You can merely proceed to your first visualization.
 
-Roassal is available via a Metacello configuration. Just open a workspace and type:
+Installing Roassal in a fresh Pharo image is quite easy. Just open a workspace and type:
 
 \begin{code}{}
 Gofer new
@@ -76,10 +75,12 @@ Gofer new
 	load.
 (Smalltalk at: #ConfigurationOfRoassal) project lastVersion load.
 \end{code}
-\sd{having stable version would be better}
+\alex{We will have modify this to a stable version before releasing the chapter}
 
+Roassal is known to work on the version 1.4 and more recent versions of Pharo.
 
 \subsection{A first visualization.}
+\alex{We need to pick a better visualization. This one is too trivial and it is rather adapter to Mondrian, not really to Roassal}
 
 The first visualization we will show represents the \ct{Collection} class hierarchy. It defines each class as a box connected with its subclass. Each box looks according to the represented class number of methods and number of instance variables.
 
@@ -125,17 +126,20 @@ Next chapter details how to create it using the Mondrian DSL by using the Mondri
 %=====================
 \subsection{Roassal Easel}
 
+The Roassal easel is a tool to interactively script visualizations. The metaphor used with the easel is to turn the programmer into a painter carrying out the work on an easel: creating, adjusting, erasing is just a few (key) strokes away.
 
-Pharo's World menu offers an item for launching the Easel. It is composed by two windows, the one on the left side contains the visualization and the one in the right side is a workspace containing the script to be executed. By accepting (Cmd-S, Alt-S) in the editor, the changes will be displayed in the visualization window.
+The Roassal easel is accessible from the Pharo World menu. Just look for the {\color{red} $\mathcal{R}$} icon\footnote{Note that a Glamour-based easel is also provided, under the Moose section of the World menu. The Glamour-based Roassal easel is similar to the easel presented here. A dedicated presentation of this version may be found in the moose book, \url{http://themoosebook.org}.}.
 
-The easel offers lots of examples of visualizations and learn how to make them, including a tutorial by steps. Examples are separated in two categories: \ct{ROMondrianViewBuilder} and \ct{ROExample}, and can be accessed by clicking in the \textit{examples} button in the upper part of the visualization window.
+The easel is made of two independent windows, the one on the left-hand side renders the script written in the textual window on the right-hand side. By accepting (Cmd-s, Alt-s / right-clicking and pressing accept) in the editor, the visualization will be updated. This is the same keystroke than accepting a method in the system browser. The advantage of this is to have short feedback loop: the meaning of your script is always one keystroke away.
+
+The visualization window contains many examples of visualizations, including a step-by-step tutorial. Examples are separated in two categories: \ct{ROExample} and \ct{ROMondrianExample}, and are accessible by clicking in the \textit{examples} button in the upper part of the visualization window.
 
 \fig{H}{1}{ROEasel}{Roassal Easel examples separated by the ROMondrianViewBuilder and ROExample categories}
 
 
-The first category includes examples created with Mondrian DSL for the scripting and using the Roassal buider: the \ct{ROMondrianViewBuilder} class. The second one shows examples of how to directly interact with the Roassal visualization class, \ct{ROView}, making possible to reproduce them without the builder.
+The \ct{ROMondrianExample} category includes examples created with Mondrian, a domain specific language built at the top of Roassal. These examples primarily use the \ct{ROMondrianViewBuilder} class to made up a visualization. The  \ct{ROExample} category directly illustrates Roassal.
 
-It also includes how to add buttons to zoom in and zoom out the visualization, export it to different formats and save it, among other actions. This buttons are not included by default in the Mondrian builder or the \ct{ROView} class, so the easel allows one to learn how to do it.
+\alex{I do not understand this paragraph}It also includes how to add buttons to zoom in and zoom out the visualization, export it to different formats and save it, among other actions. This buttons are not included by default in the Mondrian builder or the \ct{ROView} class, so the easel allows one to learn how to do it.
 
 %=====================
 %=====================
@@ -320,7 +324,7 @@ view open.
        \centering
 		\includegraphics[width=0.6\textwidth]{ex6}
    \end{minipage}
-\label{fig:ex5}
+\label{fig:ex6}
 \end{figure}
 
 Each element has a resize strategy, stored as \ct{resizeStrategy} instance variable.
