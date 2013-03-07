@@ -53,6 +53,8 @@
 
 \chapterauthor{Vanessa Pe\~{n}a-Araya}
 
+\alex{Need a section on the link between elements and domain objects}
+
 Giving a meaning to a large amount of data is challenging without adequate tools. Textual outputs are known to be limited in their expressiveness and support for interaction. 
 
 Roassal is an agile visualization engine. Roassal is made to visualize and interact with arbitrary data, defined in terms of objects and their relationships. Roassal is commonly employed to produce interactive visualizations. The range of applications using Roassal is diverse. For example, the Moose community uses Roassal to visualize software. 
@@ -170,7 +172,7 @@ view open.
 \label{fig:ex1}
 \end{figure}
 
-It creates and opens a visualization with a single element of a squared size of 100 pixel. However, by executing this code nothing appears in the visualization. The element has effectively been added to the view, but we have not told the element how it should be rendered. 
+It creates and opens a visualization with a single element of a squared size of 100 pixels. However, by executing this code nothing appears in the visualization. The element has effectively been added to the view, but we have not told the element how it should be rendered. 
 
 \paragraph{Adding a Shape.} The visual aspect of an element is given by shapes, instances of subclasses of \ct{ROShape}. By default, every element has no shape\footnote{Actually an element has always a shape, instance of \ct{RONullShape}. The null object design pattern is here employed}. Let's add some shape (a border) to our element: 
 
@@ -206,7 +208,13 @@ As in most user interface and graphical frameworks, each actions a user may do e
 For example, to make our square responsive to user click, we need to add an event handler, \ie the block that will be executed when the event occurs:
 
 \begin{code}{}
-view := ROView new.element := ROElement new size: 100.element + ROBorder. element on: ROMouseClick do: [ :event | event inspect ].view add: element.view open.
+view := ROView new.
+element := ROElement new size: 100.
+element + ROBorder. 
+"Open an inspector when clicking"
+element on: ROMouseClick do: [ :event | event inspect ]. 
+view add: element.
+view open.
 \end{code}
 
 Clicking on the square will now open an inspector. In the meantime, we favor the message \ct{+} over \ct{addShape:} since it is shorter and as much informative.
@@ -214,15 +222,15 @@ Clicking on the square will now open an inspector. In the meantime, we favor the
 \paragraph{Interaction for complex response.}
 Although widely used in common graphical framework, directly answering to user actions is often too simple to handle complex situation. Consider drag-and-dropping, which happens by moving the mouse while maintaining pressed a mouse button. Although a common operation, drag-and-drop is quite complex. For example the mouse step needs to be translated in the plan of the element and the visualization need to be refreshed. Since this is a common operation, we will refrain the programmer from using a construct like \ct{element on: ROMouseDrag do: [ ... ]}.
 
-Instead, we provide \emph{iterations}, \alex{@@HERE}
+Instead, we provide \emph{iterations}, a lightweight mechanism to reuse and compose event handlers. Making our non-movable element draggable is simply done with \ct{element @ RODraggable}. The \ct{@} method is a shortcut for \ct{addInteraction:}. We will detail other interactions in \secref{interactions}.
 
-A \ct{ROElement} can also have interactions, allowing it to answer to events. For instance, an element can be dragged by the mouse. To add an interaction to a \ct{ROElement} send the \ct{@} message with the interaction as parameter. \ct{RODraggable} allows an element to react to mouse drag. So let's make our element to be draggable. More about interactions is presented in \secref{interactions}.
+\ct{RODraggable} is a subclass of \ct{ROInteraction}, the root of all the interactions in Roassal. \ct{RODraggable} allows an element to react to mouse drag. Our small example is refined as:
 
 \begin{code}{}
 view := ROView new.
 element := ROElement new size: 100.
 element 
-	+ ROBorder; "-> add shape"
+	+ ROBorder "-> add shape"
 	@ RODraggable. "-> add interaction"
 view add: element.
 view open.
@@ -230,18 +238,18 @@ view open.
 
 
 \paragraph{More Elements.}
-Visualizations are usually composed of more than one element. You can add more elements to a \ct{ROView} by sending the message \ct{addAll:} with a collection of \ct{ROElements}. You can later access them by using the \ct{elements} accessor. 
-By executing the following code a visualization with two elements appears, both placed in the top left part. We first create two element of 50 and 100 size, respectively, and add them to the view as an array using the \ct{addAll:} message. We later access all the elements of the view to add them a border and make them draggable.
+Interesting visualizations is likely to contains a great deal of elements. Elements may be added either with successive invocation of \ct{add:} on a \ct{ROView}, or in one shoot by sending \ct{addAll:}. Consider:
 
 \begin{figure}[H]
       \begin{minipage}[t]{0.5\textwidth}
       \vspace{0pt}
 \begin{code}{}
 view := ROView new.
-element1 := (ROElement new size: 100).
-element2 := (ROElement new size: 50).
-view addAll: (Array with: element1 with: element2).
-view elements do: [:el | el + ROBorder; @ RODraggable].
+element1 := ROElement new size: 100.
+element2 := ROElement new size: 50.
+elements := Array with: element1 with: element2.
+elements do: [:el | el + ROBorder @ RODraggable ].
+view addAll: elements.
 view open.
 \end{code}
    \end{minipage}
@@ -254,7 +262,9 @@ view open.
 \label{fig:ex3}
 \end{figure}
 
-A ROElement can be translated by sending \ct{translateBy:} or \ct{translateTo:} with a point as parameter. The parameter representing how much the element must be translated horizontally with the x value and vertically with the y value. The axes are defined as shown in \figref{ex4}, the x-axis increase from left to right and the y-axis from top to bottom.
+The code above opens a window with two squared elements, with the origin as the position of the top left corner. We first create two elements of size 50 and 100, respectively, and add them to the view using the \ct{addAll:} message. We make the two elements having a border and being draggable. Note that in our example the shape and the interaction are added before opening the view. It can be done afterwards. Even once added and rendered, graphical components are free to be modified.
+
+An element may be translated by sending \ct{translateBy:} or \ct{translateTo:} with a point as parameter. The parameter representing the step or the position in pixels. The axes are defined as shown in \figref{ex4}, the x-axis increases from left to right and the y-axis from top to bottom.
 
 
 \begin{figure}[H]
@@ -262,11 +272,12 @@ A ROElement can be translated by sending \ct{translateBy:} or \ct{translateTo:} 
       \vspace{0pt}
 \begin{code}{}
 view := ROView new.
-element1 := (ROElement new size: 100).
-element2 := (ROElement new size: 50).
+element1 := ROElement new size: 100.
+element2 := ROElement new size: 50.
+elements := Array with: element1 with: element2.
+elements do: [:el | el + ROBorder @ RODraggable ].
+view addAll: elements.
 element2 translateBy: 150@150.
-view addAll: { element1 . element2 }.
-view elements do: [:el | el + ROBorder; @ RODraggable].
 view open.
 \end{code}
    \end{minipage}
@@ -280,8 +291,9 @@ view open.
 \end{figure}
 
 
-When a visualization contains more than one element it is hard to setup each one's position by hand. Roassal provides defined layouts to arrange elements. A layout in Roassal is a subclass of \ct{ROLayout}. Layouts are explained in  \secref{layouts}.
+When a visualization contains more than one element it is better to have an algorithm to automatically position each element. Roassal provides many layouts to arrange elements. A layout in Roassal is a subclass of \ct{ROLayout}. Layouts are explained in \secref{layouts}.
 
+\alex{@@HERE}
 
 \paragraph{Nesting Elements.}
 A ROElement can also contain other ROElement's, creating nested elements. In addition as shown by the following example, the location of children is relative to the one of the parent. This means that when we translate the parent, the children will be translated as well. %A translation is relative to the parent coordinates.
