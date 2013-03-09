@@ -69,26 +69,29 @@ What the help mentions is that the script will download the current vm and put i
 \ct{vm-ui.sh} a script to launch the image in ui mode, the image and its associated changes. 
 
 \begin{code}{Output of ciPharo20PharoVM.sh --help }
+This script will download the latest Pharo 2.0 image and VM
+
 Result in the current directory:
-    vm                        VM directory
-    vm.sh                   Script forwarding to the VM in vm
-    Pharo.image        The latest pharo image
-    Pharo.changes    The corresponding pharo changes
+    vm            VM directory
+    vm.sh            Script forwarding to the VM in vm
+    vm-ui.sh            Script running the VM interactively with a UI
+    Pharo.image            The latest pharo image
+    Pharo.changes            The corresponding pharo changes
 \end{code}
-\sd{update to last version}
+
 
 
 \paragraph{Grabbing and executing it.}
 If you just want to directly execute the script you can also do the following
 
 \begin{code}{}
-wget http://files.pharo.org/ci/script/ciPharo20PharoVM.sh | bash
+wget http://files.pharo.org/script/ciPharo20PharoVM.sh | bash
 \end{code}
 
-If you do not like the log of web use \ct{--quiet -O}.
+If you do not like the log of web, use \ct{--quiet -O}.
 
 \begin{code}{}
-wget --quiet -O - http://files.pharo.org/ci/script/ciPharo20PharoVM.sh | bash
+wget --quiet -O - http://files.pharo.org/script/ciPharo20PharoVM.sh | bash
 \end{code}
 
 \paragraph{Note for the believers in automated tasks.} The scripts are fetched automatically from 
@@ -101,20 +104,19 @@ Yes we believe in automated tasks that free our energy.
 You can also use different scripts. For example \ct{ciPharoVM.sh} only downloads the latest vm.
 
 \begin{code}{}
-wget http://pharo.gforge.inria.fr/ci/script/ciPharoVM.sh | bash
+wget http://files.pharo.org/script/ciPharoVM.sh | bash
 \end{code}
 
 Again as any script you can always check its help message.
 
-\begin{code}{Output of ciPharoVM.sh --help}
-This script will download the latest Pharo VM
+\begin{code}[]{Output of ciPharoVM.sh --help}
+This script will download the stable pharo VM
 
 Result in the current directory:
-    vm                 directory containing the VM
-    vm.sh            script forwarding to the VM inside vm
+    vm            Directory containing the VM
+    vm.sh            Script forwarding to the VM inside the vm directory running headlessly
+    vm-ui.sh            Script running the VM interactively with a UI
 \end{code}
-\sd{update the script to the latest version which should include vm-ui.sh}
-
 
 
 Figure~\ref{fig:website} shows the list of scripts available that you can get at \url{http://pharo.gforge.inria.fr/ci/script/}.
@@ -125,8 +127,6 @@ Figure~\ref{fig:website} shows the list of scripts available that you can get at
 	\caption{All the scripts are available at \ct{http://pharo.gforge.inria.fr/ci/script/} \label{fig:website}.}
 \end{figure}
 
-
-Note that scripts 
 
 \section{The scripts}
 Here is a typical script. We list it here for archival purpose and the definition may change in the future
@@ -167,25 +167,26 @@ Now that you get ready to launch Pharo nearly everywhere, let us look at the way
 can always script the image from the command-line. 
 
 
-\section{Scripting the Image from the commandLine}
+\section{Handling command line options}
+We have now a brand new and nice way to handle command line arguments. It is self documented and really easy to extend. Let us have a look at how the command line is handled. As usual we will start to show you how to find your way alone.
 
-Now let us have a look at how the command line is handled in Pharo (2.0). As usual we will start to show you how 
-to find your way alone.
 
-\sd{here}
 
 \subsection{How to find our way}
+Again we love and value self documentation so just use \ct{--help} to get an explanation. 
 
 \begin{code}{}
 ./vm.sh Pharo.image --help
 \end{code}
 
+It will produce the following output.
+
 \begin{code}{}
 Usage: [<subcommand>] [--help] [--copyright] [--version] [--list]
-	--help       print this help message
-	--copyright  print the copyrights
-	--version    print the version for the image and the vm
-	--list       list a description of all active command line handlers
+	--help print this help message
+	--copyright print the copyrights
+	--version print the version for the image and the vm
+	--list list a description of all active command line handlers
 	<subcommand> a valid subcommand in --list
 	
 Documentation:
@@ -194,6 +195,14 @@ The DefaultCommandLineHandler is activated before all other handlers.
 It first checks if another handler is available. If so it will activate the found handler.
 \end{code}
 
+
+\subsection{System version and handler list}
+Two of the default options are important \ct{versions} and \ct{list}. Let us have a look to them now.
+
+
+
+\paragraph{Getting system version.} A typical and important command line option is \ct{--version}. Please use it when you communicate bugs and deviant behavior. 
+
 \begin{code}{}
 ./vm.sh Pharo.image --version
 M:    NBCoInterpreter NativeBoost-CogPlugin-IgorStasenko.15 uuid: 44b6b681-38f1-4a9e-b6ee-8769b499576a Dec 18 2012
@@ -201,51 +210,37 @@ NBCogit NativeBoost-CogPlugin-IgorStasenko.15 uuid: 44b6b681-38f1-4a9e-b6ee-8769
 git://gitorious.org/cogvm/blessed.git Commit: 452863bdfba2ba0b188e7b172e9bc597a2caa928 Date: 2012-12-07 16:49:46 +0100 By: Esteban Lorenzano <estebanlm@gmail.com> Jenkins build #5922
 \end{code}
 
+\paragraph{List of available handlers.} The command line option \ct{--list} is interesting since it give you the list of the \emph{current} option handlers. This is list depends on the handlers that are currently loaded in the system. In particular it means that you can simply add an handler to handler your specific situation and wishes.
+
+The following list shows that handlers available in the system we used when writing this chapter.
 
 \begin{code}{}
 ./vm.sh Pharo.image --list
+
 Currently installed Command Line Handlers:
-    st              handles .st source files
-    Fuel            Handles fuel files
+    st              Loads and executes .st source files
+    Fuel            Loads fuel files
     config          Install and inspect Metacello Configurations from the command line
     save            Rename the image and changes file
     test            A command line test runner
-    update          load updates
+    update          Load updates
     printVersion    Print image version
-    eval            directly evaluates passed in one line scripts
-\end{code}    
-    
-
-\subsection{Evaluating Pharo Expressions}
-
-\begin{code}{}
-./vm.sh Pharo.image eval '1+2'
+    eval            Directly evaluates passed in one line scripts
 \end{code}
 
-
-\begin{code}{}
-./vm.sh Pharo.image eval --help 
-Usage: eval [--help] <smalltalk expression>
-	--help    list this help message
-	<smallltalk expression>  a valid Smalltalk expression which is evaluated and 
-	                         the result is printed on stdout
-
-Documentation:
-A CommandLineHandler that reads a string from the command line, outputs the evaluated result and quits the image. 
-
-This handler either evaluates the arguments passed to the image:
-	$PHARO_VM my.image eval  1 + 2
-	
-or it can read directly from stdin:
-
-	echo "1+2" | $PHARO_VM my.image eval 
-\end{code}
+Now you probably wonder how certain option should be used. Indeed it does not look like using the config option which handles the loading of Metacello configurations is crystal clear, isn't. But as you guessed handler are also self described. Let us have a look at this one. 
 
 
-\subsection{Loading Metacello Configuration}
 
+\paragraph{Loading Metacello Configuration}
+To get some explanation about the use of the config option, just request its associated help as follows: 
 \begin{code}{}
 ./vm.sh Pharo.image config --help
+\end{code}
+
+Note that this is help is the one of the associated handler not the one of the command line generic system. 
+
+\begin{code}{}
 Usage: config [--help] <repository url> [<configuration>] [--install[=<version>]] [--group=<group>] [--username=<username>] [--password=<password>]
 	--help              show this help message
 	<repository url>    A Monticello repository name 
@@ -274,6 +269,48 @@ Examples:
 	#install a specific version '1.5' and only a specific group 'Tests'
 	$PharoVM My.image config $MC_REPOS_URL ConfigurationOfFoo --install=1.5 --group=Tests
 \end{code}
+
+
+
+\section{Anatomy of a handler}
+As we mentioned it, the command line mechanism is opened and can be extended. We will look now how the handler 
+
+\paragraph{Evaluating Pharo Expressions.}
+Let us take have a look at an example. You can use the command line to evaluate expressions as follows: 
+
+\begin{code}{}
+./vm.sh Pharo.image eval '1+2'
+\end{code}
+
+Now the question is again how do we know how to specify the command line arguments. Simple ask the handler for its own help as follows: \ct{./vm.sh Pharo.image eval --help}
+Notice that this help is specific to the handler. In fact the help handler option is simply the class comment of the associated handler. 
+
+
+\begin{code}{}
+./vm.sh Pharo.image eval --help 
+Usage: eval [--help] <smalltalk expression>
+	--help    list this help message
+	<smallltalk expression>  a valid Smalltalk expression which is evaluated and 
+	                         the result is printed on stdout
+
+Documentation:
+A CommandLineHandler that reads a string from the command line, outputs the evaluated result and quits the image. 
+
+This handler either evaluates the arguments passed to the image:
+	$PHARO_VM my.image eval  1 + 2
+	
+or it can read directly from stdin:
+
+	echo "1+2" | $PHARO_VM my.image eval 
+\end{code}
+
+
+
+
+
+
+
+
 
 \section{Using Zero conf on Jenkins}
 
