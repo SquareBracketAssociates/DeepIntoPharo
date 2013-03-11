@@ -54,13 +54,7 @@
 %=================================================================
 \chapter{Handling exceptions}
 %\chapterauthor{\authorsteph{}}
-\chapterauthor{\contact{Camillo Bruni}{camillobruni@gmail.com}\\
-\contact{Vassili Bykov}{smalltalkbigot@gmail.com}\\
-\contact{Carlos Ferro}{carloseferrob@gmail.com}\\
-\contact{Christopher Oliver}{current.input.port@gmail.com}\\
-\contact{Lukas Renggli}{renggli@gmail.com}\\
-\contact{Hernan Wilkinson}{hernan.wilkinson@10pines.com}
-}
+%\chapterauthor{}
 
 All applications have to deal with exceptional situations.
 Arithmetic errors may occur (such as division by zero), unexpected situations may arise (file not found), or resources may be exhausted (network down, disk full, \etc).
@@ -1029,7 +1023,8 @@ UnhandledError>>>defaultAction
 \end{code}
 
 \begin{code}{}
-MorphicUIManager>>>unhandledErrorDefaultAction: anException	^ Smalltalk tools debugError: anException.
+MorphicUIManager>>>unhandledErrorDefaultAction: anException
+	^ Smalltalk tools debugError: anException.
 \end{code}
 
 
@@ -1039,7 +1034,12 @@ A few messages later, the debugger opens:
 \mthindex{StandardToolSet}{debug:context:label:contents:fullView:}
 \begin{code}{}
 Process>>>debug: context title: title full: bool
-	^ Smalltalk tools debugger						openOn: self 						context: context 						label: title 						contents: nil 						fullView: bool.
+	^ Smalltalk tools debugger
+						openOn: self 
+						context: context 
+						label: title 
+						contents: nil 
+						fullView: bool.
 \end{code}
 
 %=========================================================
@@ -1515,7 +1515,7 @@ In this chapter we saw how to use exceptions to signal and handle abnormal situa
 
 \end{itemize}
 
-\paragraph{Acknowledgments.}  We thank Paolo Bonzini for the \st implementations of \ct{ensure:} and \ct{ifCurtailed:}.
+\paragraph{Acknowledgments.} We gratefully acknowledge Vassili Bykov for the raw material he provided. We also thank Paolo Bonzini for the \st implementations of \ct{ensure:} and \ct{ifCurtailed:}. We thank Hernan Wilkinson, Lukas Renggli, Christopher Oliver, Camillo Bruni, Hernan Wilkinson and  Carlos Ferro for their comments and suggestions.
 \index{Bonzini, Paolo}
 \index{GNU \st}
 
