@@ -54,13 +54,19 @@
 %=================================================================
 \chapter{Handling exceptions}
 %\chapterauthor{\authorsteph{}}
-
+\chapterauthor{\contact{Camillo Bruni}{camillobruni@gmail.com}\\
+\contact{Vassili Bykov}{smalltalkbigot@gmail.com}\\
+\contact{Carlos Ferro}{carloseferrob@gmail.com}\\
+\contact{Christopher Oliver}{current.input.port@gmail.com}\\
+\contact{Lukas Renggli}{renggli@gmail.com}\\
+\contact{Hernan Wilkinson}{hernan.wilkinson@10pines.com}
+}
 
 All applications have to deal with exceptional situations.
 Arithmetic errors may occur (such as division by zero), unexpected situations may arise (file not found), or resources may be exhausted (network down, disk full, \etc).
 The old-fashioned solution is to have operations that fail return a special \emph{error code}; this means that client code must check the return value of each operation, and take special action to handle errors. This leads to brittle code. 
 
-With the help of a series of examples, we shall explore all of these possibilities, and we shall also take a deep look into the internal mechanics of exceptions and exception handlers. The authors want to thank Camillo Bruni, Hernan Wilkinson and  Carlos Ferro for the feedback. 
+With the help of a series of examples, we shall explore all of these possibilities, and we shall also take a deep look into the internal mechanics of exceptions and exception handlers.
 
 \section{Introduction}
 
@@ -241,16 +247,13 @@ Consider the following example, where we want to copy the contents of one file t
 Although several file-related things could go wrong, with exception handling we simply write a straight-line method, and define a single exception handler for the whole transaction: 
 \clsindex{FileStream}
 \clsindex{FileStreamException}
-\clsindex{FileDirectory}
-\mthindex{FileDirectory}{oldFileNamed:}
-\mthindex{FileDirectory}{newFileNamed:}
 \needlines{7}
 \begin{code}{}
 | source destination fromStream toStream |
 source := 'log.txt'.
 destination := 'log-backup.txt'.
-[ fromStream := FileDirectory default oldFileNamed: source.
-	[ toStream := FileDirectory default newFileNamed: destination.
+[ fromStream := FileStream oldFileNamed: (FileSystem workingDirectory / source).
+	[ toStream := FileStream newFileNamed: (FileSystem workingDirectory / destination). 
 		[ toStream nextPutAll: fromStream contents ]
 			ensure: [ toStream close ] ]
 		ensure: [ fromStream close ] ]
@@ -272,8 +275,8 @@ Thus, in the previous example, only a \clsind{FileStreamException} (or a more sp
 | source destination fromStream toStream |
 source := 'log.txt'.
 destination := 'log-backup.txt'.
-	[ fromStream := FileDirectory default oldFileNamed: source.
-	toStream := FileDirectory default newFileNamed: destination.
+	[ fromStream := FileStream oldFileNamed: (FileSystem workingDirectory / source).
+	toStream := FileStream newFileNamed: (FileSystem workingDirectory / destination). 
 	toStream nextPutAll: fromStream contents ]
 		on: FileStreamException
 		do: [ :ex | UIManager default inform: 'Copy failed -- ', ex description ].
@@ -293,18 +296,19 @@ Moreover, because exceptions are classes, as new exceptional situations are disc
 
 If \st did not provide exception-handling support, then the tiny example we saw in the previous section would be written something like this, using error codes:
 
-\begin{code}{| source destination fromStream toStream contents result success failure |}
+\begin{code}
+| source destination fromStream toStream contents result success failure |
 "Pseudo-code -- luckily Smalltalk does not work like this. Without the 
 benefit of exception handling we must check error codes for each operation."
 source := 'log.txt'.
 destination := 'log-backup.txt'.
 success := 1. "define two constants, our error codes"
 failure := 0.
-fromStream := FileDirectory default oldFileNamed: source.
+fromStream := FileStream oldFileNamed: (FileSystem workingDirectory / source).
 fromStream ifNil: [
 	UIManager default inform: 'Copy failed -- could not open', source.
 	^ failure "terminate this block with error code" ].
-toStream := FileDirectory default newFileNamed: destination.
+toStream := FileStream newFileNamed: (FileSystem workingDirectory / destination).
 toStream ifNil: [
 	fromStream close.
 	UIManager default inform: 'Copy failed -- could not open', destination.
@@ -725,7 +729,7 @@ ResumableLoader>>>readConfiguration
 	stream close
 \end{code}
 
-Note that to be sure to close the stream the \ct{stream close} should guarded by an \ct{ensure:} invocation.
+Note that to be sure to close the stream, the \ct{stream close} should guarded by an \ct{ensure:} invocation.
 
 \noindent
 Depending on user input, the handler in \ct{readConfiguration} might \lct{return} \lct{nil}, or it might \ct{resume} the exception, causing the \ct{signal} message send in \ct{readOptionsFrom:} to return and the parsing of the options stream to continue.
@@ -780,14 +784,14 @@ Object>>>performAll: selectorCollection
 				ifFalse: [ex pass]]]    "pass internal errors on"
 \end{method}
 
-This has the effect of passing on \clsind{MessageNotUnderstood} errors to the surrounding context when they are not part of the list of messages we are performing. The \ct{pass} message will pass the exception on to the next applicable handler in the execution stack.
+This has the effect of passing on \clsind{MessageNotUnderstood} errors to the surrounding context when they are not part of the list of messages we are performing. The \ct{pass} message will pass the exception to the next applicable handler in the execution stack.
 
 If there is no next handler on the stack, the \ct{defaultAction} message is sent to the exception instance. The \ct{pass} action does not modify the sender chain in any way\,---\,but the handler that control is passed to may do so. Like the other messages discussed in this section, \ct{pass} is special\,---\,it never returns to the sender.
 
 The goal of this section has been to demonstrate the power of exceptions.
 It should be clear that while you can do almost anything with exceptions, the code
 that results is not always easy to understand.   
-There is often a simpler way to get he same effect without exceptions; see \mthref{simplerObjectPerfromAll} on page \pageref{mth:simplerObjectPerfromAll} for a better way to implement \ct{performAll:}.
+There is often a simpler way to get the same effect without exceptions; see \mthref{simplerObjectPerfromAll} on page \pageref{mth:simplerObjectPerfromAll} for a better way to implement \ct{performAll:}.
 
 %=================================================================
 \subsection{Resending exceptions}
@@ -943,7 +947,7 @@ Utilities class>>>convertCRtoLF: fileName
 	FileStream convertCRtoLF: fileName
 \end{code}
 
-When the message \ct{convertCRtoLF:} is sent, if the \ct{raiseDeprecationWarnings} preference is \ct{true}, then a pop-up window is displayed with a notification and the programmer may resume the application execution; this is shown in \figref{deprecation}.
+When the message \ct{convertCRtoLF:} is sent, if the setting \ct{raiseWarning} is \ct{true}, then a pop-up window is displayed with a notification and the programmer may resume the application execution; this is shown in \figref{deprecation} (Settings are explained in details in \charef{settings}).
 Of course, since this method is deprecated you will not find it in current Pharo distributions. Look for another sender of \ct{deprecated:on:in:}.
 
 \begin{figure}[ht]\centering
@@ -964,17 +968,17 @@ In this case the inherited implementations of the first two methods are fine:
 \item \ct{description} is inherited from \ct{Exception}, and answers an adequate textual description.
 \end{itemize}
 
-However, it is necessary to override the implementation of \lct{defaultAction}, because we want that to depend on some preferences.  Here is \pharo's implementation:
+However, it is necessary to override the implementation of \lct{defaultAction}, because we want that to depend on some settings.  Here is \pharo's implementation:
 \begin{code}{}
 Deprecation>>>defaultAction
 	Log ifNotNil: [:log| log add: self].
-	Preferences showDeprecationWarnings ifTrue:
-		[Transcript nextPutAll: explanationString; cr; flush].
-	Preferences raiseDeprecatedWarnings ifTrue:
+	self showWarning  ifTrue:
+		[Transcript nextPutAll: self messageText; cr; flush].
+	self raiseWarning ifTrue:
 		[super defaultAction]
 \end{code}
 
-The first preference simply causes a warning message to be written on the \ct{Transcript}.  The second preference asks for an exception to be signaled, which is accomplished by \super-sending \ct{defaultAction}. Note that this implementation was changed in the current distribution of Pharo to use Setting a modular preference mechanism (See Chapter~\ref{cha:setting}).
+The first preference simply causes a warning message to be written on the \ct{Transcript}.  The second preference asks for an exception to be signaled, which is accomplished by \super-sending \ct{defaultAction}. 
 
 We also need to implement some convenience methods in \ct{Object}, like this one:
 \needlines{8}
@@ -1021,16 +1025,21 @@ This code signals a new exception, \ct{UnhandledError}, that conveys the idea th
 \begin{code}{}
 UnhandledError>>>defaultAction
 	"The current computation is terminated. The cause of the error should be logged or reported to the user. If the program is operating in an interactive debugging environment the computation should be suspended and the debugger activated."
-	^ ToolSet debugError: exception.
+	^ UIManager default unhandledErrorDefaultAction: self exception
 \end{code}
+
+\begin{code}{}
+MorphicUIManager>>>unhandledErrorDefaultAction: anException	^ Smalltalk tools debugError: anException.
+\end{code}
+
 
 \noindent
 A few messages later, the debugger opens:
 
 \mthindex{StandardToolSet}{debug:context:label:contents:fullView:}
 \begin{code}{}
-StandardToolSet>>>debug: aProcess context: aContext label: aString contents: contents fullView: aBool
-	^ Debugger openOn: aProcess context: aContext label: aString contents: contents fullView: aBool
+Process>>>debug: context title: title full: bool
+	^ Smalltalk tools debugger						openOn: self 						context: context 						label: title 						contents: nil 						fullView: bool.
 \end{code}
 
 %=========================================================
@@ -1054,7 +1063,7 @@ BlockClosure>>>on: exception do: handlerAction
 \end{code}
 
 This code tells us two things: First, this method is implemented as a primitive, which means that  a primitive operation of the virtual machine is executed when this method is invoked.  VM primitives don't normally return: successful execution of a primitive terminates the method that contains the \lct{<primitive: \emph{n}\,>} instruction, answering the result of the primitive.
-So, the \st code that follows the primitive serves two purposes: it documents what the primitive does, and is available to be executed if the primitive should fail. 
+So, the \st code that follows the primitive serves two purposes: it documents what the primitive does, and is available to be executed if the primitive fails. 
 Here we see that \ct{on:do:} simply sets the temporary variable \ct{handlerActive} to true, and then evaluates the receiver (which is, of course, a block).  
 
 This is surprisingly simple, but somewhat puzzling.  Where are the arguments of the \ct{on:do:} method stored?
@@ -1404,7 +1413,7 @@ The first thing that we notice from this figure is that the Exception hierarchy 
 
 \begin{figure}[ht]\centering
         \includegraphics[width=.95\linewidth]{ExceptionSubclasses}
-        \caption{The whole \pharo exception hierarchy.\figlabel{wholeHierarchy}}
+        \caption{A part of \pharo exception hierarchy.\figlabel{wholeHierarchy}}
 \end{figure}
 
 The second thing that we notice is that there are two large sub-hierarchies: \ct{Error} and \ct{Notification}. 
@@ -1430,8 +1439,8 @@ MessageNotUnderstood new isResumable --> true
 
 As it turns out, roughly 2/3 of all exceptions are resumable:
 \begin{code}{}
-Exception allSubclasses size --> 103
-(Exception allSubclasses select: [:each | each new isResumable]) size --> 66
+Exception allSubclasses size --> 160
+(Exception allSubclasses select: [:each | each new isResumable]) size --> 79
 \end{code}
 If you declare a new subclass of exceptions, you should look in its protocol for the \ct{isResumable} method, and override it as appropriate to the semantics of your exception.
 
@@ -1506,7 +1515,7 @@ In this chapter we saw how to use exceptions to signal and handle abnormal situa
 
 \end{itemize}
 
-\paragraph{Acknowledgments.}  We gratefully acknowledge Vassili Bykov for the raw material he provided. We also thank Paolo Bonzini for the \st implementations of \ct{ensure:} and \ct{ifCurtailed:}. We thank Hernan Wilkinson, Lukas Renggli, Christopher Oliver for their comments and suggestions.
+\paragraph{Acknowledgments.}  We thank Paolo Bonzini for the \st implementations of \ct{ensure:} and \ct{ifCurtailed:}.
 \index{Bonzini, Paolo}
 \index{GNU \st}
 
