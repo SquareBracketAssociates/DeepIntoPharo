@@ -513,7 +513,7 @@ Groups are useful because they let you name sets of items for various purposes. 
 \end{figure} 
 
 
-To define a group we use the method \mbox{\ct{group: groupName with: group elements}.} The \ct{with:} argument can be a package name, a project, another group, or a collection of those things.  Here is the code corresponding to \figref{version06}.
+To define a group we use the method \mbox{\ct{group: groupName with: groupElements}.} The \ct{with:} argument can be a package name, a project, another group, or a collection of those things.  Here is the code corresponding to \figref{version06}.
 
  
 \begin{code}{}
@@ -540,6 +540,7 @@ ConfigurationOfCoolBrowser>>baseline06: spec
 
 
  
+\paragraph{Groups are defined in baselines.} 
 We are defining the groups in the baseline version, since a group is a structural component. Note that the default group will be used in the subsequent sections. Here the default group mentions that the two packages 'CoolBrowser-Core' and 'CoolBrowser-Addons' will be loaded when the method \ct{load} is used.
 
 Using this baseline, we can now define version \ct{0.6} to be the same as version\ct{0.5}, except for the addition of the new package \ct{CoolBrowser-AddonsTests}.
@@ -606,6 +607,17 @@ In the presence of a \ct{'default'} group, how do you load all the packages of a
 (ConfigurationOfCoolBrowser project version: '0.6') load: 'ALL'.
 \end{code}
  
+\subsection{About Core, Tests and default}
+
+We often get at least two groups in a configuration: \ct{'Core'} (the real code) and the \ct{'Tests'} (the associated tests).  The question is what should be loaded by the \ct{'default'} group (remember, this is what gets loaded when you do not specify anything in the dependency).
+
+By saying \ct{spec group: 'default' with: #('Core')} we say that by default we do not load tests. 
+
+Now if we do not specify any 'default', it will take by default everything, hence it will be equivalent in our case with \ct{	spec group: 'default' with: #('Core' 'Tests')}
+
+We believe that by default it is good to load the tests as well. This is why, either we explicitly put the \ct{'Tests'} group in the \ct{'default'} group, or we do not specify a \ct{'default'} at all.
+
+
 
 \section{Dependencies Between Projects}
 
