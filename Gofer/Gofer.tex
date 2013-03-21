@@ -4,6 +4,7 @@
 
 % HISTORY:
 % 2010-05-14 - Jannik started chapter
+% 2013-03-21 - Alexandre did a pass
 
 %=================================================================
 \ifx\wholebook\relax\else
@@ -38,7 +39,7 @@
 \chapter{Gofer: Scripting package loading}
 \chalabel{gofer}
 
-Pharo proposes powerful tools to manage source code such as semantics-based merging, tree diff-merge, and a git-like distributed versioning system. In particular as presented in the Monticello Chapter, Pharo uses a package system named Monticello. In this chapter after a first reminder of the key aspects of Monticello we will show how we can script package using Gofer. Gofer is a simple API for Monticello. Gofer was developed by L. Renggli and further extended by E. Lorenzano and C. Bruni. It is used by Metacello, the language to manage package maps that we present in Metacello Chapter (see~\ref{cha:Metacello)}. 
+Pharo proposes powerful tools to manage source code such as semantics-based merging, tree diff-merge, and a git-like distributed versioning system. In particular as presented in the Monticello Chapter, Pharo uses a package system named Monticello. In this chapter after a first reminder of the key aspects of Monticello we will show how we can script package using Gofer. Gofer is a simple API for Monticello. Gofer was developed by L. Renggli and further extended by E. Lorenzano and C. Bruni. It is used by Metacello, the language to manage package maps that we present in Metacello Chapter (see~\ref{cha:Metacello}). 
 
 
 
@@ -117,7 +118,7 @@ Once \ct{b.1} which was dirty is saved on the server yoursource.com, it is versi
 
 
 \section{What is Gofer?}
-Gofer is a scripting tool for Monticello. It is developed by Lukas Renggli and it is used by Metacello (the map and project management system built on top of Monticello). Gofer supports the easy creation of scripts to load, save, merge, update, fetch ... packages. In addition, Gofer makes sure that operations let the system in a clean state. Gofer allows one to load packages located in different repositories in a single operation, to load the latest stable version or the currently developed version. Gofer is part of basis of Pharo since Pharo 1.0.
+Gofer is a scripting tool for Monticello. It has been developed by Lukas Renggli and it is used by Metacello (the map and project management system built on top of Monticello). Gofer supports the easy creation of scripts to load, save, merge, update, fetch ... packages. In addition, Gofer makes sure that  the system stays in a clean state. Gofer allows one to load packages located in different repositories in a single operation, to load the latest stable version or the currently developed version. Gofer is part of basis of Pharo since Pharo 1.0.
 Metacello uses Gofer as its underlying infrastructure to load complex projects. Gofer is more adapted to load simple package. 
 
 You can ask Gofer to update it itself by executing the following expression: 
@@ -162,10 +163,10 @@ Gofer new
     url: 'http://www.squeaksource.com/PBE2GoferExample'	
     username: 'pharoUser'
     password: 'pharoPwd';     
-    package: 'PBE2GoferExample'; 						"define the package to be loaded"
-    !\textbf{disablePackageCache}!; 							"disable package lookup in local cache"
-    !\textbf{disableRepositoryErrors}!; 					"stop the error raising"
-    load.									"load the package"
+    package: 'PBE2GoferExample'; 		"define the package to be loaded"
+    !\textbf{disablePackageCache}!; 					"disable package lookup in local cache"
+    !\textbf{disableRepositoryErrors}!; 				"stop the error raising"
+    load.													"load the package"
 \end{code}
 
 
@@ -174,7 +175,7 @@ a password is not really adequate. Here is an example for smalltalkHub (which ha
  \url{'http://smalltalkhub.com/mc/StephaneDucasse/Tuio/main'} for the project Tuio). We use the \ct{smalltalkhubUser:project:} message and just specify the minimal information.
 
 \begin{code}{}
-"A script with a user specified but no passwords"
+"Specifying a user but no password"
 Gofer new
     !\textbf{smalltalkhubUser: 'StephaneDucasse' project: 'Tuio'}!;
     package: 'ConfigurationOfTuio';
@@ -182,7 +183,7 @@ Gofer new
 \end{code}
 
 
-Since we often use the same public servers, there are some shortcuts in the API to use them. For example, \ct{squeaksource:} is a shortcut for \ct{http://www.squeaksource.com}.
+Since the same public servers are often used, Gofer's API offers a number of shortcuts to shorten the scripts. For example, \ct{squeaksource:} is a shortcut for \ct{http://www.squeaksource.com}.
 In such a case you do not need to specify the full path as shown with the next snippet:
 
 \begin{code}{}
@@ -262,7 +263,7 @@ Gofer new
     package: 'ConfigurationOfSeaside30'; 
     load.
 
-"Now to load seaside you need to ask its configuration."
+"Now to load seaside you need to ask for its configuration."
 (Smalltalk at: #ConfigurationOfSeaside30) load.
 \end{code}
 
@@ -447,7 +448,7 @@ Gofer new
 
 Now if you want load your packages locally remember to set up that the lookup should consider local cache and disable errors as presented in the beginning of this chapter  (messages  \ct{disableRepositoryErrors} and \ct{enablePackageCache}).
 
-The message \ct{push} performs the inverse operation. It published to the remote server the packages locally available. All the packages that you published locally are then pushed to the server. 
+The message \ct{push} performs the inverse operation. It publishes locally available packages to the remote server. All the packages that you published locally are then pushed to the server. 
 
 \begin{code}{}
 Gofer new
@@ -634,7 +635,7 @@ In this chapter, we introduced how we can script package with Gofer.
 \item The method \ct{url:} supports FTP and local directory access.
 \item The API provides some useful shortcut: \ct{squeaksource:} is a shortcut for \ct{http://www.squeaksource.com}, \ct{wiresong:} for \ct{http://source.wiresong.ca/} and \ct{gemsource:} for \ct{http://seaside.gemstone.com/ss/}.
 \item We can load several packages by calling multiple times the method \ct{package:} before calling \ct{load}.
-\item Once a Gofer instance is parametrized, we can apply different useful actions: \ct{update}, \ct{merge}, \ct{push}, \ldots
+\item Once a Gofer instance is parametrized, one can perform a number of relevant operations: \ct{update}, \ct{merge}, \ct{push}, \ldots
 \end{itemize}
 
 
