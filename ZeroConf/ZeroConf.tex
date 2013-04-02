@@ -33,6 +33,8 @@
 \chapter{Pharo Zero Conf}
 \chapterauthor{Camillo Bruni}
 
+
+\sd{we should revisit the file convention according to the slides}
 Weren't you fed up not be able to install Pharo from a single command line or to pass it arguments? 
 Using a nice debugger and an interactive environment development does not 
 mean that Pharo developers do not value automatic scripts and love command line. Yes we do and we want the best of
@@ -48,7 +50,7 @@ pass argument to the environment from the command-line.
 
 
 
-\section{Getting the latest VM and the Image}
+\section{Getting the VM and the Image}
 First here is a way to download a zero configuration script that downloads a script to download the latest 2.0 Pharo image and vm. 
 
 \begin{code}{}
@@ -100,7 +102,7 @@ Yes we believe in automated tasks that free our energy.
 
 
 
-\section{Getting the latest VM only}
+\section{Getting the VM only}
 You can also use different scripts. For example \ct{ciPharoVM.sh} only downloads the latest vm.
 
 \begin{code}{}
@@ -126,6 +128,14 @@ Figure~\ref{fig:website} shows the list of scripts available that you can get at
 	\includegraphics[width=\textwidth]{webSite}
 	\caption{All the scripts are available at \ct{http://pharo.gforge.inria.fr/ci/script/} \label{fig:website}.}
 \end{figure}
+
+
+
+\subsection{Getting the latest version}
+
+@@STEf@@
+
+
 
 
 \section{The scripts}
@@ -300,22 +310,38 @@ Now the handler is defined as follows: First we define a subclass of CommandLine
 \ct{BasicCodeLoader} is a subclass of \ct{CommandLineHandler} and \ct{EvaluateCommandLineHandler} is a subclass of \ct{BasicCodeLoader}.
 
 \begin{code}{}
-BasicCodeLoader subclass: #EvaluateCommandLineHandler	instanceVariableNames: ''	classVariableNames: ''	poolDictionaries: ''	category: 'System-CommandLine'
+BasicCodeLoader subclass: #EvaluateCommandLineHandler
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'System-CommandLine'
 \end{code}
 
 Then we define the \ct{commandName} on the class side as well as the method \ct{isResponsibleFor:}.
 
 \begin{code}{}
-EvaluateCommandLineHandler class>>commandName	^ 'eval'
+EvaluateCommandLineHandler class>>commandName
+	^ 'eval'
 
-EvaluateCommandLineHandler class>>isResponsibleFor: commandLineArguments	"directly handle top-level -e and --evaluate options"	commandLineArguments withFirstArgument: [ :arg| 		(#('-e' '--evaluate') includes: arg)			ifTrue: [ ^ true ]].		^ commandLineArguments includesSubCommand: self commandName
+EvaluateCommandLineHandler class>>isResponsibleFor: commandLineArguments
+	"directly handle top-level -e and --evaluate options"
+	commandLineArguments withFirstArgument: [ :arg| 
+		(#('-e' '--evaluate') includes: arg)
+			ifTrue: [ ^ true ]].
+	
+	^ commandLineArguments includesSubCommand: self commandName
 
-EvaluateCommandLineHandler class>>description	^ 'Directly evaluates passed in one line scripts'
+EvaluateCommandLineHandler class>>description
+	^ 'Directly evaluates passed in one line scripts'
 \end{code}
 
 Then we define the method \ct{activate} which will be executed when the option matches. 
 \begin{code}{}
-EvaluateCommandLineHandler>>activate	self activateHelp.	self arguments ifEmpty: [ ^ self evaluateStdIn ].	self evaluateArguments.	self quit.
+EvaluateCommandLineHandler>>activate
+	self activateHelp.
+	self arguments ifEmpty: [ ^ self evaluateStdIn ].
+	self evaluateArguments.
+	self quit.
 \end{code}
 
 In particular we define a class comment since this is this class comment that will be printed when the help is requested. 
