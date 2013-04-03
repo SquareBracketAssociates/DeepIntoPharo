@@ -751,7 +751,7 @@ Using 'ALL' will cause the entire \ct{CoolBrowser} project to be loaded before \
 If we wanted to specify dependencies on CoolBrowser's test package separately from those on the core package, we might define this baseline:
 
 \begin{code}{}
-ConfigurationOfCoolToolSet >>baseline02: spec
+ConfigurationOfCoolToolSet>>baseline02: spec
        <version: '0.2-baseline'>
        spec for: #common do: [
               spec blessing: #baseline.
@@ -772,7 +772,7 @@ ConfigurationOfCoolToolSet >>baseline02: spec
                             spec !\textbf{requires: \#('CoolToolSet-Core'  'CoolBrowser Tests')}! ].].
 \end{code}
 
-This baseline creates \emph{two} project references: the reference named \ct{CoolBrowser default} loads the \ct{default} group and the reference named 'CoolBrowser Tests'  loads the 'Tests' group of the configuration of CoolBrowser. We declared that \ct{CoolToolSet-Core} requires \ct{CoolBrowser default} and \ct{CoolToolSet-Tests} require \mbox{\ct{CoolToolSet-Core}} and \ct{CoolBrowser Tests}. Note also the use of \ct{requires:} with a collection of dependent projects.
+This baseline creates \emph{two} project references: the reference named \ct{CoolBrowser default} loads the \ct{default} group and the reference named 'CoolBrowser Tests'  loads the 'Tests' group of the configuration of CoolBrowser. We declare that \ct{CoolToolSet-Core} requires \ct{CoolBrowser default} and \ct{CoolToolSet-Tests} requires \mbox{\ct{CoolToolSet-Core}} and \ct{CoolBrowser Tests}. Note also the use of \ct{requires:} with a collection of dependent projects.
 
 Now it is possible to load just the core packages:
 
@@ -786,7 +786,8 @@ or the tests (which will also load the core):
   (ConfigurationOfCoolToolSet project version: '0.2') load: 'CoolToolSet-Tests'.
 \end{code}
 
-As we did for internal dependencies, baseline \ct{02-baseline} (and also in \ct{01-baseline}) does not specify the version of the project it depends on. Instead, we do this in the version method using the message \mthind{project:with:}:
+As we did for internal dependencies, baseline \ct{0.2-baseline} (and also in \ct{0.1-baseline}) does not specify the version of the project the configuration depends on. Instead, we do this in the version method using the message \mthind{project:with:}{project:with:}.
+
 %\sd{It would be nice to have a clear message that project: with: may  be project:version: and to rename versionString: as version:}
 \begin{code}{}
 ConfigurationOfCoolToolSet>>version02: spec
