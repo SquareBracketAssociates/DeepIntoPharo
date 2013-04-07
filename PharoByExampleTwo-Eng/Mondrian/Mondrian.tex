@@ -293,17 +293,16 @@ The easel is a tool in which users may interactively and incrementally build a v
 We will first use Mondrian in its easiest way, by using the easel. To open an easel, you can either use the World menu (it should contains the entry ``Mondrian Easel'') or execute the expression:
 
 \begin{code}{}
-MOEasel open.
+ROEaselMorphic open.
 \end{code}
 
-\sd{to change}
 
 In the easel you have just opened, you can see two panels: the one on top is the visualization panel, the second one is the script panel. In the script panel, enter the following code and press the \emph{generate} button:
 
 \begin{code}{}
 view nodes: (1 to: 20).
 \end{code}
-\begin{center}\includegraphics[scale=0.45]{picture1}\end{center}
+\begin{center}\includegraphics[scale=0.3]{picture1}\end{center}
 
 You should see in the top pane 20 small boxes lined up in the top left corner. You have just rendered the numerical set between 1 and 20. Each box represents a number. The amount of interaction you can do is quite limited for now. You can only drag and drop a number and get a tooltip that indicates its value. We will soon see how to define interactions. For now, let us explore the basic drawing capabilities of Mondrian.
 
@@ -694,7 +693,7 @@ A subview contains its own layout. Interactions and shapes defined in a subview 
 Method of the visualization given in the previous section may be moved by a simple drag and drop. However, it may be wished that the methods have a fixed position, and only the classes can be drag-and-dropped. In that case, the message \ct{forward} has to be sent to the interaction. Consider:
 
 \begin{code}{}
-view nodes: MOShape withAllSubclasses forEach: [:cls |
+view nodes: ROShape withAllSubclasses forEach: [:cls |
 	view interaction forward.
 	view shape rectangle 
 					size: #numberOfLinesOfCode.
@@ -713,7 +712,7 @@ Moving a method will move the class instead. It is often convenient to drag and 
 
 \section{Events}
 
-Each mouse movement, click and keyboard keystroke corresponds to a particular event. Mondrian offers a rich hierarchy of events. The root of the hierarchy is MOEvent. To associate a particular action to an event, an handler has to be defined on the object interaction. On the following example, double clicking on a class opens a code browser:
+Each mouse movement, click and keyboard keystroke corresponds to a particular event. Mondrian offers a rich hierarchy of events. The root of the hierarchy is MOEvent. To associate a particular action to an event, an handler has to be defined on the object interaction. On the following example, clicking on a class opens a code browser:
 
 \begin{code}{}
 view shape rectangle
@@ -722,9 +721,8 @@ view shape rectangle
   if: #isAbstractClass fillColor: Color lightRed;
   if: [:cls | cls methods anySatisfy: #isAbstract ] fillColor: Color red.
   
-view interaction on: MOMouseDouble do: [ :ann | 
-  ann modelElement browse
-].
+view interaction on: ROMouseClick do: [ :event | event model browse ].
+
 view nodes: Collection withAllSubclasses.
 view edgesFrom: #superclass.
 view treeLayout.
@@ -793,6 +791,17 @@ view node: 'compound' forIt: [
 
 
 The script contains two parts. The first part is the ubiquitous system complexity of the collection framework.  The second part renders the tests contained in the CollectionsTests. The width of a class is the number of literals contained in it. The height is the number of lines of code. Since the collection tests makes a great use of traits to reuse code, these metrics have to be scaled down. When the mouse is put over a test unit, then all the classes of the collection framework referenced in this class are highlighted. 
+
+Displaying edges when overing a particular node is a recurrent problem in visualization. The method \ct{dynamicEdge:using:} is offered for that purpose. The following example draw arrowed lines from an element to the two others:
+
+\begin{code}{}
+view interaction 
+	dynamicEdge: [ :model | (Array with: 10 with: 20 with: 30) copyWithout: model ]
+	using: (ROLine arrowed color: Color red).
+view shape rectangle size: 20.
+view nodes: (Array with: 10 with: 20 with: 30).
+view circleLayout.
+\end{code}
 
 %=====================
 
