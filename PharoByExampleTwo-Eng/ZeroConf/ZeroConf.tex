@@ -33,23 +33,21 @@
 \chapter{Pharo Zero Conf}
 \chapterauthor{Camillo Bruni}
 
-
 \sd{we should revisit the file convention according to the slides}
 \sd{should talk about  http://get.pharo.org }
-Weren't you fed up not be able to install Pharo from a single command line or to pass it arguments? 
+Weren't you fed up not be able to install Pharo from a single command line or to pass it arguments? \alex{Frankly not really. Why would I want this? I think you should describe a typical scenario, it would help. I install all my application on OSX by drag and dropping icons. Why should I use the terminal instead?}
 Using a nice debugger and an interactive environment development does not 
 mean that Pharo developers do not value automatic scripts and love the command line.
 Yes we do and we want the best of both worlds!
-Since Pharo 2.0, Pharo supports a way to define and handle command line arguments. 
-We will present that in this chapter. 
+Since \chg{Pharo} version 2.0, Pharo supports a way to define and \chg{handle}{access?} command line argument\ins{s}.  \chg{We will present that in this chapter. }{This is what this chapter is about}
 
 We really wanted it to free our mind of retaining arbitrary information. 
-A zero configuration is a script that automatically downloads everything you need to get started. 
+A zero configuration is a script that automatically downloads \ins{and installs?} everything you need to get started. 
 
-In this chapter we will show how to get the zeroconf scripts for Pharo as well as how you can pass argument to the environment from the command-line.
+\chg{In this chapter we will}{This chapter} show\ins{s} how to get the zeroconf scripts for Pharo as well as how you can pass argument to the environment from the command-line.
 
 
-
+%:==========
 \section{Getting the VM and the Image}
 First here is a way to download a zero configuration script that downloads a script to download the latest 2.0 Pharo image and vm. 
 
@@ -67,7 +65,9 @@ We suggest you also to have a look at the script help.
 bash 20+vm --help 
 \end{code}
 
-What the help mentions is that the script will download the current vm and put it into the pharo-vm folder, \ct{pharo} a script to launch the system, \ct{pharo-ui} a script to launch the image in ui mode.
+\alex{Why do I need to use the bash command? Why not simply ./20+vm --help ?}
+
+\chg{What the help mentions is that the script will}{The help says that the \ct{20+vm} command} download\ins{s} the current \chg{vm}{virtual machine} \del{and put it} into the pharo-vm folder, \ct{pharo} a script to launch the system, \ct{pharo-ui} a script to launch the image in ui mode.
 
 \begin{code}{Output of 20+vm --help }
 This script downloads the latest Pharo 20 Image.
@@ -91,7 +91,7 @@ wget -O - get.pharo.org/20+vm | bash
 \end{code}
 
 The option \ct{-O -} will output the downloaded bash file to standard out, so we can pipe it to \ct{bash}.
-If you do not like the log of web, use \ct{--quiet}.
+If you do not like the log of web, use \ct{--quiet}\alex{Is this really important? In which case I may not like the logging?}.
 
 \begin{code}{}
 wget --quiet -O - http://files.pharo.org/script/ciPharo20PharoVM.sh | bash
@@ -152,7 +152,7 @@ but you should get the idea.
 # stop the script if a single command fails
 set -e 
 
-# ARHUMENT HANDLING ===========================================================
+# ARGUMENT HANDLING ===========================================================
 
 if { [ "$1" = "-h" ] || [ "$1" = "--help" ]; }; then
     echo "This script will download the latest Pharo 2.0 image and VM
@@ -174,12 +174,12 @@ wget --quiet -qO - http://pharo.gforge.inria.fr/ci/script/ciPharo20.sh | bash
 \end{verbatim}
 \end{scriptsize}
 
-Now that you get ready to launch Pharo nearly everywhere, let us look at the way you 
+Now that you get ready to launch Pharo nearly everywhere\ab{I am not sure what you mean by launching Pharo everywhere?}, let us look at the way you 
 can always script the image from the command-line. 
 
 
 \section{Handling command line options}
-We have now a brand new and nice way to handle command line arguments. It is self documented and really easy to extend. Let us have a look at how the command line is handled. As usual we will start to show you how to find your way alone.
+We have now a brand new and nice way to handle command line arguments. It is self documented and \chg{really easy to extend}{easily extendable}. Let us have a look at how the command line is handled. As usual we will start to show you how to find your way alone.
 
 
 
@@ -220,6 +220,8 @@ M:    NBCoInterpreter NativeBoost-CogPlugin-IgorStasenko.15 uuid: 44b6b681-38f1-
 NBCogit NativeBoost-CogPlugin-IgorStasenko.15 uuid: 44b6b681-38f1-4a9e-b6ee-8769b499576a Dec 18 2012
 git://gitorious.org/cogvm/blessed.git Commit: 452863bdfba2ba0b188e7b172e9bc597a2caa928 Date: 2012-12-07 16:49:46 +0100 By: Esteban Lorenzano <estebanlm@gmail.com> Jenkins build #5922
 \end{code}
+
+\ins{The \ct{--version} argument gives the version of the virtual machine. If you wish to obtain the version of the image, then you need to open the image, use the World menu, and select About}.
 
 \paragraph{List of available handlers.} The command line option \ct{--list} is interesting since it give you the list of the \emph{current} option handlers. This is list depends on the handlers that are currently loaded in the system. In particular it means that you can simply add an handler to handler your specific situation and wishes.
 
