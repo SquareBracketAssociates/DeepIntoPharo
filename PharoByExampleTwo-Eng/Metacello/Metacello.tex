@@ -1243,7 +1243,7 @@ In addition, the addons and tests are not available for Gemstone, and thus, thos
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Symbolic Versions}
+\section{Milestoning Development: Symbolic Versions}
 In any large evolving application, it is difficult to know which version of a configuration to use with a specific version.
 \ct{ConfigurationOfOmniBrowser} provides a good example of the problem: version 1.1.3 is used in the Pharo1.0 one-click image,  version 1.1.3 cannot be loaded into Pharo1.2, version 1.1.5 is for Pharo1.1, version 1.2.3 is for Pharo1.2, and it cannot load in Pharo1.0, etc.
 
@@ -1304,7 +1304,7 @@ A couple of standard symbolic versions are defined:
 
 \begin{description}
 \item[stable.] A symbolic version that specifies the stable literal version for a particular platform and version of such a platform. The stable version is the version that should be used for loading. With the exception of the \ct{bleedingEdge} version (which has a pre-defined default defined%\sd{what does it means: that default load the bleedingEdge?})
-, you will need to edit your configuration to add the \ct{stable} or \ct{development} version information. \emph{I want a certified version for the platform.}
+, you will need to edit your configuration to add the \ct{stable} or \ct{development} version information. \emph{I want a certified version for the platform.} Now pay attention because if you rely on a stable version of a package it does not mean that the package cannot change. Indeed the package implementor may produce a new version that may be incompatible with your system. 
 
 \item[development.] A symbolic version that specifies the literal version to use under development (i.e., whose blessing is \ct{development}). Typically a \ct{development} version is used by developers for managing pre-release activities as the project transitions from \ct{bleedingEdge} to \ct{stable}. %There are a number of \ct{MetacelloToolBox} methods that take advantage of the \ct{development} symbolic version.
 It means: \emph{I want a certified version for the platform but in development mode.}
@@ -1362,7 +1362,7 @@ development: spec
        spec for: #'common' version: #stable
 \end{code}
 
-
+\paragraph{Warning.} Again pay real attention stable is a misleading term. It does not mean that you will load always exactly the same version because the developer of the system you rely on may change the meaning of stable to point to another stable version, but such stable version may be introduce incompatibility with your own code. So when you release your code you should use a specific version to be sure that you will not get impacted by other changes. 
 
 %%%%%%%%%
 \subsection{Project Blessing and Loading}
