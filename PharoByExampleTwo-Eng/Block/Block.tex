@@ -52,7 +52,9 @@ However the dynamic runtime semantics of Smalltalk is often not well documented.
 
 In this chapter we present some basic block behavior such as the notion of static environments defined at block compile-time. To understand blocks, we describe how  a program executes.
 
+% ============================================================================
 \section{Basics}
+% ============================================================================
 
 What is a block? Historically, a block is a lambda expression, also called an anonymous function. A block is a piece of code whose execution is frozen and kicked in using messages. Blocks are defined by square brackets.
 
@@ -130,10 +132,9 @@ Some messages are related to process scheduling. We list the most important ones
 \end{description}
 
 
-
-
-
+% ============================================================================
 \section{Variables and Blocks}
+% ============================================================================
 A block can have its own temporaries variables, such variables are initialized during each block execution and are local to the block. Now the question we want to make clear is what is happening when a block refers to other (non local) variables. Later, for the curious, we will present how local variables are implemented and stored.
 
 In Pharo, private variables (such as self, instance variables, method temporaries and arguments) are lexically scoped. These variables are bound (get a value associated to them) in \emph{the context (a stack frame)} in which the block that contains them is \emph{defined}, rather than the context in which the block is executed.  Traditionally, the context in which a block is defined is named the \emph{block home context}.
@@ -300,7 +301,9 @@ Bexp>>testScopeSelf
 Now when we execute \ct{Bexp new testScopeSelf}, you get \ct{a Bexp123} printed in the Transcript, showing that a block captures self too, since an instance of Bexp2 executed the block but the printed object (self) is the original Bexp instance that was accessible at the block creation time.
 
 
+% ============================================================================
 \section{Variables can outlive their defining method}
+% ============================================================================
 
 Non block local variables referred to by a block continue to be accessible and shared with other expressions even if the method execution terminated. We say that the variables outlive the method execution that defined them.
 Let us take some examples.
@@ -358,7 +361,9 @@ In the previous code snippet when the expressions \ct{res second value} and \ct{
 At the implementation, you can see from this example, that while temporary variable are somehow stored in an activation context, it is a bit more subtle than that. The block implementation needs to keep referenced variables in a structure that is not the execution stack but lives on the heap. We will go in more details in a following section.
 
 
+% ============================================================================
 \section{Returning from inside a block}
+% ============================================================================
 It is really not a good idea to have return statement in a block such as \ct{[^ 33]} that you pass or store into instance variables and we will explain why in this section. A block with explicit return statement is called a non-local returning block. Let us start illustrating some basic points first.
 
 \subsection{Basics on return}
@@ -545,56 +550,9 @@ Bexp new returnBlock value
 When we execute returnBlock, the method return the block to its caller (here the top level execution). Then when executing the block, it should return to its home context sender but the method execution already terminated, therefore this is an error.
 
 
-
-
-\section{Opening the Trunk}
-\ja{it seems the two following sections are not at the good place. Maybe not the same chapter. I propose to put them at the beginning of the chapter. Like that we can explain how context works and then explain the block behavior}
-The Virtual Machine represents execution state as context objects, one per method or block currently executed (or activated). In Pharo, method and block activations are represented by MethodContext instances.
-We will explain contexts as well as method execution to finish by block closure execution.
-
-
-
-
-\subsection{Sending a Message}
-Let us look at what happens when we send a message.
-
-
-
-
-
-To send a message to a receiver, the VM has to:
-
-\begin{enumerate}
-\item Find the class of the receiver using the receiver object's header.
-\item Lookup the method in the class methodDictionary. If the method is not found, repeat this lookup in superclasses. When no class in the superclass chain can understand the message, send the message \ct{doesNotUnderstand:} to the receiver so that the error can be handled in a manner appropriate to that object.
-
-\item Extract the appropriate compiled method from the method dictionary where the message was found and then
-\begin{enumerate}
-\item check for a primitive associated with the method by reading the method header
-\item if there is a primitive, execute it.
-\item if it completes successfully, return the result object directly to the message sender.
-\item otherwise, continue as if there was no primitive called and pass to step 4.
-\end{enumerate}
-\item Create a new activation record. Set up the program counter, stack pointer,
-home contexts, then copy the arguments and receiver from the message sending context's stack to the new stack.
-\item Activate that new context and start executing the instructions in the new method.
-\end{enumerate}
-
-When a message is sent, computation state may have to be changed to execute a different compiled method in response to this new message. The execution old state must be remembered because the instructions after the message send must be executed after the value of the message is returned.
-The execution saves its state in objects called contexts. There will be many contexts in the system at any one time. The context that represents the current state of execution is called the active context.
-
-When a message send happens in the active context, the active context becomes suspended and a new context is created and made active. The suspended context retains the state associated with the original compiled method until that context becomes active again. A context must remember the context that it suspended so that the suspended context can be resumed when a result is returned. The suspended context is called the new context's sender.
-
-Contexts are objects representing a given execution state also called activation record, like a C stack represents execution of a C program. Contexts maintain the program counter and stack pointer, holding pointers to the sending context, the method for which this is appropriate, etc. A MethodContext represents an executing method, it points back to the context from which it was activated, holds onto its receiver and compiled method.
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=8cm]{MethodAndMethodContext}
-\end{center}
-\end{figure}
-
-\sd{until here}
+% ==========================================================================
 \section{Context: Representing Method Execution}
+% ============================================================================
 Imagine that we have a simple method as the following one.
 
 \begin{code}{}
@@ -696,7 +654,7 @@ Bexp>>twoTempsOneArg: arg
 	"self new twoTempsOneArg: 33"
 	| temp1 temp2 |
 	temp1 := temp2 := arg.
-	thisContext inspect.
+	thisContext copy inspect.
 	^ temp1
 \end{code}
 
@@ -713,17 +671,13 @@ ContextPart>>arguments
 \end{code}
 
 
-
-
-
-
 \subsection{Invoking Another Method}
 \begin{code}{}
 Bexp>>first: arg
 
 	| temp |
 	temp := arg *2.
-	thisContext inspect.
+	thisContext copy inspect.
 	self second: temp.
 
 Bexp>>second: arg2
@@ -737,14 +691,9 @@ In the inspector, you can access the temporary variable of method first: using t
 
 
 
-
-
-
-
-
+% ============================================================================
 \section{Closures}
-
-
+% ============================================================================
 \begin{code}{}
 #(1 2 3) inject: 0 into: [:sum :each | sum + each]
 \end{code}
@@ -762,7 +711,7 @@ inject: thisValue into: binaryBlock
 
 
 
-Lexical closure is a concept introduced by SCHEME in 70s. Scheme uses lambda expression which is basically an anonymous function (such the block). But using anonymous function implies to connect it to the current execution context. This  why the lexical closure is important because it define when variables of block are bound to the execution context \ja{redo this sentence}. The variable is depending of the scope where it's define. Let's illustrate that :
+Lexical closure is a concept introduced by SCHEME in 70s. Scheme uses lambda expression which is basically an anonymous function (such the block). But using anonymous function implies to connect it to the current execution context. This  why the lexical closure is important because it define when variables of block are bound to the execution context \ja{redo this sentence}. The variable is depending of the scope where it is defined. Let's illustrate that :
 
 \begin{code}{}
 blockLocalTemp
@@ -840,12 +789,106 @@ and this is why it returns 4 and not 0 because.
 
 
 
-	\subsection{Handling Temporary Variables}
-\sd{to rewrite}
+% ============================================================================
+\section{Opening the Trunk}
+% ============================================================================
+\ja{it seems the two following sections are not at the good place. Maybe not the same chapter. I propose to put them at the beginning of the chapter. Like that we can explain how context works and then explain the block behavior}
+The Virtual Machine represents execution state as context objects, one per method or block currently executed (or activated). In Pharo, method and block activations are represented by MethodContext instances.
+We will explain contexts as well as method execution to finish by block closure execution.
 
-\paragraph{Temporary Variables.}
-Temporary variables are created for a particular execution of a CompiledMethod and cease to exist when the execution is complete. The CompiledMethod indicates to the interpreter how many temporary variables will be required. The arguments of the invoking message and the values of the temporary variables are stored together in the temporary frame (method context???). The arguments are stored first and the temporary variable values immediately after.
 
+
+
+\subsection{Sending a Message}
+Let us look at what happens when we send a message.
+
+To send a message to a receiver, the VM has to:
+
+\begin{enumerate}
+\item Find the class of the receiver using the receiver object's header.
+\item Lookup the method in the class methodDictionary. If the method is not found, repeat this lookup in superclasses. When no class in the superclass chain can understand the message, send the message \ct{doesNotUnderstand:} to the receiver so that the error can be handled in a manner appropriate to that object.
+
+\item Extract the appropriate compiled method from the method dictionary where the message was found and then
+\begin{enumerate}
+\item check for a primitive associated with the method by reading the method header
+\item if there is a primitive, execute it.
+\item if it completes successfully, return the result object directly to the message sender.
+\item otherwise, continue as if there was no primitive called and pass to step 4.
+\end{enumerate}
+\item Create a new activation record. Set up the program counter, stack pointer,
+home contexts, then copy the arguments and receiver from the message sending context's stack to the new stack.
+\item Activate that new context and start executing the instructions in the new method.
+\end{enumerate}
+
+When a message is sent, computation state may have to be changed to execute a different compiled method in response to this new message. The execution old state must be remembered because the instructions after the message send must be executed after the value of the message is returned.
+The execution saves its state in objects called contexts. There will be many contexts in the system at any one time. The context that represents the current state of execution is called the active context.
+
+When a message send happens in the active context, the active context becomes suspended and a new context is created and made active. The suspended context retains the state associated with the original compiled method until that context becomes active again. A context must remember the context that it suspended so that the suspended context can be resumed when a result is returned. The suspended context is called the new context's sender.
+
+Contexts are objects representing a given execution state also called activation record, like a C stack represents execution of a C program. Contexts maintain the program counter and stack pointer, holding pointers to the sending context, the method for which this is appropriate, etc. A MethodContext represents an executing method, it points back to the context from which it was activated, holds onto its receiver and compiled method.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=8cm]{MethodAndMethodContext}
+\end{center}
+\end{figure}
+
+\subsection{Remote Variables in Blocks}
+Temporaries and arguments for Blocks are handled the same way as in Methods.
+Arguments are passed on the stack and temporaries are held in the corresponding context.
+However a block can access more variables than a simple method.
+It is possible to refer to arguments and temporaries from the enclosing method.
+As you have seen before, blocks can be passed around freely and activated any time later.
+Even in this case the block can access and modify the variables from the method it was defined in.
+
+
+\subsection{Real Closures with MethodContext and BlockContext}
+% explain first everything with custom block- and method-contexts
+% then section about VM stack mapping
+% then explanation of the temp vector with examples
+% then read temp optimization
+% temp at put indirection
+
+\subsection{Optimizing the Stack in the VM}
+
+\subsection{Reading Remote Variables in a TemporaryVector}
+The following example defines a block that read a temporary variable from its enclosing block.
+\begin{code}{}
+exampleReadInBlock
+    | readOnlyInBlock |
+    readOnlyInBlock := #readOnlyInBlock.
+    ^ [ readOnlyInBlock ] value
+\end{code}
+
+
+
+\subsection{Optimizing read-only Temporaries accessed from a Block}
+The bytecodes for this method look as follows.
+\begin{code}{}
+pushConstant: #readOnlyInBlockpopIntoTemp: 0pushTemp: 0
+closureNumCopied: 1 numArgs: 0 bytes 24 to 25pushTemp: 0blockReturn
+send: valuereturnTop
+\end{code}
+
+
+\subsection{More Examples}
+\begin{code}{}
+exampleWrittenInBlock
+    | writtenInBlock |
+    [ writtenInBlock := #foo ] value.
+    ^ writtenInBlock
+\end{code}
+
+\begin{code}{}
+exampleTempNamedPut
+    | externalViciouslyWritten |
+    externalViciouslyWritten := #external.
+    [ thisContext tempNamed: #externalViciouslyWritten put: #internal. externalViciouslyWritten ] value.
+    ^ externalViciouslyWritten
+\end{code}
+
+% too many arguments for blocks
+% 
 
 
 
@@ -909,7 +952,7 @@ Temporary variables are created for a particular execution of a CompiledMethod a
 %
 %
 %or...
-%
+%+
 %
 %| last home indent |
 %last := nil.
@@ -946,7 +989,8 @@ Temporary variables are created for a particular execution of a CompiledMethod a
 %
 
 
+% ============================================================================
 \section{Chapter conclusion}
-
+% ============================================================================
 
 We want to thank Ben Coman for his english corrections and Eliot Miranda for the discussions and explanations about his implementation of fast closure for Squeak and Pharo. We thank Norbert Hartl for his feedback.
