@@ -827,11 +827,11 @@ When a message send happens in the active context, the active context becomes su
 
 Contexts are objects representing a given execution state also called activation record, like a C stack represents execution of a C program. Contexts maintain the program counter and stack pointer, holding pointers to the sending context, the method for which this is appropriate, etc. A MethodContext represents an executing method, it points back to the context from which it was activated, holds onto its receiver and compiled method.
 
-\begin{figure}
-\begin{center}
-\includegraphics[width=8cm]{MethodAndMethodContext}
-\end{center}
-\end{figure}
+%\begin{figure}
+%\begin{center}
+%\includegraphics[width=8cm]{MethodAndMethodContext}
+%\end{center}
+%\end{figure}
 
 \subsection{Remote Variables in Blocks}
 Temporaries and arguments for Blocks are handled the same way as in Methods.
@@ -843,11 +843,20 @@ Even in this case the block can access and modify the variables from the method 
 
 
 \subsection{Real Closures with MethodContext and BlockContext}
-% explain first everything with custom block- and method-contexts
-% then section about VM stack mapping
-% then explanation of the temp vector with examples
-% then read temp optimization
-% temp at put indirection
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=12cm]{BlockWithFullClosures}
+\end{center}
+\end{figure}
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=12cm]{BlockWithMethodContext}
+\end{center}
+\end{figure}
+
 
 \subsection{Optimizing the Stack in the VM}
 
