@@ -844,21 +844,49 @@ Even in this case the block can access and modify the variables from the method 
 
 \subsection{Real Closures with MethodContext and BlockContext}
 
-\begin{figure}
+Let us consider the example shown in the following picture.
+
+\begin{figure}[H]
 \begin{center}
 \includegraphics[width=12cm]{BlockWithFullClosures}
 \end{center}
 \end{figure}
 
+The \ct{temp} variable used in the block the \ct{exampleReadInBlock} method is a remote variable.
+\ct{temp} is initialized and changed in the method body and later on read in the block.
+The actual value of the variable is not stored in the block context but in the defining method context, also known as home context.
+In a typical implementation the home context of a block is accessed through its closure.
+This approach works well if all objects are first-class objects, including the methods and block context.
+Blocks can be evaluated outside their home context and still refer to remote variables.
+Hence all home contexts might outlive the method activation. \cb{cannot-return example is missing here}
 
-\begin{figure}
+\subsection{Optimizing the Stack in the VM}
+The previously mentioned approach for block contexts has disadvantages from a low-level point of view.
+If method and block contexts are normal objects that means they have to be garbage collected at some point.
+Combined with the typical coding practice of using small methods that call many other objects Smalltalk system generate a lot of contexts.
+
+The most efficient way to deal with method contexts is to not create them at all.
+At the VM this is done by using real stack frames.
+Method contexts can be easily mapped to stack frames: whenever we call a method we create a new frame, whenever we return from a method we delete the current frame.
+In that matter Smalltalk is not different from C.
+This means whenever we return from a method the method context / stack frame is immediately removed.
+Hence no high-level garbage collection is needed. \cb{maybe explain a bit more how the stack frames work in C}
+However using the stack gets much more complicated when we have to support blocks.
+
+As we mentioned before, methods contexts that are used as home contexts might outlive their activation.
+If method contexts work as they did up to now we would to check each time for home contexts if a stack frame is removed.
+This comes with a big performance penalty.
+Hence the next step in using a stack for contexts is to make sure method contexts can be safely removed when we return from a method.
+
+The following example shows how remote variables are no longer directly stored in the home context but in a separate remote array.
+
+\begin{figure}[H]
 \begin{center}
 \includegraphics[width=12cm]{BlockWithMethodContext}
 \end{center}
 \end{figure}
 
 
-\subsection{Optimizing the Stack in the VM}
 
 \subsection{Reading Remote Variables in a TemporaryVector}
 The following example defines a block that read a temporary variable from its enclosing block.
@@ -874,9 +902,16 @@ exampleReadInBlock
 \subsection{Optimizing read-only Temporaries accessed from a Block}
 The bytecodes for this method look as follows.
 \begin{code}{}
-pushConstant: #readOnlyInBlockpopIntoTemp: 0pushTemp: 0
-closureNumCopied: 1 numArgs: 0 bytes 24 to 25pushTemp: 0blockReturn
-send: valuereturnTop
+pushConstant: #readOnlyInBlock
+popIntoTemp: 0
+pushTemp: 0
+
+closureNumCopied: 1 numArgs: 0 bytes 24 to 25
+pushTemp: 0
+blockReturn
+
+send: value
+returnTop
 \end{code}
 
 
