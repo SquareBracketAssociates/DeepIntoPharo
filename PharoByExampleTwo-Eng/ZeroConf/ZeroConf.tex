@@ -35,6 +35,9 @@
 
 \sd{we should revisit the file convention according to the slides}
 \sd{should talk about  http://get.pharo.org }
+The file does not latex anymore!!!!!!!!!
+
+
 Weren't you fed up not be able to install Pharo from a single command line or to pass it arguments? \alex{Frankly not really. Why would I want this? I think you should describe a typical scenario, it would help. I install all my application on OSX by drag and dropping icons. Why should I use the terminal instead?}
 Using a nice debugger and an interactive environment development does not 
 mean that Pharo developers do not value automatic scripts and love the command line.
@@ -398,3 +401,64 @@ As conclusion, you have now tools to quickly create UIs and to reuse them. Since
 %%% TeX-PDF-mode: t
 %%% ispell-local-dictionary: "english"
 %%% End:
+
+Last tuesday I presented the new zeroconf scripts for Pharo at the pharoconf in Bern.
+From now on please use the new scripts located at http://get.pharo.org.
+
+-----------------------------------------------------------------------------------
+Example:
+========
+The scripts work the same way as before:
+
+Load the stable Pharo version with a VM:  wget -qO - get.pharo.org       | bash
+Load Pharo 3.0 with a VM:                 wget -qO - get.pharo.org/30+vm | bash
+Load only a Pharo 3.0 image:              wget -qO - get.pharo.org/30    | bash
+
+If you do not have wget installed you can use `curl -L` instead of `wget -qO -`.
+
+=> All the jobs at http://ci.inria.fr/rmod already use the new scripts
+
+Details:
+========
+There is a plethora of configurations available. The URL for each script can
+be easily build from an image version and a vm:
+	get.pharo.org/$IMAGE +$VM
+Of course one can just download an image as well
+	get.pharo.org/$IMAGE
+or just the VM
+	get.pharo.org/$VM
+
+Possible values for $IMAGE are:           12 13 14 20 30 stable alpha
+Possible values for $VM are:              vm vmS vmLatest vmSLatest
+
+vmS and vmSLatest are not yet supported, but they will point to the PharoS aka 
+StackVM in the future.
+
+Help:
+=====
+
+I will update the zeroconf chapter tomorrow, otherwise you can simply open the url
+of the config script in the browser to get a help message that explains you how to
+use the script and what it downloads.
+
+
+Migration:
+==========
+- Replace http://get.pharo.org/ci*.sh with the proper get.pharo.org/$IMAGE+$VM url
+- Replace ./vm.sh with ./pharo
+- Replace ./vm-ui.sh with ./pharo-ui
+
+Deprecation:
+============
+I will manually mark the existing scripts as deprecated by tomorrow and leave them
+there for a week. If anybody needs some more time I can arrange that of course ;).
+If not all the old scripts will be gone next week!
+
+-----------------------------------------------------------------------------------
+
+This will most probably be the final stage of the zeroconf scripts as I don't see
+much space for improvements anymore ;). Everything is documented, commented and 
+most importantly, managed from within Pharo!
+And proper tests for the scripts are on the way as well ;)
+
+Any questions? Any suggestions?
