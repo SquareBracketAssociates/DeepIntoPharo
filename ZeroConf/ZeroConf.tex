@@ -33,10 +33,6 @@
 \chapter{Zero Configuration Scripts and Command-Line Handlers}
 \chapterauthor{Camillo Bruni}
 
-\sd{we should revisit the file convention according to the slides}
-\sd{should talk about  http://get.pharo.org }
-
-
 Weren't you fed up not be able to install Pharo from a single command line or to pass it arguments? 
 Using a nice debugger and an interactive environment development does not 
 mean that Pharo developers do not value automatic scripts and love the command line.
@@ -310,21 +306,24 @@ Now that we have such scripts and the possibility to specify option, we can writ
 For example here is the command that we use in jenkins for the project XMLWriter (which is hosted on PharoExtras). 
 
 \begin{code}{}
-get --quiet -O - http://files.pharo.org/script/ciPharo20PharoVM.sh | bash
+# jenkins puts all the params after a / in the job name as well :(
+export JOB_NAME=`dirname $JOB_NAME`
 
-./vm.sh Pharo.image save $JOB_NAME --delete-old
+wget --quiet -O - get.pharo.org/$PHARO+$VM | bash
+
+./pharo Pharo.image save $JOB_NAME --delete-old
+./pharo $JOB_NAME.image --version > version.txt
 
 REPO=http://smalltalkhub.com/mc/PharoExtras/$JOB_NAME/main
-./vm.sh $JOB_NAME.image config $REPO ConfigurationOf$JOB_NAME --install=last --group='Tests'
-./vm.sh $JOB_NAME.image test --junit-xml-output "XML-Writer.*"
+./pharo $JOB_NAME.image config $REPO ConfigurationOf$JOB_NAME --install=$VERSION --group='Tests'
+./pharo $JOB_NAME.image test --junit-xml-output "XML-Writer-.*"
 
 zip -r $JOB_NAME.zip $JOB_NAME.image $JOB_NAME.changes
 \end{code}
 
-
-
 \section{Conclusion}
-As conclusion, you have now tools to quickly create UIs and to reuse them. Since the reuse is really a strong value for specs, keep in mind that your tools can be reused. So do not forget to provide a proper API for it.
+You can now really easily get access to the latest version of Pharo and build scripts. In addition the 
+command-line handler opens new horizons to be used in shell scripts.
 
 %=========================================================
 \ifx\wholebook\relax\else
