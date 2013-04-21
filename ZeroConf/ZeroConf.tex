@@ -53,19 +53,18 @@ First here is a way to download a zero configuration script that downloads a scr
 wget get.pharo.org/20+vm
 \end{code}
 
-%Note that \url{get.pharo.org} is an alias for \url{pharo.gforge.inria.fr/ci}. 
 If you do not have \ct{wget} installed you can use \ct{curl -L} instead.
 
 To execute the script that we just downloaded, you should change its permissions using \ct{chmod a+x}  or invoke it via bash as follows. 
-We suggest you also to have a look at the script help.
+
+Now let's have a look at the script help.
 
 \begin{code}{}
 bash 20+vm --help 
 \end{code}
 
-\alex{Why do I need to use the bash command? Why not simply ./20+vm --help ?}
 
-\chg{What the help mentions is that the script will}{The help says that the \ct{20+vm} command} download\ins{s} the current \chg{vm}{virtual machine} \del{and put it} into the pharo-vm folder, \ct{pharo} a script to launch the system, \ct{pharo-ui} a script to launch the image in ui mode.
+The help says that the \ct{20+vm} command downloads the current virtual machine and puts it into the pharo-vm folder. In addition, it creates several scripts: \ct{pharo} to launch the system, \ct{pharo-ui} a script to launch the image in ui mode. Finally it also downloads the latest image and changes files.
 
 \begin{code}{Output of 20+vm --help }
 This script downloads the latest Pharo 20 Image.
@@ -88,8 +87,7 @@ If you just want to directly execute the script you can also do the following
 wget -O - get.pharo.org/20+vm | bash
 \end{code}
 
-The option \ct{-O -} will output the downloaded bash file to standard out, so we can pipe it to \ct{bash}.
-If you do not like the log of web, use \ct{--quiet}\alex{Is this really important? In which case I may not like the logging?}.
+The option \ct{-O -} will output the downloaded bash file to standard out, so we can pipe it to \ct{bash}. If you do not like the log of web, use \ct{--quiet}.
 
 \begin{code}{}
 wget --quiet -O - http://files.pharo.org/script/ciPharo20PharoVM.sh | bash
@@ -99,86 +97,37 @@ wget --quiet -O - http://files.pharo.org/script/ciPharo20PharoVM.sh | bash
 The scripts are fetched automatically from our jenkins server (\url{https://ci.inria.fr/pharo/job/Scripts-download/}) from the gitorious server \url{https://gitorious.org/pharo-build/pharo-build}.
 Yes we believe in automated tasks that free our energy. 
 
-
-
 \section{Getting the VM only}
-You can also use different scripts. For example \ct{ciPharoVM.sh} only downloads the latest vm.
+You can also use different scripts. For example \ct{get.pharo.org/vm} only downloads the latest vm.
 
 \begin{code}{}
-wget http://files.pharo.org/script/ciPharoVM.sh | bash
+wget -O - get.pharo.org/vm | bash
 \end{code}
+
 
 Again as any script you can always check its help message.
 
-\begin{code}[]{Output of ciPharoVM.sh --help}
-This script will download the stable pharo VM
-
-Result in the current directory:
-    vm            Directory containing the VM
-    vm.sh            Script forwarding to the VM inside the vm directory running headlessly
-    vm-ui.sh            Script running the VM interactively with a UI
+\begin{code}[]{Output of get.pharo.org/vm --help}
+This script downloads the latest Pharo VM.
+The following artifacts are created:
+    pharo      Script to run the downloaded VM in headless mode
+    pharo-ui   Script to run the downloaded VM in UI mode
+    pharo-vm/  Directory containing the VM
 \end{code}
 
 
-Figure~\ref{fig:website} shows the list of scripts available that you can get at \url{http://pharo.gforge.inria.fr/ci/script/}.
+Figure~\ref{fig:website} shows the list of scripts available that you can get at \url{http://get.pharo.org}.
 
 \begin{figure}[!h]
 	\centering
-	\includegraphics[width=\textwidth]{webSite}
-	\caption{All the scripts are available at \ct{http://pharo.gforge.inria.fr/ci/script/} \label{fig:website}.}
+	\includegraphics[width=\textwidth]{zeroconfwebsite}
+	\caption{All the scripts are available at \ct{http://get.pharo.org} \label{fig:website}.}
 \end{figure}
 
 
 
-\subsection{Getting the latest version}
-
-@@STEf@@
-
-
-
-
-\section{The scripts}
-Here is a typical script. We list it here for archival purpose and the definition may change in the future
-but you should get the idea.
-	
-\paragraph{ciPharo20PharoVM.sh.}
-
-\begin{scriptsize}
-\begin{verbatim}
-#!/bin/bash
-
-# stop the script if a single command fails
-set -e 
-
-# ARGUMENT HANDLING ===========================================================
-
-if { [ "$1" = "-h" ] || [ "$1" = "--help" ]; }; then
-    echo "This script will download the latest Pharo 2.0 image and VM
-
-Result in the current directory:
-    vm               VM directory
-    vm.sh            Script forwarding to the VM in vm
-    Pharo.image      The latest pharo image
-    Pharo.changes    The corresponding pharo changes"
-    exit 0
-elif [ $# -gt 0 ]; then
-    echo "--help is the only argument allowed"
-    exit 1
-fi
-
-# FETCH DATA ==================================================================
-wget --quiet -qO - http://pharo.gforge.inria.fr/ci/script/ciPharoVM.sh | bash
-wget --quiet -qO - http://pharo.gforge.inria.fr/ci/script/ciPharo20.sh | bash
-\end{verbatim}
-\end{scriptsize}
-
-Now that you get ready to launch Pharo nearly everywhere\ab{I am not sure what you mean by launching Pharo everywhere?}, let us look at the way you 
-can always script the image from the command-line. 
-
-
 \section{Handling command line options}
-We have now a brand new and nice way to handle command line arguments. It is self documented and \chg{really easy to extend}{easily extendable}. Let us have a look at how the command line is handled. As usual we will start to show you how to find your way alone.
-
+We have now a brand new and nice way to handle command line arguments. It is self documented and easily extendable. Let us have a look at how the command line is handled. As usual we will start to show you how to find your way alone.
 
 
 \subsection{How to find our way}
@@ -245,6 +194,7 @@ Now you probably wonder how certain option should be used. Indeed it does not lo
 
 \paragraph{Loading Metacello Configuration}
 To get some explanation about the use of the config option, just request its associated help as follows: 
+
 \begin{code}{}
 ./vm.sh Pharo.image config --help
 \end{code}
