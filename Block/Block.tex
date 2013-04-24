@@ -183,7 +183,7 @@ Let's look at it in detail. Figure~\ref{fig:variable} shows the execution of the
 \end{itemize}
 
 \begin{figure}[!h]
-\begin{center}\includegraphics[width=9cm]{variable}
+\begin{center}\includegraphics[width=\textwidth]{variable}
 \caption{ Non local variable are looked in the method activation context where the block was created and not executed.\label{fig:variable}}
 \end{center}
 \end{figure}
@@ -458,7 +458,7 @@ Indeed the block should return and it will return to the method context of its h
 When the return statement of the block is executed in method \ct{executeBlock:}, the execution discards the pending computation and returns to the method execution point that created the home context of the block. The block is defined in  method \ct{defineBlock}, the home context of the block is the activation context that represents the execution of the method \ct{defineMethod}. This is why the rest of the computation in the block itself, the \ct{defineMethod} method as well as \ct{arg:} are discarded.
 
 \begin{figure}[!h]
-\begin{center}\includegraphics[width=9cm]{nonLocalReturn2}
+\begin{center}\includegraphics[width=\textwidth]{nonLocalReturn2}
 \caption{A block with non local return execution returns to the method execution that activated the block home context.\label{nonLocalReturn}}
 \end{center}
 \end{figure}
@@ -467,7 +467,7 @@ As shown by Figure~\ref{nonLocalReturn}, \ct{[^33]} will return to the sender of
 
 Step 1 represents the execution up to the invocation of the method \ct{defineBlock}: 'start start' is printed.
 
-Step 2 the execution up to the block creation, which is done in Step 3: 'defineBlock' is printed. The home context of the block is the \ct{defineContext} method execution context.
+Step 3 the execution up to the block creation, which is done in Step 2: 'defineBlock' is printed. The home context of the block is the \ct{defineContext} method execution context.
 
 Step 4 represents the execution up to the invocation of method \ct{executeBlock:}. \ct{'defineBlock start'} is printed.
 
@@ -848,7 +848,7 @@ Let us consider the example shown in the following picture.
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width=12cm]{BlockWithFullClosures}
+\includegraphics[width=\textwidth]{BlockWithFullClosures}
 \end{center}
 \end{figure}
 
@@ -882,7 +882,7 @@ The following example shows how remote variables are no longer directly stored i
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width=12cm]{BlockWithMethodContext}
+\includegraphics[width=\textwidth]{BlockWithMethodContext}
 \end{center}
 \end{figure}
 
