@@ -52,12 +52,24 @@ If you do not have \ct{wget} installed you can use \ct{curl -L} instead.
 
 To execute the script that we just downloaded, you should change its permissions using \ct{chmod a+x}  or invoke it via bash as follows. 
 
+\paragraph{Configurations.}
+There is a plethora of configurations available. The URL for each script can
+be easily built from an image version and a vm following the expression: \ct{get.pharo.org/$IMAGE +$VM}
+	
+Possible values for \ct{$IMAGE} are: \ct{12 13 14 20 30 stable alpha}
+
+Possible values for \ct{$VM} are: \ct{vm vmS vmLatest vmSLatest}
+
+Of course, one can just download an image as well \ct{get.pharo.org/$IMAGE} or just the VM \ct{get.pharo.org/$VM}
+
+
+
+\paragraph{Looking at the help.}
 Now let's have a look at the script help.
 
 \begin{code}{}
 bash 20+vm --help 
 \end{code}
-
 
 The help says that the \ct{20+vm} command downloads the current virtual machine and puts it into the pharo-vm folder. In addition, it creates several scripts: \ct{pharo} to launch the system, \ct{pharo-ui} a script to launch the image in ui mode. Finally it also downloads the latest image and changes files.
 
@@ -88,6 +100,8 @@ The option \ct{-O -} will output the downloaded bash file to standard out, so we
 wget --quiet -O - http://files.pharo.org/script/ciPharo20PharoVM.sh | bash
 \end{code}
 
+
+
 \paragraph{Note for the believers in automated tasks.} 
 The scripts are fetched automatically from our jenkins server (\url{https://ci.inria.fr/pharo/job/Scripts-download/}) from the gitorious server \url{https://gitorious.org/pharo-build/pharo-build}.
 Yes we believe in automated tasks that free our energy. 
@@ -116,7 +130,7 @@ Figure~\ref{fig:website} shows the list of scripts available that you can get at
 \begin{figure}[!h]
 	\centering
 	\includegraphics[width=\textwidth]{zeroconfwebsite}
-	\caption{All the scripts are available at \ct{http://get.pharo.org} \label{fig:website}.}
+	\caption{All the scripts are available at \ct{http://get.pharo.org}.\label{fig:website}}
 \end{figure}
 
 
@@ -126,7 +140,7 @@ We have now a brand new and nice way to handle command line arguments. It is sel
 
 
 \subsection{How to find our way}
-Again we love and value self documentation so just use \ct{--help} to get an explanation. 
+Again we love and value self documentation so just use the  \ct{--help} option to get an explanation. 
 
 \begin{code}{}
 ./vm.sh Pharo.image --help
@@ -187,7 +201,7 @@ Now you probably wonder how certain option should be used. Indeed it does not lo
 
 
 
-\paragraph{Loading Metacello Configuration}
+\paragraph{Loading Metacello Configuration.}
 To get some explanation about the use of the config option, just request its associated help as follows: 
 
 \begin{code}{}
@@ -345,63 +359,42 @@ command-line handler opens new horizons to be used in shell scripts.
 %%% ispell-local-dictionary: "english"
 %%% End:
 
-Last tuesday I presented the new zeroconf scripts for Pharo at the pharoconf in Bern.
-From now on please use the new scripts located at http://get.pharo.org.
 
------------------------------------------------------------------------------------
-Example:
-========
-The scripts work the same way as before:
+%%Example:
+%%========
+%%The scripts work the same way as before:
+%%
+%%Load the stable Pharo version with a VM:  wget -qO - get.pharo.org       | bash
+%%Load Pharo 3.0 with a VM:                 wget -qO - get.pharo.org/30+vm | bash
+%%Load only a Pharo 3.0 image:              wget -qO - get.pharo.org/30    | bash
+%%
+%%If you do not have wget installed you can use `curl -L` instead of `wget -qO -`.
+%%
+%%=> All the jobs at http://ci.inria.fr/rmod already use the new scripts
+%%
+%%Details:
+%%========
+%%There is a plethora of configurations available. The URL for each script can
+%%be easily build from an image version and a vm:
+%%	get.pharo.org/$IMAGE +$VM
+%%Of course one can just download an image as well
+%%	get.pharo.org/$IMAGE
+%%or just the VM
+%%	get.pharo.org/$VM
+%%
+%%Possible values for $IMAGE are:           12 13 14 20 30 stable alpha
+%%Possible values for $VM are:              vm vmS vmLatest vmSLatest
+%%
+%%Help:
+%%=====
+%%I will update the zeroconf chapter tomorrow, otherwise you can simply open the url
+%%of the config script in the browser to get a help message that explains you how to
+%%use the script and what it downloads.
+%%
+%%
+%%Migration:
+%%==========
+%%- Replace http://get.pharo.org/ci*.sh with the proper get.pharo.org/$IMAGE+$VM url
+%%- Replace ./vm.sh with ./pharo
+%%- Replace ./vm-ui.sh with ./pharo-ui
 
-Load the stable Pharo version with a VM:  wget -qO - get.pharo.org       | bash
-Load Pharo 3.0 with a VM:                 wget -qO - get.pharo.org/30+vm | bash
-Load only a Pharo 3.0 image:              wget -qO - get.pharo.org/30    | bash
-
-If you do not have wget installed you can use `curl -L` instead of `wget -qO -`.
-
-=> All the jobs at http://ci.inria.fr/rmod already use the new scripts
-
-Details:
-========
-There is a plethora of configurations available. The URL for each script can
-be easily build from an image version and a vm:
-	get.pharo.org/$IMAGE +$VM
-Of course one can just download an image as well
-	get.pharo.org/$IMAGE
-or just the VM
-	get.pharo.org/$VM
-
-Possible values for $IMAGE are:           12 13 14 20 30 stable alpha
-Possible values for $VM are:              vm vmS vmLatest vmSLatest
-
-vmS and vmSLatest are not yet supported, but they will point to the PharoS aka 
-StackVM in the future.
-
-Help:
-=====
-
-I will update the zeroconf chapter tomorrow, otherwise you can simply open the url
-of the config script in the browser to get a help message that explains you how to
-use the script and what it downloads.
-
-
-Migration:
-==========
-- Replace http://get.pharo.org/ci*.sh with the proper get.pharo.org/$IMAGE+$VM url
-- Replace ./vm.sh with ./pharo
-- Replace ./vm-ui.sh with ./pharo-ui
-
-Deprecation:
-============
-I will manually mark the existing scripts as deprecated by tomorrow and leave them
-there for a week. If anybody needs some more time I can arrange that of course ;).
-If not all the old scripts will be gone next week!
-
------------------------------------------------------------------------------------
-
-This will most probably be the final stage of the zeroconf scripts as I don't see
-much space for improvements anymore ;). Everything is documented, commented and 
-most importantly, managed from within Pharo!
-And proper tests for the scripts are on the way as well ;)
-
-Any questions? Any suggestions?
