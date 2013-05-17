@@ -47,8 +47,8 @@ FileSystem has been originally developed by Colin Putney under the MIT license. 
 \section{Getting started}
 The framework supports different kinds of filesystems that can be used interchangeably and that can transparently work with each other. The most obvious one is the filesystem on your hard disk. We are going to work with that one for now. 
 
-\ct{FileSystem} is the factory to access different filesystems. 
-Sending the message \mthind{FileSystem}{disk} to \ct{FileSystem}, returns a file system as on your physical hard-drive. Sending \ct{memory} creates a file system at the system of the image. 
+The expression \ct{FileSystem} provides access to the factory to different filesystems. 
+Sending the message \mthind{FileSystem}{disk} to \ct{FileSystem}, returns a file system as on your physical hard-drive. Sending \ct{memory} creates a file system in the image. 
 
 \begin{code}{}
 | working |
@@ -59,7 +59,7 @@ working := FileSystem disk workingDirectory class
 --> FileReference
 \end{code} 
 
-The message \mthind{FileReference}{workingDirectory} above returns a reference to the directory of your Pharo image. A references is an instance of the class \ct{FileReference}. References are the central objects of the framework and provide the primary mechanisms for working with files and directories. 
+The message \mthind{FileReference}{workingDirectory} above returns a reference to the directory containing your Pharo image. A reference is an instance of the class \ct{FileReference}. References are the central objects of the framework and provide the primary mechanisms for working with files and directories. 
 
 FileSystem defines four classes that are important for the end-user: \ct{FileSystem}, \ct{FileReference}, \ct{FileLocator}, and \ct{FileSystemDirectoryEntry}. \ct{FileSystem} is the root class given the correct file system. A \ct{FileReference} is a reference to a repository or a file. A \ct{FileLocator} is a late binding reference. A \ct{FileSystemDirectoryEntry} allows one to get the additional information of a file or a directory.These classes are grouped in the 'FileSystem-Core-Public' category, and explained below in the chapter.
 
