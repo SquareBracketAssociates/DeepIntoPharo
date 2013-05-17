@@ -71,7 +71,7 @@ Now let's have a look at the script help.
 bash 20+vm --help 
 \end{code}
 
-The help says that the \ct{20+vm} command downloads the current virtual machine and puts it into the pharo-vm folder. In addition, it creates several scripts: \ct{pharo} to launch the system, \ct{pharo-ui} a script to launch the image in ui mode. Finally it also downloads the latest image and changes files.
+The help says that the \ct{20+vm} command downloads the current virtual machine and puts it into the pharo-vm folder. In addition, it creates several scripts: \ct{pharo} to launch the system, \ct{pharo-ui} a script to launch the image in UI mode. Finally it also downloads the latest image and changes files.
 
 \begin{code}{Output of 20+vm --help }
 This script downloads the latest Pharo 20 Image.
@@ -97,7 +97,7 @@ wget -O - get.pharo.org/20+vm | bash
 The option \ct{-O -} will output the downloaded bash file to standard out, so we can pipe it to \ct{bash}. If you do not like the log of web, use \ct{--quiet}.
 
 \begin{code}{}
-wget --quiet -O - http://files.pharo.org/script/ciPharo20PharoVM.sh | bash
+wget --quiet -O - get.pharo.org/20+vm | bash
 \end{code}
 
 
@@ -143,7 +143,7 @@ We have now a brand new and nice way to handle command line arguments. It is sel
 Again we love and value self documentation so just use the  \ct{--help} option to get an explanation. 
 
 \begin{code}{}
-./vm.sh Pharo.image --help
+./pharo Pharo.image --help
 \end{code}
 
 It will produce the following output.
@@ -171,7 +171,7 @@ Two of the default options are important \ct{versions} and \ct{list}. Let us hav
 \paragraph{Getting system version.} A typical and important command line option is \ct{--version}. Please use it when you communicate bugs and deviant behavior. 
 
 \begin{code}{}
-./vm.sh Pharo.image --version
+./pharo Pharo.image --version
 M:    NBCoInterpreter NativeBoost-CogPlugin-IgorStasenko.15 uuid: 44b6b681-38f1-4a9e-b6ee-8769b499576a Dec 18 2012
 NBCogit NativeBoost-CogPlugin-IgorStasenko.15 uuid: 44b6b681-38f1-4a9e-b6ee-8769b499576a Dec 18 2012
 git://gitorious.org/cogvm/blessed.git Commit: 452863bdfba2ba0b188e7b172e9bc597a2caa928 Date: 2012-12-07 16:49:46 +0100 By: Esteban Lorenzano <estebanlm@gmail.com> Jenkins build #5922
@@ -184,7 +184,7 @@ The \ct{--version} argument gives the version of the virtual machine. If you wis
 The following list shows that handlers available in the system we used when writing this chapter.
 
 \begin{code}{}
-./vm.sh Pharo.image --list
+./pharo Pharo.image --list
 
 Currently installed Command Line Handlers:
     st              Loads and executes .st source files
@@ -205,7 +205,7 @@ Now you probably wonder how certain option should be used. Indeed it does not lo
 To get some explanation about the use of the config option, just request its associated help as follows: 
 
 \begin{code}{}
-./vm.sh Pharo.image config --help
+./pharo Pharo.image config --help
 \end{code}
 
 Note that this is help is the one of the associated handler not the one of the command line generic system. 
@@ -222,22 +222,22 @@ Usage: config [--help] <repository url> [<configuration>] [--install[=<version>]
 	
 Examples:
 	# display this help message
-	$PharoVM My.image config
+	pharo Pharo.image config
 	
 	# list all configurations of a repository
-	$PharoVM My.image config $MC_REPOS_URL
+	pharo Pharo.image config $MC_REPOS_URL
 	
 	# list all the available versions of a confgurtation
-	$PharoVM My.image config $MC_REPOS_URL ConfigurationOfFoo
+	pharo Pharo.image config $MC_REPOS_URL ConfigurationOfFoo
 	
 	# install the stable version
-	$PharoVM My.image config $MC_REPOS_URL ConfigurationOfFoo --install
+	pharo Pharo.image config $MC_REPOS_URL ConfigurationOfFoo --install
 	
 	#install a specific version '1.5'
-	$PharoVM My.image config $MC_REPOS_URL ConfigurationOfFoo --install=1.5
+	pharo Pharo.image config $MC_REPOS_URL ConfigurationOfFoo --install=1.5
 	
 	#install a specific version '1.5' and only a specific group 'Tests'
-	$PharoVM My.image config $MC_REPOS_URL ConfigurationOfFoo --install=1.5 --group=Tests
+	pharo Pharo.image config $MC_REPOS_URL ConfigurationOfFoo --install=1.5 --group=Tests
 \end{code}
 
 
@@ -246,10 +246,10 @@ Examples:
 As we mentioned it, the command line mechanism is open and can be extended. We will look now how the handler for the eval option is defined. 
 
 
-\paragraph{Evaluating Pharo Expressions.} You can use the command line to evaluate expressions as follows: \ct{./vm.sh Pharo.image eval '1+2'}
+\paragraph{Evaluating Pharo Expressions.} You can use the command line to evaluate expressions as follows: \ct{./pharo Pharo.image eval '1+2'}
 
 \begin{code}{}
-./vm.sh Pharo.image eval --help 
+./pharo Pharo.image eval --help 
 Usage: eval [--help] <smalltalk expression>
 	--help    list this help message
 	<smallltalk expression>  a valid Smalltalk expression which is evaluated and 
