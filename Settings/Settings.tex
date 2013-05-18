@@ -220,7 +220,7 @@ CodeHolderSystemSettings class>>caseSensitiveFindsSettingsOn: aBuilder
 In fact, when the settings browser is opened, it first collects all settings declarations by searching all methods with the \ct{<systemsettings>} pragma. In addition, if you compile a setting declaration method while a \setbrowser is opened then it is automatically updated with the new setting. 
 
 \subsection{The setting configuration}
-A setting is declared by sending the message \ct{setting:} to the builder with an identifier passed as argument. Here the identifier is \ct{#caseSensitiveFinds}. Here is an example: 
+A setting is declared by sending the message \ct{setting:} to the builder with an identifier passed as argument. Here the identifier is \ct{\#caseSensitiveFinds}. Here is an example: 
 \begin{code}{}
 CodeHolderSystemSettings class>>caseSensitiveFindsSettingsOn: aBuilder
 	<systemsettings>
@@ -286,7 +286,7 @@ But the receiver can also be a singleton object. This is currently the case for 
 \begin{code}{}
 FreeTypeSettings current
 \end{code}
-So, one can use this expression  to configure the target of a corresponding setting. As an example the \ct{#glyphContrast} preference could be declared as follow:
+So, one can use this expression  to configure the target of a corresponding setting. As an example the \ct{\#glyphContrast} preference could be declared as follow:
 \begin{code}{}
 (aBuilder setting: #glyphContrast) 
 	target: FreeTypeSettings current;
@@ -327,7 +327,7 @@ Within the \setbrowser, settings are organized in trees where related settings a
 
 \subsection{Declaring a parent}
 \index{setting node!parent}
-The simplest way to declare your setting as a child of another setting is to use the \mthind{PragmaSetting}{parent:}\index{SettingNodeBuilder!parent:} message with the identifier of the parent setting passed as argument. In the example below, the parent node is an existing node declared with the \ct{#codeEditing} identifier. 
+The simplest way to declare your setting as a child of another setting is to use the \mthind{PragmaSetting}{parent:}\index{SettingNodeBuilder!parent:} message with the identifier of the parent setting passed as argument. In the example below, the parent node is an existing node declared with the \ct{\#codeEditing} identifier. 
 
 \begin{code}{}
 CodeHolderSystemSettings class>>caseSensitiveFindsSettingsOn: aBuilder
@@ -338,13 +338,13 @@ CodeHolderSystemSettings class>>caseSensitiveFindsSettingsOn: aBuilder
 		description: 'If true, then the "find" command in text will always make its searches in a case-sensitive fashion' translated;
 		!\textbf{parent:}! #codeEditing.
 \end{code}
-The \ct{#codeEditing} node is also declared somewhere in the system. For example, it could be defined as a group as we will see now. 
+The \ct{\#codeEditing} node is also declared somewhere in the system. For example, it could be defined as a group as we will see now. 
 
 
 \subsection{Declaring a group}
 \index{setting node!group}
 A group is a simple node without any value and which is only used for children grouping.
-The \ct{#codeEditing} node is created by sending the \mthind{SettingTreeBuilder}{group:} message to the builder with its identifier passed as argument.  Notice also that, as shown in \figref{fig:caseSensitiveFinds1}, the \ct{#codeEditing} node is not at root because it is declared itself as a child of the \ct{#codeBrowsing} node.
+The \ct{\#codeEditing} node is created by sending the \mthind{SettingTreeBuilder}{group:} message to the builder with its identifier passed as argument.  Notice also that, as shown in \figref{fig:caseSensitiveFinds1}, the \ct{\#codeEditing} node is not at root because it is declared itself as a child of the \ct{\#codeBrowsing} node.
 
 
 \begin{code}{}
@@ -370,7 +370,7 @@ Thus, directly declaring a sub-tree of settings in one method is also possible. 
 \end{figure}
 
 
-As an example, take a look at \figref{fig:configurableFormatter}, it shows the settings for the refactoring browser configurable formatter. This sub-tree of settings is fully declared in the method \ct{RBConfigurableFormatter class>>settingsOn:} given below. You can see that it declares the new root group \ct{#configurableFormatter} with two children, \ct{#formatCommentWithStatements} and \ct{#indentString}:
+As an example, take a look at \figref{fig:configurableFormatter}, it shows the settings for the refactoring browser configurable formatter. This sub-tree of settings is fully declared in the method \ct{RBConfigurableFormatter class>>settingsOn:} given below. You can see that it declares the new root group \ct{\#configurableFormatter} with two children, \ct{\#formatCommentWithStatements} and \ct{\#indentString}:
 \begin{code}{}
 RBConfigurableFormatter class>>settingsOn: aBuilder
 	<systemsettings>	
@@ -423,13 +423,13 @@ To handle such optional settings is simple: optional settings should be declared
 				domainValues: {
 					'Top left' translated -> #topLeft. ...
 \end{code} 
-The parent setting value is given by evaluating \ct{PolymorphSystemSettings class>>useDesktopGradientFill}. If it returns \ct{true}, then the children \ct{#desktopGradientFillColor}, \ct{#desktopGradientDirection}, and \ct{#desktopGradientOrigin} are shown.
+The parent setting value is given by evaluating \ct{PolymorphSystemSettings class>>useDesktopGradientFill}. If it returns \ct{true}, then the children \ct{\#desktopGradientFillColor}, \ct{\#desktopGradientDirection}, and \ct{\#desktopGradientOrigin} are shown.
 
 \subsection{Ordering your settings}
 \index{setting node!ordering}
 By default, sibling settings are sorted alphabetically by their label. You may want to change this default behavior. Changing the settings ordering can be done two ways: by simply forbidding the default ordering or by explicitly specifying an order.
 
-As in the following example of the \ct{#appearance} group, you can indicate that no ordering should be performed by sending the \mthind{SettingNodeBuilder}{noOrdering} message to the parent node. Then its children are let in declaration order.
+As in the following example of the \ct{\#appearance} group, you can indicate that no ordering should be performed by sending the \mthind{SettingNodeBuilder}{noOrdering} message to the parent node. Then its children are let in declaration order.
 
 \begin{code}{}
 appearanceSettingsOn: aBuilder 
@@ -443,7 +443,7 @@ appearanceSettingsOn: aBuilder
 
 You can indicate the order of a setting node among its siblings by sending the message \mthind{SettingNodeBuilder}{order:}\index{PragmaSetting!order:} to it with a number passed as argument. The number can be an \ct{Integer} or a \ct{Float}. Nodes with an order number are always placed before others and are sorted according to their respective order number. If an order is given to an item, then no ordering is applied for other siblings.
 
-As an example, take a look at how the \ct{#standardFonts} group is declared:
+As an example, take a look at how the \ct{\#standardFonts} group is declared:
 \begin{code}{}
 (aBuilder group: #standardFonts)
 	label: 'Standard fonts' translated;
@@ -462,7 +462,7 @@ As an example, take a look at how the \ct{#standardFonts} group is declared:
 		(aBuilder setting: #listFont)
      ...
 \end{code}
-In this example, the launcher \ct{#updateFromSystem} is declared to be the first node, then other siblings with identifiers \ct{#defaultFont}, \ct{#codeFont}, and \ct{#listFont} are placed according to the declaration order.
+In this example, the launcher \ct{\#updateFromSystem} is declared to be the first node, then other siblings with identifiers \ct{\#defaultFont}, \ct{\#codeFont}, and \ct{\#listFont} are placed according to the declaration order.
 
 \section{Providing more precise value domain}
 By default, the possible value set of a preference is not restricted and is given by the actual type of the preference. For example, for a color preference, the widget allows you to choose whatever color, for a number, the widget allows the user to enter any number.
@@ -523,14 +523,14 @@ windowPositionStrategySettingsOn: aBuilder
 comparing to a simple setting, the only two differences are that:
 \begin{itemize}
 \item 
-	the new setting node is created with the \mthind{SettingTreeBuilder}{pickOne:} message instead of the \ct{#setting:} message and
+	the new setting node is created with the \mthind{SettingTreeBuilder}{pickOne:} message instead of the \ct{\#setting:} message and
 \item the list of authorized values is given by sending the \mthind{SettingNodeBuilder}{domainValues:} message to the newly declared setting node, a \ct{Collection} is given as argument (the default value being the first one).
 \end{itemize}
 
-Concerning this window strategy example, the value set to the preference would be either \ct{#'Reverse Stagger'} or \ct{#Cascade} or \ct{#Standard}. 
+Concerning this window strategy example, the value set to the preference would be either \ct{\#'Reverse Stagger'} or \ct{\#Cascade} or \ct{\#Standard}. 
 
 Unfortunately, these values are not very handy. A programmer may wish another value as, for example, some kind of \textit{strategy object} or a \ct{Symbol} which could directly serve as a selector. In fact, this second solution has been chosen by the \ct{RealEstateAgent} class maintainers.
-If you inspect the value returned by \ct{RealEstateAgent usedStrategy} you will realize that the result is not a \ct{Symbol} among \ct{#'Reverse Stagger', #Cascade, or #Standard} but another symbol. Then, if you look at the way the window position strategy setting is really implemented you will see that the declaration differs from the basic solution given previously: the \textit{domainValues:} argument is not a simple array of {Symbol}s but an array of \ct{Associations} as you can see in the declaration below:
+If you inspect the value returned by \ct{RealEstateAgent usedStrategy} you will realize that the result is not a \ct{Symbol} among \ct{\#'Reverse Stagger'}, \ct{\#Cascade}, or \ct{\#Standard} but another symbol. Then, if you look at the way the window position strategy setting is really implemented you will see that the declaration differs from the basic solution given previously: the \textit{domainValues:} argument is not a simple array of {Symbol}s but an array of \ct{Associations} as you can see in the declaration below:
 
 \begin{code}{}
 windowPositionStrategySettingsOn: aBuilder
@@ -542,7 +542,7 @@ windowPositionStrategySettingsOn: aBuilder
 
 From the \setbrowser point of view, the content of the list is exactly the same and the user can't notice any difference because, if an array of Associations is given as argument to \mthind{SettingNodeBuilder}{domainValues:}, then the keys of the Associations are used for the user interface. 
 
-Concerning the value of the preference itself, if you inspect \ct{RealEstateAgent usedStrategy}, you should notice that the result is a value among \ct{#(#staggerFor:initialExtent:world: #cascadeFor:initialExtent:world: #standardFor:initialExtent:world:)}. In fact, the values of the Associations are used to compute all possible real values for the setting.
+Concerning the value of the preference itself, if you inspect \ct{RealEstateAgent usedStrategy}, you should notice that the result is a value among \ct{\#staggerFor:initialExtent:world:},  \ct{\#cascadeFor:initialExtent:world:} and \ct{\#standardFor:initialExtent:world:}. In fact, the values of the Associations are used to compute all possible real values for the setting.
 
 The list of possible values can be of any kind. As another example, let's take a look at the way the user interface theme setting is declared in the \ct{PolymorphSystemSettings} class:
 \begin{code}{}
@@ -644,7 +644,7 @@ Now the question is how to find out that the desktop color setting is declared i
 
 The answer is quite simple: just use the \setbrowser! As explained in Section~\ref{sec:browsing-settings}, \textit{cmd-b} or double clicking on an item open a browser on the declaration of the current setting node. You can also use the contextual menu for that. Browsing the declaration will give you the target class (where the preference variable is stored) and the selector for the preference value.
 
-Now we would like \ct{MyPreferredStyle>>#loadStyle} to be automatically evaluated when \ct{MyPreferredStyle} is itself loaded in the system. For that purpose, the only thing to do is to implement an \ct{initialize} method for the \ct{MyPreferredStyle} class:
+Now we would like \ct{MyPreferredStyle>>\#loadStyle} to be automatically evaluated when \ct{MyPreferredStyle} is itself loaded in the system. For that purpose, the only thing to do is to implement an \ct{initialize} method for the \ct{MyPreferredStyle} class:
 \begin{code}{}
 MyPreferredStyle class>>initialize
 	self new loadStyle
@@ -686,7 +686,7 @@ As an example, let focus on the text selection preferences. We have the primary 
 \subsection{Declaring selection settings individually}
 So far, according to the default possibilities, a setting can be declared for each of the text selection characteristics so that each corresponding preference can be changed individually from the \setbrowser. Settings declared for a particular selection kind can be grouped together as children of a setting group. As an immediate improvement, for an optional text selection, a boolean setting can be used instead of a simple group.
 
-As an example, let's take the secondary selection. This text selection kind is optional and one can set a background and a text color for it. Corresponding preferences are declared as instance variables of \ct{ThemeSettings}. Their values can be read and changed from the current theme by getting its associated \ct{ThemeSettings} instance. Thus, the two color settings can be declared as children of the \ct{#useSecondarySelection} boolean setting as given below:
+As an example, let's take the secondary selection. This text selection kind is optional and one can set a background and a text color for it. Corresponding preferences are declared as instance variables of \ct{ThemeSettings}. Their values can be read and changed from the current theme by getting its associated \ct{ThemeSettings} instance. Thus, the two color settings can be declared as children of the \ct{\#useSecondarySelection} boolean setting as given below:
 \begin{code}{}
 (aBuilder setting: #useSecondarySelection)
 	target: UITheme;
@@ -765,15 +765,15 @@ TextSelectionPreference class>>selectionPreferenceOn: aBuilder
 			(aBuilder setting: #selectionBar)
 				label: 'Selection bar']
 \end{code}
-As you can see, there is absolutely nothing new in this declaration. The only thing that changes is that the value of the preferences are of a user defined class. In fact, in case of user defined or application specific preference class, the only particular thing to do is to implement one supplementary method for the view. This method must be named \ct{#settingInputWidgetForNode:} and must be implemented as a class method.
+As you can see, there is absolutely nothing new in this declaration. The only thing that changes is that the value of the preferences are of a user defined class. In fact, in case of user defined or application specific preference class, the only particular thing to do is to implement one supplementary method for the view. This method must be named \ct{\#settingInputWidgetForNode:} and must be implemented as a class method.
 
-\ct{#settingInputWidgetForNode:} method responsibility is to build the input widget for the \setbrowser. This method takes a \ct{SettingDeclaration} as argument. \ct{SettingDeclaration} is basically a model and its instances are managed by the \setbrowser. 
+\ct{\#settingInputWidgetForNode:} method responsibility is to build the input widget for the \setbrowser. This method takes a \ct{SettingDeclaration} as argument. \ct{SettingDeclaration} is basically a model and its instances are managed by the \setbrowser. 
 
 Each \ct{SettingDeclaration} instance serves as a preference value holder. Indeed, each setting that you can view in the \setbrowser is internally represented by a \ct{SettingDeclaration} instance. 
 
 For each of our text selection preferences, we want to be able to change its colors and if the selection is optional, then we want to have the possibility to enable or disable it. Regarding the colors, depending on the selection preference value, only the background color is always shown. Indeed, if the text color of the preference value is \ct{nil}, this means that having a text color does'nt makes sense and then, the corresponding color chooser is not built. 
 
-The \ct{#settingInputWidgetForNode:} method can be implemeented as below:
+The \ct{\#settingInputWidgetForNode:} method can be implemeented as below:
 \begin{code}{}
 TextSelectionPreference class>>settingInputWidgetForNode: aSettingDeclaration 
 	| preferenceValue backColorUI usedUI uiElements |
@@ -788,9 +788,9 @@ TextSelectionPreference class>>settingInputWidgetForNode: aSettingDeclaration
 		 cellInset: 20;
 		 yourself 
 \end{code}
-This method simply adds some basic elements in a row and returns the row. At a first place, you can notice that the actual preference value, an instance of \ct{TextSelectionPreference}, is got from the \ct{SettingDeclaration} instance by sending \ct{#preferenceValue} to it. Then, the user interface elements can be built based on the actual \ct{TextSelectionPreference} instance.
+This method simply adds some basic elements in a row and returns the row. At a first place, you can notice that the actual preference value, an instance of \ct{TextSelectionPreference}, is got from the \ct{SettingDeclaration} instance by sending \ct{\#preferenceValue} to it. Then, the user interface elements can be built based on the actual \ct{TextSelectionPreference} instance.
 
-The first element is a \textit{checkbox} or an empty space returned by the \ct{#usedCheckboxForPreference:} invocation. This method is implemented as follow:
+The first element is a \textit{checkbox} or an empty space returned by the \ct{\#usedCheckboxForPreference:} invocation. This method is implemented as follow:
 \begin{code}{}
 TextSelectionPreference class>>usedCheckboxForPreference: aSelectionPreference 
 	^ !\textbf{aSelectionPreference optional}!
