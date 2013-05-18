@@ -66,9 +66,9 @@ FileSystem defines four classes that are important for the end-user: \ct{FileSys
 You should not use platform specific classes such as \ct{UnixStore} or \ct{WindowsStore}, these are internal classes. All code snippets below work on \ct{FileReference} instances.
 
 
-\section{Navigating the FileSystem}
+\section{Navigating a file system}
 
-Now let's play with the FileSystem. 
+Now let's play with FileSystem. 
 
 \paragraph{Immediate children.}
 To list the immediate children of your working directory, execute the following expression:
@@ -128,7 +128,7 @@ parent = working
 
 \paragraph{Accessing directory properties.}
 
-You can check for various properties of the cache directory by executing the following expressions:
+You can check the various properties of an element. For example, in the following we try with the cache directory by executing the following expressions:
 
 \begin{code}{}
 cache exists.														--> true
@@ -148,7 +148,7 @@ The methods \mthind{FileReference}{exists}, \mthind{FileReference}{isFile}, \mth
 the path without the basename and that the idiom is to use \ct{parent fullName} to obtain it.
 The message \ct{path} returns a Path object which is internally used by FileSystem. You normally do not to use such objects. 
   
-Note that FileSystem does not really distinguish between files and folders which often leads to cleaner code and can be seen as an application of the composite design patterns.   
+Note that FileSystem does not really distinguish between files and folders which often leads to cleaner code and can be seen as an application of the Composite design pattern.   
   
 \paragraph{Querying file entry status.}
 To get additional information about a filesystem entry, we should get an \ct{FileSystemDirectoryEntry} using the message \mthind{FileSystemDirectoryEntry}{entry}. Note that you can access the file permissions. Here are some examples:
@@ -193,7 +193,7 @@ stream contents.			--> 'Hello World'
 stream close.
 \end{code}
 
-Please note that \ct{writeStream} overrides any existing file and \ct{readStream} throws an exception if the file does not exist. There are also short forms available that eliminate the need to close a stream manually:
+Please note that \ct{writeStream} overrides any existing file and \ct{readStream} throws an exception if the file does not exist. There are also forms available that eliminate the need to close a stream manually such as \ct{readStreamDo:} and \ct{writeStreamDo:} as shown in the following snippet.
 
 \begin{code}{}
 | working  |
@@ -202,12 +202,7 @@ working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' 
 working / 'foo.txt' readStreamDo: [ :stream | stream contents ].
 \end{code}
 
-
 \begin{code}{}
-| stream |
-stream := FileSystem disk openFileStream: 'authors.txt' writable: true.
-stream nextPutAll: 'stephane alexandre damien jannik'.
-	
 | working |
 working := FileSystem disk workingDirectory.
 working / 'authors.txt' readStreamDo: [ :stream | stream contents ]. 
@@ -222,21 +217,33 @@ working / 'authors.txt' readStreamDo: [ :stream | stream contents ].
 	--> 'andrew oscarxandre damien jannik'
 \end{code}
 
+
+We can also use the message \ct{openFilestream: aString writable: aBoolean} to get a stream with the corresponding
+write status.
+
+\begin{code}{}
+| stream |
+stream := FileSystem disk openFileStream: 'authors.txt' writable: true.
+stream nextPutAll: 'stephane alexandre damien jannik'.
+\end{code}	
+
 Have a look at the streams protocol of \ct{FileReference} for other convenience methods.
+
+
 
 \section{Renaming, Copying and Deleting Files and Directories}
 
-You can also copy and rename files using the methods \ct{copyTo:} and \ct{renameTo:}. Note that while \ct{copyTo:} expects another fileReference,  \ct{renameTo:} expects paths, pathnames or references.
+We can copy and rename files using the messages \ct{copyTo:} and \ct{renameTo:}. Note that while \ct{copyTo:} expects another fileReference,  \ct{renameTo:} expects paths, pathnames or references.
 
 \begin{code}{}
 | working |
 working := FileSystem disk workingDirectory.
-working / 'foo.txt' !\textbf{writeStreamDo:}! [ :stream | stream nextPutAll: 'Hello World' ].
+working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].
 working / 'foo.txt' !\textbf{copyTo:}! (working / 'bar.txt').
 
 | working  |
 working := FileSystem disk workingDirectory.
-working / 'bar.txt' !\textbf{readStreamDo:}! [ :stream | stream contents ].
+working / 'bar.txt' readStreamDo: [ :stream | stream contents ].
 -->  'Hello World'
 
 | working |
@@ -245,13 +252,13 @@ working / 'foo.txt' !\textbf{renameTo:}! 'skweek.txt'.
 
 | working  |
 working := FileSystem disk workingDirectory.
-working / 'skweek.txt' !\textbf{readStreamDo:}! [ :stream | stream contents ]. 
+working / 'skweek.txt' readStreamDo: [ :stream | stream contents ]. 
 -->  'Hello World'
 \end{code} 
 
 
-
-To create a directory use the message \mthind{FileReference}{createDirectory}:
+\paragraph{Directory creation.}
+To create a directory use the message \mthind{FileReference}{createDirectory} as follows:
 
 \begin{code}{}
 | working  |
@@ -264,7 +271,9 @@ backup children.
 	--> #()
 \end{code} 
 
-Then you can  copy the contents of the complete package-cache to that directory simply use \mthind{FileReference}{copyAllTo:}:
+
+\paragraph{Copy everything.}
+You can  copy the contents of a directory using the message \ct{copyAllTo:}. Here we copy the complete package-cache to that the backup directory using \mthind{FileReference}{copyAllTo:}:
 
 \begin{code}{}
 cache !\textbf{copyAllTo:}! backup.
@@ -272,6 +281,7 @@ cache !\textbf{copyAllTo:}! backup.
 
 Note that the target directory will be automatically created if it was not there before.
 
+\paragraph{Deleting.}
 
 To delete a single file, use the message \mthind{FileReference}{delete}:
 \begin{code}{}
@@ -288,8 +298,7 @@ backup !\textbf{deleteAll}!.
 
 
 \section{The main entry point: FileReference}
-While FileSystem is built over different concepts and classes such as FileSystem, Path and FileReference. FileReference is the most important for
-a end-user. FileReference offers a set of operations to manipulate files. We saw some of them until now and here is a more complete list of operations.
+While FileSystem is based on multiple concepts and classes such as \ct{FileSystem}, \ct{Path} and \ct{FileReference}. \ct{FileReference} is the most important for an end-user. \ct{FileReference} offers a set of operations to manipulate files. We saw some of them until now and here is a more complete list of operations.
 At the design level, a FileReference combines two lower level entities: a path (\ct{Path}) and a filesystem (\ct{FileSystem}) into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FileSystem}, but without the need to track paths and filesystem separately.
 
 \subsection{FileReference information access}

@@ -429,7 +429,8 @@ Damien Pollet},
 	columns=fullflexible} % no fixed width fonts
 % In-line code (literal)
 % Normally use this for all in-line code:
-\newcommand{\ct}{\lstinline[mathescape=false,backgroundcolor=\color{white},basicstyle={\sffamily\upshape}]}
+%\newcommand{\ct}{\lstinline[mathescape=false,backgroundcolor=\color{white},basicstyle={\sffamily\upshape}]}
+\newcommand{\ct}[1]{{\sffamily{\upshape{#1}}\xspace}}
 % apb 2007.8.28 added the \upshape declaration to avoid getting italicized code in \dothis{ } sections.
 % In-line code (latex enabled)
 % Use this only in special situations where \ct does not work
