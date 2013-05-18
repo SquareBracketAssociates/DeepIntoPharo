@@ -301,8 +301,12 @@ You should now be able to see something like this:
 
 Now let's extract the title. In this case we are looking for the text that occurs \emph{between} the HTML tags \ct{<title>} and \ct{</title>}. 
 
-\index{Regex syntax!@\ct{^}}
-What we need is a way to extract \emph{part} of the match of a regular expression. Subexpressions of regexes are delimited by parentheses.  Consider the regex \ct{([CARETaeiou]+)([aeiou]+)}. It consists of two subexpressions, the first of which will match a sequence of one or more non-vowels, and the second of which will match one or more vowels. (The operator \ct{CARET} at the start of a bracketed set of characters negates the set.\footnote{NB: In \pharo the caret is also the return keyword, which we write as \ct{^}. To avoid confusion, we will write \ct{CARET} when we are using the caret within regular expressions to negate sets of characters, but you should not forget, they are actually the same thing.}) Now we will try to match a \emph{prefix} of the string \ct{'pharo'} and extract the submatches:
+\index{Regex syntax!@\ctl{\^}}
+What we need is a way to extract \emph{part} of the match of a regular expression. Subexpressions of regexes are delimited by parentheses. Consider the regex \ct{([CARETaeiou]+)([aeiou]+)}. It consists of two subexpressions, the first of which will match a sequence of one or more non-vowels, and the second of which will match one or more vowels. (The operator \ct{CARET} at the start of a bracketed set of characters negates the set.
+ 
+\footnote{NB: In \pharo the caret is also the return keyword, which we write as \ctl{^}. To avoid confusion, we will write \ct{CARET} when we are using the caret within regular expressions to negate sets of characters, but you should not forget, they are actually the same thing.}) 
+  
+Now we will try to match a \emph{prefix} of the string \ct{'pharo'} and extract the submatches:
 
 \mthindex{RxMatcher}{matchesPrefix:}
 \mthindex{RxMatcher}{subexpression:}
@@ -334,7 +338,7 @@ There are a couple of subtle points to notice here.
 First, HTML does not care whether tags are upper or lower case, so we must make our regex case insensitive by instantiating it with \ct{asRegexIgnoringCase}.
 
 Second, since dot matches any character \emph{except a newline}, the regex \mbox{\lct{.*<title>(.*)</title>}} will not work as expected if multiple lines appear before the title.
-The regex \ct{\w} matches any alphanumeric, and \ct{\W} will match any non-alphanumeric, so \ct{[\w\W]} will match any character \emph{including newlines}.
+The regex \ct{\\w} matches any alphanumeric, and \ct{\\W} will match any non-alphanumeric, so \ct{[\\w\\W]} will match any character \emph{including newlines}.
 (If we expect titles to possible contain newlines, we should play the same trick with the subexpression.)
 
 Now we can test our title extractor, and we should see something like this:
@@ -491,7 +495,7 @@ Two other useful operators similar to \ct{*} are \ct{+} and \ct{?}.
 \end{code}
 
 \indexmain{Regex syntax!escape}
-As we have seen, the characters \ct{*}, \ct{+}, \ct{?}, \ct{(}, and \ct{)} have special meaning within regular expressions. If we need to match any of them literally, it should be escaped by preceding it with a backslash \ct{\}. Thus, backslash is also special character, and needs to be escaped for a literal match. The same holds for all further special characters we will see.
+As we have seen, the characters \ct{*}, \ct{+}, \ct{?}, \ct{(}, and \ct{)} have special meaning within regular expressions. If we need to match any of them literally, it should be escaped by preceding it with a backslash \ct{\\}. Thus, backslash is also special character, and needs to be escaped for a literal match. The same holds for all further special characters we will see.
 \begin{code}{@TEST}
 'ab*' matchesRegex: 'ab*'  --> false    "star in the right string is special"
 'ab*' matchesRegex: 'ab\*' --> true
@@ -550,8 +554,8 @@ Thus, empty and universal sets cannot be specified.
 
 %-----------------------------------------------------------------
 \subsection{Character classes}
-Regular expressions can also include the following backquote escapes to refer to popular classes of characters: \ct{\w} to match alphanumeric characters, \ct{\d} to match digits, and \ct{\s} to match whitespace.
-Their upper-case variants, \ct{\W}, \ct{\D} and \ct{\S}, match the complementary characters (non-alphanumerics, non-digits and non-whitespace).
+Regular expressions can also include the following backquote escapes to refer to popular classes of characters: \ct{\\w} to match alphanumeric characters, \ct{\\d} to match digits, and \ct{\\s} to match whitespace.
+Their upper-case variants, \ct{\\W}, \ct{\\D} and \ct{\\S}, match the complementary characters (non-alphanumerics, non-digits and non-whitespace).
 We can see a summary of the syntax seen so far in \tabref{regexsyntax}.
 
 \indexmain{Regex syntax}
@@ -869,7 +873,7 @@ names matchesStreamPrefix: ignatz --> true
 After a successful match attempt, you can query which part of the original string has matched which part of the regex. A subexpression is a parenthesized part of a regular expression, or the whole expression. When a regular expression is compiled, its subexpressions are assigned indices starting from 1, depth-first, left-to-right.
 
 \index{Regex!subexpression matches}
-For example, the regex \ct{((\d+)\s*(\w+))} has four subexpressions, including itself.
+For example, the regex \ct{((\\d+)\\s*(\\w+))} has four subexpressions, including itself.
 \begin{code}{}
 1:    ((\d+)\s*(\w+))    "the complete expression"
 2:    (\d+)\s*(\w+)       "top parenthesized subexpression"
