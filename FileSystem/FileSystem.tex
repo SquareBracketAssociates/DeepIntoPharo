@@ -68,7 +68,10 @@ You should not use platform specific classes such as \ct{UnixStore} or \ct{Windo
 
 \section{Navigating the FileSystem}
 
-Now let's play with the API. To list the immediate children of your working directory, execute the following expression:
+Now let's play with the FileSystem. 
+
+\paragraph{Immediate children.}
+To list the immediate children of your working directory, execute the following expression:
 
 \begin{code}{}
 | working |
@@ -93,12 +96,16 @@ To get a file reference you can also use the \ct{asFileReference} message as fol
 
 
 
+\paragraph{All '.st' files.}
+
 To find all st files in the working directory, simply execute:
 
 \begin{code}{}
 working allChildren select: [ :each | each basename endsWith: 'st' ]
 \end{code} 
  
+ 
+\paragraph{Accessing a given file or directory.}
 Use the slash operator to obtain a reference to a specific file or directory within your working directory:
 
 \begin{code}{}
@@ -107,6 +114,7 @@ working := FileSystem disk workingDirectory.
 cache := working / 'package-cache'.
 \end{code} 
 
+\paragraph{Getting to the parent folder.}
 Navigating back to the parent is easy using the \mthind{FileReference}{parent} message:
 
 \begin{code}{}
@@ -117,6 +125,8 @@ parent := cache parent.
 parent = working			
 --> true
 \end{code}
+
+\paragraph{Accessing directory properties.}
 
 You can check for various properties of the cache directory by executing the following expressions:
 
