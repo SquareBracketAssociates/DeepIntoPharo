@@ -298,39 +298,53 @@ backup !\textbf{deleteAll}!.
 
 
 \section{The main entry point: FileReference}
-While FileSystem is based on multiple concepts and classes such as \mbox{\ct{FileSystem},} \ct{Path} and \ct{FileReference}. \ct{FileReference} is the most important for an end-user. \ct{FileReference} offers a set of operations to manipulate files. We saw some of them until now and here is a more complete list of operations.
-At the design level, a FileReference combines two lower level entities: a path (\ct{Path}) and a filesystem (\ct{FileSystem}) into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FileSystem}, but without the need to track paths and filesystem separately.
+While FileSystem is based on multiple concepts and classes such as \mbox{\ct{FileSystem},} \ct{Path} and \ct{FileReference}. \ct{FileReference} is the most important for an end-user. \ct{FileReference} offers a set of operations to manipulate files. We saw some of them until now and now we present a more complete list of operations.
+
+At the design level, a file reference (\ct{FileReference}) combines two lower level entities: a path (\ct{Path}) and a filesystem (\ct{FileSystem}) into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FileSystem}, but without the need to track paths and filesystem separately.
 
 \subsection{FileReference information access}
-First given a file reference you can access usual information using methods \ct{basename}, \ct{base}, \ct{extensions}...
+First given a file reference you can access usual information using messages \ct{basename}, \ct{base}, \ct{extensions}...
 
 \begin{code}{}
 | pf |
 pf := (FileSystem disk workingDirectory / 'package-cache' ) children second.
   -->  /Users/ducasse/Pharo/PharoHarvestingFixes/20/package-cache/AsmJit-IgorStasenko.66.mcz
-pf fullName.
+pf !\textbf{fullName}!
   --> '/Users/ducasse/Pharo/PharoHarvestingFixes/20/package-cache/AsmJit-IgorStasenko.66.mcz'
-pf basename.
+pf !\textbf{basename}!
   --> 'AsmJit-IgorStasenko.66.mcz'  
-pf basenameWithoutExtension. 
+pf !\textbf{basenameWithoutExtension}! 
   -->	'AsmJit-IgorStasenko.66'
-pf base 
+pf !\textbf{base}! 
 	--> 'AsmJit-IgorStasenko'
-pf extension 'mcz'
-    -->
-pf extensions
+pf !\textbf{extension}! 
+    --> 'mcz'
+pf !\textbf{extensions}!
 	--> an OrderedCollection('66' 'mcz')
 \end{code}
 
+
+\paragraph{Indicators.} 
+FileSystem introduces the notion of file reference indicators. An indicator is a visual clue conveying the type of the reference.
+For now three kind of indicators are implemented,  \ct{'?'} for a non existing reference, \ct{'/'} for a directory,and the empty string for a file. \ct{FileReference} defines the  message \ct{basenameWithIndicator} that takes advantage of indicators.
+The following expressions shows its use. 
+
+
 \begin{code}{}
-pf  basenameWithIndicator  
+pf  !\textbf{basenameWithIndicator}!
 	--> 'AsmJit-IgorStasenko.66.mcz'
-pf parent  basename 
+pf parent  !\textbf{basename}!
 	--> 'package-cache'
-pf parent basenameWithIndicator  
+pf parent !\textbf{basenameWithIndicator}!
 	--> 'package-cache/'
 \end{code}
 
+
+\paragraph{Path.}
+
+When there is a need to access strings out of a path, the message \ct{pathSegments} returns the full name cut into path elements. 
+Remember that from a design point of view, strings are dead objects so it is often better to deal with the real objects for example using
+the \ct{path} message. 
 
 
 \begin{code}{}
@@ -340,7 +354,8 @@ pf path
     -->  Path / 'Users' / 'ducasse' / 'Pharo' / 'PharoHarvestingFixes' / '20' / 'package-cache' / 'AsmJit-IgorStasenko.66.mcz'
 \end{code}
 
-
+\paragraph{Sizes.}
+FileReference provides also some way to access the size of the file. 
 
 \begin{code}{}
 pf humanReadableSize 
@@ -350,8 +365,10 @@ pf size
 \end{code}  
 
 
+\paragraph{File Information.}
+
 You can get limited information about the file entry itself using \ct{creationTime} and \ct{permissions}. 
-To get the full information you should access the entry itself.
+To get the full information you should access the entry itself using the message \ct{entry}. 
 
 \begin{code}{}
 | pf |
@@ -368,7 +385,7 @@ Entries are objects that represent all the metadata of a single file.
 \begin{code}{}
 | pf |
 pf := (FileSystem disk workingDirectory / 'package-cache' ) children second.
-pf entry
+pf !\textbf{entry}!
 
 pf parent entries
 	"returns all the entries of the children of the receiver"
@@ -376,19 +393,20 @@ pf parent entries
 
 
 \subsection{Operating on files}
-There are several operations on files such as \ct{delete} (deletes the file if it is present else raise an error),\ct{deleteAll}( which delete the directory and its contents), \ct{deleteAllChildren} (which only delete children of a directory), \ct{deleteIfAbsent:}, \ct{ensureDeleted} (which makes sure that the file will be deleted), and \ct{ensureDirectory} does not raise an error while \ct{createDirectory} does it. \ct{ensureFile} creates if necessary a file.
+There are several operations on files such as \ct{delete} (deletes the file), \ct{deleteAll} (which deletes the directory and its contents), \ct{deleteAllChildren} (which only deletes children of a directory), \ct{deleteIfAbsent:} (which executes a block when the file does not exist, \ct{ensureDeleted} (which makes sure that the file will be deleted), and \ct{ensureDirectory} does not raise an error while \ct{createDirectory} does it. \ct{ensureFile} creates if necessary a file.
 
-\sd{what is the difference between delete and ensureDeleted? since delete sent to a non existing file does not raise error}
+\sd{Stef here! And should comment the methods accordingly.}
 
 \begin{code}{}
-(FileSystem disk workingDirectory / 'paf' ) delete.
-(FileSystem disk workingDirectory / 'paf' ) createDirectory.
-[(FileSystem disk workingDirectory / 'paf' ) createDirectory] on: DirectoryExists do: [:ex| true].
+(FileSystem disk workingDirectory / 'paf' ) !\textbf{delete}!.
+(FileSystem disk workingDirectory / 'paf' ) !\textbf{deleteIfAbsent:}! [Warning signal: 'File did not exist'].
+(FileSystem disk workingDirectory / 'paf' ) !\textbf{createDirectory}!.
+[(FileSystem disk workingDirectory / 'paf' ) !\textbf{createDirectory]}! on: DirectoryExists do: [:ex| true].
 	--> true
-(FileSystem disk workingDirectory / 'paf' ) delete.
-(FileSystem disk workingDirectory / 'paf' ) ensureDirectory.
-(FileSystem disk workingDirectory / 'paf' ) ensureDirectory.
-(FileSystem disk workingDirectory / 'paf' ) isDirectory.
+(FileSystem disk workingDirectory / 'paf' ) !\textbf{delete}!.
+(FileSystem disk workingDirectory / 'paf' ) !\textbf{ensureDirectory}!.
+(FileSystem disk workingDirectory / 'paf' ) !\textbf{ensureDirectory}!.
+(FileSystem disk workingDirectory / 'paf' ) !\textbf{isDirectory}!.
   --> true
 \end{code}
 
