@@ -54,13 +54,13 @@ To execute the script that we just downloaded, you should change its permissions
 
 \paragraph{Configurations.}
 There is a plethora of configurations available. The URL for each script can
-be easily built from an image version and a vm following the expression: \ct{get.pharo.org/\$IMAGE+\$VM}
+be easily built from an image version and a vm following the expression: \ct{get.pharo.org/$IMAGE+$VM}
 	
-Possible values for \ct{\$IMAGE} are: \ct{12 13 14 20 30 stable alpha}
+Possible values for \ct{$IMAGE} are: \ct{12 13 14 20 30 stable alpha}
 
-Possible values for \ct{\$VM} are: \ct{vm vmS vmLatest vmSLatest}
+Possible values for \ct{$VM} are: \ct{vm vmS vmLatest vmSLatest}
 
-Of course, one can just download an image as well \ct{get.pharo.org/\$IMAGE} or just the VM \ct{get.pharo.org/\$VM}
+Of course, one can just download an image as well \ct{get.pharo.org/$IMAGE} or just the VM \ct{get.pharo.org/$VM}
 
 
 
@@ -94,7 +94,7 @@ If you just want to directly execute the script you can also do the following
 wget -O - get.pharo.org/20+vm | bash
 \end{code}
 
-The option \ct{-O -} will output the downloaded bash file to standard out, so we can pipe it to \ct{bash}. If you do not like the log of web, use \ct{--quiet}.
+The option \ct{-O -} will output the downloaded bash file to standard out, so we can pipe it to \mbox{\ct{bash}.} If you do not like the log of web, use  \ct{--quiet}.
 
 \begin{code}{}
 wget --quiet -O - get.pharo.org/20+vm | bash
@@ -103,7 +103,7 @@ wget --quiet -O - get.pharo.org/20+vm | bash
 
 
 \paragraph{Note for the believers in automated tasks.} 
-The scripts are fetched automatically from our jenkins server (\url{https://ci.inria.fr/pharo/job/Scripts-download/}) from the gitorious server \url{https://gitorious.org/pharo-build/pharo-build}.
+The scripts are fetched automatically from our jenkins server (\url{https://ci.inria.fr/pharo/job/Scripts-download/}) from the gitorious server \mbox{\url{https://gitorious.org/pharo-build/pharo-build}.}
 Yes we believe in automated tasks that free our energy. 
 
 \section{Getting the VM only}
@@ -125,7 +125,7 @@ The following artifacts are created:
 \end{code}
 
 
-Figure~\ref{fig:website} shows the list of scripts available that you can get at \url{http://get.pharo.org}.
+Figure~\ref{fig:website} shows the list of scripts available that you can get at \mbox{\url{http://get.pharo.org}.}
 
 \begin{figure}[!h]
 	\centering
@@ -267,7 +267,7 @@ or it can read directly from stdin:
 \end{code}
 
 Now the handler is defined as follows: First we define a subclass of CommandLineHandler. Here 
-\ct{BasicCodeLoader} is a subclass of \ct{CommandLineHandler} and \ct{EvaluateCommandLineHandler} is a subclass of \ct{BasicCodeLoader}.
+\ct{BasicCodeLoader} is a subclass of \ct{CommandLineHandler} and \ct{EvaluateCommandLineHandler} is a subclass of \mbox{\ct{BasicCodeLoader}.}
 
 \begin{code}{}
 BasicCodeLoader subclass: #EvaluateCommandLineHandler
