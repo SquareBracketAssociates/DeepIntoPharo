@@ -301,10 +301,8 @@ You should now be able to see something like this:
 
 Now let's extract the title. In this case we are looking for the text that occurs \emph{between} the HTML tags \ct{<title>} and \ct{</title>}. 
 
-\index{Regex syntax!@\ctl{\^}}
-What we need is a way to extract \emph{part} of the match of a regular expression. Subexpressions of regexes are delimited by parentheses. Consider the regex \ct{([CARETaeiou]+)([aeiou]+)}. It consists of two subexpressions, the first of which will match a sequence of one or more non-vowels, and the second of which will match one or more vowels. (The operator \ct{CARET} at the start of a bracketed set of characters negates the set.
- 
-\footnote{NB: In \pharo the caret is also the return keyword, which we write as \ctl{^}. To avoid confusion, we will write \ct{CARET} when we are using the caret within regular expressions to negate sets of characters, but you should not forget, they are actually the same thing.}) 
+\index{Regex syntax!@\ct{\^}}
+What we need is a way to extract \emph{part} of the match of a regular expression. Subexpressions of regexes are delimited by parentheses. Consider the regex \ct{([CARETaeiou]+)([aeiou]+)}. It consists of two subexpressions, the first of which will match a sequence of one or more non-vowels, and the second of which will match one or more vowels. (The operator \ct{CARET} at the start of a bracketed set of characters negates the set. \footnote{NB: In \pharo the caret is also the return keyword, which we write as \ct{^}. To avoid confusion, we will write \ct{CARET} when we are using the caret within regular expressions to negate sets of characters, but you should not forget, they are actually the same thing.}) 
   
 Now we will try to match a \emph{prefix} of the string \ct{'pharo'} and extract the submatches:
 
@@ -338,7 +336,7 @@ There are a couple of subtle points to notice here.
 First, HTML does not care whether tags are upper or lower case, so we must make our regex case insensitive by instantiating it with \ct{asRegexIgnoringCase}.
 
 Second, since dot matches any character \emph{except a newline}, the regex \mbox{\lct{.*<title>(.*)</title>}} will not work as expected if multiple lines appear before the title.
-The regex \ct{\\w} matches any alphanumeric, and \ct{\\W} will match any non-alphanumeric, so \ct{[\\w\\W]} will match any character \emph{including newlines}.
+The regex \ct{\w} matches any alphanumeric, and \ct{\W} will match any non-alphanumeric, so \ct{[\\w\\W]} will match any character \emph{including newlines}.
 (If we expect titles to possible contain newlines, we should play the same trick with the subexpression.)
 
 Now we can test our title extractor, and we should see something like this:
@@ -495,7 +493,7 @@ Two other useful operators similar to \ct{*} are \ct{+} and \ct{?}.
 \end{code}
 
 \indexmain{Regex syntax!escape}
-As we have seen, the characters \ct{*}, \ct{+}, \ct{?}, \ct{(}, and \ct{)} have special meaning within regular expressions. If we need to match any of them literally, it should be escaped by preceding it with a backslash \ct{\\}. Thus, backslash is also special character, and needs to be escaped for a literal match. The same holds for all further special characters we will see.
+As we have seen, the characters \ct{*}, \ct{+}, \ct{?}, \ct{(}, and \ct{)} have special meaning within regular expressions. If we need to match any of them literally, it should be escaped by preceding it with a backslash \ct{\}. Thus, backslash is also special character, and needs to be escaped for a literal match. The same holds for all further special characters we will see.
 \begin{code}{@TEST}
 'ab*' matchesRegex: 'ab*'  --> false    "star in the right string is special"
 'ab*' matchesRegex: 'ab\*' --> true
@@ -554,8 +552,8 @@ Thus, empty and universal sets cannot be specified.
 
 %-----------------------------------------------------------------
 \subsection{Character classes}
-Regular expressions can also include the following backquote escapes to refer to popular classes of characters: \ct{\\w} to match alphanumeric characters, \ct{\\d} to match digits, and \ct{\\s} to match whitespace.
-Their upper-case variants, \ct{\\W}, \ct{\\D} and \ct{\\S}, match the complementary characters (non-alphanumerics, non-digits and non-whitespace).
+Regular expressions can also include the following backquote escapes to refer to popular classes of characters: \ct{\w} to match alphanumeric characters, \ct{\d} to match digits, and \ct{\s} to match whitespace.
+Their upper-case variants, \ct{\W}, \ct{\D} and \ct{\S}, match the complementary characters (non-alphanumerics, non-digits and non-whitespace).
 We can see a summary of the syntax seen so far in \tabref{regexsyntax}.
 
 \indexmain{Regex syntax}
@@ -592,7 +590,7 @@ We can see a summary of the syntax seen so far in \tabref{regexsyntax}.
 
 
 As mentioned in the introduction, regular expressions are especially useful for validating user input, and character classes turn out to be especially useful for defining such regexes.
-For example, non-negative numbers can be matched with the regex \ct{\d+}:
+For example, non-negative numbers can be matched with the regex \ct{d+}:
 
 \begin{code}{@TEST}
 '42' matchesRegex: '\d+' --> true
@@ -687,7 +685,7 @@ Note that these elements are components of the character classes, \ie they have 
 \subsection{Special character classes}
 The next primitive expression is unique to this Smalltalk implementation. A sequence of characters between colons is treated as a unary selector which is supposed to be understood by characters. A character matches such an expression if it answers true to a message with that selector. This allows a more readable and efficient way of specifying character classes. For example, \ct{[0-9]} is equivalent to \ct{:isDigit:}, but the latter is more efficient. Analogously to character sets, character classes can be negated: \ct{:CARETisDigit:} matches a character that answers \ct{false} to \ct{isDigit}, and is therefore equivalent to \ct{[CARET0-9]}.
 
-So far we have seen the following equivalent ways to write a regular expression that matches a non-empty string of digits: \ct{[0-9]+}, \ct{\d+}, \ct{[\d]+}, \ct{[[:digit:]]+}, \ct{:isDigit:+}.
+So far we have seen the following equivalent ways to write a regular expression that matches a non-empty string of digits: \ct{[0-9]+}, \ct{d+}, \ct{[\d]+}, \ct{[[:digit:]]+}, \ct{:isDigit:+}.
 
 \begin{code}{@TEST}
 '42' matchesRegex: '[0-9]+'      --> true
