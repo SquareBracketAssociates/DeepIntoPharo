@@ -80,7 +80,7 @@ working children.
 --> anArray(file:///Users/ducasse/Workspace/FirstCircle/Pharo/20/.DS_Store file:///Users/ducasse/Workspace/FirstCircle/Pharo/20/ASAnimation.st ...)
 \end{code} 
 
-Notice that \mthind{FileReference}{children} returns the direct files and folders. 
+Notice that \mthind{FileReference}{children} returns the \emph{direct} files and folders. 
 To recursively access all the children of the current directory you should use the message \mthind{FileReference}{allChildren} as follows:
 
 \begin{code}{}
@@ -198,8 +198,8 @@ Please note that \ct{writeStream} overrides any existing file and \ct{readStream
 \begin{code}{}
 | working  |
 working := FileSystem disk workingDirectory.
-working / 'foo.txt' writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].
-working / 'foo.txt' readStreamDo: [ :stream | stream contents ].
+working / 'foo.txt' !\textbf{writeStreamDo:}! [ :stream | stream nextPutAll: 'Hello World' ].
+working / 'foo.txt' !\textbf{readStreamDo:}! [ :stream | stream contents ].
 \end{code}
 
 \begin{code}{}
@@ -223,7 +223,7 @@ write status.
 
 \begin{code}{}
 | stream |
-stream := FileSystem disk openFileStream: 'authors.txt' writable: true.
+stream := FileSystem disk !\textbf{openFileStream:}! 'authors.txt' !\textbf{writable:}! true.
 stream nextPutAll: 'stephane alexandre damien jannik'.
 \end{code}	
 
@@ -233,7 +233,7 @@ Have a look at the streams protocol of \ct{FileReference} for other convenience 
 
 \section{Renaming, Copying and Deleting Files and Directories}
 
-We can copy and rename files using the messages \ct{copyTo:} and \ct{renameTo:}. Note that while \ct{copyTo:} expects another fileReference,  \ct{renameTo:} expects paths, pathnames or references.
+We can copy and rename files using the messages \ct{copyTo:} and \mbox{\ct{renameTo:}.} Note that while \ct{copyTo:} expects another fileReference,  \ct{renameTo:} expects paths, pathnames or references.
 
 \begin{code}{}
 | working |
@@ -298,7 +298,7 @@ backup !\textbf{deleteAll}!.
 
 
 \section{The main entry point: FileReference}
-While FileSystem is based on multiple concepts and classes such as \ct{FileSystem}, \ct{Path} and \ct{FileReference}. \ct{FileReference} is the most important for an end-user. \ct{FileReference} offers a set of operations to manipulate files. We saw some of them until now and here is a more complete list of operations.
+While FileSystem is based on multiple concepts and classes such as \mbox{\ct{FileSystem},} \ct{Path} and \ct{FileReference}. \ct{FileReference} is the most important for an end-user. \ct{FileReference} offers a set of operations to manipulate files. We saw some of them until now and here is a more complete list of operations.
 At the design level, a FileReference combines two lower level entities: a path (\ct{Path}) and a filesystem (\ct{FileSystem}) into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FileSystem}, but without the need to track paths and filesystem separately.
 
 \subsection{FileReference information access}
