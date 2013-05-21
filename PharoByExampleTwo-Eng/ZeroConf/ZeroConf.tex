@@ -239,7 +239,7 @@ Examples:
 	#install a specific version '1.5' and only a specific group 'Tests'
 	pharo Pharo.image config $MC_REPOS_URL ConfigurationOfFoo --install=1.5 --group=Tests
 \end{code}
-
+% $ <--- don't remove that, it's here to fix a bug in Emacs
 
 
 \section{Anatomy of a handler}
@@ -312,6 +312,7 @@ In particular we define a class comment since this is this class comment that wi
 	\caption{XMLWriter ZeroConf scripts. \label{fig:jenkins}}
 \end{figure}
 
+If you want your image saved at the end of an evaluation script, pass the \ct{--save} option just after \ct{eval}.
 
 \section{Using ZeroConf script with Jenkins}
 Now that we have such scripts and the possibility to specify option, we can write jenkins scripts which are relying as less as possible on bash. 
