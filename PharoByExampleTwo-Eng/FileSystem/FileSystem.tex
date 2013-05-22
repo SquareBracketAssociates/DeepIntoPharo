@@ -326,7 +326,8 @@ pf !\textbf{extensions}!
 
 \paragraph{Indicators.} 
 FileSystem introduces the notion of file reference indicators. An indicator is a visual clue conveying the type of the reference.
-For now three kind of indicators are implemented,  \ct{'?'} for a non existing reference, \ct{'/'} for a directory,and the empty string for a file. \ct{FileReference} defines the  message \ct{basenameWithIndicator} that takes advantage of indicators.
+For now three kind of indicators are implemented,  \ct{'?'} for a non existing reference, \ct{'/'} for a directory,
+and the empty string for a file. \ct{FileReference} defines the  message \ct{basenameWithIndicator} that takes advantage of indicators.
 The following expressions shows its use. 
 
 
@@ -393,13 +394,41 @@ pf parent entries
 
 
 \subsection{Operating on files}
-There are several operations on files such as \ct{delete} (deletes the file), \ct{deleteAll} (which deletes the directory and its contents), \ct{deleteAllChildren} (which only deletes children of a directory), \ct{deleteIfAbsent:} (which executes a block when the file does not exist, \ct{ensureDeleted} (which makes sure that the file will be deleted), and \ct{ensureDirectory} does not raise an error while \ct{createDirectory} does it. \ct{ensureFile} creates if necessary a file.
+There are several operations on files.
 
-\sd{Stef here! And should comment the methods accordingly.}
+
+\paragraph{Deleting.}
+\ct{delete} deletes the file, \ct{deleteAll} (which deletes the directory and its contents and raises and error is the file does not exist,
+\ct{deleteAllChildren} (which only deletes children of a directory and raise an error if the receiver does not exist), \ct{deleteIfAbsent:} (which executes a block when the file does not exist, \ct{ensureDeleted} (which makes sure that the file will be deleted)
+
+
+
 
 \begin{code}{}
-(FileSystem disk workingDirectory / 'paf' ) !\textbf{delete}!.
-(FileSystem disk workingDirectory / 'paf' ) !\textbf{deleteIfAbsent:}! [Warning signal: 'File did not exist'].
+(FileSystem disk workingDirectory / 'paf') !\textbf{delete}!.
+(FileSystem disk workingDirectory / 'fooFolder') !\textbf{deleteAll}!.
+  --> error
+(FileSystem disk workingDirectory / 'fooFolder') ensureDirectory.
+(FileSystem disk workingDirectory / 'fooFolder') !\textbf{deleteAll}!.
+
+(FileSystem disk workingDirectory / 'paf') !\textbf{deleteIfAbsent:}! [Warning signal: 'File did not exist'].
+
+(FileSystem disk workingDirectory / 'fooFolder2') !\textbf{deleteAllChildren}!.
+  --> error
+
+(FileSystem disk workingDirectory / 'fooFolder2') ensureDirectory.
+(FileSystem disk workingDirectory / 'fooFolder2') !\textbf{deleteAllChildren}!.
+\end{code}
+
+
+\paragraph{Creating Directory.}
+\ct{createDirectory} create a new directory and raise an error if it already exists. 
+\ct{ensureDirectory} verifies that the directory does not exist and only creates if necessary.
+
+\ct{ensureFile} creates if necessary a file.
+ 
+ 
+\begin{code}{} 
 (FileSystem disk workingDirectory / 'paf' ) !\textbf{createDirectory}!.
 [(FileSystem disk workingDirectory / 'paf' ) !\textbf{createDirectory]}! on: DirectoryExists do: [:ex| true].
 	--> true
@@ -408,6 +437,27 @@ There are several operations on files such as \ct{delete} (deletes the file), \c
 (FileSystem disk workingDirectory / 'paf' ) !\textbf{ensureDirectory}!.
 (FileSystem disk workingDirectory / 'paf' ) !\textbf{isDirectory}!.
   --> true
+\end{code}
+
+\paragraph{Moving files around.}
+
+\begin{code}{}
+(FileSystem disk workingDirectory / 'paf' ) moveTo: (FileSystem disk workingDirectory / 'fooFolder')
+
+-> Error
+
+(FileSystem disk workingDirectory / 'paf' ) ensureFile.
+(FileSystem disk workingDirectory / 'fooFolder') ensureDirectory. 
+(FileSystem disk workingDirectory / 'paf' ) moveTo: (FileSystem disk workingDirectory / 'fooFolder' / 'paf').
+(FileSystem disk workingDirectory / 'paf' ) exists.
+	false
+(FileSystem disk workingDirectory / 'fooFolder' / 'paf') exits.
+	true
+\end{code}
+
+\sd{why the following does not work?}
+\begin{code}{}
+(FileSystem disk workingDirectory / 'fooFolder4') createDirectory. (FileSystem disk workingDirectory / 'pif' ) ensureFile.(FileSystem disk workingDirectory / 'pif' ) copyAllTo: (FileSystem disk workingDirectory / 'fooFolder4').
 \end{code}
 
 \subsection{Locator}
