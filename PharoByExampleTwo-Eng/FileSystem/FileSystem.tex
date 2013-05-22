@@ -438,40 +438,51 @@ There are several operations on files.
   --> true
 \end{code}
 
-\paragraph{Moving files around.}
+\paragraph{Moving/Copying files around.}
 
-We can move files around. 
+We can move files around using the message \ct{moveTo:} which expects a file reference. 
 \begin{code}{}
-(FileSystem disk workingDirectory / 'fooFolder') exist
+(FileSystem disk workingDirectory / 'targetFolder') exist
   --> false
 (FileSystem disk workingDirectory / 'paf') exist
   --> false
-(FileSystem disk workingDirectory / 'paf' ) moveTo: (FileSystem disk workingDirectory / 'fooFolder')
+(FileSystem disk workingDirectory / 'paf' ) !\textbf{moveTo:}! (FileSystem disk workingDirectory / 'targetFolder')
  --> Error
 
 (FileSystem disk workingDirectory / 'paf' ) ensureFile.
-(FileSystem disk workingDirectory / 'fooFolder') ensureDirectory. 
-(FileSystem disk workingDirectory / 'paf' ) moveTo: (FileSystem disk workingDirectory / 'fooFolder' / 'paf').
+(FileSystem disk workingDirectory / 'targetFolder') ensureDirectory. 
+(FileSystem disk workingDirectory / 'paf' ) !\textbf{moveTo:}! (FileSystem disk workingDirectory / 'targetFolder' / 'paf').
 (FileSystem disk workingDirectory / 'paf' ) exists.
 	-->false
-(FileSystem disk workingDirectory / 'fooFolder' / 'paf') exists.
+(FileSystem disk workingDirectory / 'targetFolder' / 'paf') exists.
 	-->true
 \end{code}
 
-
+Beside moving we can copy files. 
 We can also use \ct{copyAllTo:} to copy files around. Here we copy the files contained in the source folder to the target one. 
 
-\begin{code}{}(FileSystem disk workingDirectory / 'sourceFolder') createDirectory. (FileSystem disk workingDirectory /  'sourceFolder' / 'pif') ensureFile.
-(FileSystem disk workingDirectory /  'sourceFolder' / 'paf') ensureFile.(FileSystem disk workingDirectory / 'targetFolder') createDirectory. (FileSystem disk workingDirectory / 'sourceFolder' ) copyAllTo: (FileSystem disk workingDirectory / 'targetFolder').(FileSystem disk workingDirectory /  'targetFolder' / 'pif' ) exists.
+\begin{code}{}
+(FileSystem disk workingDirectory / 'sourceFolder') createDirectory. 
+(FileSystem disk workingDirectory / 'sourceFolder' / 'pif') ensureFile.
+(FileSystem disk workingDirectory / 'sourceFolder' / 'paf') ensureFile.
+(FileSystem disk workingDirectory / 'targetFolder') createDirectory. 
+(FileSystem disk workingDirectory / 'sourceFolder') !\textbf{copyAllTo:}! (FileSystem disk workingDirectory / 'targetFolder').
+(FileSystem disk workingDirectory / 'targetFolder' / 'pif') exists.
   --> true
-(FileSystem disk workingDirectory /  'targetFolder' / 'paf' ) exists.
+(FileSystem disk workingDirectory / 'targetFolder' / 'paf') exists.
  --> true
  \end{code}
 
-\ct{copyAllTo:} can be used to copy a single file too:
+
+The message \ct{copyAllTo:} can be used to copy a single file too:
 
 \begin{code}{}
-(FileSystem disk workingDirectory / 'sourceFolder') ensureDirectory. (FileSystem disk workingDirectory /  'sourceFolder' / 'pif') ensureFile.(FileSystem disk workingDirectory /  'sourceFolder' / 'paf') ensureFile.(FileSystem disk workingDirectory / 'targetFolder') ensureDirectory. (FileSystem disk workingDirectory / 'sourceFolder' / 'paf') copyAllTo: (FileSystem disk workingDirectory / 'targetFolder' / 'paf').(FileSystem disk workingDirectory /  'targetFolder' / 'paf') exists.
+(FileSystem disk workingDirectory / 'sourceFolder') ensureDirectory. 
+(FileSystem disk workingDirectory /  'sourceFolder' / 'pif') ensureFile.
+(FileSystem disk workingDirectory /  'sourceFolder' / 'paf') ensureFile.
+(FileSystem disk workingDirectory / 'targetFolder') ensureDirectory. 
+(FileSystem disk workingDirectory / 'sourceFolder' / 'paf') !\textbf{copyAllTo:}! (FileSystem disk workingDirectory / 'targetFolder' / 'paf').
+(FileSystem disk workingDirectory /  'targetFolder' / 'paf') exists.
 	--> true.
 (FileSystem disk workingDirectory /  'targetFolder' / 'pif' ) exists.
   --> false
@@ -505,7 +516,7 @@ The following origins are currently supported:
 \end{itemize}
 
 Applications may also define their own origins, but the system will not be able to resolve them automatically. Instead, the user will be asked to manually choose a directory. This choice is then cached so that future resolution requests will not require user interaction.
-\ja{how can I do that ?}
+\ja{how can I do that ?}\sd{no idea}
 
 \paragraph{\ct{absolutePath} vs. \ct{path}.} The message  \ct{absolutePath} (previously \ct{fullPath}) returns the absolute path of the receiver. When the file reference is not virtual the messages \ct{path} and \ct{absolutePath} provide similar results.
 When the file is a late bound reference (instance of \ct{FileLocator}), \ct{absolutePath} will resolve the file and return the full path, while \ct{path} will return an unresolved file reference as shown below.
