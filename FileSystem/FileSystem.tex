@@ -424,7 +424,6 @@ There are several operations on files.
 \paragraph{Creating Directory.}
 \ct{createDirectory} create a new directory and raise an error if it already exists. 
 \ct{ensureDirectory} verifies that the directory does not exist and only creates if necessary.
-
 \ct{ensureFile} creates if necessary a file.
  
  
@@ -441,23 +440,41 @@ There are several operations on files.
 
 \paragraph{Moving files around.}
 
+We can move files around. 
 \begin{code}{}
+(FileSystem disk workingDirectory / 'fooFolder') exist
+  --> false
+(FileSystem disk workingDirectory / 'paf') exist
+  --> false
 (FileSystem disk workingDirectory / 'paf' ) moveTo: (FileSystem disk workingDirectory / 'fooFolder')
-
--> Error
+ --> Error
 
 (FileSystem disk workingDirectory / 'paf' ) ensureFile.
 (FileSystem disk workingDirectory / 'fooFolder') ensureDirectory. 
 (FileSystem disk workingDirectory / 'paf' ) moveTo: (FileSystem disk workingDirectory / 'fooFolder' / 'paf').
 (FileSystem disk workingDirectory / 'paf' ) exists.
-	false
-(FileSystem disk workingDirectory / 'fooFolder' / 'paf') exits.
-	true
+	-->false
+(FileSystem disk workingDirectory / 'fooFolder' / 'paf') exists.
+	-->true
 \end{code}
 
-\sd{why the following does not work?}
+
+We can also use \ct{copyAllTo:} to copy files around. Here we copy the files contained in the source folder to the target one. 
+
+\begin{code}{}(FileSystem disk workingDirectory / 'sourceFolder') createDirectory. (FileSystem disk workingDirectory /  'sourceFolder' / 'pif') ensureFile.
+(FileSystem disk workingDirectory /  'sourceFolder' / 'paf') ensureFile.(FileSystem disk workingDirectory / 'targetFolder') createDirectory. (FileSystem disk workingDirectory / 'sourceFolder' ) copyAllTo: (FileSystem disk workingDirectory / 'targetFolder').(FileSystem disk workingDirectory /  'targetFolder' / 'pif' ) exists.
+  --> true
+(FileSystem disk workingDirectory /  'targetFolder' / 'paf' ) exists.
+ --> true
+ \end{code}
+
+\ct{copyAllTo:} can be used to copy a single file too:
+
 \begin{code}{}
-(FileSystem disk workingDirectory / 'fooFolder4') createDirectory. (FileSystem disk workingDirectory / 'pif' ) ensureFile.(FileSystem disk workingDirectory / 'pif' ) copyAllTo: (FileSystem disk workingDirectory / 'fooFolder4').
+(FileSystem disk workingDirectory / 'sourceFolder') ensureDirectory. (FileSystem disk workingDirectory /  'sourceFolder' / 'pif') ensureFile.(FileSystem disk workingDirectory /  'sourceFolder' / 'paf') ensureFile.(FileSystem disk workingDirectory / 'targetFolder') ensureDirectory. (FileSystem disk workingDirectory / 'sourceFolder' / 'paf') copyAllTo: (FileSystem disk workingDirectory / 'targetFolder' / 'paf').(FileSystem disk workingDirectory /  'targetFolder' / 'paf') exists.
+	--> true.
+(FileSystem disk workingDirectory /  'targetFolder' / 'pif' ) exists.
+  --> false
 \end{code}
 
 \subsection{Locator}
