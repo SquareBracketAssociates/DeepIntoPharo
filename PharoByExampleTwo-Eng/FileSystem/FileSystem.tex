@@ -461,6 +461,8 @@ We can move files around using the message \ct{moveTo:} which expects a file ref
 Beside moving we can copy files. 
 We can also use \ct{copyAllTo:} to copy files around. Here we copy the files contained in the source folder to the target one. 
 
+\ct{copyAllTo:} performs a deep copy of the receiver, to a location specified by the argument. If the receiver is a file, the file will be copied; if a directory, the directory and its contents will be copied recursively. The argument must be a reference that doesn't exist; it will be created by the copy.
+
 \begin{code}{}
 (FileSystem disk workingDirectory / 'sourceFolder') createDirectory. 
 (FileSystem disk workingDirectory / 'sourceFolder' / 'pif') ensureFile.
@@ -519,7 +521,7 @@ Applications may also define their own origins, but the system will not be able 
 \ja{how can I do that ?}\sd{no idea}
 
 \paragraph{\ct{absolutePath} vs. \ct{path}.} The message  \ct{absolutePath} (previously \ct{fullPath}) returns the absolute path of the receiver. When the file reference is not virtual the messages \ct{path} and \ct{absolutePath} provide similar results.
-When the file is a late bound reference (instance of \ct{FileLocator}), \ct{absolutePath} will resolve the file and return the full path, while \ct{path} will return an unresolved file reference as shown below.
+When the file is a late bound reference (instance of \ct{FileLocator}), \ct{absolutePath} will resolve the file and return the absolute path, while \ct{path} will return an unresolved file reference as shown below.
 
 
 \begin{code}{}
@@ -533,55 +535,48 @@ When the file is a late bound reference (instance of \ct{FileLocator}), \ct{abso
 --> Path / 'Data' / 'Downloads' / 'Pharo-2.0' / 'package-cache'
 \end{code}
 
-
-\subsection{Enumeration}
-
 References and Locators also provide simple methods for dealing with whole directory trees:
 
-\begin{description}
-\item[allChildren.]
-
-This will answer an array of references to all the files and directories in the directory tree rooted at the receiver. If the receiver is a file, the array will contain a single reference, equal to the receiver.
-
-\item[allEntries.]
-This method is similar to \ct{allChildren}, but it answers an array of \ct{FileSystemDirectoryEntries}, rather than references.
-
-\item[copyAllTo: aReference.]
-
-This will perform a deep copy of the receiver, to a location specified by the argument. If the receiver is a file, the file will be copied; if a directory, the directory and its contents will be copied recursively. The argument must be a reference that doesn't exist; it will be created by the copy.
-
-\item[deleteAll.]
-
-This will perform a recursive delete of the receiver. If the receiver is a file, this has the same effect as \ct{delete}.
-\end{description}
+%\subsection{Enumeration}
+% was duplications....
+%
+%\begin{description}
+%\item[allChildren.]
+%
+%This will answer an array of references to all the files and directories in the directory tree rooted at the receiver. If the receiver is a file, the array will contain a single reference, equal to the receiver.
+%
+%\item[allEntries.]
+%This method is similar to \ct{allChildren}, but it answers an array of \ct{FileSystemDirectoryEntries}, rather than references.
+%
+%\item[copyAllTo: aReference.]
+%
+%This will perform a deep copy of the receiver, to a location specified by the argument. If the receiver is a file, the file will be copied; if a directory, the directory and its contents will be copied recursively. The argument must be a reference that doesn't exist; it will be created by the copy.
+%
+%\item[deleteAll.]
+%
+%This will perform a recursive delete of the receiver. If the receiver is a file, this has the same effect as \ct{delete}.
+%\end{description}
 
 
 \section{Looking at FileSystem internals}
-\sd{put an uml diagram?}
-Now we explain the key classes of FileSystem. 
+Now we explain the key classes of FileSystem from an implementation point of view. There is no real need to read the following to use FileSystem.  
 
-\section{FileReference = FileSystem + Path}
-Paths and filesystems are the lowest level of the FileSystem API. A \ct{FileReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files.
+\subsection{FileReference = FileSystem + Path}
+Paths and filesystems are the lowest level of the FileSystem API. A \ct{FileReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files as we show in the previous section. References implement the path protocol with methods like \ct{/}, \ct{parent} and \ct{resolve:}.
 
-
-References implement the path protocol with methods like \ct{/}, \ct{parent} and \ct{resolve:}.
-\sd{we should talk about resolve:}
-
-\ja{from here to the end, we need to check the code and the text: it is not updated with the current class names}
 
 \subsection{FileSystem}
-
 A filesystem is an interface to access hierarchies of directories and files. "The filesystem," provided by the host operating system, is represented by \ct{DiskStore} and its platform-specific subclasses. However, the user should not access them directly but using \ct{FileSystem} as we show previously. Other kinds of filesystems are also possible. The memory filesystem provides a RAM disk filesystem where all files are stored as ByteArrays in the image. The zip filesystem represents the contents of a zip file.
 
 Each filesystem has its own working directory, which is used to resolve any relative paths that are passed to it. Some examples:
 
 \begin{code}{}
-fs := Filesystem memory.
+fs := FileSystem memory.
 fs workingDirectoryPath: (Path / 'plonk').
 griffle := Path / 'plonk' / 'griffle'.
 nurp := Path * 'nurp'.
-    
-fs resolve: nurp.            --> /plonk/nurp
+fs resolve: nurp.            
+	--> Path/plonk/nurp
     
 fs createDirectory: (Path / 'plonk').  --> "/plonk created"
 (fs writeStreamOn: griffle) close.  --> "/plonk/griffle created"
@@ -596,8 +591,7 @@ fs isDirectory: griffle.         --> false
 	
 
 \subsection{Path}
-Paths are the most fundamental element of the FileSystem API. They represent filesystem paths in a very abstract sense, and provide a high-level protocol for working with paths without having to manipulate strings. Here are some examples showing how to 
-define absolute paths (\mthind{Path}{/}), relative paths (\mthind{Path}{*}), file extension (\mthind{Path}{,}), parent navigation (\mthind{Path}{parent}).
+Paths are the most fundamental element of the FileSystem API. They represent filesystem paths in a very abstract sense, and provide a high-level protocol for working with paths without having to manipulate strings. Here are some examples showing how to define absolute paths (\mthind{Path}{/}), relative paths (\mthind{Path}{*}), file extension (\mthind{Path}{,}), parent navigation (\mthind{Path}{parent}).
 Normally you do not need to use Path but here are some examples.
 
 \begin{code}{}
@@ -653,13 +647,6 @@ Path * 'griffle.txt' , 'jpeg'     --> griffle.jpeg
 
 Note that some of the path protocol (messages like \ct{/}, \ct{parent} and \ct{resolve:}) are also available on references.
 
-
-
-
-
- 
-
-
 \subsection{Visitors}
 
 The above methods are sufficient for many common tasks, but application developers may find that they need to perform more sophisticated operations on directory trees.
@@ -672,6 +659,10 @@ The visitor protocol is very simple. A visitor needs to implement \ct{visitFile:
 
 The enumeration methods described above are implemented with visitors; see \ct{CopyVisitor}, \ct{DeleteVisitor}, and \ct{CollectVisitor} for examples.
 
+
+\section{Conclusion}
+
+FileSystem is a powerful and elegant library to manipulate file. It is a fundamental 
 
 %=========================================================
 \ifx\wholebook\relax\else
