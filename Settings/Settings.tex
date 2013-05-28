@@ -114,7 +114,7 @@ The settings are presented in several trees in the middle panel. Setting searchi
 \label{sec:browsing-settings}
 \index{setting declaration}
 \index{Settings browser!browsing settings}
-Setting declarations are organized in trees which can be browsed in the middle panel. In order to get a description for a setting, just click on it: the setting is selected and the left bottom panel is updated with informations about the selected setting. 
+Setting declarations are organized in trees which can be browsed in the middle panel. To get a description for a setting, just click on it: the setting is selected and the left bottom panel is updated with informations about the selected setting. 
 
 Changing a \index{preference} preference value is simply done through the browser: each line holds a widget on the right with which you can update the value. The kind of widget depends on the actual type of the preference value. Whereas a preference value can be of any kind, the setting browser is currently able to present a specific input widget for the following types: \textit{Boolean}, \textit{Color}, \textit{FilePath}, \textit{FileDirectory}, \textit{Font}, \textit{Number}, \textit{Point} and \textit{String}. A drop-list, a password field or a range input widget using a slider can also be used. Of course, the list of possible widgets is not closed as it is possible to make the setting browser support new kind of preference values or use different input widgets. This point is explained in Section~\ref{sec:ExtendingTheSettingsBrowser}.
 
@@ -207,7 +207,7 @@ CodeHolderSystemSettings class>>caseSensitiveFindsSettingsOn: !\textbf{aBuilder}
 \end{code}
 This class method is declared in the class \ct{CodeHolderSystemSettings}. This class is dedicated to settings and contains nothing but setting declarations. Defining such a class is not mandatory; in fact any class can define setting declarations. We define it that way to make sure that the setting declaration is packaged in a different package than the one of the preference definition -- for layering purposes.
 
-This method takes a builder as argument. This object serves as an API ors facade for setting buildings: the contents of the method essentially consists in sending messages to the builder to declare and organize a sub-tree of settings.
+This method takes a builder as argument. This object serves as an API for facade for setting buildings: the contents of the method essentially consists in sending messages to the builder to declare and organize a sub-tree of settings.
 
 \subsection{The pragma}
 \index{pragma}
@@ -222,7 +222,7 @@ CodeHolderSystemSettings class>>caseSensitiveFindsSettingsOn: aBuilder
 In fact, when the settings browser is opened, it first collects all settings declarations by searching all methods with the \ct{<systemsettings>} pragma. In addition, if you compile a setting declaration method while a \setbrowser is opened then it is automatically updated with the new setting. 
 
 \subsection{The setting configuration}
-A setting is declared by sending the message \ct{setting:} to the builder with an identifier passed as argument. Here the identifier is \cts{\#caseSensitiveFinds}. Here is an example: 
+A setting is declared by sending the message \ct{setting:} to the builder with an identifier passed as argument. Here is an example where the identifier is \cts{\#caseSensitiveFinds}: 
 \begin{code}{}
 CodeHolderSystemSettings class>>caseSensitiveFindsSettingsOn: aBuilder
 	<systemsettings>
@@ -230,13 +230,12 @@ CodeHolderSystemSettings class>>caseSensitiveFindsSettingsOn: aBuilder
     ...
 \end{code}
 
-Sending the message \mthind{SettingTreeBuilder}{setting:} to a builder creates a \textit{setting node builder}\index{setting node builder}\clsind{SettingNodeBuilder}\index{setting node} which itself is a wrapper for a setting node.
-By default, the symbol passed as argument is considered as the selector used by the \setbrowser to get the preference value. The selector for changing the preference value is by default built by adding a colon to the getter selector (\ie it is \ct{caseSensitiveFinds:} here).
-These selectors are sent to a target which is by default the class in which the method is implemented (\ie \ct{CodeHolderSystemSettings}). Thus, this one line setting declaration would be sufficient if  \ct{caseSensitiveFinds} and \ct{caseSensitiveFinds:} accessors were implemented in \ct{CodeHolderSystemSettings}. 
+Sending the message \mthind{SettingTreeBuilder}{setting:} to a builder creates a \textit{setting node builder}\index{setting node builder} \index{setting node} which itself is a wrapper for a setting node. By default, the symbol passed as argument is considered as the selector used by the \setbrowser to get the preference value. The selector for changing the preference value is by default built by adding a colon to the getter selector (\ie it is \ct{caseSensitiveFinds:} here).
+These selectors are sent to a target which is by default the class in which the method is implemented (\ie \ct{CodeHolderSystemSettings}). Thus, this one line setting declaration is sufficient if  \ct{caseSensitiveFinds} and \ct{caseSensitiveFinds:} accessors are implemented in \ct{CodeHolderSystemSettings}. 
 
 In fact, very often, these default initializations will not fit your need. Of course you can adapt the setting node configuration to take into account your specific situation. 
 \index{setting node!target}
-For example,  the corresponding getter and setter accessors for the \ct{caseSensitiveFinds} setting are implemented in the class \ct{TextEditor}. Then, we should explicitly set that the target is \ct{TextEditor}. This is done by sending the message \mthind{PragmaSetting}{target:} to the setting node with the target class \ct{TextEditor} passed as argument as shown by the updated definition: 
+For example,  the corresponding getter and setter accessors for the \ct{caseSensitiveFinds} setting are implemented in the class \cts{TextEditor}. Then, we should explicitly set that the target is \ct{TextEditor}. This is done by sending the message \mthind{PragmaSetting}{target:} to the setting node with the target class \ct{TextEditor} passed as argument as shown by the updated definition: 
 \begin{code}{}
 CodeHolderSystemSettings class>>caseSensitiveFindsSettingsOn: aBuilder
 	<systemsettings>
@@ -308,11 +307,11 @@ This is simple but unfortunately, declaring such a singleton target like this is
 \subsection{More about default values}
 \index{setting node!default value}
 The way the \setbrowser build a setting input widget depends on the actual value type of a preference. Having $nil$ as a value for a preference is a problem for the \setbrowser because it can't figure out which input widget to use.
-So, basically, in order to be properly shown with the good input widget, a preference must always be set with a non $nil$ value.
+So, basically, to be properly shown with the good input widget, a preference must always be set with a non $nil$ value.
 You can set a default value to a preference by initializing it as usual, with a \#initialize method or with a lazy initialization programed in the accessor method of the preference. 
 
-Regarding the \setbrowser, the best way is the lazy initialization (see the example of the \#caseSensitiveFinds preference given in the section \ref{sec:DeclaringASetting}).
-Indeed, as explained in the section~\ref{sec:browsing-settings}, from the \setbrowser contextual menu, you can reset a preference value to its default one or globally reset all preference values. In fact it is done by setting the preference value to reset to $nil$. As a consequence, the preference is automatically set to its default value as soon as it is get by using its dedicated accessor.
+Regarding the \setbrowser, the best way is the lazy initialization (see the example of the \#caseSensitiveFinds preference given in Section \ref{sec:DeclaringASetting}).
+Indeed, as explained in Section~\ref{sec:browsing-settings}, from the \setbrowser contextual menu, you can reset a preference value to its default one or globally reset all preference values. In fact it is done by setting the preference value to reset to $nil$. As a consequence, the preference is automatically set to its default value as soon as it is get by using its dedicated accessor.
 
 It is not always possible to change the way an accessor is implemented. A reason for that could be that the preference accessor is maintained within another package which you are'nt allowed to change. As shown in the example below, as a workaround, you can indicate a default value from the declaration of the setting by sending the message \mthind{PragmaSetting}{default:} to the setting node:\index{SettingNodeBuilder!default:}
 \begin{code}{}
@@ -393,7 +392,7 @@ Depending on the value of a particular preference, one might want to hide some s
 Look at the \figref{fig:optional-subtree}:
 \begin{itemize}
 \item on the left, the \textit{Gradient} widget is unchecked meaning that its actual value is \ct{false}; in this case, it has no children, 
-\item on the right, the \textit{Gradient} widget is checked, then the setting value is set to \ct{true} and as a consequence, the settings useful in order to set a gradient background are shown.
+\item on the right, the \textit{Gradient} widget is checked, then the setting value is set to \ct{true} and as a consequence, the settings useful to set a gradient background are shown.
 \end{itemize}
 \begin{figure}[tbh]
 \begin{center}
@@ -412,7 +411,7 @@ To handle such optional settings is simple: optional settings should be declared
 \begin{code}{}
 	(aBuilder setting: #useDesktopGradientFill)
 		label: 'Gradient';
-		description: 'If true, then more settings will be available in order to define the desktop background color gradient';
+		description: 'If true, then more settings will be available to define the desktop background color gradient';
 		with: [
 			(aBuilder setting: #desktopGradientFillColor)
 				label: 'Other color';
@@ -482,7 +481,7 @@ As an example, let's consider the full screen margin preference shown in the \fi
 \end{center}
 \end{figure}
 
-It's value is an integer but it makes no sense to set -100 or 5000 to it. 
+Its value is an integer but it makes no sense to set -100 or 5000 to it. 
 Instead, a minimum of -5 and a maximum of 100 constitute a good range of values. One can use this range to constraint the setting widget. As shown by the example below, comparing to a simple setting, the only two differences are that:
 \begin{itemize}
 \item 
@@ -646,7 +645,7 @@ Now the question is how to find out that the desktop color setting is declared i
 
 The answer is quite simple: just use the \setbrowser! As explained in Section~\ref{sec:browsing-settings}, \textit{cmd-b} or double clicking on an item open a browser on the declaration of the current setting node. You can also use the contextual menu for that. Browsing the declaration will give you the target class (where the preference variable is stored) and the selector for the preference value.
 
-Now we would like \ct{MyPreferredStyle>>\#loadStyle} to be automatically evaluated when \ct{MyPreferredStyle} is itself loaded in the system. For that purpose, the only thing to do is to implement an \ct{initialize} method for the \ct{MyPreferredStyle} class:
+Now we would like \ct{MyPreferredStyle>>#loadStyle} to be automatically evaluated when \ct{MyPreferredStyle} is itself loaded in the system. For that purpose, the only thing to do is to implement an \ct{initialize} method for the \ct{MyPreferredStyle} class:
 \begin{code}{}
 MyPreferredStyle class>>initialize
 	self new loadStyle
@@ -724,7 +723,7 @@ Object subclass: #TextSelectionPreference
 \end{code}
 \ct{TextSelectionPreference} is made of four instance variables. Two of them are for the colors. If the \ct{mandatory} instance variable is set to \ct{false} then, the \ct{used} boolean instance variable can be changed. Instead, if the \ct{mandatory} is set to \ct{true}, then, the used instance variable is set to \ct{true} and is not changeable. 
 
-\ct{TextSelectionPreference} have also four class variables, one for each kind of possible text selection preference. The getters and the setters have also to be implemented in order to be able to manage these preferences from the \setbrowser.
+\ct{TextSelectionPreference} has also four class variables, one for each kind of possible text selection preference. The getters and setters have also to be implemented i to be able to manage these preferences from the \setbrowser.
 As an example, for \ct{PrimarySelection}:
 \begin{code}{}
 TextSelectionPreference class>>primarySelection
@@ -748,7 +747,7 @@ TextSelectionPreference class>>selectionBar
 \end{code}
 Here, you can notice that the preference is declared as optional and with no text color. 
 
-In order for these preferences to be changeable from the \setbrowser, we have to declare two methods. The first one is for the setting declaration and the second is to implement the view. 
+For these preferences to be changeable from the \setbrowser, we have to declare two methods. The first one is for the setting declaration and the second is to implement the view. 
 
 The setting declaration is implemented as follow:
 \begin{code}{}
@@ -767,15 +766,15 @@ TextSelectionPreference class>>selectionPreferenceOn: aBuilder
 			(aBuilder setting: #selectionBar)
 				label: 'Selection bar']
 \end{code}
-As you can see, there is absolutely nothing new in this declaration. The only thing that changes is that the value of the preferences are of a user defined class. In fact, in case of user defined or application specific preference class, the only particular thing to do is to implement one supplementary method for the view. This method must be named \cts{\#settingInputWidgetForNode:} and must be implemented as a class method.
+As you can see, there is absolutely nothing new in this declaration. The only thing that changes is that the value of the preferences are of a user defined class. In fact, in case of user defined or application specific preference class, the only particular thing to do is to implement one supplementary method for the view. This method must be named \cts{settingInputWidgetForNode:} and must be implemented as a class method.
 
-\cts{\#settingInputWidgetForNode:} method responsibility is to build the input widget for the \setbrowser. This method takes a \ct{SettingDeclaration} as argument. \ct{SettingDeclaration} is basically a model and its instances are managed by the \setbrowser. 
+The method \cts{settingInputWidgetForNode:} responsibility is to build the input widget for the \setbrowser. This method takes a \ct{SettingDeclaration} as argument. \ct{SettingDeclaration} is basically a model and its instances are managed by the \setbrowser. 
 
 Each \ct{SettingDeclaration} instance serves as a preference value holder. Indeed, each setting that you can view in the \setbrowser is internally represented by a \ct{SettingDeclaration} instance. 
 
 For each of our text selection preferences, we want to be able to change its colors and if the selection is optional, then we want to have the possibility to enable or disable it. Regarding the colors, depending on the selection preference value, only the background color is always shown. Indeed, if the text color of the preference value is \ct{nil}, this means that having a text color does'nt makes sense and then, the corresponding color chooser is not built. 
 
-The \cts{\#settingInputWidgetForNode:} method can be implemeented as below:
+The \cts{settingInputWidgetForNode:} method can be implemented as below:
 \begin{code}{}
 TextSelectionPreference class>>settingInputWidgetForNode: aSettingDeclaration 
 	| preferenceValue backColorUI usedUI uiElements |
