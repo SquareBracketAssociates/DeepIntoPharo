@@ -41,6 +41,8 @@
 \chapter{The Settings Framework}
 \chalabel{settings}
 
+\emph{Written by A. Plantec}
+
 As an application matures it often needs to provide variations such as
 a default selection color, a default font or a default font size.
 Often such variations represent user \index{preference} preferences 
@@ -53,11 +55,11 @@ it supports modular decomposition of software and it can be added to
 an application even after that application's inception. The Settings
 framework is what we will look at now.
 
-\section{Settings in a Nutshell}
+\section{Settings Architecture}
 
-Setting supports an object-oriented approach to \index{preference} preferences definition and manipulation. What we want to express by this sentence is that:
+Setting supports an object-oriented approach to \index{preference} preference definition and manipulation. What we want to express by this sentence is that:
 \begin{enumerate}
-\item each package or subsystem should define its own customization points (often represented as a variable or a class variable). The code of a subsystem then freely accesses such customization value and use it to change its behavior to reflect the preference.
+\item each package or subsystem should define its own customization points (often represented as a variable or a class variable). The code of a subsystem then freely accesses such customization value and uses it to change its behavior to reflect the preference.
 \item a subsystem describes its preferences so that the end-user can manipulate them. However, at not point in time, the code of a subsystem will explicitly refer to setting objects to adapt its behavior. 
 \end{enumerate}
 
@@ -73,7 +75,7 @@ Pharo users need to browse existing preferences and eventually change their valu
 
 \begin{figure}[tbh]
 \begin{center}
-\includegraphics[scale=0.5]{modularflow}
+\includegraphics[scale=0.6]{modularflow}
 \caption{A package defines customization points. Such customization points are described with Settings instances. The \setbrowser collects the description and presents them to the user.}
 \figlabel{modularflow}
 \end{center}
@@ -203,7 +205,7 @@ Now, let's study this setting declaration in details.
 CodeHolderSystemSettings class>>caseSensitiveFindsSettingsOn: !\textbf{aBuilder}!
    ...
 \end{code}
-This class method is declared in the class \ct{CodeHolderSystemSettings}. This class is dedicated to settings and contains nothing but settings declarations. Defining such a class is not mandatory; in fact any class can define settings declarations. We define it that way to make sure that the setting declaration is packaged in a different package than the one of the preference definition -- for layering purposes.
+This class method is declared in the class \ct{CodeHolderSystemSettings}. This class is dedicated to settings and contains nothing but setting declarations. Defining such a class is not mandatory; in fact any class can define setting declarations. We define it that way to make sure that the setting declaration is packaged in a different package than the one of the preference definition -- for layering purposes.
 
 This method takes a builder as argument. This object serves as an API ors facade for setting buildings: the contents of the method essentially consists in sending messages to the builder to declare and organize a sub-tree of settings.
 
