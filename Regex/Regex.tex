@@ -998,13 +998,13 @@ In 90\% of the cases, the method \cmind{String}{matchesRegex:}  is all you need 
 
 \clsind{RxMatcher}  accepts a syntax tree of a regular expression built by the parser and compiles it into a matcher: a structure made of instances of \ct{Rxm*} classes. The \clsind{RxMatcher} instance can test whether a string or a positionable stream of characters matches the original regular expression, or it can search a string or a stream for substrings matching the expression. After a match is found, the matcher can report a specific string that matched the whole expression, or any parenthesized subexpression of it. All other classes support the same functionality and are used by \clsind{RxParser}, \clsind{RxMatcher}, or both.
 
-\paragraph{Caveats} The matcher is similar in spirit, but \emph{not} in design
+\paragraph{Caveats.} The matcher is similar in spirit, but \emph{not} in design
 %--let alone the code--
 to Henry Spencer's original regular expression implementation in C.  The focus is on simplicity, not on efficiency. I didn't optimize or profile anything.
 %  I may in future\,---\,or I may not: I do this in my spare time and I don't promise anything. 
 The matcher passes H. Spencer's test suite (see ``test suite'' protocol), with quite a few extra tests added, so chances are good there are not too many bugs.  But watch out anyway.
 
-\paragraph{Acknowledgments}
+\paragraph{Acknowledgments.}
 Since the first release of the matcher, thanks to the input from several fellow Smalltalkers, I became convinced a native Smalltalk regular expression matcher was worth the effort to keep it alive. For the advice and encouragement that made this release possible, I want to thank: Felix Hack, Eliot Miranda, Robb Shecter, David N. Smith, Francis Wolinski and anyone whom I haven't yet met or heard from, but who agrees this has not been a complete waste of time.
 % (Coding the same ''the hard way'' is an exercise to a curious reader).
 
