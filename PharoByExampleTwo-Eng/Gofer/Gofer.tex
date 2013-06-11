@@ -101,7 +101,7 @@ Once \ct{b.1} which was dirty is saved on the server yoursource.com, it is versi
 \begin{figure}
 \begin{center}
 \includegraphics[width=9cm]{Architecture3}
-\caption{(left)Typical setup with clean and dirty packages loaded and cached  --- (right) Package published. \label{fig:archi}}
+\caption{(left) Typical setup with clean and dirty packages loaded and cached  --- (right) Package published. \label{fig:archi}}
 \end{center}
 \end{figure}
 
@@ -128,7 +128,7 @@ Gofer gofer update
 \end{code}
 
 \section{Using Gofer}
-Using Gofer is simple: you need to specify a location, the package to be loaded and finally the operation to be performed. The location often represents a file system been it an HTTP, a FTP or simply an hard-disc.   The location is the same as the one used to access a Monticello repository.For example it is  \ct{'http://www.squeaksource.com/MyPackage'} as used in the following expression. 
+Using Gofer is simple: you need to specify a location, the package to be loaded and finally the operation to be performed. The location often represents a file system been it an HTTP, a FTP or simply a hard-disc.   The location is the same as the one used to access a Monticello repository. For example it is  \ct{'http://www.squeaksource.com/MyPackage'} as used in the following expression. 
 
 \begin{code}{A}
 MCHttpRepository 
@@ -496,23 +496,26 @@ This message should be sent to a block giving a list of questions and their answ
 \subsection{Configuration Loading}
 Gofer also supports Metacello configuration loading. It provides a set of the following messages to handle configurations: \ct{configurationOf:},  \ct{loadVersion:}, \ct{loadDevelopment}, and \ct{loadStable}.
 
-Here is an example, loading the development version of NativeBoost. There you only need to specify the NativeBoost project and you will load the ConfigurationOfNativeBoost and execute the loading the development version.
+Here is an example, loading the development version of NativeBoost. There you only need to specify the NativeBoost project and you will load the \ct{ConfigurationOfNativeBoost} and execute the loading the development version.
+
+
 
 \begin{code}{}
 Gofer new
-	squeaksource: 'NativeBoost';
+	smalltalkhubUser: 'Pharo' project: 'NativeBoost';
 	configuration; 
 	loadDevelopment	
 \end{code}
 
 When the repository name does not match the name of the configuration you should use \ct{configurationOf:} and provide the name of the configuration class. 
 
-\begin{code}{}
-Gofer new
-	squeaksource: 'rb';
-	configurationOf: 'RefactoringBrowser'; 
-	loadStable	
-\end{code}
+
+%\begin{code}{}
+%Gofer new
+%	smalltalkhubUser: 'Pharo' project: 'FontDisplayer';
+%	configurationOf: ' '; 
+%	loadStable	
+%\end{code}
 
 
 
@@ -585,13 +588,7 @@ go repository: (MCHttpRepository
 					do: [ :f | go version: ('.' join: (f findTokens: $.) allButLast); push]
 \end{script}
 
-
-
-
-
-
-The following script uses the new filesystem library, we also show how we can get the package name and not the versions.
-The script also pays attention to only pubslish mcz files. It can be extended to publish selectively specific packages.
+The following script uses the new filesystem library, we also show how we can get the package name and not the versions. The script also pays attention to only publish mcz files. It can be extended to publish selectively specific packages.
 
 \begin{script}[]{How to publish package files to a new repository using Pharo 20}
 | go |
