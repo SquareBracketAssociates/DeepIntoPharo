@@ -41,7 +41,13 @@
 
 Pharo proposes powerful tools to manage source code such as semantics-based merging, tree diff-merge, and a git-like distributed versioning system. In particular as presented in the Monticello Chapter, Pharo uses a package system named Monticello. In this chapter after a first reminder of the key aspects of Monticello we will show how we can script package using Gofer. Gofer is a simple API for Monticello. Gofer was developed by L. Renggli and further extended by E. Lorenzano and C. Bruni. It is used by Metacello, the language to manage package maps that we present in Metacello Chapter (see~\ref{cha:Metacello}). 
 
-
+\begin{code}{}
+we should use:
+MCHttpRepository
+	location: 'http://smalltalkhub.com/mc/JLaval/PBE2GoferExample/main'
+	user: 'StephaneDucasse'
+	password: ''
+\end{code}
 
 \section{Preamble: Package management system}
 
@@ -91,10 +97,10 @@ Monticello defines the package system and version management of Pharo. In Pharo,
 
 
 Monticello uses a local cache for packages. Each time a package is required, it is first looked up in this local cache. In a similar way, when a package is saved, it is also saved in the local cache.  From a physical point of a view a Monticello package is a zipped file containing meta-data and the complete source code of package. 
-To be clear in the following we make the distinction between a package loaded in the pharo image and a package saved in the cache but not loaded. A package currently loaded is called a working copy of the package. We also define the following terms: image (object and bytecode executed by the virtual machine), loaded package (downloaded package from a server that is loaded in memory), dirty package (a loaded package with unsaved modifications). A dirty package is a loaded package.
+To be clear in the following we make the distinction between a package loaded in the Pharo image and a package saved in the cache but not loaded. A package currently loaded is called a working copy of the package. We also define the following terms: image (object and bytecode executed by the virtual machine), loaded package (downloaded package from a server that is loaded in memory), dirty package (a loaded package with unsaved modifications). A dirty package is a loaded package.
 
 
-For example, in Figure~\ref{fig:archi} the package \ct{a.1} is loaded from the server squeaksource. It is not modified. The package \ct{b.1} is loaded from the server yoursource.com but it is modified locally in the image.
+For example, in Figure~\ref{fig:archi} the package \ct{a.1} is loaded from the server smalltalk.com. It is not modified. The package \ct{b.1} is loaded from the server yoursource.com but it is modified locally in the image.
 Once \ct{b.1} which was dirty is saved on the server yoursource.com, it is versioned into \ct{b.2} which is saved in the cache and the remote server. 
 
 
@@ -128,16 +134,18 @@ Gofer gofer update
 \end{code}
 
 \section{Using Gofer}
-Using Gofer is simple: you need to specify a location, the package to be loaded and finally the operation to be performed. The location often represents a file system been it an HTTP, a FTP or simply a hard-disc.   The location is the same as the one used to access a Monticello repository. For example it is  \ct{'http://www.squeaksource.com/MyPackage'} as used in the following expression. 
+Using Gofer is simple: you need to specify a location, the package to be loaded and finally the operation to be performed. The location often represents a file system been it an HTTP, a FTP or simply a hard-disc.   The location is the same as the one used to access a Monticello repository. For example it is  \ct{'http://smalltalkhub.com/mc/MyAccount/MyPackage/main'} as used in the following expression. 
 
 \begin{code}{A}
-MCHttpRepository 
-    location: 'http://www.squeaksource.com/MyPackage'
-    user: 'pharoUser' 
-    password: 'pharoPwd'
+MCHttpRepository
+	location: 'http://smalltalkhub.com/mc/MyAccount/MyPackage/main'
+	user: ''
+	password: ''
 \end{code}
 
-Here is a typical Gofer script: it says that we want to load the package \ct{PBE2GoferExample} from the repository \ct{PBE2GoferExample} that is available on \ct{http://www.squeaksource.com}.
+Here is a typical Gofer script: it says that we want to load the package \ct{PBE2GoferExample} from the repository \ct{PBE2GoferExample} that is available on \ct{http://www.smalltalkhub.com} in the account of JannikLaval.
+
+\sd{here: http://smalltalkhub.com/mc/JLaval/PBE2GoferExample/main}
 
 \begin{code}{}
 Gofer new
