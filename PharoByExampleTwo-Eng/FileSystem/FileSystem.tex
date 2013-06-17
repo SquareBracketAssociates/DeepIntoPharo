@@ -398,17 +398,20 @@ There are several operations on files.
 
 
 \paragraph{Deleting.}
-\ct{delete} deletes the file, \ct{deleteAll} (which deletes the directory and its contents and raises and error is the file does not exist,
-\ct{deleteAllChildren} (which only deletes children of a directory and raise an error if the receiver does not exist), \ct{deleteIfAbsent:} (which executes a block when the file does not exist, \ct{ensureDeleted} (which makes sure that the file will be deleted)
+\ct{delete}, \ct{deleteAll}, \ct{deleteAllChildren}, all delete the receiver and raise an error if it does not exist. 
+\ct{delete} deletes the file, \ct{deleteAll} deletes the directory and its contents , \ct{deleteAllChildren} (which only deletes children of a directory.  In addition, \ct{deleteIfAbsent:} executes a block when the file does not exist.
+
+Finallty \ct{ensureDelete} deletes the file but does not raise error if the file does not exist. Similarly \ct{ensureDeleteAllChildren}, \ct{ensureDeleteAll} do not raise exception when the receiver does not exists. 
 
 
 
 
 \begin{code}{}
 (FileSystem disk workingDirectory / 'paf') !\textbf{delete}!.
+  --> error
 (FileSystem disk workingDirectory / 'fooFolder') !\textbf{deleteAll}!.
   --> error
-(FileSystem disk workingDirectory / 'fooFolder') ensureDirectory.
+(FileSystem disk workingDirectory / 'fooFolder') ensureCreateDirectory.
 (FileSystem disk workingDirectory / 'fooFolder') !\textbf{deleteAll}!.
 
 (FileSystem disk workingDirectory / 'paf') !\textbf{deleteIfAbsent:}! [Warning signal: 'File did not exist'].
@@ -416,15 +419,15 @@ There are several operations on files.
 (FileSystem disk workingDirectory / 'fooFolder2') !\textbf{deleteAllChildren}!.
   --> error
 
-(FileSystem disk workingDirectory / 'fooFolder2') ensureDirectory.
+(FileSystem disk workingDirectory / 'fooFolder2') ensureCreateDirectory.
 (FileSystem disk workingDirectory / 'fooFolder2') !\textbf{deleteAllChildren}!.
 \end{code}
 
 
 \paragraph{Creating Directory.}
-\ct{createDirectory} create a new directory and raise an error if it already exists. 
-\ct{ensureDirectory} verifies that the directory does not exist and only creates if necessary.
-\ct{ensureFile} creates if necessary a file.
+\ct{createDirectory} creates a new directory and raises an error if it already exists. 
+\ct{ensureCreateDirectory} verifies that the directory does not exist and only creates if necessary.
+\ct{ensureCreateFile} creates if necessary a file.
  
  
 \begin{code}{} 
@@ -432,8 +435,8 @@ There are several operations on files.
 [(FileSystem disk workingDirectory / 'paf' ) !\textbf{createDirectory]}! on: DirectoryExists do: [:ex| true].
 	--> true
 (FileSystem disk workingDirectory / 'paf' ) !\textbf{delete}!.
-(FileSystem disk workingDirectory / 'paf' ) !\textbf{ensureDirectory}!.
-(FileSystem disk workingDirectory / 'paf' ) !\textbf{ensureDirectory}!.
+(FileSystem disk workingDirectory / 'paf' ) !\textbf{ensureCreateDirectory}!.
+(FileSystem disk workingDirectory / 'paf' ) !\textbf{ensureCreateDirectory}!.
 (FileSystem disk workingDirectory / 'paf' ) !\textbf{isDirectory}!.
   --> true
 \end{code}
@@ -449,8 +452,8 @@ We can move files around using the message \ct{moveTo:} which expects a file ref
 (FileSystem disk workingDirectory / 'paf' ) !\textbf{moveTo:}! (FileSystem disk workingDirectory / 'targetFolder')
  --> Error
 
-(FileSystem disk workingDirectory / 'paf' ) ensureFile.
-(FileSystem disk workingDirectory / 'targetFolder') ensureDirectory. 
+(FileSystem disk workingDirectory / 'paf' ) ensureCreateFile.
+(FileSystem disk workingDirectory / 'targetFolder') ensureCreateDirectory. 
 (FileSystem disk workingDirectory / 'paf' ) !\textbf{moveTo:}! (FileSystem disk workingDirectory / 'targetFolder' / 'paf').
 (FileSystem disk workingDirectory / 'paf' ) exists.
 	-->false
@@ -461,12 +464,12 @@ We can move files around using the message \ct{moveTo:} which expects a file ref
 Beside moving we can copy files. 
 We can also use \ct{copyAllTo:} to copy files around. Here we copy the files contained in the source folder to the target one. 
 
-\ct{copyAllTo:} performs a deep copy of the receiver, to a location specified by the argument. If the receiver is a file, the file will be copied; if a directory, the directory and its contents will be copied recursively. The argument must be a reference that doesn't exist; it will be created by the copy.
+The message \ct{copyAllTo:} performs a deep copy of the receiver, to a location specified by the argument. If the receiver is a file, the file will be copied; if a directory, the directory and its contents will be copied recursively. The argument must be a reference that doesn't exist; it will be created by the copy.
 
 \begin{code}{}
 (FileSystem disk workingDirectory / 'sourceFolder') createDirectory. 
-(FileSystem disk workingDirectory / 'sourceFolder' / 'pif') ensureFile.
-(FileSystem disk workingDirectory / 'sourceFolder' / 'paf') ensureFile.
+(FileSystem disk workingDirectory / 'sourceFolder' / 'pif') ensureCreateFile.
+(FileSystem disk workingDirectory / 'sourceFolder' / 'paf') ensureCreateFile.
 (FileSystem disk workingDirectory / 'targetFolder') createDirectory. 
 (FileSystem disk workingDirectory / 'sourceFolder') !\textbf{copyAllTo:}! (FileSystem disk workingDirectory / 'targetFolder').
 (FileSystem disk workingDirectory / 'targetFolder' / 'pif') exists.
@@ -479,10 +482,10 @@ We can also use \ct{copyAllTo:} to copy files around. Here we copy the files con
 The message \ct{copyAllTo:} can be used to copy a single file too:
 
 \begin{code}{}
-(FileSystem disk workingDirectory / 'sourceFolder') ensureDirectory. 
-(FileSystem disk workingDirectory /  'sourceFolder' / 'pif') ensureFile.
-(FileSystem disk workingDirectory /  'sourceFolder' / 'paf') ensureFile.
-(FileSystem disk workingDirectory / 'targetFolder') ensureDirectory. 
+(FileSystem disk workingDirectory / 'sourceFolder') ensureCreateDirectory. 
+(FileSystem disk workingDirectory /  'sourceFolder' / 'pif') ensureCreateFile.
+(FileSystem disk workingDirectory /  'sourceFolder' / 'paf') ensureCreateFile.
+(FileSystem disk workingDirectory / 'targetFolder') ensureCreateDirectory. 
 (FileSystem disk workingDirectory / 'sourceFolder' / 'paf') !\textbf{copyAllTo:}! (FileSystem disk workingDirectory / 'targetFolder' / 'paf').
 (FileSystem disk workingDirectory /  'targetFolder' / 'paf') exists.
 	--> true.
@@ -603,8 +606,8 @@ griffle isFile.
     --> false			
 griffle isDirectory. 		
     --> false		
-griffle parent ensureDirectory.
-griffle ensureFile.
+griffle parent ensureCreateDirectory.
+griffle ensureCreateFile.
 griffle exists & griffle isFile.		
     --> true
 griffle copyTo: nurp.
