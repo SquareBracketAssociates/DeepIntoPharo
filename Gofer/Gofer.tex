@@ -41,13 +41,13 @@
 
 Pharo proposes powerful tools to manage source code such as semantics-based merging, tree diff-merge, and a git-like distributed versioning system. In particular as presented in the Monticello Chapter, Pharo uses a package system named Monticello. In this chapter after a first reminder of the key aspects of Monticello we will show how we can script package using Gofer. Gofer is a simple API for Monticello. Gofer was developed by L. Renggli and further extended by E. Lorenzano and C. Bruni. It is used by Metacello, the language to manage package maps that we present in Metacello Chapter (see~\ref{cha:Metacello}). 
 
-\begin{code}{}
-we should use:
-MCHttpRepository
-	location: 'http://smalltalkhub.com/mc/JLaval/PBE2GoferExample/main'
-	user: 'StephaneDucasse'
-	password: ''
-\end{code}
+%\begin{code}{}
+%we should use:
+%MCHttpRepository
+%	location: 'http://smalltalkhub.com/mc/PharoBooks/GoferExample/main'
+%	user: ''
+%	password: ''
+%\end{code}
 
 \section{Preamble: Package management system}
 
@@ -145,11 +145,9 @@ MCHttpRepository
 
 Here is a typical Gofer script: it says that we want to load the package \ct{PBE2GoferExample} from the repository \ct{PBE2GoferExample} that is available on \ct{http://www.smalltalkhub.com} in the account of JannikLaval.
 
-\sd{here: http://smalltalkhub.com/mc/JLaval/PBE2GoferExample/main}
-
 \begin{code}{}
 Gofer new
-    !\textbf{url:}! 'http://www.squeaksource.com/PBE2GoferExample';
+    !\textbf{url:}! 'http://smalltalkhub.com/mc/PharoBooks/GoferExample/main';
     !\textbf{package:}! 'PBE2GoferExample';
     !\textbf{load}!
 \end{code}
@@ -158,7 +156,7 @@ When the repository (HTTP or FTP) requires an identification, the message \ct{ur
 
 \begin{code}{}
 Gofer new
-    !\textbf{url:}! 'http://www.squeaksource.com/PBE2GoferExample'	
+    !\textbf{url:}! 'http://smalltalkhub.com/mc/PharoBooks/GoferExample/main'	
     !\textbf{username:}! 'pharoUser'
     !\textbf{password:}! 'pharoPwd';   
 	package: 'PBE2GoferExample'; 		
@@ -177,37 +175,29 @@ Gofer new
     load.													"load the package"
 \end{code}
 
-
+Since the same public servers are often used, Gofer's API offers a number of shortcuts to shorten the scripts.
 Often we want to write a script and give it to other people to load our code. In such a case having to specify 
 a password is not really adequate. Here is an example for smalltalkHub (which has some verbose urls such as 
- \url{'http://smalltalkhub.com/mc/StephaneDucasse/Tuio/main'} for the project Tuio). We use the \ct{smalltalkhubUser:project:} message and just specify the minimal information.
+ \url{'http://smalltalkhub.com/mc/PharoBooks/GoferExample/main'} for the project GoferExample). We use the \ct{smalltalkhubUser:project:} message and just specify the minimal information. In this chapter, we also use \ct{squeaksource3:} as a shortcut for \url{http://ss3.gemstone.com/ss}.
 
 \begin{code}{}
 "Specifying a user but no password"
 Gofer new
-    !\textbf{smalltalkhubUser: 'StephaneDucasse' project: 'Tuio'}!;
-    package: 'ConfigurationOfTuio';
+    !\textbf{smalltalkhubUser: 'PharoBooks' project: 'GoferExample'}!;
+    package: 'PBE2GoferExample';
     load
 \end{code}
 
-
-Since the same public servers are often used, Gofer's API offers a number of shortcuts to shorten the scripts. For example, \ct{squeaksource:} is a shortcut for \ct{http://www.squeaksource.com}.
-In such a case you do not need to specify the full path as shown with the next snippet:
-
-\begin{code}{}
-Gofer new
-    !\textbf{squeaksource:}! 'PBE2GoferExample';
-    package: 'PBE2GoferExample'; 
-    load
-\end{code}
-
-
-
-
-
-
-
-
+%
+% For example, \ct{squeaksource:} is a shortcut for \ct{http://www.squeaksource.com}.
+%In such a case you do not need to specify the full path as shown with the next snippet:
+%
+%\begin{code}{}
+%Gofer new
+%    !\textbf{squeaksource:}! 'PBE2GoferExample';
+%    package: 'PBE2GoferExample'; 
+%    load
+%\end{code}
 
 
 
@@ -217,17 +207,17 @@ In a similar manner, Gofer returns an error when one of the repositories is not 
 
 
 
-
 \subsection{Package Identification}
 Once an URL and the option are specified, we should define the packages we want to load. Using the message \ct{version:} defines the exact version to load, while the message \ct{package:} should be used to load the latest version available in all the repositories.
 
 The following example load the version 2 of the package. 
 \begin{code}{}
 Gofer new
-    squeaksource: 'PBE2GoferExample';
+    smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
     !\textbf{version:}! 'PBE2GoferExample-janniklaval.1';
     load
 \end{code}
+
 
 We can also specify some constraints to identify packages using the message \ct{package: aString constraint: aBlock} to pass a block. 
 
@@ -235,7 +225,7 @@ For example the following code will load the latest version of the package saved
 
 \begin{code}{}
 Gofer new
-    squeaksource: 'PBE2GoferExample';
+    smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
     !\textbf{package:}! 'PBE2GoferExample' 
     !\textbf{constraint:}! [ :version | version author = 'janniklaval' ];
     load
@@ -264,6 +254,7 @@ Gofer new
 \subsection{Loading several packages}
 We can load several packages from different servers. To show you a concrete example, you have to load first the configuration of Seaside using its Metacello configuration.
 
+
 \begin{code}{}
 Gofer new
     "we will load the latest version of the configuration of Seaside "
@@ -279,6 +270,7 @@ Pay attention that the last expression will load the complete seaside applicatio
 
 The following code snippet loads multiple packages from different servers.  The loading order is respected: the script loads first \ct{Pier-All}, then \ct{Picasa-Model}, and finally  \ct{Picasa-Seaside}.
 
+
 \begin{code}{}
 Gofer new 		
     renggli: 'pier';
@@ -293,6 +285,7 @@ This example may give the impression that \ct{Pier-All} is looked up in the Pier
 
 We can then rewrite the script in the following way:
 
+
 \begin{code}{}
 Gofer new 
     squeaksource: 'PicasaClient';		
@@ -304,6 +297,7 @@ Gofer new
 \end{code}
 
 When we want to specify that package should be loaded from a specific server, we should write multiple scripts. 
+
 
 \begin{code}{}
 Gofer new
@@ -378,7 +372,7 @@ It is often the case that after a merge, the working copy gets dirty and should 
 
 \begin{code}{}
 Gofer new
-    squeaksource: 'PBE2GoferExample';
+    smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
     package: 'PBE2GoferExample';
     merge
 \end{code}
@@ -395,7 +389,7 @@ the messages \ct{commit} and \ct{commit:}. The second one is expecting a comment
 \begin{code}{}
 Gofer new
     "We save the package in the repository"
-    squeaksource: 'PBE2GoferExample';
+    smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
     package: 'PBE2GoferExample';
     "We comments the changes and save"
     commit: 'I try to use the message commit: '
@@ -411,8 +405,8 @@ Both return a list of changes.
 
 \begin{code}{}
 Gofer new
-    squeaksource: 'PBE2GoferExample';
-    package: 'PBE2GoferExample'; 
+    smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
+    package: 'PBE2GoferExample';
     "We check that we will publish only our changes by comparing local changes versus the packages published on the server"
     localChanges
 \end{code}
@@ -421,7 +415,7 @@ Using the messages \ct{browseLocalChanges} and \ct{browseRemoteChanges}, it is p
 
 \begin{code}{}
 Gofer new
-    squeaksource: 'PBE2GoferExample';
+    smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
     "we add the latest version of PBE2GoferExample"
     package: 'PBE2GoferExample';
     "we browse the latest version published on the server"
@@ -449,7 +443,7 @@ The message \ct{fetch} copies from the remote server the packages that are missi
 
 \begin{code}{}
 Gofer new
-    squeaksource: 'PBE2GoferExample';
+    smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
     package: 'PBE2GoferExample';
     fetch
 \end{code}    
@@ -460,7 +454,7 @@ The message \ct{push} performs the inverse operation. It publishes locally avail
 
 \begin{code}{}
 Gofer new
-    squeaksource: 'PBE2GoferExample';
+    smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
     package: 'PBE2GoferExample';
     push
 \end{code}    
@@ -470,13 +464,13 @@ As a pattern, we always keep in our local cache the copies of all the versions o
 With these two messages, it is easy to write a script \ct{sync} that synchronize local and remote repositories. 
 \begin{code}{}
 Gofer new
-     squeaksource: 'PBE2GoferExample';
-     package: 'PBE2GoferExample';
-     push.
+    smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
+    package: 'PBE2GoferExample';
+    push.
 Gofer new
-     squeaksource: 'PBE2GoferExample';
-     package: 'PBE2GoferExample';
-     fetch
+    smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
+    package: 'PBE2GoferExample';
+    fetch
 \end{code}
 
 
@@ -532,18 +526,17 @@ Gofer offers a nice facility to get all the packages in a given repository via t
 
 \begin{script}[]{Getting the number of packages in a repository.}
 (Gofer new
-	squeaksource: 'Pharo';
+	smalltalkhubUser: 'Pharo' project: 'NativeBoost';
 	allResolved) size
 \end{script}
 
 The following script groups the package versions by packages and returns a dictionary with. It can be handy to get some idea of the most committed package.
 \begin{script}[]{Grouping versions by package names.}
 ((Gofer new
-	squeaksource: 'Pharo';
+	smalltalkhubUser: 'Pharo' project: 'NativeBoost';
 	allResolved)
 	groupedBy: [ :each | each packageName])
 \end{script}
-
 
 \begin{script}[]{Getting the package list for the Kozen project hosted on SS3.}
 ((Gofer new
@@ -555,9 +548,10 @@ The following script groups the package versions by packages and returns a dicti
 \subsection{Fetching packages}
 Here is a script to fetch all the packages of a given repository. This is useful to grab all your files and get a version locally.
 
+
 \begin{script}[]{Fetching all the packages of a repository (here from Pharo)}
 | go |
-go := Gofer new squeaksource: 'Pharo'.
+go := Gofer new squeaksource3: 'Pharo20'.
 go allResolved
 	do: [ :each |
 			self crLog: each packageName.
@@ -603,8 +597,8 @@ The following script uses the new filesystem library, we also show how we can ge
 go := Gofer new.
 go repository: (MCHttpRepository
 	location: 'http://ss3.gemstone.com/ss/rb-pharo'
-	user: 'sd '
-	password: '').
+	user: 'pharoUser'
+	password: 'pharoPwd').
 
 (((FileSystem disk workingDirectory / 'package-cache')
 	allFiles select: [:each | '*.mcz' match: each basename]) 
@@ -617,8 +611,8 @@ go repository: (MCHttpRepository
 repo := MCSmalltalkhubRepository
    owner: 'Moose'
    project: 'Fame'
-   user: 'StephaneDucasse'
-   password: 'xxxx'.
+   user: 'pharoUser'
+   password: 'pharoPwd'.
 
 go := Gofer new.
 go repository: repo.
@@ -638,7 +632,7 @@ In this chapter, we introduced how we can script package with Gofer.
 \item The method \ct{load} allows us to load packages from sources given with the method \ct{url:} and \ct{package:}.
 
 \item The method \ct{url:} supports FTP and local directory access.
-\item The API provides some useful shortcut: \ct{squeaksource:} is a shortcut for \ct{http://www.squeaksource.com}, \ct{wiresong:} for \ct{http://source.wiresong.ca/} and \ct{gemsource:} for \ct{http://seaside.gemstone.com/ss/}.
+\item The API provides some useful shortcut: \ct{smalltalkhubUser:project:} is a shortcut for \ct{http://www.smalltalkhub.com}, \ct{squeaksource3:} for \ct{http://ss3.gemstone.com/ss/} and \ct{gemsource:} for \ct{http://seaside.gemstone.com/ss/}.
 \item We can load several packages by calling multiple times the method \ct{package:} before calling \ct{load}.
 \item Once a Gofer instance is parametrized, one can perform a number of relevant operations: \ct{update}, \ct{merge}, \ct{push}, \ldots
 \end{itemize}
