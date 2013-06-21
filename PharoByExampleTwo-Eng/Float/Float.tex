@@ -91,8 +91,13 @@ The method \ct{storeString} also conveys that we are in presence of two differen
 0.3 closeTo: (0.1 + 0.2)
 	--> true
 \end{code}		
-		
-\mmp{ I think it would be nice to show the code of closeTo: so that they can see HOW close  -> 0.0001  and even more, how possible could be to change that for their needs}
+
+The method \ct{closeTo:} verify that the two compared numbers have less than 0.0001 of difference. Here is its source code.  
+
+\begin{code}{}
+closeTo: num 	"are these two numbers close?"	num isNumber ifFalse: [^[self = num] ifError: [false]].	self = 0.0 ifTrue: [^num abs < 0.0001].	num = 0 ifTrue: [^self abs < 0.0001].	^self = num asFloat		or: [(self - num) abs / (self abs max: num abs) < 0.0001]	
+\end{code}
+
 		
 \paragraph{About Scaled Decimals.} There is a solution if you absolutely need exact floating point numbers: Scaled Decimals. They are exact numbers so they exhibit the behavior you expected.
 
@@ -100,7 +105,8 @@ The method \ct{storeString} also conveys that we are in presence of two differen
 0.1s2 + 0.2s2 = 0.3s2
 	--> true
 \end{code}		
-		
+
+\ja{here}
 \mmp{Why (0.1 asScaledDecimal: 2) + (0.2 asScaledDecimal: 2) = (0.3 asScaledDecimal: 2) answers false?}
 \sd{I do not know.}
 

@@ -151,34 +151,33 @@ Object subclass: #Bexp
 	category: 'BlockExperiment'
 \end{code}
 
-\sd{I should rename textVariable: by setVariableAndExecuteBlock: }
-\sd{I should rename testVariable by setVariableAndDefineBlock: }
+
 \paragraph{Experience 1: Variable lookup.} A variable is looked up in the block definition context.
 
 
 
 \begin{code}{}
-Bexp>>testVariable: aBlock
+Bexp>>setVariableAndDefineBlock: aBlock
 	| t |
 	t := nil.
 	aBlock value
 
-Bexp>>testVariable
+Bexp>>setVariableAndDefineBlock
 	| t |
 	t := 42.
-	self testVariable: [ t traceCr ]
+	self setVariableAndDefineBlock: [ t traceCr ]
 \end{code}
 
-Execute \ct{Bexp new testVariable}. Executing the \ct{testVariable} message  prints 42 in the Transcript (message \ct{traceCr}). The value of the temporary variable \ct{t} defined in method \ct{testVariable} is the one used rather than the one of \ct{t} defined inside \ct{testVariable:}. Even if the block is executed during the execution of the method \ct{testVariable:}.
+Execute \ct{Bexp new setVariableAndDefineBlock}. Executing the \ct{setVariableAndDefineBlock} message  prints 42 in the Transcript (message \ct{traceCr}). The value of the temporary variable \ct{t} defined in method \ct{setVariableAndDefineBlock} is the one used rather than the one of \ct{t} defined inside \ct{setVariableAndDefineBlock:}. Even if the block is executed during the execution of the method \ct{setVariableAndDefineBlock:}.
 
-The variable \ct{t} is not looked up in the context of the executing method \ct{testVariable:} but in the context of the method \ct{testVariable} which defined the block.
+The variable \ct{t} is not looked up in the context of the executing method \ct{setVariableAndDefineBlock:} but in the context of the method \ct{setVariableAndDefineBlock} which defined the block.
 
-Let's look at it in detail. Figure~\ref{fig:variable} shows the execution of the expression \ct{Bexp new testVariable}. 
+Let's look at it in detail. Figure~\ref{fig:variable} shows the execution of the expression \ct{Bexp new setVariableAndDefineBlock}. 
 
 \begin{itemize}
-\item During the execution of method \ct{testVariable}, a variable \ct{t} is defined and it is assigned 42. Then a block is created and this block refers to the method activation context - which holds temporaries variables (Step 1). 
+\item During the execution of method \ct{setVariableAndDefineBlock}, a variable \ct{t} is defined and it is assigned 42. Then a block is created and this block refers to the method activation context - which holds temporaries variables (Step 1). 
 
-\item The method \ct{testVariable:} defines its own local variable \ct{t} with the same name than the one in the block. However, this is not this variable that is used when the block is executed. While executing the method \ct{testVariable:} the block is executed (step 2), during the execution of the expression \ct{t traceCr} the non local variable \ct{t} is looked up in the home context of the block \ie the method context that created the block and not the context of the currently executed method.
+\item The method \ct{setVariableAndDefineBlock:} defines its own local variable \ct{t} with the same name than the one in the block. However, this is not this variable that is used when the block is executed. While executing the method \ct{setVariableAndDefineBlock:} the block is executed (step 2), during the execution of the expression \ct{t traceCr} the non local variable \ct{t} is looked up in the home context of the block \ie the method context that created the block and not the context of the currently executed method.
 \end{itemize}
 
 \begin{figure}[!h]
@@ -189,29 +188,29 @@ Let's look at it in detail. Figure~\ref{fig:variable} shows the execution of the
 
 
 \paragraph{Experience 2: Changing a variable value.} A block can change the value of a non local variable.
-The method \ct{testVariable2} shows that a non local variable value can be changed during the execution of a block. Executing \ct{Bexp new testVariable2} prints 33, since 33 is the last value of the variable \ct{t}.
+The method \ct{setVariableAndDefineBlock2} shows that a non local variable value can be changed during the execution of a block. Executing \ct{Bexp new setVariableAndDefineBlock2} prints 33, since 33 is the last value of the variable \ct{t}.
 
 
 \begin{code}{}
-Bexp>>testVariable2
+Bexp>>setVariableAndDefineBlock2
 	| t |
 	t := 42.
-	self testVariable: [ t := 33. t traceCr ]
+	self setVariableAndDefineBlock: [ t := 33. t traceCr ]
 \end{code}
 \paragraph{Experience 3: Accessing a shared non local variable.}
-Two blocks can share a non local variable and they can modify the value of this variable at different moments. To see this, let us define a new method \ct{testVariable3} as follows:
+Two blocks can share a non local variable and they can modify the value of this variable at different moments. To see this, let us define a new method \ct{setVariableAndDefineBlock3} as follows:
 
 \begin{code}{}
-Bexp>>testVariable3
+Bexp>>setVariableAndDefineBlock3
 	| t |
 	t := 42.
-	self testVariable: [ t traceCr. t := 33. t traceCr ].
-	self testVariable: [ t traceCr. t := 66. t traceCr ].
-	self testVariable: [ t traceCr ]
+	self setVariableAndDefineBlock: [ t traceCr. t := 33. t traceCr ].
+	self setVariableAndDefineBlock: [ t traceCr. t := 66. t traceCr ].
+	self setVariableAndDefineBlock: [ t traceCr ]
 \end{code}
 
-\ct{Bexp new testVariable3} will print 42, 33, 33, 66 and 66.
-Here the two blocks \ct{[ t := 33. t traceCr ]} and \ct{[ t := 66. t traceCr ]} access the variable \ct{t} and can modify it. During the first execution of the method \ct{testVariable:} its current value \ct{42} is printed, then the value is changed and printed. Similar situation occurs in the following block. This example shows that blocks shares the same context where variables are stored.
+\ct{Bexp new setVariableAndDefineBlock3} will print 42, 33, 33, 66 and 66.
+Here the two blocks \ct{[ t := 33. t traceCr ]} and \ct{[ t := 66. t traceCr ]} access the variable \ct{t} and can modify it. During the first execution of the method \ct{setVariableAndDefineBlock:} its current value \ct{42} is printed, then the value is changed and printed. Similar situation occurs in the following block. This example shows that blocks shares the same context where variables are stored.
 
 \paragraph{Experience 4: Variable lookup is done at execution time.}\
 The following example shows that the value of the variable is looked up at runtime.
@@ -225,20 +224,20 @@ Object subclass: #Bexp
 	category: 'BlockExperiment'
 \end{code}
 
-Here the initial value of the variable \ct{t} is 42. The block is created and stored into the instance variable \ct{block} but the value to \ct{t} is changed to 69 before the block is executed. And this is the last value (69) that is effectively printed because it is looked up at execution-time. Executing \ct{Bexp new testVariable4} prints 69.
+Here the initial value of the variable \ct{t} is 42. The block is created and stored into the instance variable \ct{block} but the value to \ct{t} is changed to 69 before the block is executed. And this is the last value (69) that is effectively printed because it is looked up at execution-time. Executing \ct{Bexp new setVariableAndDefineBlock4} prints 69.
 
 
 
 \begin{code}{}
-Bexp>>testVariable4
+Bexp>>setVariableAndDefineBlock4
 	| t |
 	t := 42.
 	block := [ t traceCr: t ].
 	t := 69.
-	self testVariable: block
+	self setVariableAndDefineBlock: block
 \end{code}
 
-\ct{Bexp new testVariable4} prints 69.
+\ct{Bexp new setVariableAndDefineBlock4} prints 69.
 
 
 
@@ -278,26 +277,26 @@ Bexp>>initialize
 \end{code}
 
 Define another class named \ct{Bexp2} (it can be a subclass of \ct{Bexp} since inheritance is orthogonal to what we want to show).
-\sd{would be better to have executeBlock instead of testScopeSelf:}
+
 \begin{code}{}
 Bexp2>>initialize
 	super initialize.
 	x := 69.
 
-Bexp2>>testScopeSelf: aBlock
+Bexp2>>executeBlock: aBlock
 	aBlock value
 \end{code}
 
 Then define the methods that will invoke  methods defined in \ct{Bexp2}.
 \begin{code}{}
-Bexp>>testScopeSelf: aBlock
-	Bexp2 new testScopeSelf: aBlock "Here we ask another class to execute the block"
+Bexp>>executeBlock: aBlock
+	Bexp2 new executeBlock: aBlock "Here we ask another class to execute the block"
 
-Bexp>>testScopeSelf
-	self testScopeSelf: [self crLog ; traceCr: x]
+Bexp>>executeBlock
+	self executeBlock: [self crLog ; traceCr: x]
 \end{code}
 
-Now when we execute \ct{Bexp new testScopeSelf}, you get \ct{a Bexp123} printed in the Transcript, showing that a block captures self too, since an instance of Bexp2 executed the block but the printed object (self) is the original Bexp instance that was accessible at the block creation time.
+Now when we execute \ct{Bexp new executeBlock}, you get \ct{a Bexp123} printed in the Transcript, showing that a block captures self too, since an instance of Bexp2 executed the block but the printed object (self) is the original Bexp instance that was accessible at the block creation time.
 
 
 % ============================================================================
@@ -604,7 +603,7 @@ the ones for block closures as we will see later. Let us have a look at some val
 
 \item \ct{pc} holds the value of the last executed instruction. Here its value is 27. To see which instruction it is, double click on the method instance variable and select the all bytecodes field, you should obtain the situation depicted in Figure~\ref{ByteCodes}, which shows that the next instruction to be executed is pop \sd{is it true?}
 
-\item \ct{stackp} defines the number of stored temporary variables and \ja{not finished sentence}
+\item \ct{stackp} defines the number of stored temporary variables
 
 \item \ct{method} points to the currently executed method.
 
@@ -750,7 +749,6 @@ Same case except the \emph{temp}, variable will be declared in the upper scope. 
 	\label{fig:blockClosureOutsideTemp}
 \end{figure}
 
-\ja{is it interesting to have scheme expression ?}
 When we look at the following Scheme expression and evaluate it you get 4. Indeed a binding is created
 which associates the variable index to the value 0. Then y a lambda expression is defined and it returns
  the variable index (its value). Then within this context another expression is evaluated which starts
