@@ -48,9 +48,9 @@ is key to get conditionals and loops as library messages and not hardcoded in th
 blocks work extremely well with the message passing syntax of Smalltalk.
 
 In addition blocks are  effective to improve the readability, reusability and efficiency of code.
-However the dynamic runtime semantics of Smalltalk is often not well documented. Blocks in the presence of return statements behave like an escaping mechanism and while this can lead to ugly code when used to its extreme, it is important to understand it. In the Pharo by Example book, we presented how to write and use blocks. On the contrary, this chapter focuses on deep aspects and their run time behavior.
+However the dynamic runtime semantics of Smalltalk is often not well documented. Blocks in the presence of return statements behave like an escaping mechanism and while this can lead to ugly code when used to its extreme, it is important to understand it. In the Pharo by Example book, we presented how to write and use blocks. On the contrary, this chapter focuses on deep aspects and their runtime behavior.
 
-In this chapter we present some basic block behavior such as the notion of static environments defined at block compile-time. To understand blocks, we describe how  a program executes.
+In this chapter we present some basic block behaviors such as the notion of static environments defined at block compile-time. To understand blocks, we describe how  a program executes.
 
 % ============================================================================
 \section{Basics}
@@ -74,7 +74,6 @@ If you execute and print the result of the following code, you will not get 3 bu
 
 \subsection{Some handy extensions}
 
-\ja{in the following paragraph, it is not clear why we are talking about cull. why do we use cull and not value in the example ?}
 Beyond the \ct{value} messages, Pharo includes some handy messages
 such as \ct{cull:} and friends to support the execution of blocks even
 in the presence of more values than necessary. \ct{cull:} will raise
@@ -112,12 +111,12 @@ Some messages are useful to profile execution (more information on Chapter~\ref{
 Some messages are related to error handling (as explained in the Exception Chapter~\ref{cha:exception}).
 
 \begin{description}
-\item{\textsf{ensure: aBlock}}. Execute a termination block \ja{what is a termination block ?} after evaluating the receiver, regardless of whether the receiver's evaluation completes.
-\item{\textsf{ifCurtailed: aBlock}}. Evaluate the receiver with an abnormal termination action. Evaluate aBlock only if execution is unwound during execution of the receiver. If execution of the receiver finishes normally do not evaluate aBlock. \ja{It is not clear, probably some repetitions}
+\item{\textsf{ensure: aBlock}}. Execute a termination block after evaluating the receiver, regardless of whether the receiver's evaluation completes.
+\item{\textsf{ifCurtailed: aBlock}}. Evaluate the receiver with an abnormal termination action. Evaluate aBlock only if execution is unwound during execution of the receiver. If execution of the receiver finishes normally do not evaluate aBlock.
 
 \item{\textsf{on: exception do: aBlock}}. Evaluate the receiver. If an exception \textsf{exception} is raised, executes the block \textsf{aBlock}.
 
-\item{\textsf{on: exception fork: aBlock}}. Execute the receiver. In case of exception, fork a new process, which will handle the error. The original process will continue running as if receiver evaluation finished and answered nil,\ie  an expression like: \textsf{[ self error: 'some error'] on: Error fork: [:ex |  123 ]} will always answer nil to the original process, not 123. \ja{following sentences are not clear}The context stack, starting from context which sent this message to the receiver and up to the top of the stack will be transferred to the forked process, with handlerAction on top. When the forked process will resume, it will enter the block \textsf{aBlock}).
+\item{\textsf{on: exception fork: aBlock}}. Execute the receiver. In case of exception, fork a new process, which will handle the error. The original process will continue running as if receiver evaluation finished and answered nil,\ie  an expression like: \textsf{[ self error: 'some error'] on: Error fork: [:ex |  123 ]} will always answer nil to the original process, not 123. The context stack, starting from context which sent this message to the receiver and up to the top of the stack will be transferred to the forked process, with handlerAction on top. When the forked process will resume, it will enter the block \textsf{aBlock}).
 \end{description}
 
 
@@ -482,7 +481,7 @@ Step 8 represents the execution of the return statement. It returns to the sende
 
 
 
-\paragraph{Accessing information.} \ja{this paragraph seems to be complex. It needs more explanation of what is returns by the methods \ct{home}, \ct{closure} and \ct{sender}.}
+\paragraph{Accessing information.} 
 To verify manually and find the home context of a closure we can do the following: add the expression \ct{thisContext home inspect} in the block of the  method \ct{defineBlock}. We can also add the expression \ct{thisContext closure home inspect} which accesses the closure via the current execution context and gets its home context. Note that in both cases, even if the block is executed during the execution of the method \ct{executeBlock:}, the home context of the block is the method \ct{defineBlock}.
 Note that such expressions will be executed during the block execution.
 
@@ -497,7 +496,7 @@ Bexp>>defineBlock
 	^ res
 \end{code}
 
-To verify where the execution will end you can use the expression \ct{thisContext home sender copy inspect. } \ja{why using the message copy ?} which returns a method context pointing to the assignment in the method \ct{start}.
+To verify where the execution will end you can use the expression \ct{thisContext home sender copy inspect. } which returns a method context pointing to the assignment in the method \ct{start}.
 
 \paragraph{Couple more examples.}
 The following examples show that escaping blocks jumped to their home context but do not unwind the stack after this point. For example the previous example shows that the method \ct{start} was fully executed.
@@ -607,7 +606,7 @@ the ones for block closures as we will see later. Let us have a look at some val
 
 \item \ct{stackp} defines the number of stored temporary variables and \ja{not finished sentence}
 
-\item \ct{method} points to the currently executed \ja{compiled ?} method.
+\item \ct{method} points to the currently executed method.
 
 \item \ct{closureOrNil} holds a reference to the closure currently executed or nil.
 
@@ -711,7 +710,7 @@ inject: thisValue into: binaryBlock
 
 
 
-Lexical closure is a concept introduced by SCHEME in 70s. Scheme uses lambda expression which is basically an anonymous function (such the block). But using anonymous function implies to connect it to the current execution context. This  why the lexical closure is important because it define when variables of block are bound to the execution context \ja{redo this sentence}. The variable is depending of the scope where it is defined. Let's illustrate that :
+Lexical closure is a concept introduced by SCHEME in 70s. Scheme uses lambda expression which is basically an anonymous function (such the block). But using an anonymous function implies to connect it to the current execution context. This is why the lexical closure is important because it defines when variables of block are bound to the execution context. The variable is depending of the scope where it is defined. Let's illustrate that :
 
 \begin{code}{}
 blockLocalTemp
@@ -723,8 +722,8 @@ blockLocalTemp
 		^collection collect: [:each | each value].
 \end{code}
 
-Let's comment the code, we create a loop the store the arg value, in a temporary variable created in the loop (then local) and change it in the loop. We store a block containing the simply temp read access in a collection. And after the loop, we evaluate each block and return the collection of value.
-If we evaluate this method that will return \#(1 2 3). What's happen? At each loop we create a variable existing locally and bind it to a block. Then at the end evaluate block, we evaluate each block with this contextual \emph{temp}.
+Let's comment the code: we create a loop that stores the arg value in a temporary variable created in the loop. We store a block containing the simply temp read access in a collection. After the loop, we evaluate each block and return the collection of value.
+If we evaluate this method, it will return \#(1 2 3). What's happening? At each loop we create a variable existing locally and bind it to a block. Then at the end evaluate block, we evaluate each block with this contextual \emph{temp}.
 
 \begin{figure}[htbp]
 	\centering
@@ -743,7 +742,7 @@ blockOutsideTemp
 			collection add: [ temp ] ].
 		^collection collect: [:each | each value].
 \end{code}
-Same case except the \emph{temp}, variable will be  declare in the upper scope. Then what will happen? Here the temp at each loop is the \textbf{same} shared variable bind. So when we collect the evaluation of the block at the end we will collect \#(3 3 3).
+Same case except the \emph{temp}, variable will be declared in the upper scope. What will happen? Here the temp at each loop is the \textbf{same} shared variable bind. So when we collect the evaluation of the block at the end we will collect \#(3 3 3).
 \begin{figure}[htbp]
 	\centering
 		\includegraphics[width=0.7\linewidth]{blockClosureOutsideTemp}
@@ -792,7 +791,6 @@ and this is why it returns 4 and not 0 because.
 % ============================================================================
 \section{Opening the Trunk}
 % ============================================================================
-\ja{it seems the two following sections are not at the good place. Maybe not the same chapter. I propose to put them at the beginning of the chapter. Like that we can explain how context works and then explain the block behavior}
 The Virtual Machine represents execution state as context objects, one per method or block currently executed (or activated). In Pharo, method and block activations are represented by MethodContext instances.
 We will explain contexts as well as method execution to finish by block closure execution.
 
