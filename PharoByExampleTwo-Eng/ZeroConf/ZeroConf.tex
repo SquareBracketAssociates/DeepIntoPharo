@@ -37,12 +37,12 @@ Using a nice debugger and an interactive environment development does not
 mean that Pharo developers do not value automatic scripts and love the command line.
 Yes we do and we want the best of both worlds! We really wanted it to free our mind of retaining arbitrary information. A zero configuration is a script that automatically downloads everything you need to get started. Since version 2.0, Pharo also supports a way to define and handle command line arguments. 
 
-This chapter shows how to get the zeroconf scripts for Pharo as well as how you can pass argument to the environment from the command-line.
+This chapter shows how to get the zeroconf scripts for Pharo as well as how you can pass arguments to the environment from the command-line.
 
 
 %:==========
 \section{Getting the VM and the Image}
-First here is a way to download a zero configuration script that downloads a script to download the latest 2.0 Pharo image and vm. 
+First here is a way to download a zero configuration script to download the latest 2.0 Pharo image and vm. 
 
 \begin{code}{}
 wget get.pharo.org/20+vm
@@ -179,7 +179,7 @@ git://gitorious.org/cogvm/blessed.git Commit: 452863bdfba2ba0b188e7b172e9bc597a2
 
 The \ct{--version} argument gives the version of the virtual machine. If you wish to obtain the version of the image, then you need to open the image, use the World menu, and select About.
 
-\paragraph{List of available handlers.} The command line option \ct{--list} is interesting since it give you the list of the \emph{current} option handlers. This is list depends on the handlers that are currently loaded in the system. In particular it means that you can simply add an handler to handler your specific situation and wishes.
+\paragraph{List of available handlers.} The command line option \ct{--list} is interesting since it give you the list of the \emph{current} option handlers. This list depends on the handlers that are currently loaded in the system. In particular it means that you can simply add an handler for your specific situation and wishes.
 
 The following list shows that handlers available in the system we used when writing this chapter.
 
@@ -208,7 +208,7 @@ To get some explanation about the use of the config option, just request its ass
 ./pharo Pharo.image config --help
 \end{code}
 
-Note that this is help is the one of the associated handler not the one of the command line generic system. 
+Note that this help is the one of the associated handler not the one of the command line generic system. 
 
 \begin{code}{}
 Usage: config [--help] <repository url> [<configuration>] [--install[=<version>]] [--group=<group>] [--username=<username>] [--password=<password>]
@@ -306,11 +306,11 @@ EvaluateCommandLineHandler>>activate
 
 In particular we define a class comment since this is this class comment that will be printed when the help is requested. 
 
-\begin{figure}[!h]
-	\centering
-	\includegraphics[width=\textwidth]{Jenkins}
-	\caption{XMLWriter ZeroConf scripts. \label{fig:jenkins}}
-\end{figure}
+%\begin{figure}[!h]
+%	\centering
+%	\includegraphics[width=\textwidth]{Jenkins}
+%	\caption{XMLWriter ZeroConf scripts. \label{fig:jenkins}}
+%\end{figure}
 
 If you want your image saved at the end of an evaluation script, pass the \ct{--save} option just after \ct{eval}.
 
