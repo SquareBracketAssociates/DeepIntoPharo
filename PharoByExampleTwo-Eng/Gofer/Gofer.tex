@@ -166,7 +166,7 @@ Gofer new
 \begin{code}{}
 "we work on the project PBE2GoferExample and provide credentials"
 Gofer new
-    url: 'http://www.squeaksource.com/PBE2GoferExample'	
+    url: 'http://smalltalkhub.com/mc/PharoBooks/GoferExample/main/PBE2GoferExample'	
     username: 'pharoUser'
     password: 'pharoPwd';     
     package: 'PBE2GoferExample'; 		"define the package to be loaded"
@@ -178,7 +178,7 @@ Gofer new
 Since the same public servers are often used, Gofer's API offers a number of shortcuts to shorten the scripts.
 Often we want to write a script and give it to other people to load our code. In such a case having to specify 
 a password is not really adequate. Here is an example for smalltalkHub (which has some verbose urls such as 
- \url{'http://smalltalkhub.com/mc/PharoBooks/GoferExample/main'} for the project GoferExample). We use the \ct{smalltalkhubUser:project:} message and just specify the minimal information. In this chapter, we also use \ct{squeaksource3:} as a shortcut for \url{http://ss3.gemstone.com/ss}.
+ \url{'http://smalltalkhub.com/mc/PharoBooks/GoferExample/main'} for the project GoferExample). We use the \ct{smalltalkhubUser:project:} message and just specify the minimal information. In this chapter, we also use \ct{squeaksource3:} as a shortcut for \url{http://ss3.gemtalksystems.com/ss}.
 
 \begin{code}{}
 "Specifying a user but no password"
@@ -579,7 +579,7 @@ The following script publishes files from your local cache to a given repository
 | go |
 go := Gofer new.
 go repository: (MCHttpRepository
-	location: 'http://ss3.gemstone.com/ss/Pharo14'
+	location: 'http://ss3.gemtalksystems.com/ss/Pharo14'
 	user: 'pharoUser'
 	password: 'pharoPwd').
 
@@ -596,7 +596,7 @@ The following script uses the new filesystem library, we also show how we can ge
 | go |
 go := Gofer new.
 go repository: (MCHttpRepository
-	location: 'http://ss3.gemstone.com/ss/rb-pharo'
+	location: 'http://ss3.gemtalksystems.com/ss/rb-pharo'
 	user: 'pharoUser'
 	password: 'pharoPwd').
 
@@ -632,7 +632,7 @@ In this chapter, we introduced how we can script package with Gofer.
 \item The method \ct{load} allows us to load packages from sources given with the method \ct{url:} and \ct{package:}.
 
 \item The method \ct{url:} supports FTP and local directory access.
-\item The API provides some useful shortcut: \ct{smalltalkhubUser:project:} is a shortcut for \ct{http://www.smalltalkhub.com}, \ct{squeaksource3:} for \ct{http://ss3.gemstone.com/ss/} and \ct{gemsource:} for \ct{http://seaside.gemstone.com/ss/}.
+\item The API provides some useful shortcut: \ct{smalltalkhubUser:project:} is a shortcut for \ct{http://www.smalltalkhub.com}, \ct{squeaksource3:} for \ct{http://ss3.gemtalksystems.com/ss/} and \ct{gemsource:} for \ct{http://seaside.gemstone.com/ss/}.
 \item We can load several packages by calling multiple times the method \ct{package:} before calling \ct{load}.
 \item Once a Gofer instance is parametrized, one can perform a number of relevant operations: \ct{update}, \ct{merge}, \ct{push}, \ldots
 \end{itemize}
