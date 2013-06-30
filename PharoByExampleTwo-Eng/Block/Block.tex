@@ -56,7 +56,7 @@ In this chapter we present some basic block behaviors such as the notion of stat
 \section{Basics}
 % ============================================================================
 
-What is a block? Historically, a block is a lambda expression, also called an anonymous function. A block is a piece of code whose execution is frozen and kicked in using messages. Blocks are defined by square brackets.
+What is a block? Historically, a block is a lambda expression, also called an anonymous function. A block is a piece of code whose evaluation is frozen and kicked in using messages. Blocks are defined by square brackets.
 
 If you execute and print the result of the following code, you will not get 3 but a block.
 
@@ -64,9 +64,9 @@ If you execute and print the result of the following code, you will not get 3 bu
 [ 1 + 2 ] --> [ 1 + 2 ]
 \end{code}
 
- A block is evaluated by sending the \mthind{BlockClosure}{value} message to it. More precisely blocks can be executed using \ct{value} (when no argument is mandatory), \ct{value:} (when the block requires one argument), \ct{value:value:} (for two arguments), \ct{value:value:value:} (for three) and \ct{valueWithArguments: anArray} (for more arguments). These messages are the basic and historical API for block execution. They were presented in the Pharo by Example book.
+ A block is evaluated by sending the \mthind{BlockClosure}{value} message to it. More precisely blocks can be evaluated using \ct{value} (when no argument is mandatory), \ct{value:} (when the block requires one argument), \ct{value:value:} (for two arguments), \ct{value:value:value:} (for three) and \ct{valueWithArguments: anArray} (for more arguments). These messages are the basic and historical API for block evaluation. They were presented in the Pharo by Example book.
 
-\begin{code}[Block definition]{Block Execution}
+\begin{code}[Block definition]{Block Evaluation}
 [ 1 + 2 ] value --> 3
 
 [ :x | x + 2 ] value: 5 --> 7
@@ -75,7 +75,7 @@ If you execute and print the result of the following code, you will not get 3 bu
 \subsection{Some handy extensions}
 
 Beyond the \ct{value} messages, Pharo includes some handy messages
-such as \ct{cull:} and friends to support the execution of blocks even
+such as \ct{cull:} and friends to support the evaluation of blocks even
 in the presence of more values than necessary. \ct{cull:} will raise
 an error if the receiver requires more arguments than provided. The
 \ct{valueWithPossibleArgs:} message is similar to \ct{cull:} but takes
@@ -97,51 +97,51 @@ will fill them with \ct{nil}.
 
 \paragraph{Other messages.}
 
-Some messages are useful to profile execution (more information on Chapter~\ref{cha:Profiler}:
+Some messages are useful to profile evaluation (more information in the Profiling Chapter~\ref{cha:Profiler}):
 
 \begin{description}
-\item{\textsf{bench}}. Return how many times the receiver block can get executed in 5 seconds.
+\item{\textsf{bench}}. Return how many times the receiver block can get evaluated in 5 seconds.
 
-\item{\textsf{durationToRun}}. Answer the duration (instance of Duration) taken to execute the receiver block.
+\item{\textsf{durationToRun}}. Answer the duration (instance of Duration) taken to evaluate the receiver block.
 
-\item{\textsf{timeToRun}}. Answer the number of milliseconds taken to execute this block.
+\item{\textsf{timeToRun}}. Answer the number of milliseconds taken to evaluate this block.
 \end{description}
 
 
 Some messages are related to error handling (as explained in the Exception Chapter~\ref{cha:exception}).
 
 \begin{description}
-\item{\textsf{ensure: aBlock}}. Execute a termination block after evaluating the receiver, regardless of whether the receiver's evaluation completes.
-\item{\textsf{ifCurtailed: aBlock}}. Evaluate the receiver with an abnormal termination action. Evaluate aBlock only if execution is unwound during execution of the receiver. If execution of the receiver finishes normally do not evaluate aBlock.
+\item{\textsf{ensure: terminationBlock}}. Evaluate the termination block after evaluating the receiver, regardless of whether the receiver's evaluation completes.
+\item{\textsf{ifCurtailed: onErrorBlock}}. Evaluate the receiver, and, if the evaluation does not complete, evaluate the error block. If evaluation of the receiver finishes normally, the error block is not evaluated.
 
-\item{\textsf{on: exception do: aBlock}}. Evaluate the receiver. If an exception \textsf{exception} is raised, executes the block \textsf{aBlock}.
+\item{\textsf{on: exception do: catchBlock}}. Evaluate the receiver. If an exception \textsf{exception} is raised, evaluate the catch block.
 
-\item{\textsf{on: exception fork: aBlock}}. Execute the receiver. In case of exception, fork a new process, which will handle the error. The original process will continue running as if receiver evaluation finished and answered nil,\ie  an expression like: \textsf{[ self error: 'some error'] on: Error fork: [:ex |  123 ]} will always answer nil to the original process, not 123. The context stack, starting from context which sent this message to the receiver and up to the top of the stack will be transferred to the forked process, with handlerAction on top. When the forked process will resume, it will enter the block \textsf{aBlock}).
+\item{\textsf{on: exception fork: catchBlock}}. Evaluate the receiver. If an exception \textsf{exception} is raised, fork a new process, which will handle the error. The original process will continue running as if the receiver evaluation finished and answered nil,\ie  an expression like: \textsf{[ self error: 'some error'] on: Error fork: [:ex |  123 ]} will always answer nil to the original process. The context stack, starting from the context which sent this message to the receiver and up to the top of the stack will be transferred to the forked process, with the catch block on top. Eventually, the catch block will be evaluated in the forked process.
 \end{description}
 
 
 Some messages are related to process scheduling. We list the most important ones. Since this Chapter is not about concurrent programming in Pharo we will not go deep into them.
 
 \begin{description}
-\item{\textsf{fork}}. Create and schedule a Process running the code in the receiver.
+\item{\textsf{fork}}. Create and schedule a Process evaluating the receiver.
 
-\item{\textsf{forkAt: aPriority}}. Create and schedule a Process running the code in the receiver at the given priority. Answer the newly created process.
+\item{\textsf{forkAt: aPriority}}. Create and schedule a Process evaluating the receiver at the given priority. Answer the newly created process.
 
-\item{\textsf{newProcess}}. Answer a Process running the code in the receiver. The process is not scheduled.
+\item{\textsf{newProcess}}. Answer a Process evaluating the receiver. The process is not scheduled.
 \end{description}
 
 
 % ============================================================================
 \section{Variables and Blocks}
 % ============================================================================
-A block can have its own temporaries variables, such variables are initialized during each block execution and are local to the block. Now the question we want to make clear is what is happening when a block refers to other (non local) variables. Later, for the curious, we will present how local variables are implemented and stored.
+A block can have its own temporary variables. Such variables are initialized during each block evaluation and are local to the block. Now the question we want to make clear is what is happening when a block refers to other (non-local) variables. Later, for the curious, we will present how local variables are implemented and stored.
 
-In Pharo, private variables (such as self, instance variables, method temporaries and arguments) are lexically scoped. These variables are bound (get a value associated to them) in \emph{the context (a stack frame)} in which the block that contains them is \emph{defined}, rather than the context in which the block is executed.  Traditionally, the context in which a block is defined is named the \emph{block home context}.
+In Pharo, private variables (such as self, instance variables, method temporaries and arguments) are lexically scoped. These variables are bound (get a value associated to them) in \emph{the context (a stack frame)} in which the block that contains them is \emph{defined}, rather than the context in which the block is evaluated.  Traditionally, the context in which a block is defined is named the \emph{block home context}.
 
-In essence a context (called stack frame in other languages) represents information about the current execution step (what is the context from which the current one is executed, what is the next byte code to be executed, what is the value of the temporary variables...) a context is an activation record representing a smalltalk execution stack element. This is important and we will come back later to this concept.
+In essence, a context (called stack frame in other languages) represents information about the current evaluation step such as the context from which the current one is executed, the next byte code to be executed, and the value of the temporary variables. A context is an activation record representing a Smalltalk execution stack element. This is important and we will come back later to this concept.
 
-\subsection{Some little experiences}
-Let's experiment a bit to understand how variables are bound in a block. Define a class named \ct{Bexp} (for BlockExperience) and the following methods:
+\subsection{Some little experiments}
+Let's experiment a bit to understand how variables are bound in a block. Define a class named \ct{Bexp} (for BlockExperiment):
 
 \begin{code}{}
 Object subclass: #Bexp
@@ -152,12 +152,12 @@ Object subclass: #Bexp
 \end{code}
 
 
-\paragraph{Experience 1: Variable lookup.} A variable is looked up in the block definition context.
+\paragraph{Experiment 1: Variable lookup.} A variable is looked up in the block definition context.
 
 
 
 \begin{code}{}
-Bexp>>setVariableAndDefineBlock: aBlock
+Bexp>>evaluateBlock: aBlock
 	| t |
 	t := nil.
 	aBlock value
@@ -165,54 +165,54 @@ Bexp>>setVariableAndDefineBlock: aBlock
 Bexp>>setVariableAndDefineBlock
 	| t |
 	t := 42.
-	self setVariableAndDefineBlock: [ t traceCr ]
+	self evaluateBlock: [ t traceCr ]
 \end{code}
 
-Execute \ct{Bexp new setVariableAndDefineBlock}. Executing the \ct{setVariableAndDefineBlock} message  prints 42 in the Transcript (message \ct{traceCr}). The value of the temporary variable \ct{t} defined in method \ct{setVariableAndDefineBlock} is the one used rather than the one of \ct{t} defined inside \ct{setVariableAndDefineBlock:}. Even if the block is executed during the execution of the method \ct{setVariableAndDefineBlock:}.
+Executing the \ct{Bexp new setVariableAndDefineBlock} expression prints 42 in the Transcript (message \ct{traceCr}). The value of the temporary variable \ct{t} defined in the \ct{setVariableAndDefineBlock} method is the one used rather than the one of \ct{t} defined inside \ct{evaluateBlock:} even if the block is evaluated during the execution of the later method.
 
-The variable \ct{t} is not looked up in the context of the executing method \ct{setVariableAndDefineBlock:} but in the context of the method \ct{setVariableAndDefineBlock} which defined the block.
+The variable \ct{t} is not looked up in the context of the  block-evaluating method \ct{evaluateBlock:} but in the context of the block-defining method \ct{setVariableAndDefineBlock}.
 
 Let's look at it in detail. Figure~\ref{fig:variable} shows the execution of the expression \ct{Bexp new setVariableAndDefineBlock}. 
 
 \begin{itemize}
-\item During the execution of method \ct{setVariableAndDefineBlock}, a variable \ct{t} is defined and it is assigned 42. Then a block is created and this block refers to the method activation context - which holds temporaries variables (Step 1). 
+\item During the execution of method \ct{setVariableAndDefineBlock}, a variable \ct{t} is defined and it is assigned 42. Then a block is created and this block refers to the method activation context - which holds temporary variables (Step 1). 
 
-\item The method \ct{setVariableAndDefineBlock:} defines its own local variable \ct{t} with the same name than the one in the block. However, this is not this variable that is used when the block is executed. While executing the method \ct{setVariableAndDefineBlock:} the block is executed (step 2), during the execution of the expression \ct{t traceCr} the non local variable \ct{t} is looked up in the home context of the block \ie the method context that created the block and not the context of the currently executed method.
+\item The method \ct{evaluateBlock:} defines its own local variable \ct{t} with the same name than the one in the block. However, this is not this variable that is used when the block is evaluated. While executing the method \ct{evaluateBlock:} the block is evaluated (step 2), during the execution of the expression \ct{t traceCr} the non-local variable \ct{t} is looked up in the home context of the block \ie the method context that created the block and not the context of the currently executed method.
 \end{itemize}
 
 \begin{figure}[!h]
 \begin{center}\includegraphics[width=\textwidth]{variable}
-\caption{ Non local variable are looked in the method activation context where the block was created and not executed.\label{fig:variable}}
+\caption{ non-local variables are looked in the method activation context where the block was created and not evaluated.\label{fig:variable} \dc{must change this figure to reflect the real method names.}\dc{logCr -> traceCr}}
 \end{center}
 \end{figure}
 
 
-\paragraph{Experience 2: Changing a variable value.} A block can change the value of a non local variable.
-The method \ct{setVariableAndDefineBlock2} shows that a non local variable value can be changed during the execution of a block. Executing \ct{Bexp new setVariableAndDefineBlock2} prints 33, since 33 is the last value of the variable \ct{t}.
+\paragraph{Experiment 2: Changing a variable value.} The method \ct{setVariableAndDefineBlock2} shows that a non-local variable value can be changed during the evaluation of a block. Executing \ct{Bexp new setVariableAndDefineBlock2} prints 33, since 33 is the last value of the variable \ct{t}.
 
 
 \begin{code}{}
 Bexp>>setVariableAndDefineBlock2
 	| t |
 	t := 42.
-	self setVariableAndDefineBlock: [ t := 33. t traceCr ]
+	self evaluateBlock: [ t := 33. t traceCr ]
 \end{code}
-\paragraph{Experience 3: Accessing a shared non local variable.}
-Two blocks can share a non local variable and they can modify the value of this variable at different moments. To see this, let us define a new method \ct{setVariableAndDefineBlock3} as follows:
+
+\paragraph{Experiment 3: Accessing a shared non-local variable.}
+Two blocks can share a non-local variable and they can modify the value of this variable at different moments. To see this, let us define a new method \ct{setVariableAndDefineBlock3} as follows:
 
 \begin{code}{}
 Bexp>>setVariableAndDefineBlock3
 	| t |
 	t := 42.
-	self setVariableAndDefineBlock: [ t traceCr. t := 33. t traceCr ].
-	self setVariableAndDefineBlock: [ t traceCr. t := 66. t traceCr ].
-	self setVariableAndDefineBlock: [ t traceCr ]
+	self evaluateBlock: [ t traceCr. t := 33. t traceCr ].
+	self evaluateBlock: [ t traceCr. t := 66. t traceCr ].
+	self evaluateBlock: [ t traceCr ]
 \end{code}
 
 \ct{Bexp new setVariableAndDefineBlock3} will print 42, 33, 33, 66 and 66.
-Here the two blocks \ct{[ t := 33. t traceCr ]} and \ct{[ t := 66. t traceCr ]} access the variable \ct{t} and can modify it. During the first execution of the method \ct{setVariableAndDefineBlock:} its current value \ct{42} is printed, then the value is changed and printed. Similar situation occurs in the following block. This example shows that blocks shares the same context where variables are stored.
+Here the two blocks \ct{[ t := 33. t traceCr ]} and \ct{[ t := 66. t traceCr ]} access the same variable \ct{t} and can modify it. During the first execution of the method \ct{evaluateBlock:} its current value \ct{42} is printed, then the value is changed and printed. A similar situation occurs with the second call. This example shows that blocks share the context where variables are stored.
 
-\paragraph{Experience 4: Variable lookup is done at execution time.}\
+\paragraph{Experiment 4: Variable lookup is done at execution time.}\
 The following example shows that the value of the variable is looked up at runtime.
 First add the instance variable \ct{block} to the class \ct{Bexp}.
 
@@ -224,7 +224,7 @@ Object subclass: #Bexp
 	category: 'BlockExperiment'
 \end{code}
 
-Here the initial value of the variable \ct{t} is 42. The block is created and stored into the instance variable \ct{block} but the value to \ct{t} is changed to 69 before the block is executed. And this is the last value (69) that is effectively printed because it is looked up at execution-time. Executing \ct{Bexp new setVariableAndDefineBlock4} prints 69.
+Here the initial value of the variable \ct{t} is 42. The block is created and stored into the instance variable \ct{block} but the value to \ct{t} is changed to 69 before the block is evaluated. And this is the last value (69) that is effectively printed because it is looked up at execution-time. Executing \ct{Bexp new setVariableAndDefineBlock4} prints 69.
 
 
 
@@ -234,17 +234,13 @@ Bexp>>setVariableAndDefineBlock4
 	t := 42.
 	block := [ t traceCr: t ].
 	t := 69.
-	self setVariableAndDefineBlock: block
+	self evaluateBlock: block
 \end{code}
 
 \ct{Bexp new setVariableAndDefineBlock4} prints 69.
 
-
-
-
-
-\paragraph{Experience 5: For method arguments.}\
-Naturally we can expect that method arguments are bound in the context of defining method. Let's illustrate this point now. Define the following methods and add the instance variable \ct{block} to the class.
+\paragraph{Experiment 5: For method arguments.}\
+Naturally we can expect that method arguments are bound in the context of the defining method. Let's illustrate this point now. Define the following methods.
 
 \begin{code}{}
 Bexp>>testArg
@@ -252,21 +248,21 @@ Bexp>>testArg
 
 Bexp>>testArg: arg
 	block := [arg crLog].
-	self testArg2: 'zork'.
+	self evaluateBlockAndIgnoreArgument: 'zork'.
 
-Bexp>>testArg2: arg
+Bexp>>evaluateBlockAndIgnoreArgument: arg
 	block value.
 \end{code}
 
-Now executing \ct{Bexp new testArg: 'foo'} prints \ct{'foo'} even if in the method \ct{testArg:} the temporary arg is redefined.
+Now executing \ct{Bexp new testArg: 'foo'} prints \ct{'foo'} even if in the method \ct{evaluateBlockAndIgnoreArgument:} the temporary \ct{arg} is redefined.
 
-\paragraph{Experience 6: self binding.}
+\paragraph{Experiment 6: self binding.}
 For binding of self, we simply define a new class and a couple of methods.
-Add the instance variable x to the class \ct{Bexp} and define the \ct{initialize} method as follows:
+Add the instance variable \ct{x} to the class \ct{Bexp} and define the \ct{initialize} method as follows:
 
 \begin{code}{}
 Object subclass: #Bexp
-	instanceVariableNames: 'x'
+	instanceVariableNames: 'block x'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'BlockExperiment'
@@ -276,34 +272,40 @@ Bexp>>initialize
 	x := 123.
 \end{code}
 
-Define another class named \ct{Bexp2} (it can be a subclass of \ct{Bexp} since inheritance is orthogonal to what we want to show).
+Define another class named \ct{Bexp2}.
 
 \begin{code}{}
+Object subclass: #Bexp
+	instanceVariableNames: 'x'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'BlockExperiment'
+
 Bexp2>>initialize
 	super initialize.
 	x := 69.
 
-Bexp2>>executeBlock: aBlock
+Bexp2>>evaluateBlock: aBlock
 	aBlock value
 \end{code}
 
 Then define the methods that will invoke  methods defined in \ct{Bexp2}.
 \begin{code}{}
-Bexp>>executeBlock: aBlock
-	Bexp2 new executeBlock: aBlock "Here we ask another class to execute the block"
+Bexp>>evaluateBlock: aBlock
+	Bexp2 new evaluateBlock: aBlock
 
-Bexp>>executeBlock
-	self executeBlock: [self crLog ; traceCr: x]
+Bexp>>evaluateBlock
+	self evaluateBlock: [self crTrace ; traceCr: x]
 \end{code}
 
-Now when we execute \ct{Bexp new executeBlock}, you get \ct{a Bexp123} printed in the Transcript, showing that a block captures self too, since an instance of Bexp2 executed the block but the printed object (self) is the original Bexp instance that was accessible at the block creation time.
+Now when we execute \ct{Bexp new evaluateBlock}, we get \ct{a Bexp123} printed in the Transcript, showing that a block captures self too, since an instance of Bexp2 evaluated the block but the printed object (self) is the original Bexp instance that was accessible at the block creation time.
 
 
 % ============================================================================
 \section{Variables can outlive their defining method}
 % ============================================================================
 
-Non block local variables referred to by a block continue to be accessible and shared with other expressions even if the method execution terminated. We say that the variables outlive the method execution that defined them.
+Non block local variables referred to by a block continue to be accessible and shared with other expressions even if the method execution terminated. We say that variables outlive the method execution that defined them.
 Let us take some examples.
 
 \paragraph{Method-Block Sharing.} Define the following method \ct{foo} which defines a temporary variable \ct{a}.
@@ -316,59 +318,58 @@ Bexp>>foo
 \end{code}
 
 When we execute \ct{Bexp new foo}, we get 0 and not nil.
-Here what you see is that the value is shared between the method body and the block. Inside the method body we can access the variable whose value was set by the block execution.
-Both the method  and block bodies access to the temporary variable \ct{a}.
+Here what you see is that the value is shared between the method body and the block. Inside the method body we can access the variable whose value was set by the block evaluation.
+Both the method  and block bodies access the same temporary variable \ct{a}.
 
-Now define the method \ct{twoBlockArrays} as follows:
+Now define the method \ct{twoBlockArray} as follows:
 
 \begin{code}{}
-Bexp>>twoBlockArrays
+Bexp>>twoBlockArray
 	| a |
 	a := 0.
 	^ {[ a := 2] . [a]}
 \end{code}
 
-The method \ct{twoBlockArrays} defines a temporary variable \ct{a}. It sets the value of \ct{a}
+The method \ct{twoBlockArray} defines a temporary variable \ct{a}. It sets the value of \ct{a}
 to zero and returns an array whose first element is a block setting the value of \ct{a} to 2 and second element is a block just returning the value of the temporary variable \ct{a}.
 
-Now we store the array returned by \ct{twoBlockArrays} and access and execute the blocks stored in the array. This is what the following code snippet is doing.
+Now we store the array returned by \ct{twoBlockArray} and evaluate the blocks stored in the array. This is what the following code snippet is doing.
 
 \begin{code}{}
 | res |
-res := Bexp new twoBlockArrays.
-res second value.
-     --> 0
+res := Bexp new twoBlockArray.
+res second value. --> 0
 res first value.
-res second
-     --> 2
+res second value. --> 2
 \end{code}
 
 You can also define the code as follows and open a transcript to see the results.
 
 \begin{code}
 | res |
-res := Bexp new twoBlockArrays.
+res := Bexp new twoBlockArray.
 res second value traceCr.
 res first value.
 res second value traceCr.
 \end{code}
 
 Let us step back and look at an important point.
-In the previous code snippet when the expressions \ct{res second value} and \ct{res first value} are executed, the method \ct{twoBlockArrays} has already finished its execution - as such it is not on the execution stack anymore.  Still the temporary variable \ct{a} can be accessed and set to new value. It means that the variables referred to by a block may live longer than the methods which created the block that refers to them. We say that the variables outlive their defining method execution.
+In the previous code snippet when the expressions \ct{res second value} and \ct{res first value} are executed, the method \ct{twoBlockArray} has already finished its execution - as such it is not on the execution stack anymore.  Still the temporary variable \ct{a} can be accessed and set to a new value. This experiment shows that the variables referred to by a block may live longer than the method which created the block that refers to them. We say that the variables outlive their defining method execution.
 
-At the implementation, you can see from this example, that while temporary variable are somehow stored in an activation context, it is a bit more subtle than that. The block implementation needs to keep referenced variables in a structure that is not the execution stack but lives on the heap. We will go in more details in a following section.
+ You can see from this example that while temporary variables are somehow stored in an activation context, the implementation is a bit more subtle than that. The block implementation needs to keep referenced variables in a structure that is not in the execution stack but lives on the heap. We will go in more details in a following section.
 
 
 % ============================================================================
 \section{Returning from inside a block}
 % ============================================================================
-It is really not a good idea to have return statement in a block such as \ct{[^ 33]} that you pass or store into instance variables and we will explain why in this section. A block with explicit return statement is called a non-local returning block. Let us start illustrating some basic points first.
+In this section we explain why it is  not a good idea to have return statements inside a block (such as \ct{[^ 33]}) that you pass or store into instance variables. A block with an explicit return statement is called a non-local returning block. Let us start illustrating some basic points first.
 
 \subsection{Basics on return}
-By default the returned value of a method is the receiver of the message \ie self.
-A return expression (the expression starting with the character \ct{^}) allows one to return a different value than the receiver of the message. In addition, when a return statement is defined in a method, the execution of a return statement exits the currently executed method and returns to its caller. This cancels the expressions following the return statement.
 
-Define the following method. Executing \ct{Bexp new testExplicitReturn}  prints 'one' and 'two' but it will not print \ct{not printed}, since the method \ct{textExplicitReturn} will have returned before.
+By default the returned value of a method is the receiver of the message \ie self.
+A return expression (the expression starting with the character \ct{^}) allows one to return a different value than the receiver of the message. In addition, the execution of a return statement exits the currently executed method and returns to its caller. This ignores the expressions following the return statement.
+
+Define the following method. Executing \ct{Bexp new testExplicitReturn}  prints 'one' and 'two' but it will not print \ct{not printed}, since the method \ct{testExplicitReturn} will have returned before.
 
 \begin{code}{}
 Bexp>>testExplicitReturn
@@ -390,7 +391,7 @@ Bexp>>testExplicitReturn
 
 
 \subsection{Escaping behavior of non-local return}
-A return expression behaves also like an escape mechanism since the execution flow will jump out to the current invoking method and not just one level up. For example, the following expression \ct{Bexp new jumpingOut} will return 3 and not 42. \ct{^ 42} will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels and return to the method caller. This is why it is important to avoid to use this style and use exceptions when such behavior is needed. Some old code in Pharo predates exception introduction and returning blocks are passed around leading to complex flow and difficult to maintain code. In subsequent section we will carefully look at where a return is actually returning.
+A return expression behaves also like an escape mechanism since the execution flow will directly jump out to the current invoking method. For example, the following expression \ct{Bexp new jumpingOut} will return 3 and not 42. \ct{^ 42} will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels and return to the method caller. Some old code  in Pharo (predating introduction of exceptions) passes non-local returning blocks around leading to complex flows and difficult to maintain code. In subsequent sections we will carefully look at where a return is actually returning.
 
 \begin{code}{}
 Bexp>>jumpingOut
@@ -401,8 +402,8 @@ Bexp>>jumpingOut
 	^ 42
 \end{code}
 
-Now to see that a return is really escaping the current execution. Let us build a slightly more complex call flow.
-We define four methods among which one creates an escaping block \ct{defineBlock} and one executes this block (\ct{arg:}). Pay attention that to stress the escaping behavior of a return we defined \ct{executingBlock:} so that it endlessly loops after executing its argument.
+Now to see that a return is really escaping the current execution, let us build a slightly more complex call flow.
+We define four methods among which one creates an escaping block \ct{defineBlock} and one evaluates this block (\ct{arg:}). Pay attention that to stress the escaping behavior of a return we defined \ct{evaluatingBlock:} so that it endlessly loops after evaluating its argument.
 
 \begin{code}{}
 Bexp>>start
@@ -424,17 +425,15 @@ Bexp>>defineBlock
 Bexp>>arg: aBlock
 	| res |
 	self traceCr: 'arg start'.
-	res := self executeBlock: aBlock.
+	res := self evaluateBlock: aBlock.
 	self traceCr: 'arg end'.
 	^ res
-\end{code}
 
-\begin{code}{}
-Bexp>>executeBlock: aBlock
+Bexp>>evaluateBlock: aBlock
 	| res |
-	self traceCr: 'executeBlock start'.
-	res := self executeBlock: aBlock value.
-	self traceCr: 'executeBlock loops so should never print that one'.
+	self traceCr: 'evaluateBlock start'.
+	res := self evaluateBlock: aBlock value.
+	self traceCr: 'evaluateBlock loops so should never print that one'.
 	^  res
 \end{code}
 
@@ -445,44 +444,53 @@ Executing \ct{Bexp new start}  prints the following (we added indentation to str
 start start
    defineBlock start
       arg start
-         executeBlock start
+         evaluateBlock start
             block start
 start end
 \end{code}
 
-What we see is that the calling method \ct{start} is fully executed. The method \ct{defineBlock} is not completely executed. Indeed, its escaping block \ct{[^33]} is executed two calls away in the method \ct{executeBlock:}. The execution of the block returns to the sender of the block home context.
-Indeed the block should return and it will return to the method context of its home context. Here the home context of the block is the execution context of the method \ct{defineBlock}. The sender of this execution was created by the execution of the method \ct{start}, therefore the return execution returns to the execution point of the start execution context.
+What we see is that the calling method \ct{start} is fully executed. The method \ct{defineBlock} is not completely executed. Indeed, its escaping block \ct{[^33]} is executed two calls away in the method \ct{evaluateBlock:}. The evaluation of the block returns to the sender of the block home context. Here the home context of the block is the execution context of the method \ct{defineBlock}. The sender of this execution was created by the execution of the method \ct{start}, therefore the return execution returns to the execution point of the \ct{start} execution context.
 
-When the return statement of the block is executed in method \ct{executeBlock:}, the execution discards the pending computation and returns to the method execution point that created the home context of the block. The block is defined in  method \ct{defineBlock}, the home context of the block is the activation context that represents the execution of the method \ct{defineMethod}. This is why the rest of the computation in the block itself, the \ct{defineMethod} method as well as \ct{arg:} are discarded.
+When the return statement of the block is executed in the method \ct{evaluateBlock:}, the execution discards the pending computation and returns to the method execution point that created the home context of the block. The block is defined in  the method \ct{defineBlock}. The home context of the block is the activation context that represents the execution of the method \ct{defineBlock}. This is why the rest of the computation in the block itself, in the \ct{defineBlock} method, and in the \ct{arg:} method is discarded.
 
 \begin{figure}[!h]
 \begin{center}\includegraphics[width=\textwidth]{nonLocalReturn2}
-\caption{A block with non local return execution returns to the method execution that activated the block home context.\label{nonLocalReturn}}
+\caption{A block with non-local return execution returns to the method execution that activated the block home context.\dc{rename methods}\label{nonLocalReturn}}
 \end{center}
 \end{figure}
 
-As shown by Figure~\ref{nonLocalReturn}, \ct{[^33]} will return to the sender of its home context. \ct{[^33]} home context is the context that represents the execution of the method \ct{defineBlock}, therefore it will return its result to the method \ct{start} execution.
+As shown by Figure~\ref{nonLocalReturn}, \ct{[^33]} will return to the sender of its home context. \ct{[^33]} home context is the context that represents the execution of the method \ct{defineBlock}, therefore it will return its result to the method \ct{start}.
 
-Step 1 represents the execution up to the invocation of the method \ct{defineBlock}: 'start start' is printed.
+\begin{itemize}
+\item Step 1 represents the execution up to the invocation of the
+  method \ct{defineBlock}: 'start start' is printed.
 
-Step 3 the execution up to the block creation, which is done in Step 2: 'defineBlock' is printed. The home context of the block is the \ct{defineContext} method execution context.
+\item Step 3 represents the execution up to the block creation, which
+  is done in Step 2. 'defineBlock start' is printed. The home context
+  of the block is the \ct{defineContext} method execution context.
 
-Step 4 represents the execution up to the invocation of method \ct{executeBlock:}. \ct{'defineBlock start'} is printed.
+\item Step 4 represents the execution up to the invocation of the method
+  \ct{evaluateBlock:}. \ct{arg start'} is printed.
 
-Step 5 represents the execution up to the block execution. 'executeBlock: start' is printed.
+\item Step 5 represents the execution up to the block evaluation.
+  'evaluateBlock: start' is printed.
 
-Step 6 represents the execution of the block up to the condition: 'block start' is printed.
+\item Step 6 represents the execution of the block up to the
+  condition: 'block start' is printed.
 
-Step 7 represents the execution up to the return statement.
+\item Step 7 represents the execution up to the return statement.
 
-Step 8 represents the execution of the return statement. It returns to the sender of the block home context, \ie just after the invocation of the method defineBlock in the method start. The execution continues and 'start end' is printed.
-
-
-
+\item Step 8 represents the execution of the return statement. It
+  returns to the sender of the block home context, \ie just after the
+  invocation of the method defineBlock in the method start. The
+  execution continues and 'start end' gets printed.
+\end{itemize}
 
 \paragraph{Accessing information.} 
-To verify manually and find the home context of a closure we can do the following: add the expression \ct{thisContext home inspect} in the block of the  method \ct{defineBlock}. We can also add the expression \ct{thisContext closure home inspect} which accesses the closure via the current execution context and gets its home context. Note that in both cases, even if the block is executed during the execution of the method \ct{executeBlock:}, the home context of the block is the method \ct{defineBlock}.
-Note that such expressions will be executed during the block execution.
+
+To manually verify and find the home context of a block we can do the following: add the expression \ct{thisContext home inspect} in the block of the  method \ct{defineBlock}. We can also add the expression \ct{thisContext closure home inspect} which accesses the closure via the current execution context and gets its home context. Note that in both cases, even if the block is evaluated during the execution of the method \ct{evaluateBlock:}, the home context of the block is the method \ct{defineBlock}.
+
+Note that such expressions will be executed during the block evaluation.
 
 \begin{code}{}
 Bexp>>defineBlock
@@ -513,7 +521,7 @@ Bexp>>assert: aBoolean
 	aBoolean ifFalse: [Error signal]
 \end{code}
 
-We define the following method. It defines a block whose argument is executed as soon as we reach the step 4 of a loop. Then a value is printed and we checked that the value of the variable val is correctly 4.
+We define the following method.
 
 \begin{code}{}
 Bexp>>testValueWithExitBreak
@@ -526,16 +534,15 @@ Bexp>>testValueWithExitBreak
 	self assert: val = 4.
 \end{code}
 
-Executing \ct{Bexp new testValueWithExitBreak} performs without raising error and print 4 to the Transcript: the loops has been stopped, the value printed and the assert validated.
+This method defines a block whose argument \ct{break} is evaluated as soon as the step 4 of a loop is reached. Then a variable \ct{val} is printed and we make sure that its value is 4. Executing \ct{Bexp new testValueWithExitBreak} performs without raising an error and prints 4 to the Transcript: the loop has been stopped, the value has been printed, and the assert has been validated.
 
-If you change \ct{valuePassingEscapingBlock} by \ct{value: [^ nil]} in the method above. You will not get the trace because the execution of the method \ct{testValueWithExitBreak} will exit when the block is executed. Here \ct{valuePassingEscapingBlock} is not equivalent to \ct{value: [^nil]} because it changes the home context of the escaping block \ct{[ ^ nil ]}.  With \ct{valuePassingEscapingBlock} the home context of the block \ct{[^ nil]}
-is not the method \ct{testValueWithExitContinue} but \ct{valuePassingEscapingBlock}.
-Therefore when executed the escaping block will change the execution flow to the \ct{valuePassingEscapingBlock} message in the method \ct{testValueWithExitBreak} (similarly to the previous example where the flow came back just after the invocation of the \ct{defineBlock} message).
+If you change the \ct{valuePassingEscapingBlock} message sent by \ct{value: [^ nil]} in the \ct{testValueWithExitBreak} method above, you will not get the trace because the execution of the method \ct{testValueWithExitBreak} will exit when the block is evaluated. In this case, calling \ct{valuePassingEscapingBlock} is not equivalent to calling \ct{value: [^nil]} because the home context of the escaping block \ct{[ ^ nil ]} is different.  With the original \ct{valuePassingEscapingBlock}, the home context of the block \ct{[^ nil]}
+is \ct{valuePassingEscapingBlock} and not the method \ct{testValueWithExitContinue} itself.
+Therefore when evaluated, the escaping block will change the execution flow to the \ct{valuePassingEscapingBlock} message in the method \ct{testValueWithExitBreak} (similarly to the previous example where the flow came back just after the invocation of the \ct{defineBlock} message).
 Put a self halt before the assert: to convince you. In one case, you will reach the halt while in the other not.
 
-
-\paragraph{Non-local return blocks.} As a block is always evaluated in its home context, it is possible to attempt to return from a method execution which has already returned using other return. This runtime error condition is trapped by the VM.
-
+\paragraph{Non-local return blocks.} As a block is always evaluated in its home context, it is possible to attempt to return from a method execution which has already returned. This runtime error condition is trapped by the VM.
+\dc{HERE}
 
 \begin{code}{}
 Bexp>>returnBlock
@@ -545,7 +552,7 @@ Bexp new returnBlock value
 -> Exception
 \end{code}
 
-When we execute returnBlock, the method return the block to its caller (here the top level execution). Then when executing the block, it should return to its home context sender but the method execution already terminated, therefore this is an error.
+When we execute returnBlock, the method return the block to its caller (here the top level execution). Then when evaluating the block, it should return to its home context sender but the method execution already terminated, therefore this is an error.
 
 
 % ==========================================================================
@@ -790,7 +797,7 @@ and this is why it returns 4 and not 0 because.
 \section{Opening the Trunk}
 % ============================================================================
 The Virtual Machine represents execution state as context objects, one per method or block currently executed (or activated). In Pharo, method and block activations are represented by MethodContext instances.
-We will explain contexts as well as method execution to finish by block closure execution.
+We will explain contexts as well as method execution to finish by block closure evaluation.
 
 
 
