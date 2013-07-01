@@ -740,7 +740,7 @@ MessageTally spyOn:
     [ 500 timesRepeat: [
                     | str |  
                     str := WriteStream on: (String new: 9000). 
-                    9000 timesRepeat: [ str nextPut: 'A' ]]].
+                    9000 timesRepeat: [ str nextPut: $A ]]].
 \end{code}
 
 For this example, it is possible to improve the script by using the method \ct{atAllPut:}. The script below takes only a couple of milliseconds.
