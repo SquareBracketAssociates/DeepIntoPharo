@@ -38,17 +38,11 @@ It is made to visualize and interact with any arbitrary data, defined in terms o
 
 \section{Installation and first visualization}
 
-Mondrian is available via a Metacello configuration. Just open a workspace and type:
-
-\begin{code}{}
-
-
-\end{code}
-
+Mondrian is part of Roassal. Check the Roassal chapter for installation procedure. If you are using a Moose distribution of Pharo, then you already have Roassal. 
 
 \subsection{A First Visualization}
-You can get a first visualization by entering and executing the following code in a workspace. 
-Each of these parts will be explain later.
+You can get a first visualization by entering and executing the following code in a workspace. By executing the following in a workspace, you should see the Collection class hierarchy.
+\newpage
 
 \begin{code}{}
 | view |
@@ -66,17 +60,26 @@ view treeLayout.
 view open
 \end{code}
 
+The visualization should be read as follows:
+
+\begin{itemize}
+\item each class is graphically represented as a box
+\item inheritance is indicated with edges between boxes. A superclass is above its subclasses
+\item the \emph{width} of each class indicates the amount of instance variable the 
+\item the \emph{height} of a class indicates the amount of methods defined in the class. Taller the class is, more methods it defines.
+\item the class \emph{shading} indicates the amount of lines of code the class contains. The class painted in black contains the most lines of code. The white class contains the smallest quantity of lines of code.
+\end{itemize}
+
+We will detail and review all the mechanisms involved in the visualization later on.
 
 
 \section{Starting with Mondrian}
 
 %=====================
 %\section{The Mondrian DSL}
-\sd{I pasted the part from the roassal chapter}
-\sd{Mondrian is an older visualization framework developed by D. Girba and XXX and maintained by A. Bergel. It influenced the design of Roassal. It supports visualization scripting based on a dedicated DSL: the DSL is based on a stack model where elements on the top can be parametrized. Roassal is designed to be a flexible framework and it is not tight to a DSL. Now Roassal can be extended to support Mondrian-like DSL scripting. This is what we present in this Section.}
 
 
-A \ct{ROMondrianViewBuilder} models the Mondrian DSL\footnote{\url{http://www.moosetechnology.org/tools/mondrian}}. It is mostly compatible with the original Mondrian language.% (cf., Mondrian paper and website).
+A \ct{ROMondrianViewBuilder} models the Mondrian domain-specific language (DSL)\footnote{\url{http://www.moosetechnology.org/tools/mondrian}}. It is mostly compatible with the original Mondrian language.% (cf., Mondrian paper and website).
 
 %ROMondrianBuilder acts as a translation between the Mondrian DSL and the Roassal model.
 A \ct{ROMondrianViewBuilder} internally contains an instance of a \ct{ROView}, called raw view. Its accessor is \ct{raw}. All scripting  using the \ct{ROMondrianViewBuilder} result in creating \ct{ROElement}s with the shapes and interactions set by the script, and added to the raw view. To start a visualization with the builder, you can use the following code:
@@ -179,12 +182,11 @@ view shape rectangle
 	color: Color red.
 view 
 	nodes: (1 to: 5) 	
-	forEach:[:each |
+	forEach: [ :each |
 		view shape rectangle 
 			size: 5;
 			color: Color yellow.
-		view nodes: (1 to: 2).
-	].
+		view nodes: (1 to: 2) ].
 view open.
 \end{code}
    \end{minipage}
@@ -459,7 +461,7 @@ view shape rectangle
 	borderColor: [ :cls | ('*Array*' match: cls name) 
 										ifTrue: [ Color blue ] 
 										ifFalse: [ Color black ] ];
-	fillColor: [ :cls | cls isAbstractClass ifTrue: [ Color lightGray ] ifFalse: [ Color white] ].
+	fillColor: [ :cls | cls hasAbstractMethods ifTrue: [ Color lightGray ] ifFalse: [ Color white] ].
 view nodes: Collection withAllSubclasses.
 view edgesFrom: #superclass.
 view treeLayout.
@@ -480,11 +482,11 @@ The use of \ct{ifTrue:ifFalse:} is not really practicable. Utilities methods are
 view shape rectangle
 	size: 10;
 	if: [ :cls | ('*Array*' match: cls name) ] borderColor: Color blue;
-	if: [ :cls | cls isAbstractClass ] fillColor: Color lightGray.
+	if: [ :cls | cls hasAbstractMethods ] fillColor: Color lightGray.
 ...
 \end{code}
 
-The method \ct{isAbstractClass} is defined on Behavior and Metaclass in \pharo. By sending the \ct{isAbstractClass} to a class return a boolean value telling us whether the class is abstract or not. We recall that an abstract class in Smalltalk is a class that defines or inherits at least one  abstract method (i.e., which contain \ct{self subclassResponsibility}).
+The method \ct{hasAbstractMethods} is defined on Behavior and Metaclass in \pharo. By sending the \ct{hasAbstractMethods} to a class return a boolean value telling us whether the class is abstract or not. We recall that an abstract class in Smalltalk is a class that defines or inherits at least one  abstract method (i.e., which contain \ct{self subclassResponsibility}).
 
 
 %=====================
@@ -528,7 +530,7 @@ Let's jump back on the abstract class example. The following script indicates ab
 \begin{code}{}
 view shape rectangle
 	size: [ :cls | (cls methods select:  #isAbstract ) size * 5 ] ;
-	if: #isAbstractClass fillColor: Color lightRed;
+	if: #hasAbstractMethods fillColor: Color lightRed;
 	if: [:cls | cls methods anySatisfy: #isAbstract ] fillColor: Color red.
 view nodes: Collection withAllSubclasses.
 view edgesFrom: #superclass.
@@ -571,7 +573,7 @@ view interaction popupView: [ :element :secondView |
 
 view shape rectangle
 	size: [ :cls | (cls methods select:  #isAbstract ) size * 5 ] ;
-	if: #isAbstractClass fillColor: Color lightRed;
+	if: #hasAbstractMethods fillColor: Color lightRed;
 	if: [:cls | cls methods anySatisfy: #isAbstract ] fillColor: Color red.
 view nodes: Collection withAllSubclasses.
 view edgesFrom: #superclass.
@@ -609,7 +611,7 @@ view treeLayout.
 A subview contains its own layout. Interactions and shapes defined in a subview are not accessible from a nesting node (\figref{abstractClasses3}). 
 
 %view shape rectangle
-%  if: #isAbstractClass fillColor: Color lightRed.
+%  if: #hasAbstractMethods fillColor: Color lightRed.
 %view nodes: Collection withAllSubclasses forEach: [ :aClass | 
 %  view shape rectangle 
 %    if: #isAbstract fillColor: Color red.
@@ -718,7 +720,7 @@ Each mouse movement, click and keyboard keystroke corresponds to a particular ev
 view shape rectangle
   width: [ :each | each instVarNames size * 5 ];
   height: [ :each | each methods size ];
-  if: #isAbstractClass fillColor: Color lightRed;
+  if: #hasAbstractMethods fillColor: Color lightRed;
   if: [:cls | cls methods anySatisfy: #isAbstract ] fillColor: Color red.
   
 view interaction on: ROMouseClick do: [ :event | event model browse ].
@@ -792,16 +794,16 @@ view node: 'compound' forIt: [
 
 The script contains two parts. The first part is the ubiquitous system complexity of the collection framework.  The second part renders the tests contained in the CollectionsTests. The width of a class is the number of literals contained in it. The height is the number of lines of code. Since the collection tests makes a great use of traits to reuse code, these metrics have to be scaled down. When the mouse is put over a test unit, then all the classes of the collection framework referenced in this class are highlighted. 
 
-Displaying edges when overing a particular node is a recurrent problem in visualization. The method \ct{dynamicEdge:using:} is offered for that purpose. The following example draw arrowed lines from an element to the two others:
-
-\begin{code}{}
-view interaction 
-	dynamicEdge: [ :model | (Array with: 10 with: 20 with: 30) copyWithout: model ]
-	using: (ROLine arrowed color: Color red).
-view shape rectangle size: 20.
-view nodes: (Array with: 10 with: 20 with: 30).
-view circleLayout.
-\end{code}
+%Displaying edges when overing a particular node is a recurrent problem in visualization. The method \ct{dynamicEdge:using:} is offered for that purpose. The following example draw arrowed lines from an element to the two others:
+%
+%\begin{code}{}
+%view interaction 
+%	dynamicEdge: [ :model | (Array with: 10 with: 20 with: 30) copyWithout: model ]
+%	using: (ROLine arrowed color: Color red).
+%view shape rectangle size: 20.
+%view nodes: (Array with: 10 with: 20 with: 30).
+%view circleLayout.
+%\end{code}
 
 %=====================
 
@@ -818,6 +820,11 @@ Mondrian enables any graph of objects to be visualized. This chapter has reviewe
 \item Events of a sub node is forwarded to its parent with \ct{forward} and \ct{forward:}.
 \item Highlighting is available with \ct{highlightWhenOver:}, which takes a one-arg block that has to return the list of nodes to highlight.
 \end{itemize}
+
+This chapter was about the Mondrian domain specific language. 
+Mondrian is an older visualization framework developed by Tudor Girba and Michael Meyer in 2005. Mondrian has been maintained from 2008 until 2009 by Alexandre Bergel. 
+Mondrian (the program) greatly influenced the design of Roassal. It supports visualization scripting based on a dedicated domain-specific language (DSL): the DSL is based on a stack model where elements on the top can be parametrized. Roassal is designed to be a flexible framework and it is not tight to a DSL. Roassal can be extended to support Mondrian-like DSL scripting. This is what this chapter is all about.
+
 
 \paragraph{Acknowledgment}
 We are very grateful to Nicolas Rosselot Urrejola for his review of an early draft of the chapter.
@@ -848,7 +855,7 @@ The keyword if:fillColor: enables one to assign a color for a particular conditi
 view shape rectangle
   width: [ :each | each instVarNames size * 3 ];
   height: [ :each | each methods size ];
-  if: #isAbstractClass fillColor: Color red.
+  if: #hasAbstractMethods fillColor: Color red.
 view nodes: Collection withAllSubclasses.
 
 view edges: Collection withAllSubclasses from: #yourself toAll: #subclasses.
@@ -863,7 +870,7 @@ The message \ct{if:fillColor:} may be sent to a shape to conditionally set a col
 view shape rectangle
   width: [ :each | each instVarNames size * 3];
   height: [ :each | each methods size ];
-  if: #isAbstractClass fillColor: Color red.
+  if: #hasAbstractMethods fillColor: Color red.
 view nodes: Collection withAllSubclasses.
 
 view edgesFrom: #superclass.
@@ -881,7 +888,7 @@ view interaction action: #browse.
 view shape rectangle
   width: [ :each | each instVarNames size * 3];
   height: [ :each | each methods size ];
-  if: #isAbstractClass fillColor: Color red.
+  if: #hasAbstractMethods fillColor: Color red.
 view nodes: Collection withAllSubclasses.
 
 view edgesFrom: #superclass.
@@ -900,7 +907,7 @@ view interaction action: #browse.
 view shape rectangle
   width: [ :each | each instVarNames size * 3];
   height: [ :each | each methods size ];
-  if: #isAbstractClass fillColor: Color red.
+  if: #hasAbstractMethods fillColor: Color red.
 view nodes: (PackageInfo named: 'Mondrian') classes.
 
 view edgesFrom: #superclass.
@@ -914,7 +921,7 @@ A shape may contains more than one condition. Let's distinguish abstract classes
 view shape rectangle
   width: [ :each | each instVarNames size * 3];
   height: [ :each | each methods size ];
-  if: #isAbstractClass fillColor: Color lightRed;
+  if: #hasAbstractMethods fillColor: Color lightRed;
   if: [:cls | cls methods anySatisfy: #isAbstract ] fillColor: Color red.
 
 view nodes: Collection withAllSubclasses.
