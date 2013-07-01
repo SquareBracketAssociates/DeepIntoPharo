@@ -95,7 +95,13 @@ The method \ct{storeString} also conveys that we are in presence of two differen
 The method \ct{closeTo:} verify that the two compared numbers have less than 0.0001 of difference. Here is its source code.  
 
 \begin{code}{}
-closeTo: num 	"are these two numbers close?"	num isNumber ifFalse: [^[self = num] ifError: [false]].	self = 0.0 ifTrue: [^num abs < 0.0001].	num = 0 ifTrue: [^self abs < 0.0001].	^self = num asFloat		or: [(self - num) abs / (self abs max: num abs) < 0.0001]	
+closeTo: num
+ 	"are these two numbers close?"
+	num isNumber ifFalse: [^[self = num] ifError: [false]].
+	self = 0.0 ifTrue: [^num abs < 0.0001].
+	num = 0 ifTrue: [^self abs < 0.0001].
+	^self = num asFloat
+		or: [(self - num) abs / (self abs max: num abs) < 0.0001]	
 \end{code}
 
 		
@@ -106,11 +112,16 @@ closeTo: num 	"are these two numbers close?"	num isNumber ifFalse: [^[self = n
 	--> true
 \end{code}		
 
-\ja{here}
-\mmp{Why (0.1 asScaledDecimal: 2) + (0.2 asScaledDecimal: 2) = (0.3 asScaledDecimal: 2) answers false?}
-\sd{I do not know.}
+Now, if you execute the following line, you will see that the expressions are not equals.
 
+\begin{code}{}	
+(0.1 asScaledDecimal: 2) + (0.2 asScaledDecimal: 2) = (0.3 asScaledDecimal: 2) 
+	--> false
+\end{code}
 
+What is different ? When you execute 0.1s2 for example, a fraction is created from scratch, hence 0.1s2 asFraction returns 1/10. The message \ct{asScaledDecimal:} has a different behavior.
+\ct{(0.1 asScaledDecimal: 2)} represents exactly the same number as the float 0.1. \ct{(0.1 asScaledDecimal: 2) asFraction} returns the same thing as \ct{0.1 asFraction}.
+Since 0.1 + 0.2 = 0.3 returns false, you would of course expect the scaled decimal of this expression to return false.
 
 \section{Dissecting a Float}
 To understand what operation is involved in above addition, we must know how floats are internally represented in the computer: Pharo's Float format is a wide spread standard found on most computers - IEEE 754-1985 double precision on 64 bits
@@ -119,7 +130,7 @@ With this format, a Float is represented in base 2 by this formula: \[ sign \cdo
 \begin{itemize}
 \item The sign is represented with 1 bit.
 \item The exponent is represented with 11 bits.
-\item The mantissa is a fractional number in base two, with a leading 1 before decimal point, and with 52 binary digits after fraction point.
+\item The mantissa is a fractional number in base two, with a leading 1 before decimal point, and with 52 binary digits after fraction point. In Pharo, the method to obtain the mantissa is \ct{Float>>significand}. We provide examples following in the chapter.
 \end{itemize}
 
 For example, a series of 52 bits:\\
@@ -170,10 +181,6 @@ In Pharo, you can retrieve these informations:
 	--> 3
 \end{code}
 
-
-\mmp{maybe you should clarify that significand answers the mantissa ?}
-\sd{how?}
-
 In Pharo, there is no message to directly handle the normalized mantissa. Instead it is possible to handle the mantissa as an Integer after a 52 bits shift to the left. There is one good reason for this: operating on Integer is easier because arithmetic is exact. The result includes the leading 1 and should thus be 53 bits long for a normal number (that's the float precision):
 
 
@@ -208,11 +215,11 @@ Until there we've retrieved the exact input we've injected into the Float. Are F
 (1/5) asFloat = (1/5).
 	--> false
 	
-(1/10) = 0.1
+(1/5) = 0.2
 	--> false
 \end{code}
 
-Let us see in detail how we could get the fractional bits of \ct{1/10} \ie \mbox{\ct{2r1/2r101}}. For that, we must lay out the division:
+Let us see in detail how we could get the fractional bits of \ct{1/5} \ie \mbox{\ct{2r1/2r101}}. For that, we must lay out the division:
 
 \[
 \begin{tabular}{r|l}
@@ -237,9 +244,6 @@ Let us see in detail how we could get the fractional bits of \ct{1/10} \ie \mbox
  \]
 
 What we see is that we get a cycle: every 4 Euclidean divisions, we get a quotient \ct{2r0011} and a remainder \ct{1}. That means that we need an infinite series of this bit pattern \ct{0011} to represent 1/5 in base 2. Let us see how Pharo dealt to convert (1/5) to a Float:
-
-\mmp{I am confused. Are you giving the example of 1/10 or 1/5. Because you seem to mix both. }
-\sd{May be> I have to check with nicolas :)}
 
  \begin{code}{}
 (1/5) asFloat significandAsInteger printStringBase: 2.
@@ -431,83 +435,83 @@ There are much more things to know about floats, and if you are advanced enough,
 
 
 
-\section{To digest}
-
-Hi Stephane,
-occasionally i look at the the Pharo-project mailing list and i saw your question re ScaledDecimals. they are Fractions and you can can look at their internal representation by using asFraction. things like 0.1s2 are fractions built from scratch , hence 0.1s2 asFraction returns 1/10 while (0.1 asScaledDecimal: 2) asFraction returns the same thing as 0.1 asFraction.
-aFloat asFraction is constructed in such a way that
-aFloat asFraction asFloat= aFloat
-for every aFloat. At least with a probability of (100 - epsilon)\% with epsilon going to 0. while epsilon is not equal to 0 according to the author of asFraction (see the last comment at the end of Float>>asTrueFraction),obviously nobody has as yet found a counterexample, hence i would forget that.
-iow (0.1 asScaledDecimal: 2)represents exactly the same number as the float 0.1.
-since 0.1 + 0.2=0.3 returns false  you would of course expect your first example to return false. and you would expect the error in the equality to be similar to the error in 0.1 + 0.2=0.3. although not necessarily equal. if this last statement does not immediately make sense, you might want to think a second or two about the results of these things:
-((0.1 asFraction ) + (0.2 asFraction))asFloat  = (0.1 +0.2) .
-((0.1 asFraction ) + (0.2 asFraction))   = (0.1 +0.2) asFraction .
-
-werner
-
-Hi Stef and Mariano,
-these are good questions...
-
-1) closeTo: good idea, i always found the threshold arbitrary.
-
-2) (0.1 asScaledDecimal:2 ) is exactly (0.1 asTrueFraction asScaledDecimal: 2)
-So just evaluate (0.1 asFraction) + (0.2 asFraction) = (0.3 asFraction).
-0.1 is a Float and is inexact because it result from this inexact
-operation: 1/10.0.
-
-Even if by chance we would have  (0.1 asFraction) + (0.2 asFraction) =
-(0.3 asFraction), then it would still be something different from
-0.3s2, 0.3 = (3/10) -> false, 0.3s2 = (3/10) -> true.
-
-3) significand: yes, maybe we can write that (f significand
-timesTwoPower: f exponent) = f is true for every finite Float (can't
-remember if significand includes the sign, otherwise it would be f
-sign * f significand timesTwoPower: f exponent)
-
-4) 1/10 and 1/5 : they will share the same significand (mantissa)
-because (1/5) / 2.0 = (1/10.0), and = (1/5.0 timesTwoPower: -1).
-Multiplying or dividing by a power of two just changes the exponent
-and is an exact operation (unfortunately, 1/5 isn't).
-
-Hope that helps...
-
-cheers
-
-There is a difference between these two:
-
-(1/10) asScaledDecimal: 2.
-(1/10) asFloat asScaledDecimal: 2.
-
-asFloat introduces a rounding error.
-Though the result prints 0.1, it is different from (1/10), asFrank
-said, just convert it back asTrueFraction, and you'll see.
-asScaledDecimal: does not undo the rounding error, it just uses asTrueFraction.
-If you want to undo the error, you may try (0.1 roundTo: 0.01s2).
-
-Nicolas
-
-
-
-Ah, because the NumberParser knows you want a ScaledDecimal with the
-s2 specification, so it just doesn't use an intermediate Float, but
-directly convert (1/10) asScaledDecimal: 2.
-You can also try ScaledDecimal readFrom: '0.1', it avoids a an
-intermediate conversion to Float too.
-
-
-Oh, but they are:
-
-(1 to: 1000) detect: [:i |
-	| s1 s2 |
-	s1 := Number readFrom: '0.' , (String new: i withAll: $0) , '1'.
-	s2 := Number readFrom: '0.' , (String new: i withAll: $0) , '2'.
-	s1+s1~=s2]
-->  308
-
-Thus 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001
-+ 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001
-~= 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
-
+%\section{To digest}
+%
+%Hi Stephane,
+%occasionally i look at the the Pharo-project mailing list and i saw your question re ScaledDecimals. they are Fractions and you can can look at their internal representation by using asFraction. things like 0.1s2 are fractions built from scratch , hence 0.1s2 asFraction returns 1/10 while (0.1 asScaledDecimal: 2) asFraction returns the same thing as 0.1 asFraction.
+%aFloat asFraction is constructed in such a way that
+%aFloat asFraction asFloat= aFloat
+%for every aFloat. At least with a probability of (100 - epsilon)\% with epsilon going to 0. while epsilon is not equal to 0 according to the author of asFraction (see the last comment at the end of Float>>asTrueFraction),obviously nobody has as yet found a counterexample, hence i would forget that.
+%iow (0.1 asScaledDecimal: 2)represents exactly the same number as the float 0.1.
+%since 0.1 + 0.2=0.3 returns false  you would of course expect your first example to return false. and you would expect the error in the equality to be similar to the error in 0.1 + 0.2=0.3. although not necessarily equal. if this last statement does not immediately make sense, you might want to think a second or two about the results of these things:
+%((0.1 asFraction ) + (0.2 asFraction))asFloat  = (0.1 +0.2) .
+%((0.1 asFraction ) + (0.2 asFraction))   = (0.1 +0.2) asFraction .
+%
+%werner
+%
+%Hi Stef and Mariano,
+%these are good questions...
+%
+%1) closeTo: good idea, i always found the threshold arbitrary.
+%
+%2) (0.1 asScaledDecimal:2 ) is exactly (0.1 asTrueFraction asScaledDecimal: 2)
+%So just evaluate (0.1 asFraction) + (0.2 asFraction) = (0.3 asFraction).
+%0.1 is a Float and is inexact because it result from this inexact
+%operation: 1/10.0.
+%
+%Even if by chance we would have  (0.1 asFraction) + (0.2 asFraction) =
+%(0.3 asFraction), then it would still be something different from
+%0.3s2, 0.3 = (3/10) -> false, 0.3s2 = (3/10) -> true.
+%
+%3) significand: yes, maybe we can write that (f significand
+%timesTwoPower: f exponent) = f is true for every finite Float (can't
+%remember if significand includes the sign, otherwise it would be f
+%sign * f significand timesTwoPower: f exponent)
+%
+%4) 1/10 and 1/5 : they will share the same significand (mantissa)
+%because (1/5) / 2.0 = (1/10.0), and = (1/5.0 timesTwoPower: -1).
+%Multiplying or dividing by a power of two just changes the exponent
+%and is an exact operation (unfortunately, 1/5 isn't).
+%
+%Hope that helps...
+%
+%cheers
+%
+%There is a difference between these two:
+%
+%(1/10) asScaledDecimal: 2.
+%(1/10) asFloat asScaledDecimal: 2.
+%
+%asFloat introduces a rounding error.
+%Though the result prints 0.1, it is different from (1/10), asFrank
+%said, just convert it back asTrueFraction, and you'll see.
+%asScaledDecimal: does not undo the rounding error, it just uses asTrueFraction.
+%If you want to undo the error, you may try (0.1 roundTo: 0.01s2).
+%
+%Nicolas
+%
+%
+%
+%Ah, because the NumberParser knows you want a ScaledDecimal with the
+%s2 specification, so it just doesn't use an intermediate Float, but
+%directly convert (1/10) asScaledDecimal: 2.
+%You can also try ScaledDecimal readFrom: '0.1', it avoids a an
+%intermediate conversion to Float too.
+%
+%
+%Oh, but they are:
+%
+%(1 to: 1000) detect: [:i |
+%	| s1 s2 |
+%	s1 := Number readFrom: '0.' , (String new: i withAll: $0) , '1'.
+%	s2 := Number readFrom: '0.' , (String new: i withAll: $0) , '2'.
+%	s1+s1~=s2]
+%->  308
+%
+%Thus 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001
+%+ 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001
+%~= 0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002
+%
 
 %=========================================================
 \ifx\wholebook\relax\else
