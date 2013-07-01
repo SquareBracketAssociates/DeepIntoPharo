@@ -53,7 +53,7 @@ software development. In this chapter we present a powerful parser
 framework called PetitParser. PetitParser combines many ideas from
 various parsing technologies to model grammars and parsers as objects
 that can be reconfigured dynamically. PetitParser was written by Lukas
-Renggli as part of his work on the Helvetia system but it can be used
+Renggli as part of his work on the Helvetia system \footnote{\url{http://scg.unibe.ch/research/helvetia}} but it can be used
 as a standalone library.
 
 \section{Writing Parsers with PetitParser}
@@ -96,7 +96,7 @@ parser methodologies:
 
 Enough talking, let's get started. PetitParser is developed in Pharo,
 and there are also versions for Java and Dart available. A ready made
-image can be downloaded.\footnotemark To load PetitParser into an
+image can be downloaded\footnotemark. To load PetitParser into an
 existing image evaluate the following Gofer expression:
 
 \footnotetext{\url{http://hudson.lukas-renggli.ch/job/PetitParser/lastSuccessfulBuild/artifact/petitparser}}
@@ -126,7 +126,7 @@ ConfigurationOfPetitParser loadDefault.
 %these packages for now.
 
 More information on how to get PetitParser can be found on the website of the 
-project.\footnotemark
+project\footnotemark.
 
 \footnotetext{\url{http://scg.unibe.ch/research/helvetia/petitparser}}
 
@@ -176,7 +176,7 @@ figure) are parsers composed of other parsers (non terminals).
 
 If you inspect the object \ct{identifier} of the previous script, you'll notice 
 that it is an instance of a \clsind{PPSequenceParser}. If you dive further into 
-the object you notice the following tree of different parser objects:
+the object you will notice the following tree of different parser objects:
 
 \begin{script}{Composition of parsers used for the identifier parser}
 PPSequenceParser (accepts a sequence of parsers)
@@ -186,7 +186,7 @@ PPSequenceParser (accepts a sequence of parsers)
 \end{script}
 
 The root parser is a sequence parser because the \ct{,} (comma)
-operator creates a sequence from (1) a letter parser and (2) zero or
+operator creates a sequence of (1) a letter parser and (2) zero or
 more word character parser. The root parser first child is a predicate
 object parser created by the \ct{#letter asParser} expression. This
 parser is capable of parsing a single letter as defined by the
@@ -711,7 +711,7 @@ the following class definition:
 
 \begin{script}{Creating a class to hold our arithmetic expression grammar}
 PPCompositeParser subclass: #ExpressionGrammar
-   instanceVariableNames: 'add prod tern mul parens number'
+   instanceVariableNames: 'add prod term mul parens number'
    classVariableNames: ''
    poolDictionaries: ''
    category: 'PetitTutorial'
@@ -1277,7 +1277,7 @@ defined in the \ct{CharacterTable} dictionary that we initialize in
 the \ct{initialize} class method.
 Please note that \ct{initialize} method on a class side is called when the class is loaded into the system. 
 If you just created the \ct{initialize} method class was loaded without the method. 
-To execeute it, you shoud evaluate \ct{PPJsonGrammar initialize} in your workspace.
+To execute it, you shoud evaluate \ct{PPJsonGrammar initialize} in your workspace.
 
 \begin{script}{Defining the JSON special characters and their meaning}
 PPJsonGrammar class>>initialize
@@ -1600,7 +1600,7 @@ PPJsonGrammar>>start
 PetitParser is shipped with a powerful browser that can help to develop complex parsers.
 The PetitParser Browser provides graphical visualization, debugging support, refactoring support, and some other features discussed later in this chapter.
 You will see that these features could be very useful while developing your own parser.
-To open the PetitParser simply evaluate this expression:
+Pay attention to have Glamour already loaded in your system. To load Glamour, see~\ref{cha:glamour}. Then to open the PetitParser simply evaluate this expression:
 \begin{script}{Opening PetitParser browser}
 PPBrowser open.
 \end{script}
@@ -1710,9 +1710,8 @@ ExpressionGrammar>>number
   As you can see on \figref{pp/browserFollow}, the follow set of \ct{prim} is 
     closing bracket character parser '\ct{)}', star character parser '\ct{*}', 
     plus character parser '\ct{+}' or \ct{epsilon} parser (which states for empty string).
-  In another words, once you finished parsing \ct{prim} rule the input should
-    continue with one of '\ct{)}', '\ct{*}', '\ct{+}' characters or the string should
-    the input should be completely consumed.
+  In another word, once you finished parsing \ct{prim} rule the input should
+    continue with one of '\ct{)}', '\ct{*}', '\ct{+}' characters or the input should be completely consumed.
   
   One can use follow set to double-check that the grammar is specified correctly.
   For example if you see '\ct{(}' in \ct{prim} follow set, something is wrong
@@ -1758,7 +1757,7 @@ tabs on the bottom-right pane:
   input is highlighted, so you can see which part of input was parsed
   by a particular step. 
 
-  For example, you can inspect how does the \clsind{ExpressionGrammar} work, 
+  For example, you can inspect how the \clsind{ExpressionGrammar} works, 
     what rules are called and in which order.
   This is depicted in \figref{pp/debugger}. 
   The grey rules are rules that failed. 
@@ -1827,10 +1826,10 @@ ExpressionGrammar>>mul
   a different rule. This can be seen in
   \figref{pp/progressBacktracking}. In this example, the parser had to
   go back several times to correctly parse the whole input sample: all
-  input was parsed in $n!$ steps which is very bad. \dc{it would be
-    nice to have an example here so that the reader can reproduce your
-    experiment}
-  \jk{I added example further}
+  input was parsed in $n!$ steps which is very bad. %\dc{it would be
+%    nice to have an example here so that the reader can reproduce your
+%    experiment}
+%  \jk{I added example further}
   % but in the end the backtracking returns position
   % of the input almost to the beginning and we have to start again.
   % So that we parsed input of $n$ characters but there was a failure
