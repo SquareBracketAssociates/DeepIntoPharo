@@ -542,17 +542,15 @@ Therefore when evaluated, the escaping block will change the execution flow to t
 Put a self halt before the assert: to convince you. In one case, you will reach the halt while in the other not.
 
 \paragraph{Non-local return blocks.} As a block is always evaluated in its home context, it is possible to attempt to return from a method execution which has already returned. This runtime error condition is trapped by the VM.
-\dc{HERE}
 
 \begin{code}{}
 Bexp>>returnBlock
 	^ [ ^ self ]
 
-Bexp new returnBlock value
--> Exception
+Bexp new returnBlock value ~-> Exception
 \end{code}
 
-When we execute returnBlock, the method return the block to its caller (here the top level execution). Then when evaluating the block, it should return to its home context sender but the method execution already terminated, therefore this is an error.
+When we execute \ct{returnBlock}, the method returns the block to its caller (here the top level execution). When evaluating the block, because the method defining it has already terminated, an error is signaled.
 
 
 % ==========================================================================
@@ -608,17 +606,16 @@ the ones for block closures as we will see later. Let us have a look at some val
 \begin{itemize}
 \item \ct{sender} points to the previous context that led to the creation of the current context. Here when you executed the expression, a context was created and this context is the sender of the current one.
 
-\item \ct{pc} holds the value of the last executed instruction. Here its value is 27. To see which instruction it is, double click on the method instance variable and select the all bytecodes field, you should obtain the situation depicted in Figure~\ref{ByteCodes}, which shows that the next instruction to be executed is pop \sd{is it true?}
+\item \ct{method} points to the currently executing method.
 
-\item \ct{stackp} defines the number of stored temporary variables
+\item \ct{pc} holds the value of the last executed instruction. Here its value is 27. To see which instruction it is, double click on the \ct{method} instance variable and select the all bytecodes field, you should obtain the situation depicted in Figure~\ref{ByteCodes}, which shows that the next instruction to be executed is pop (instruction 28).
 
-\item \ct{method} points to the currently executed method.
+\item \ct{stackp} defines the number of stored temporary variables.
 
 \item \ct{closureOrNil} holds a reference to the closure currently executed or nil.
 
 \item \ct{receiver} is the message receiver.
 \end{itemize}
-
 
 \begin{figure}[!h]
 \begin{center}\includegraphics[width=5cm]{ByteCodes}
@@ -626,30 +623,10 @@ the ones for block closures as we will see later. Let us have a look at some val
 \end{center}
 \end{figure}
 
-
-
-
-\begin{figure}[!h]
-\begin{center}\includegraphics[width=8cm]{TwoContexts}
-\caption{Two contexts at different execution points.\figlabel{ContextAtDifferentExecPoint}}
-\end{center}
-\end{figure}
-
-Using the following definition you can get two inspectors (as shown in \Figref{ContextAtDifferentExecPoint}) open on a copy of the context
-at the execution point.
-\begin{code}
-Bexp>>first: arg
-	| temp |
-	temp := arg * 2.
-	thisContext copy inspect.
-	temp := arg * 3.
-	thisContext copy inspect.
-	^ temp
-\end{code}
-
 \subsection{Studying Contexts}
-Methods arguments and temporaries are stored in contexts. Contexts have a variable part that
-store them.
+
+Method arguments and temporaries are stored in contexts. A context have a variable part that
+stores them.
 
 When inspecting the following method, stackp holds 3 to represent that there is one argument
 and two temporary variables.
