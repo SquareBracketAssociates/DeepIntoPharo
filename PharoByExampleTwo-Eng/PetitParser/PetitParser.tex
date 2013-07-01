@@ -103,11 +103,10 @@ existing image evaluate the following Gofer expression:
 
 \begin{script}{Installing PetitParser}
 Gofer new
-  renggli: 'petit';
+  smalltalkhubUser: 'Moose' project: 'PetitParser';
   package: 'ConfigurationOfPetitParser';
   load.
-
-ConfigurationOfPetitParser loadDefault.
+(Smalltalk at: #ConfigurationOfPetitParser) perform: #loadDefault.
 \end{script}
 
 %\begin{script}{Installing PetitParser}
