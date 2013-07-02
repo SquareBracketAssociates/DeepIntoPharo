@@ -104,13 +104,13 @@ WebDir class>>selectHome
 The last method opens a browser to select the directory to open.
 Now, if you inspect the result of \ct{WebDir selectHome}, you will be prompted for the directory containing your web pages, and you will be able to verify that \ct{webDir} and \ct{homePath} are properly initialized to the directory holding your web site and the full path name of this directory.
 
-\begin{figure}[tbh]
-\begin{center}
-\includegraphics[width=0.8\textwidth]{aWebDir}
-\caption{A WebDir instance}
-\figlabel{aWebDir}
-\end{center}
-\end{figure}
+%\begin{figure}[tbh]
+%\begin{center}
+%\includegraphics[width=0.8\textwidth]{aWebDir}
+%\caption{A WebDir instance}
+%\figlabel{aWebDir}
+%\end{center}
+%\end{figure}
 
 It would be nice to be able to programmatically instantiate a \ct{WebDir}, so let's add another creation method.
 
@@ -121,7 +121,7 @@ WebDir class>>onPath: homePath
 	^ self onPath: homePath home: homePath
 
 WebDir class>>onPath: path home: homePath
-	^ self new setDir: (FileDirectory on: path) home: homePath
+	^ self new setDir: (path asFileReference) home: homePath
 \end{code}
 
 %-----------------------------------------------------------------
@@ -130,7 +130,7 @@ WebDir class>>onPath: path home: homePath
 So far so good.
 Now we would like to use regexes to find out which HTML files this web site contains.
 
-If we browse the \ct{FileDirectory} class, we find that the method \ct{fileNames} will list all the files in a directory. We want to select just those with the file extension \ct{.html}. The regex that we need is \ct{'.*\.html'}. The first dot will match any character except a newline:
+If we browse the \ct{AbstractFileReference} class, we find that the method \ct{fileNames} will list all the files in a directory. We want to select just those with the file extension \ct{.html}. The regex that we need is \ct{'.*\.html'}. The first dot will match any character except a newline:
 
 \begin{code}{@TEST}
 'x' matchesRegex: '.' --> true

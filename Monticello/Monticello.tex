@@ -753,7 +753,7 @@ It's a read-write repository, so it makes a good ``working'' repository where ve
 '/path/to/repositories/project-3/'. } do: 
 [ :path |
 	repo := MCDirectoryRepository new directory: 
-		(FileDirectory on: path).
+		(path asFileReference).
 	MCRepositoryGroup default addRepository: repo ].
 \end{code}
 

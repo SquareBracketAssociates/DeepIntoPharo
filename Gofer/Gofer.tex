@@ -583,9 +583,7 @@ go repository: (MCHttpRepository
 	user: 'pharoUser'
 	password: 'pharoPwd').
 
-((FileDirectory on:
-	(FileDirectory default fullNameFor: 'package-cache'))
-	fileAndDirectoryNames
+((FileSystem workingDirectory / 'package-cache')	allEntries
 		select: [ :each | '*.mcz' match: each])
 					do: [ :f | go version: ('.' join: (f findTokens: $.) allButLast); push]
 \end{script}
