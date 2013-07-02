@@ -40,7 +40,7 @@
 
 Floats are inexact by nature and this can confuse programmers. This chapter introduces this problem and presents some practical solutions to it. The basic message is that Floats are what they are: inexact but fast numbers.
 
-Note that most of the situations described in this chapters are consequences on how Floats are structured. The very same problems in others programming languages.
+Note that most of the situations described in this chapters are consequences on how Floats are structured by the hardware and are not tied to Pharo. The very same problems in others programming languages.
 
 
 
@@ -122,7 +122,7 @@ Now, if you execute the following line, you will see that the expressions are no
 \end{code}
 
 What is different ? When you execute 0.1s2 for example, a fraction is created from scratch, hence 0.1s2 asFraction returns 1/10. The message \ct{asScaledDecimal:} has a different behavior.
-\ct{(0.1 asScaledDecimal: 2)} represents exactly the same number as the float 0.1. \ct{(0.1 asScaledDecimal: 2) asFraction} returns the same thing as \ct{0.1 asFraction}.
+\ct{(0.1 asScaledDecimal: 2)} represents exactly the same number as the float 0.1. \ct{(0.1 asScaledDecimal: 2) asFraction} returns the value \ct{0.1 asFraction}.
 Since 0.1 + 0.2 = 0.3 returns false, you would of course expect the scaled decimal of this expression to return false.
 
 \section{Dissecting a Float}
