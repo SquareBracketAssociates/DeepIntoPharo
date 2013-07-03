@@ -585,7 +585,6 @@ go squeaksource3: 'Pharo20'.
 	
 
 \subsection{Publishing local files}
-
 The following script publishes files from your local cache to a given repository.
 
 \begin{script}[]{How to publish package files to a new repository using Pharo 1.4}
@@ -596,7 +595,8 @@ go repository: (MCHttpRepository
 	user: 'pharoUser'
 	password: 'pharoPwd').
 
-((FileSystem workingDirectory / 'package-cache')	allEntries
+((FileSystem workingDirectory / 'package-cache')
+	allEntries
 		select: [ :each | '*.mcz' match: each])
 					do: [ :f | go version: ('.' join: (f findTokens: $.) allButLast); push]
 \end{script}
@@ -631,6 +631,43 @@ go repository: repo.
 	allFiles select: [:each | '*Fame*.mcz' match: each basename])
 		groupedBy: [:each | (each base copyUpToLast: $-) ]) keys 
 			do: [:name | go package: name; push]
+\end{script}
+
+\subsection{All in one page}
+Since we love simple scripts where we do not have to think too much, here is a full version to migrate between Monticello repositories.
+
+\begin{script}{Script to synchronize from one Monticello repository to another}
+| source goferSource destination goferDestination files destinationFiles |
+
+source := MCHttpRepository location: 'http://www.squeaksource.com'.
+destination := MCSmalltalkhubRepository
+    owner: 'TheOwner'
+    project: 'YourPackage'
+    user: 'YourName'
+    password: ''.
+
+goferSource := Gofer new repository: source.
+goferDestination := Gofer new repository: destination.
+
+files := source allVersionNames.
+"select the relevant mcz packages"
+goferSource allResolved 
+	select: [ :resolved | files anySatisfy: [ :each | resolved name = each ] ] 
+	thenDo: [ :each | goferSource package: each packageName ].
+"download all mcz on your computer"
+goferSource fetch. 
+
+"check what files are already at destination"
+destinationFiles := destination allVersionNames. 
+"select only the mcz that are not yet at destination"
+files 
+	reject: [ :file | destinationFiles includes: file ] 
+	thenDo: [ :file | goferDestination version: file ]. 
+"send everything to SmalltalkHub"
+goferDestination push. 
+
+"check if we have exactly the same files at source and destination"
+self assert: destination allVersionNames sorted equals: files sorted.
 \end{script}
 
 \section{Chapter Summary}
