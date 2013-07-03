@@ -473,6 +473,19 @@ Gofer new
     fetch
 \end{code}
 
+Of course as mentioned earlier, you can have multiple packages to be pushed and fetched from. 
+\begin{code}{}
+Gofer new
+    smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
+    package: 'PBE2GoferExample';
+    package: 'PBE2GoferExampleSecondPackage';
+    push.
+Gofer new
+    smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
+    package: 'PBE2GoferExample';
+    package: 'PBE2GoferExampleSecondPackage';
+    fetch
+\end{code}
 
 \subsection{Automating Answers}
 Sometimes package installation asks for information such as passwords. With the systematic use of a build server, packages will probably stop to do that, but this is important to know how to supply answers from within a script to these questions.
