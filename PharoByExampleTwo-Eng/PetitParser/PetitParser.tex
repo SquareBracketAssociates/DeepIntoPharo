@@ -838,14 +838,14 @@ parser parse: '(1+ 2 )* 3'.      --> '(1 + 2) * 3'
 
 \subsection{Easy expressions with PPExpressionParser}
 
-PetitParser propose a powerful tool to create expressions;
-PPExpressionParser is a parser to conveniently define an expression
+PetitParser proposes a powerful tool to create expressions;
+\ct{PPExpressionParser} is a parser to conveniently define an expression
 grammar with prefix, postfix, and left- and right-associative infix
-operators. The operator-groups are defined in descending precedence. 
+operators. The operator-groups are defined in descending precedence.
 
-\begin{script}{The ExpressionGrammar we define previously can be implemented in few lines}
+\begin{script}{The ExpressionGrammar we previously defined can be implemented in few lines}
 
-|expression parens number|
+| expression parens number |
 expression := PPExpressionParser new.
 parens := $( asParser token trim , expression , $) asParser token trim
 ==> [ :nodes | nodes second ].
@@ -854,17 +854,18 @@ number := #digit asParser plus flatten trim ==> [ :str | str asNumber ].
 expression term: parens / number.
 
 expression
-group: [ :g |
-g left: $* asParser token trim do: [ :a :op :b | a * b ].
-g left: $/ asParser token trim do: [ :a :op :b | a / b ] ];
-group: [ :g |
-g left: $+ asParser token trim do: [ :a :op :b | a + b ].
-g left: $- asParser token trim do: [ :a :op :b | a - b ] ].
+  group: [ :g |
+    g left: $* asParser token trim do: [ :a :op :b | a * b ].
+    g left: $/ asParser token trim do: [ :a :op :b | a / b ] ];
+  group: [ :g |
+    g left: $+ asParser token trim do: [ :a :op :b | a + b ].
+    g left: $- asParser token trim do: [ :a :op :b | a - b ] ].
 \end{script}
 
 \begin{script}{Now our parser is also able to manage subtraction and division}
 expression parse: '1-2/3'.       --> (1/3)
 \end{script}
+
 
 \section{Testing a Grammar}
 
