@@ -391,7 +391,7 @@ view nodes: ArrayedCollection withAllSubclasses.
 view shape arrowedLine.
 view 
 	edges: ArrayedCollection withAllSubclasses from: #yourself toAll: #referencedClasses.
-view circleLayout
+view circleLayout.
 \end{code}
 
 The obtained visualization is given in \figref{classDependencies}.
@@ -413,9 +413,8 @@ view edgesFrom: #superclass
 \ct{edgesFrom:} is equivalent to \ct{edges:from:to:} :
 
 \begin{code}{}
-view edges: Collection withAllSubclasses from: #yourself to: #superclass.
+view edges: Collection withAllSubclasses from: #superclass to: #yourself.
 \end{code}
-\ja{code seems not equivalent}
 itself equivalent to
 \begin{code}{}
 view 
@@ -480,7 +479,7 @@ The use of \ct{ifTrue:ifFalse:} is not really practicable. Utilities methods are
 view shape rectangle
 	size: 10;
 	if: [ :cls | ('*Array*' match: cls name) ] borderColor: Color blue;
-	if: [ :cls | cls hasAbstractMethods ] fillColor: Color lightGray.
+	if: [ :cls | cls hasAbstractMethods ] fillColor: Color lightGray;
 ...
 \end{code}
 
@@ -581,10 +580,11 @@ view treeLayout.
 
 The argument of \ct{popupView:} is a two argument block. The first parameter of the block is the element represented by the node located below the mouse. The second argument is a new view that will be opened.
 
-In the example, we used \ct{sortedAs:} to order the nodes representing methods. This method is defined on Collection and belongs to Mondrian. To see example usages of \ct{sortedAs:}, browse its corresponding unit test:
-\begin{code}{}
-ToolSet browse: MOViewRendererTest selector: #testSortedAs 
-\end{code}
+In the example, we used \ct{sortedAs:} to order the nodes representing methods. This method is defined on Collection and belongs to Mondrian. To see example usages of \ct{sortedAs:}, browse its corresponding unit test. %:
+%\begin{code}{}
+%ToolSet browse: MOViewRendererTest selector: #testSortedAs 
+%\end{code}
+%\ja{The previous line does not work in Moose 4.8. ToolSet is not defined}
 
 This last example uses the message \ct{node:forIt:} in the popup view to define a subview.
 
@@ -597,7 +597,7 @@ A node is a view in itself. This allows for a graph to be embedded in any node. 
 The following example approximates the dependencies between methods by linking methods that may call each other. A method \ct{m1} is connected to a method \ct{m2} if \ct{m1} contains a reference to the selector \ct{#m2}. This is a simple but effective way to see the dependencies between methods. Consider:
 
 \begin{code}{}
-view nodes: MOShape withAllSubclasses forEach: [:cls |
+view nodes: ROShape withAllSubclasses forEach: [:cls |
 	view nodes: cls methods.
 	view edges: cls methods from: #yourself toAll: [ :cm | cls methods select: [ :rcm |  cm messages anySatisfy: [:s | rcm selector == s ] ] ].
 	view treeLayout
@@ -698,7 +698,7 @@ Methods of the visualization given in the previous section may be moved by a sim
 view nodes: ROShape withAllSubclasses forEach: [:cls |
 	view interaction forward.
 	view shape rectangle 
-					size: #numberOfLinesOfCode.
+					size: #linesOfCode.
 	view nodes: cls methods.
 	view edges: cls methods from: #yourself toAll: [ :cm | cls methods select: [ :rcm |  cm messages anySatisfy: [:s | rcm selector == s ] ] ].
 	view treeLayout
