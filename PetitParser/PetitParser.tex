@@ -766,6 +766,29 @@ parser parse: '1 + 2 * 3'.       --> #(1 $+ #(2 $* 3))
 parser parse: '(1 + 2) * 3'.     --> #(#($( #(1 $+ 2) $)) $* 3)
 \end{script}
 
+\subsection{Writing Dependent Grammars}
+
+You can easily reuse parsers defined by other grammars. For example,
+imagine you want to create a new grammar that reuses the definition of
+\ct{number} in the \ct{ExpressionGrammar} we have just defined. For
+this, you have to declare a dependency to \ct{ExpressionGrammar}:
+
+\begin{script}{Reusing the \ct{number} parser from the \ct{ExpressionGrammar} grammar}
+PPCompositeParser subclass: #MyNewGrammar
+  instanceVariableNames: number'
+  classVariableNames: ''
+  poolDictionaries: ''
+  category: 'PetitTutorial'
+
+MyNewGrammar class>>dependencies
+  "Answer a collection of PPCompositeParser classes that this parser directly dependends on."
+  ^ {ExpressionGrammar}
+
+MyNewGrammar>>number
+  "Answer the same parser as ExpressionGrammar>>number."
+  ^ (self dependencyAt: ExpressionGrammar) number
+\end{script}
+
 \subsection{Defining an Evaluator}
 
 Now that we have defined a grammar we can reuse this definition to
