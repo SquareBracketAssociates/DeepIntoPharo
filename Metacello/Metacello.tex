@@ -1245,7 +1245,7 @@ In addition, the addons and tests are not available for Gemstone, and thus, thos
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Milestoning Development: Symbolic Versions}
 In any large evolving application, it is difficult to know which version of a configuration to use with a specific version.
-\ct{ConfigurationOfOmniBrowser} provides a good example of the problem: version 1.1.3 is used in the Pharo1.0 one-click image,  version 1.1.3 cannot be loaded into Pharo1.2, version 1.1.5 is for Pharo1.1, version 1.2.3 is for Pharo1.2, and it cannot load in Pharo1.0, etc.
+\ct{ConfigurationOfOmniBrowser} provides a good example of the problem: version 1.1.3 is used in the Pharo1.0 one-click image,  version 1.1.3 cannot be loaded into Pharo1.2, version 1.1.5 is for Pharo1.1, version 1.2.3 is for Pharo1.2, and it cannot load in Pharo1.0, and there is no version for Pharo2.0. We keep this example as an illustration of what we can do with Metacello.
 
 Metacello introduces \emph{symbolic versions} to describe versions in terms of existing literal versions (like 1.1.3, 1.1.5, and 1.2.3). Symbolic versions are specified using the \ct{symbolicVersion:} pragma. Here we defined the stable versions for OmniBrowser for each version of Pharo.
 

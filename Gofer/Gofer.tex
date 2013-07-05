@@ -252,64 +252,75 @@ Gofer new
 %Pay attention that the last expression will load the complete seaside application, \ie around 70 packages. 
 
 \subsection{Loading several packages}
-We can load several packages from different servers. To show you a concrete example, you have to load first the configuration of Seaside using its Metacello configuration.
-
+We can load several packages from different servers. To show you a concrete example, you have to load first the configuration of OSProcess using its Metacello configuration.
 
 \begin{code}{}
 Gofer new
-    "we will load the latest version of the configuration of Seaside "
-    squeaksource3: 'MetaRepoForPharo20';
-    package: 'ConfigurationOfSeaside30'; 
+    "we will load a version of the configuration of OSProcess " 	
+    url: 'http://www.squeaksource.com/MetacelloRepository';
+    package: 'ConfigurationOfOSProcess';
     load.
-
-"Now to load seaside you need to ask for its configuration."
-(Smalltalk at: #ConfigurationOfSeaside30) load.
+    
+"Now to load OSProcess you need to ask for its configuration."
+((Smalltalk at: #ConfigurationOfOSProcess) project version: #stable) load.
 \end{code}
 
-Pay attention that the last expression will load the complete seaside application, \ie around 70 packages, so it can take a moment.
+The following code snippet loads multiple packages from different servers.  The loading order is respected: the script loads first \ct{Collections-Arithmetic}, then the necessary for \ct{Sound}, and finally  \ct{Phratch}, a port of the well Scratch visual programming language.
 
-The following code snippet loads multiple packages from different servers.  The loading order is respected: the script loads first \ct{Pier-All}, then \ct{Picasa-Model}, and finally  \ct{Picasa-Seaside}.
-
+Pay attention that it will load the complete Phratch application, so it can take a moment.
 
 \begin{code}{}
-Gofer new 		
-    renggli: 'pier';
-    package: 'Pier-All';
-    squeaksource: 'PicasaClient';
-    package: 'Picasa-Model';
-    package: 'Picasa-Seaside';
-    load.
+Gofer new			
+	url: 'http://smalltalkhub.com/mc/PharoExtras/CollectionArithmetic/main';
+	package: 'Collections-Arithmetic';
+	url: 'http://smalltalkhub.com/mc/PharoExtras/Sound/main';
+	package: 'Sound';
+	package: 'Settings-Sound';
+	package: 'SoundScores';
+	package: 'SoundMorphicUserInterface';
+	url: 'http://smalltalkhub.com/mc/JLaval/Phratch/main';
+	package: 'Phratch';
+	load
 \end{code}
 
-This example may give the impression that \ct{Pier-All} is looked up in the Pier repository of the server \ct{renggli} and that \ct{Picasa-Model} and \ct{Picasa-Seaside} are looked up in the project \ct{PicasaClient} of the squeaksource server. However this is not the case, Gofer does not take into account this order. In absence of version number, Gofer loads the most recent package versions found looking in the two servers.
+This example may give the impression that \ct{Collections-Arithmetic} is looked up in the CollectionArithmetic repository of the server \ct{smalltalkhub} and that \ct{Phratch} is looked up in the project \ct{Phratch} of the smalltalkhub server. However this is not the case, Gofer does not take into account this order. In absence of version number, Gofer loads the most recent package versions found looking in the two servers.
 
 We can then rewrite the script in the following way:
 
 
 \begin{code}{}
-Gofer new 
-    squeaksource: 'PicasaClient';		
-    renggli: 'pier';
-    package: 'Pier-All';
-    package: 'Picasa-Model';
-    package: 'Picasa-Seaside';
-    load.
+Gofer new			
+    url: 'http://smalltalkhub.com/mc/PharoExtras/CollectionArithmetic/main';
+    url: 'http://smalltalkhub.com/mc/PharoExtras/Sound/main';
+    url: 'http://smalltalkhub.com/mc/JLaval/Phratch/main';
+    package: 'Collections-Arithmetic';	
+    package: 'Sound';
+    package: 'Settings-Sound';
+    package: 'SoundScores';
+    package: 'SoundMorphicUserInterface';
+    package: 'Phratch';
+    load
 \end{code}
 
 When we want to specify that package should be loaded from a specific server, we should write multiple scripts. 
 
 
 \begin{code}{}
-Gofer new
-    squeaksource: 'PicasaClient';
-    package: 'Picasa-Model';
-    package: 'Picasa-Seaside';
+Gofer new			
+    url: 'http://smalltalkhub.com/mc/PharoExtras/CollectionArithmetic/main';
+    package: 'Collections-Arithmetic';
     load.
-Gofer new
-    squeaksource: 'PicasaClientLightbox';
-    package: 'Picasa-Model';
-    package: 'Picasa-Seaside';
+Gofer new 
+    url: 'http://smalltalkhub.com/mc/PharoExtras/Sound/main';
+    package: 'Sound';
+    package: 'Settings-Sound';
+    package: 'SoundScores';
+    package: 'SoundMorphicUserInterface';
     load.
+Gofer new 
+    url: 'http://smalltalkhub.com/mc/JLaval/Phratch/main';
+    package: 'Phratch';
+    load
 \end{code}    
 
 Note that such scripts load the latest versions of the packages, therefore they are fragile since if a new package version is published, you will load it even if this is inappropriate. 

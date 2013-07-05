@@ -521,7 +521,7 @@ The following origins are currently supported:
 \end{itemize}
 
 Applications may also define their own origins, but the system will not be able to resolve them automatically. Instead, the user will be asked to manually choose a directory. This choice is then cached so that future resolution requests will not require user interaction.
-\ja{how can I do that ?}\sd{no idea}
+%\ja{how can I do that ?}\sd{no idea}
 
 \paragraph{\ct{absolutePath} vs. \ct{path}.} The message  \ct{absolutePath} (previously \ct{fullPath}) returns the absolute path of the receiver. When the file reference is not virtual the messages \ct{path} and \ct{absolutePath} provide similar results.
 When the file is a late bound reference (instance of \ct{FileLocator}), \ct{absolutePath} will resolve the file and return the absolute path, while \ct{path} will return an unresolved file reference as shown below.

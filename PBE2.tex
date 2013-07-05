@@ -13,16 +13,6 @@
 %=================================================================
 
 
-% TODO:
-
-%=================================================================
-% lulu -> figures in .png / to see: macros
-%%Encoding -> see Henrik
-% fix \chapterauthor on each chapter
-%
-%=================================================================
-
-
 
 \documentclass[a4paper,10pt,twoside]{book}
 \usepackage[
@@ -85,12 +75,20 @@
 % \lstlistoflistings
 \sloppy % To avoid LaTeX's annoying habit of letting lines stick over the margins!
 \mainmatter
+
+
+%%%%%%%
+% TODO:
+%%%%%%%
+% lulu -> figures in .png / to see: macros
+%%Encoding -> see Henrik
+% fix \chapterauthor on each chapter
+
 %=================================================================
 \input{Preface/Preface2.tex}
 %% Stef: pass done.
 %% Ja: pass done.
 %=================================================================
-
 
 \part{Libraries}
 
@@ -113,7 +111,7 @@
 \input{Regex/Regex.tex}
 %FINISHED Stef: fix some typos.
 % verify source code
-% 1 comment left
+% 3 comments left
 
 
 \part{Source Management}
@@ -121,14 +119,12 @@
 %FINISHED
 
 \input{Gofer/Gofer.tex}
+%FINISHED
 % verify source code
-% change the example of Picasa (p7 and 8) with something else
 
 \input{Metacello/Metacello.tex}
 %99
 %% WE NEED TO REMOVE ALL REFS TO SQUEAKSOURCE
-%% remove ref to ConfigurationOfOmniBrowser
-% see what we do with ConfigurationOfZinc
 % verify source code
 % Add a list of important points in the conclusion
 
@@ -161,7 +157,6 @@
         \end{subfigure}}
 \input{Roassal/Roassal.tex}
 % FINISHED
-% Replace ROCircle by ROEllipse ?
 
 
 \input{Mondrian/Mondrian.tex}
@@ -172,7 +167,7 @@
 % FINISHED
 % verify source code
 
-\input{Block/Block.tex} % stef 
+\input{Block/Block.tex}
 %% 95 
 % verify source code
 % Part are missing.
@@ -181,7 +176,7 @@
 \input{LittleNumbers/LittleNumbers.tex}
 % FINISHED
 
-\input{Float/Float.tex} %% Alexandre
+\input{Float/Float.tex} 
 % 99
 % add a list of important points in the conclusion
 
