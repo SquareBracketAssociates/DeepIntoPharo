@@ -130,12 +130,12 @@ WebDir class>>onPath: path home: homePath
 So far so good.
 Now we would like to use regexes to find out which HTML files this web site contains.
 
-If we browse the \ct{AbstractFileReference} class, we find that the method \ct{fileNames} will list all the files in a directory. We want to select just those with the file extension \ct{.html}. The regex that we need is \ct{'.*\.html'}. The first dot will match any character except a newline:
+If we browse the \ct{AbstractFileReference} class, we find that the method \ct{fileNames} will list all the files in a directory. We want to select just those with the file extension \ct{.html}. The regex that we need is \ct{'.*\.html'}. The first dot will match any character.
 
 \begin{code}{@TEST}
 'x' matchesRegex: '.' --> true
 ' ' matchesRegex: '.'  --> true
-Character cr asString matchesRegex: '.' --> false
+Character cr asString matchesRegex: '.' --> true
 \end{code}
 
 \index{Regex syntax!@\ct{*}}
@@ -224,7 +224,7 @@ A \ct{WebDir} instance should be able to return a list of all the web pages it c
 WebDir>>webPages
 	^ self htmlFiles collect: 
 		[ :each | WebPage 
-			on: webDir pathName, '/', each
+			on: webDir fullName, '/', each
 			forHome: homePath ]
 \end{code}
 
@@ -335,9 +335,9 @@ WebPage>>title
 There are a couple of subtle points to notice here.
 First, HTML does not care whether tags are upper or lower case, so we must make our regex case insensitive by instantiating it with \ct{asRegexIgnoringCase}.
 
-Second, since dot matches any character \emph{except a newline}, the regex \mbox{\lct{.*<title>(.*)</title>}} will not work as expected if multiple lines appear before the title.
-The regex \ct{\w} matches any alphanumeric, and \ct{\W} will match any non-alphanumeric, so \ct{[\\w\\W]} will match any character \emph{including newlines}.
-(If we expect titles to possible contain newlines, we should play the same trick with the subexpression.)
+Second, since dot matches any character \emph{except a newline}\ja{to fix}, the regex \mbox{\lct{.*<title>(.*)</title>}} will not work as expected if multiple lines appear before the title.
+The regex \ct{\w} matches any alphanumeric, and \ct{\W} will match any non-alphanumeric, so \ct{[\w\W]} will match any character \emph{including newlines}\ja{to fix}.
+(If we expect titles to possible contain newlines\ja{to fix}, we should play the same trick with the subexpression.)
 
 Now we can test our title extractor, and we should see something like this:
 
@@ -564,7 +564,7 @@ We can see a summary of the syntax seen so far in \tabref{regexsyntax}.
 		Syntax & What it represents \\
 		\midrule
 		\lct{a}				&	literal match of character \lct{a} \\
-		\lct{.}				&	match any char (except newline) \\
+		\lct{.}				&	match any char \\
 		\lct{($\cdots$)}		&	group subexpression \\
 		\lct{{\escape}}	&	escape following special character \\
 		\midrule

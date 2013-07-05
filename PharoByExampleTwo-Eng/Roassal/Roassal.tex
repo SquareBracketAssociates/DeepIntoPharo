@@ -405,7 +405,7 @@ The \ct{+} or \ct{@} messages may take as argument either a class instance, in c
 
 When the parameter of \ct{+} is a shape, attributes such as the color to be filled or the border color may be individually set. When the class is sent as parameter, the element will be shaped with an instance of that class with default values for each of its attributes.
 
-Some of the shapes available are label (\ct{ROLabel}), border (\ct{ROBorder}), box (\ct{ROBox}) and circle (\ct{ROCircle}). By default, \ct{ROLabel} will display the \ct{printString} value of the model (\ie object domain) of the element. It is also possible to change it by setting a custom text as shown in \figref{label}. When applying \ct{ROBorder}, \ct{ROBox} and \ct{ROCircle} to a \ct{ROElement}, the shape will be adapted to the bounds of the element. It is also possible to set attributes as color, border color or border width to a shape. This is shown in \figref{border}, \figref{box} and \figref{circle}.
+Some of the shapes available are label (\ct{ROLabel}), border (\ct{ROBorder}), box (\ct{ROBox}) and circle (\ct{ROEllipse}). By default, \ct{ROLabel} will display the \ct{printString} value of the model (\ie object domain) of the element. It is also possible to change it by setting a custom text as shown in \figref{label}. When applying \ct{ROBorder}, \ct{ROBox} and \ct{ROEllipse} to a \ct{ROElement}, the shape will be adapted to the bounds of the element. It is also possible to set attributes as color, border color or border width to a shape. This is shown in \figref{border}, \figref{box} and \figref{circle}.
 
 \begin{figure}[H]
       \begin{minipage}[t]{0.5\textwidth}
@@ -471,7 +471,7 @@ ROElement new
      \begin{code}{}
 element := ROElement new 
 				size: 100.
-shape := ROCircle new 
+shape := ROEllipse new 
 			color: Color yellow; 
 			borderColor: Color blue; 
 			borderWidth: 2.
@@ -483,7 +483,7 @@ element + shape.	\end{code}
        \centering
 		\includegraphics[width=0.25\textwidth]{circle}     
    \end{minipage}
-\caption{Customized ROCircle}
+\caption{Customized ROEllipse}
 \label{fig:circle}
 \end{figure}
 
@@ -506,7 +506,7 @@ label := ROLabel new
 				text: 'composed shape'.
 border := ROBorder new 
 				color: Color red. 
-circle := ROCircle new 
+circle := ROEllipse new 
 				color: Color yellow.
 				borderWidth: 0.
 				
@@ -1166,7 +1166,7 @@ view := ROView new.
 
 element := ROElement new.
 element size: 10.
-element + (ROCircle color: Color green).
+element + (ROEllipse color: Color green).
 
 view add: element.
 element translateBy: 30@20.
