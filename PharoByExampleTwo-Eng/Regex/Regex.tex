@@ -332,12 +332,11 @@ WebPage>>title
 		ifFalse: [ '(', self fileName, ' -- untitled)' ]
 \end{code}
 
-There are a couple of subtle points to notice here.
-First, HTML does not care whether tags are upper or lower case, so we must make our regex case insensitive by instantiating it with \ct{asRegexIgnoringCase}.
+As HTML does not care whether tags are upper or lower case, so we must make our regex case insensitive by instantiating it with \ct{asRegexIgnoringCase}.
 
-Second, since dot matches any character \emph{except a newline}\ja{to fix}, the regex \mbox{\lct{.*<title>(.*)</title>}} will not work as expected if multiple lines appear before the title.
-The regex \ct{\w} matches any alphanumeric, and \ct{\W} will match any non-alphanumeric, so \ct{[\w\W]} will match any character \emph{including newlines}\ja{to fix}.
-(If we expect titles to possible contain newlines\ja{to fix}, we should play the same trick with the subexpression.)
+%Second, since dot matches any character \emph{except a newline}\ja{to fix}, the regex \mbox{\lct{.*<title>(.*)</title>}} will not work as expected if multiple lines appear before the title.
+%The regex \ct{\w} matches any alphanumeric, and \ct{\W} will match any non-alphanumeric, so \ct{[\w\W]} will match any character \emph{including newlines}\ja{to fix}.
+%(If we expect titles to possible contain newlines\ja{to fix}, we should play the same trick with the subexpression.)
 
 Now we can test our title extractor, and we should see something like this:
 
@@ -417,7 +416,7 @@ WebDir>>tocFileName
 
 WebDir>>makeToc
 	| tocStream |
-	tocStream := webDir newFileNamed: self tocFileName.
+	tocStream :=  (webDir / self tocFileName) writeStream.
 	self printTocOn: tocStream.
 	tocStream close.
 \end{code}
@@ -898,10 +897,10 @@ items subexpression: 1      --> '1 brick'    "complete expression"
 items subexpression: 2      --> '1 brick'    "top subexpression"
 items subexpression: 3      --> '1'             "first leaf subexpression"
 items subexpression: 4      --> 'brick'       "second leaf subexpression"
-items subBeginning: 3       --> 14
-items subEnd: 3                 --> 15
-items subBeginning: 4       --> 16
-items subEnd: 4                 --> 21
+items subBeginning: 3       -->  an OrderedCollection(14)
+items subEnd: 3                 -->  an OrderedCollection(15)
+items subBeginning: 4       -->  an OrderedCollection(16)
+items subEnd: 4                 -->  an OrderedCollection(21)
 \end{code}
 
 As a more elaborate example, the following piece of code uses a \ct{MMM DD, YYYY} date format recognizer to convert a date to a three-element array with year, month, and day strings:
