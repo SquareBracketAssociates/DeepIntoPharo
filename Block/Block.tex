@@ -275,7 +275,7 @@ Bexp>>initialize
 Define another class named \ct{Bexp2}.
 
 \begin{code}{}
-Object subclass: #Bexp
+Object subclass: #Bexp2
 	instanceVariableNames: 'x'
 	classVariableNames: ''
 	poolDictionaries: ''
@@ -345,7 +345,7 @@ res second value. --> 2
 
 You can also define the code as follows and open a transcript to see the results.
 
-\begin{code}
+\begin{code}{}
 | res |
 res := Bexp new twoBlockArray.
 res second value traceCr.
@@ -584,7 +584,7 @@ In Pharo, the class \ct{MethodContext} represents such execution information. In
 Let us look at an example. Modify the method as follow and execute it using \ct{Bexp new first: 33}.
 You will get the inspector shown in Figure~\ref{oneContext}.
 
-\begin{code}
+\begin{code}{}
 Bexp>>first: arg
 	| temp |
 	temp := arg * 2.
