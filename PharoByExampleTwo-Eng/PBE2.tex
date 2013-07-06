@@ -68,6 +68,50 @@
 \isodate
 \date{\emph{Version of \today}}
 \maketitle
+
+
+
+%=================================================================
+~ % force the vfill
+\vfill
+\begin{footnotesize}
+\setlength{\parindent}{0pt}
+This book is available as a free download from XXXXXXX.\\[1cm]
+
+Copyright \copyright~2013 by Alexandre Bergel, Damien Cassou, St\'ephane Ducasse and Jannik Laval.\\[1cm]
+
+The contents of this book are protected under Creative Commons Attribution-ShareAlike 3.0 Unported license.
+
+\emph{You are free:}
+\begin{description}
+  \item[to Share] \,---\, to copy, distribute and transmit the work
+  \item[to Remix] \,---\, to adapt the work
+\end{description}
+\emph{Under the following conditions:}
+\begin{description}
+  \item[Attribution.] You must attribute the work in the manner specified by the author or licensor (but not in any way that suggests that they endorse you or your use of the work).
+  \item[Share Alike.] If you alter, transform, or build upon this work, you may distribute the resulting work only under the same, similar or a compatible license.
+\end{description}
+\begin{itemize}
+  \item For any reuse or distribution, you must make clear to others the license terms of this work. The best way to do this is with a link to this web page:
+  \url{creativecommons.org/licenses/by-sa/3.0/}
+  \item Any of the above conditions can be waived if you get permission from the copyright holder.
+  \item Nothing in this license impairs or restricts the author's moral rights.
+\end{itemize}
+\raisebox{-0.25cm}{\includegraphics[width=2cm]{CreativeCommons-BY-SA}}\quad
+\parbox{\textwidth-2cm-1em}{
+	Your fair dealing and other rights are in no way affected by the above.
+	This is a human-readable summary of the Legal Code (the full license):\\
+	\url{creativecommons.org/licenses/by-sa/3.0/legalcode}}\\[1cm]
+XXX Published by Square Bracket Associates, Switzerland. \sba XXX\\
+% Preview edition, August, 2009. Cover art by Frederica Nierstrasz.
+ISBN XXXXXXXX\\
+First Edition, XXX Month XXX, 2013.
+Cover art by XXX author of cover XXX.
+\end{footnotesize}
+\vfill
+
+
 %=================================================================
 \tableofcontents
 % \listoffigures
@@ -78,11 +122,19 @@
 
 
 %%%%%%%
-% TODO:
+% TODO Lulu
 %%%%%%%
-% lulu -> figures in .png / to see: macros
-%%Encoding -> see Henrik
-% fix \chapterauthor on each chapter
+%La dernière page de chaque livre doit être complètement vierge.
+% completer le copyright
+%%%%
+%for the cover:
+%%%%
+%Le titre et le nom de l’auteur doivent figurer sur la couverture 
+ %Gardez tous les textes importants et images à au moins 0,95 cm ou 0,375" (soit 0,63 cm ou 0.25" de débord + 0,32 cm ou 0.125" de sécurité) de chaque côté de la couverture (y compris la tranche du dos). Cette zone peut être coupée ou marquée par les replis de la couverture.
+ %Le texte de la tranche du dos doit être à au moins 0,2 cm (0.0625") de chaque côté de la tranche du dos.
+%Utilisez ces dimensions: http://connect.lulu.com/t5/Mise-en-page-de-la-couverture/Dimensions-de-couverture-une-pi%C3%A8ce/ta-p/33308
+%La couverture doit avoir un numéro ISBN/EAN correct à 13 chiffres.
+
 
 %=================================================================
 \input{Preface/Preface2.tex}
@@ -125,7 +177,7 @@
 \part{Frameworks}
 
 \input{Glamour/Glamour.tex}
-%FINISHED
+%FINISHED 
 
 
 \newcommand{\fig}[4]{
@@ -180,10 +232,6 @@
 % Lakes of 2 figures
 % add a list of important points in the conclusion
 
-
-
-
-
 %=================================================================
 
 % \printglossary
@@ -192,14 +240,8 @@
 
 \printindex
 
-\end{document}
-%=================================================================
-
-% \printglossary
-\bibliographystyle{jurabib}
-\bibliography{scg}
-
-\printindex
+\newpage
+\newpage
 
 \end{document}
 
