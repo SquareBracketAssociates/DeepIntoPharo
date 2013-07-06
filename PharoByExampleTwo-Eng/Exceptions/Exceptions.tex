@@ -654,6 +654,7 @@ whereas this will signal an \ct{Error}:
 \end{code}
 
 As another example, recall the file handling code we saw earlier, in which we printed a message to the Transcript when a file is not found. Instead, we could prompt for the file as follows:
+\ja{this script does not work}
 \begin{code}{}
 [(StandardFileStream oldFileNamed: 'error42.log') contentsOfEntireFile]
 	on: FileDoesNotExistException
