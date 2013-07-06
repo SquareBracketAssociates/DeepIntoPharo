@@ -710,7 +710,7 @@ the following class definition:
 
 \begin{script}{Creating a class to hold our arithmetic expression grammar}
 PPCompositeParser subclass: #ExpressionGrammar
-   instanceVariableNames: 'add prod term mul parens number'
+   instanceVariableNames: 'add prod term mul prim parens number'
    classVariableNames: ''
    poolDictionaries: ''
    category: 'PetitTutorial'
@@ -775,7 +775,7 @@ this, you have to declare a dependency to \ct{ExpressionGrammar}:
 
 \begin{script}{Reusing the \ct{number} parser from the \ct{ExpressionGrammar} grammar}
 PPCompositeParser subclass: #MyNewGrammar
-  instanceVariableNames: number'
+  instanceVariableNames: 'number'
   classVariableNames: ''
   poolDictionaries: ''
   category: 'PetitTutorial'
