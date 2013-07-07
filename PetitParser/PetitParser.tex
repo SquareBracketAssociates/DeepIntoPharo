@@ -1822,16 +1822,27 @@ ExpressionGrammar>>mul
 \item[Tally] shows how many times was particular parser called during
   parsing of the input. The percentage shows number of calls to total
   number of calls ratio. This might be useful while optimizing
-  performance of your parser.\dc{can you show a screenshot of that
-    please?}
-  \jk{I will give it a try, right now there is a rendering problem and
-    first few pixels are not visible}
+  performance of your parser (such as  \figref{pp/tally}).
+    
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=.8\linewidth]{tally}
+    \caption{Tally of \clsind{ExpressionGrammar} for input $12*3*4$. \label{fig:pp/tally}}
+  \end{center}
+\end{figure}
+    
 \item[Profile] shows how much time was spent in particular parser
   during parsing of the input. The percentage shows the ratio of time
   to total time. This might be useful while optimizing performance of
-  your parser.\dc{can you show a screenshot of that please?}
-  \jk{I will give it a try, right now there is a rendering problem and
-    first few pixels are not visible}
+  your parser  (such as  \figref{pp/profile}).
+    
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=.8\linewidth]{profile}
+    \caption{Profile of \clsind{ExpressionGrammar} for input $12*3*4$. \label{fig:pp/profile}}
+  \end{center}
+\end{figure}
+    
 \item[Progress] visually shows how a parser consumes input. The x-axis
   represents how many characters were read in the input sample,
   ranging from 0 (left margin) to the number of characters in the
@@ -1912,7 +1923,21 @@ BacktrackingParser>>ap
 
 \section{Chapter Conclusion}
 
-This concludes our introductionary tutorial of PetitParser. For a more 
+This concludes our introductionary tutorial of PetitParser. We have reviewed the following points:
+
+
+\begin{itemize}
+\item A Parser is a composition of multiple terminal parser combined with combinators.
+\item To parse a string, use the method \ct{parse:}.
+\item To know if a string matches with the grammar, use the method \ct{matches:}.
+\item The method \ct{flatten} returns a String from the result of the parsing.
+\item The method \ct{==>} performs the transformation given in the block given in parameter.
+\item You can compose grammar using PPCompositeParser.
+\item Use the framework of PetitParser to test your parser by subclassing PPCompositeParserTest.
+\end{itemize}
+
+
+For a more 
 extensive view of PetitParser, its concepts and implementation, the Moose 
 book\footnotemark{} and Lukas Renggli's PhD\footnotemark{} both have a dedicated 
 chapter.
