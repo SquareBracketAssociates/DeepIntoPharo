@@ -433,7 +433,18 @@ If you want to know how far it is, then get an idea with:
 
 \section{Conclusion}
 Floats are inexact numbers. Pay attention when you manipulate them.
-There are much more things to know about floats, and if you are advanced enough, it would be a good idea to check this link from the wikipedia page \href{http://www.validlab.com/goldberg/paper.pdf}{"What Every Computer Scientist Should Know About Floating-Point Arithmetic"}.
+We have reviewed the following points:
+
+\begin{itemize}
+\item Never compare float equality. For the comparison, use \ct{closeTo:} instead.
+\item The method  \ct{closeTo:} has a precision of 0.0001.
+\item A Float is composed by 1 bit of sign, 11 bits of exponent and 52bits of mantissa.
+\item A Float is represented in base 2 by: \[ sign \cdot mantissa \cdot 2^{exponent} \]
+\item The method \ct{significand} is used to know the mantissa.
+\end{itemize}
+
+
+There are much more things to know about floats, and if you are advanced enough, it would be a good idea to check this link from the wikipedia page \href{http://www.validlab.com/goldberg/paper.pdf}{"What Every Computer Scientist Should Know About Floating-Point Arithmetic" (http://www.validlab.com/goldberg/paper.pdf)}.
 
 
 
