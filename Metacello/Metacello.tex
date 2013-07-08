@@ -54,7 +54,7 @@
 %\renewcommand{\nnbb}[2]{#2} % Disable editorial comments
 
 
-\chapter{Managing projects with Metacello}
+\chapter{Managing Projects with Metacello}
 \chalabel{metacello}
 \chapterauthor{\authordale{} \\ \authormariano{}}
 
@@ -169,7 +169,7 @@ Baseline 0.5 is composed of 3 packages (PackageA, PackageB, and PackageC) and it
 
 
 
-\section{A Simple Case Study}
+\section{A simple case study}
 
 In this example we start with a simple configuration expressed only with versions and then we gradually add baselines. In normal life, it is better to start by definining a baseline followed by the version.
 
@@ -350,7 +350,7 @@ If you want to simulate the loading of a configuration, without actually loading
 
 Apart from \ct{load} and \ct{record}, there is also another useful method  which is \ct{fetch} (and \ct{fetch:}). As explained, \ct{record} simply records which Monticello files should be downloaded and in which order. \ct{fetch}  accesses and downloads all the needed Monticello files. Just for the record, in the implementation \ct{load} first does a \ct{fetch} and then a \ct{doLoad}.
 
-\section{Managing Dependencies between Packages}
+\section{Managing dependencies between packages}
 
 A project is generally composed of several packages, which often have dependencies to other packages.  It is also likely that a certain package depends on a specific version of another package. Handling dependencies correctly is really important and  is one of the major benefits of Metacello. There are two types of dependencies:
 \begin{description}
@@ -618,7 +618,7 @@ We believe that by default it is good to load the tests as well. This is why, ei
 
 
 
-\section{Dependencies Between Projects}
+\section{Dependencies between projects}
 
 In the same way that a package can depend on other packages, a project can depend on other projects.  For example, Pier, a content management system (CMS), depends on Magritte and Seaside.  A project can depend on the entirety of one or more other projects, on a group of packages from another project, or on just one or two packages from another project.
 
@@ -1243,7 +1243,7 @@ In addition, the addons and tests are not available for Gemstone, and thus, thos
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Milestoning Development: Symbolic Versions}
+\section{Milestoning development: symbolic versions}
 In any large evolving application, it is difficult to know which version of a configuration to use with a specific version.
 \ct{ConfigurationOfOmniBrowser} provides a good example of the problem: version 1.1.3 is used in the Pharo1.0 one-click image,  version 1.1.3 cannot be loaded into Pharo1.2, version 1.1.5 is for Pharo1.1, version 1.2.3 is for Pharo1.2, and it cannot load in Pharo1.0, and there is no version for Pharo2.0. We keep this example as an illustration of what we can do with Metacello.
 
@@ -1620,7 +1620,7 @@ To end this chapter, we show you can query this information. This illustrates th
 \end{code}
 
 
-\section{Conclusion}
+\section{Chapter Summary}
 Metacello is an important part of Pharo. It will allow your project to scale. It allows you to control when you want to migrate to new version and for which packages. It is an important architectural backbone.
 
 \subsection{Metacello Memento}
