@@ -434,7 +434,24 @@ If you want to know how far it is, then get an idea with:
 
 %%\section{About Scaled Decimal}
 %%
+%Why 
+%(0.1 asScaledDecimal: 2) + (0.2 asScaledDecimal: 2) = (0.3 asScaledDecimal: 2)
+%returns false 
+%while
+%0.1s2 + 0.2s2 = 0.3s2
+%returns true
+%There is a difference between these two:
 %
+%(1/10) asScaledDecimal: 2.
+%(1/10) asFloat asScaledDecimal: 2.
+
+%and 0.1s2 because the NumberParser knows you want a ScaledDecimal with the
+%s2 specification, so it just doesn't use an intermediate Float, but
+%directly convert (1/10) asScaledDecimal: 2.
+%You can also try ScaledDecimal readFrom: '0.1', it avoids a an
+%intermediate conversion to Float too.
+
+
 %ScaledDecimals. they are Fractions and you can can look at their internal representation by using asFraction. 
 %Numbers such as 0.1s2 are fractions built from scratch, hence \ct{0.1s2 asFraction} returns \ct{1/10} while (\ct{0.1 asScaledDecimal: 2) asFraction} returns the same thing as \ct{0.1 asFraction}.
 %
@@ -549,6 +566,7 @@ If you want to know how far it is, then get an idea with:
 %\item A Float is represented in base 2 by: \[ sign \cdot mantissa \cdot 2^{exponent} \]
 %\item The method \ct{significand} is used to know the mantissa.
 %\end{itemize}
+
 
 
 There are much more things to know about floats, and if you are advanced enough, it would be a good idea to check this link from the wikipedia page \href{http://www.validlab.com/goldberg/paper.pdf}{"What Every Computer Scientist Should Know About Floating-Point Arithmetic" (http://www.validlab.com/goldberg/paper.pdf)}.
