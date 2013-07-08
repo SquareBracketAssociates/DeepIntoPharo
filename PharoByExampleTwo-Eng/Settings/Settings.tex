@@ -55,7 +55,7 @@ it supports modular decomposition of software and it can be added to
 an application even after that application's inception. The Settings
 framework is what we will look at now.
 
-\section{Settings Architecture}
+\section{Settings architecture}
 
 Setting supports an object-oriented approach to \index{preference} preference definition and manipulation. What we want to express by this sentence is that:
 \begin{enumerate}
@@ -677,7 +677,7 @@ Once this method is compiled, open the Setting Browser and popup the \textit{Sty
 %\subsection{Producing a style from the Setting Browser}
 %\apl{How to automatically produce a style skeleton}
 
-\section{Extending the \setbrowser}
+\section{Extending the Settings Browser}
 \index{Settings browser!tuning}
 \label{sec:ExtendingTheSettingsBrowser}
 As explained in the section \ref{sec:browsing-settings}, the \setbrowser is by default able to manage simple preference types. These default possibilities are generally enough. But there are some situations where it can be very helpful to be able to handle more complex preference values. 
@@ -850,7 +850,7 @@ Now, in the \setbrowser, the user interface looks as shown in \figref{fig:textSe
 %Finally when declaring a setting, the code does not refer explicitly to any Setting class. This has the good property that you can load code containing setting declaration even if the Settings framework is not loaded. This way we make sure 
 %that we get a modular system. In case the settings framework is not loaded, the method containing the setting declaration is just not used by the system.
 
-\section{Conclusion}
+\section{Chapter Summary}
 
 We presented Settings, a new framework to manage preferences in a modular way. The key point of Settings is that it supports a modular flow of control: a package is responsible to define customization points and can use them locally, then using Settings it is possible to describe such customization points. Finally the Settings Browser collects such setting descriptions and present them to the user. The flow is then from the \setbrowser to the customized packages. 
 

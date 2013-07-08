@@ -646,7 +646,7 @@ Four values are available.
 
 In the example, we see that only the incremental GC is used. As we will subsequently see, the amount of created objects is quite relevant when one wants to optimize performances.
 
-\section{Illustrative Analysis}
+\section{Illustrative analysis}
 
 Understanding the result obtained when profiling is the very first step when one wants to optimize an application. However, as you probably started to feel, understanding why a computation is costly is not trivial. Based on a number of examples, we will see how comparing different profiling results greatly helps to identify costly message calls. 
 
@@ -816,7 +816,7 @@ Integer>>>fibWithCache:  cache
 As an exercise, profile \ct{35 fibSlow} and \ct{35 fib} to be convinced of the gain of memoizing. 
 
 %:====================
-\section{SpaceTally for Memory Consumption per Class}
+\section{SpaceTally for memory consumption per Class}
 
 It is often important to know the amount of instances and the memory consumption of a given class. The class \ct{SpaceTally} offers this functionality. 
 

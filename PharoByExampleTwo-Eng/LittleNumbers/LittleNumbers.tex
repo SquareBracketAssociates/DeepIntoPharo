@@ -183,7 +183,7 @@ The complete sequence of bits can be shifted as shown with \ct{2r000001100} belo
 So far nothing really special. You should have learned that in any basic math lecture, but this is always good 
 to walk on a hill before climbing a mountain.  
 
-\section{Bit Manipulation and Access}
+\section{Bit manipulation and access}
 
 Pharo offers common boolean operations for bit manipulation. Hence you can send the messages \ct{bitAnd:}, \ct{bitOr:}, and \ct{bitXor:} to numbers. 
 They will apply bit by bit the associated Boolean operation.
@@ -343,7 +343,7 @@ Now the first subtraction is expressed as:
 
 
 
-\section{Negative Numbers}
+\section{Negative numbers}
 To know the value of a positive number it is simple: we just sum all the powers of 2 given by the binary representation as explained at the beginning of this Chapter. Now getting the value of a negative number is quite simple: we do the same except that we count the \emph{sign bit} as negative, all the other ones as positive. The sign bit is the most significant bit \ie the bit that represents the largest value (see Figure~\ref{negativeNumber}). For example, on 8 bit representation it will be the one associated with the weight $2^{7}$. 
 
 \begin{figure}[h]
@@ -619,7 +619,7 @@ When doing bit manipulation it is often shorter to use an hexadecimal notation o
 \end{code}
 
 
-\section{Conclusion}
+\section{Chapter Summary}
 
 Smalltalk uses two's complement encoding for its internal small integer representation and supports  bit manipulation of their internal representation. This is useful when we want to speed up algorithms using simple encoding. We have reviewed the following points:
 
