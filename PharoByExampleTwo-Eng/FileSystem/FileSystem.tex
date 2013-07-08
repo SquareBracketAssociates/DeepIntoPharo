@@ -38,16 +38,15 @@
 \chapter{Files with FileSystem }\chalabel{filesystem}
 \chapterauthor{\authormax}
  
-FileSystem is the new file system library for Pharo. It offers a powerful and elegant object-oriented design. 
-It is integrated in the system since Pharo 2.0. This chapter presents the key API it offers. 
+The library for dealing with files in Pharo is called FileSystem. It offers an expressive and elegant object-oriented design.  This chapter presents the key aspects of the API to cover most of the needs one may have.
 
-FileSystem has been originally developed by Colin Putney under the MIT license. Camillo Bruni made some changes to the original design or API. Camillo Bruni integrated it into Pharo with the help of Esteban Lorenzano and Guillermo Polito - We thank all the contributors of FileSystem. This is this version that we describe in this chapter. 
+FileSystem is the result of a long and hard work from many people. FileSystem has been originally developed by Colin Putney and the library is distributed under the MIT license, as for most components of Pharo. Camillo Bruni made some changes to the original design or API. Camillo Bruni integrated it into Pharo with the help of Esteban Lorenzano and Guillermo Polito. This chapter would not exist without the previous work of all the contributors of FileSystem. We are grateful to all of them. 
 
 \section{Getting started}
-The framework supports different kinds of filesystems that can be used interchangeably and that can transparently work with each other. The most obvious one is the filesystem on your hard disk. We are going to work with that one for now. 
+The framework supports different ``kinds'' of filesystems that are interchangeable and may transparently work with each other. The probably most common usage of FileSystem is to directly work with files stored on your hard disk. We are going to work with that one for now. 
 
-The expression \ct{FileSystem} provides access to the factory to different filesystems. 
-Sending the message \mthind{FileSystem}{disk} to \ct{FileSystem}, returns a file system as on your physical hard-drive. Sending \ct{memory} creates a file system in the image. 
+The class \ct{FileSystem} offers factory class-methods to offer access of different filesystems. 
+Sending the message \mthind{FileSystem}{disk} to \ct{FileSystem}, returns a file system as on your physical hard-drive. Sending \ct{memory} creates a new file system stored in memory image. 
 
 \begin{code}{}
 | working |
@@ -60,7 +59,9 @@ working := FileSystem disk workingDirectory class
 
 The message \mthind{FileReference}{workingDirectory} above returns a reference to the directory containing your Pharo image. A reference is an instance of the class \ct{FileReference}. References are the central objects of the framework and provide the primary mechanisms for working with files and directories. 
 
-FileSystem defines four classes that are important for the end-user: \ct{FileSystem}, \ct{FileReference}, \ct{FileLocator}, and \ct{FileSystemDirectoryEntry}. \ct{FileSystem} is the root class given the correct file system. A \ct{FileReference} is a reference to a repository or a file. A \ct{FileLocator} is a late binding reference. A \ct{FileSystemDirectoryEntry} allows one to get the additional information of a file or a directory.These classes are grouped in the 'FileSystem-Core-Public' category, and explained below in the chapter.
+FileSystem defines four classes that are important for the end-user: \ct{FileSystem}, \ct{FileReference}, \ct{FileLocator}, and \ct{FileSystemDirectoryEntry}. \ct{FileSystem} offers factory methods to create a new file system. A \ct{FileReference} is a reference to a folder or a file and offers methods to navigate and perform operations. 
+A \ct{FileLocator} is a late binding reference. When asked to perform concrete operation, a file locator looks up the current location of the origin, and resolve the path against it. 
+A \ct{FileSystemDirectoryEntry} allows one to get the additional information of a file or a directory. These classes belongs to the 'FileSystem-Core' package, and are explained below in the chapter.
 
 You should not use platform specific classes such as \ct{UnixStore} or \ct{WindowsStore}, these are internal classes. All code snippets below work on \ct{FileReference} instances.
 
@@ -76,7 +77,7 @@ To list the immediate children of your working directory, execute the following 
 | working |
 working := FileSystem disk workingDirectory.
 working children.
---> anArray(file:///Users/ducasse/Workspace/FirstCircle/Pharo/20/.DS_Store file:///Users/ducasse/Workspace/FirstCircle/Pharo/20/ASAnimation.st ...)
+--> anArray(File @ /Users/ducasse/Workspace/FirstCircle/Pharo/20/.DS_Store File @ /Users/ducasse/Workspace/FirstCircle/Pharo/20/ASAnimation.st ...)
 \end{code} 
 
 Notice that \mthind{FileReference}{children} returns the \emph{direct} files and folders. 
@@ -87,22 +88,27 @@ working allChildren.
 \end{code}
 
 
-To get a file reference you can also use the \ct{asFileReference} message as follows: 
+Converting a string character into a file reference is a common and handy operation. Simply send \ct{asFileReference} to a string to get its corresponding file reference.
 
 \begin{code}{}
 '/Users/ducasse/Workspace/FirstCircle/Pharo/20' asFileReference
 \end{code}
 
+Note that no error is raised if the string does not point to an existing file. You can however check whether the file exists or not:
+\begin{code}{}
+'foobarzork' asFileReference exists
+--> false
+\end{code}
 
 
 \paragraph{All '.st' files.}
-
-To find all st files in the working directory, simply execute:
+Filtering is realized using standard pattern matching on file name. To find all st files in the working directory, simply execute:
 
 \begin{code}{}
 working allChildren select: [ :each | each basename endsWith: 'st' ]
 \end{code} 
- 
+
+The \ct{basename} message returns the name of the file from a full name (\ie  \ct{/foo/gloops.taz basename} is \ct{'gloops.taz'}).
  
 \paragraph{Accessing a given file or directory.}
 Use the slash operator to obtain a reference to a specific file or directory within your working directory:
@@ -145,7 +151,7 @@ cache parent fullName
 
 The methods \mthind{FileReference}{exists}, \mthind{FileReference}{isFile}, \mthind{FileReference}{isDirectory}, and  \mthind{FileReference}{basename} are defined on the \ct{FileReference} class. Notice that there is no message to get 
 the path without the basename and that the idiom is to use \ct{parent fullName} to obtain it.
-The message \ct{path} returns a Path object which is internally used by FileSystem. You normally do not to use such objects. 
+The message \ct{path} returns a Path object which is internally used by FileSystem and is not meant to be publicly used.
   
 Note that FileSystem does not really distinguish between files and folders which often leads to cleaner code and can be seen as an application of the Composite design pattern.   
   
@@ -153,16 +159,16 @@ Note that FileSystem does not really distinguish between files and folders which
 To get additional information about a filesystem entry, we should get an \ct{FileSystemDirectoryEntry} using the message \mthind{FileSystemDirectoryEntry}{entry}. Note that you can access the file permissions. Here are some examples:
 
 \begin{code}{}
-cache entry creation.		-->  2012-04-25T15:11:36+02:00
-cache entry creationTime -->  2012-04-25T15:11:36+02:00
-cache entry creationSeconds -->  3512812296 2012-08-02T14:23:29+02:00
-cache entry modificationTime -->  2012-08-02T14:23:29+02:00
-cache entry size.			--> 0 (directories have size 0)
-cache entry permissions		-->  rwxr-xr-x
-cache entry permissions class		-->  FileSystemPermission
+cache entry creation.					-->  2012-04-25T15:11:36+02:00
+cache entry creationTime 			-->  2012-04-25T15:11:36+02:00
+cache entry creationSeconds 	 -->  3512812296 2012-08-02T14:23:29+02:00
+cache entry modificationTime 	 -->  2012-08-02T14:23:29+02:00
+cache entry size.						  --> 0 (directories have size 0)
+cache entry permissions				-->  rwxr-xr-x
+cache entry permissions class	-->  FileSystemPermission
 cache entry permissions isWritable --> true
-cache entry isFile			--> false
-cache entry isDirectory 		--> true
+cache entry isFile						--> false
+cache entry isDirectory 			--> true
 \end{code} 
 
 
@@ -176,10 +182,10 @@ FileLocator imageDirectory.
 FileLocator vmDirectory.
 \end{code} 
 
-If you save a location with your image and move the image to a different machine or operating system, a location will still resolve to the expected directory or file. Note that some of them are still in flux because depending on specific VM functionalities. 
+If you save a location with your image and move the image to a different machine or operating system, a location will still resolve to the expected directory or file. Note that some file locations are specific to the virtual machine.
 
 \section{Opening read and write Streams}
-To open a file-stream on a file, just ask the reference for a read- or write-stream using the message \ct{writeStream} or \ct{readStream} as follows:
+To open a stream on a file, just ask the reference for a read- or write-stream using the message \ct{writeStream} or \ct{readStream} as follows:
 
 \begin{code}{}
 | working stream |
@@ -192,7 +198,7 @@ stream contents.			--> 'Hello World'
 stream close.
 \end{code}
 
-Please note that \ct{writeStream} overrides any existing file and \ct{readStream} throws an exception if the file does not exist. There are also forms available that eliminate the need to close a stream manually such as \ct{readStreamDo:} and \ct{writeStreamDo:} as shown in the following snippet.
+Please note that \ct{writeStream} overrides any existing file and \ct{readStream} throws an exception if the file does not exist. Forgetting to close stream is a common mistake, for which even advanced programmers regularly fall into. Closing a stream free low level resources, which is a good thing to do. The messages \ct{readStreamDo:} and \ct{writeStreamDo:} may be to use to not have to use \ct{close}. Consider:
 
 \begin{code}{}
 | working  |
@@ -201,19 +207,27 @@ working / 'foo.txt' !\textbf{writeStreamDo:}! [ :stream | stream nextPutAll: 'He
 working / 'foo.txt' !\textbf{readStreamDo:}! [ :stream | stream contents ].
 \end{code}
 
+Keep in mind that file may be easily overridden without giving any warning. Consider the following situation:
+
 \begin{code}{}
 | working |
 working := FileSystem disk workingDirectory.
 working / 'authors.txt' readStreamDo: [ :stream | stream contents ]. 
    --> 'stephane alexandre damien jannik'
-   
-FileSystem disk workingDirectory / 'authors.txt' 
-	writeStreamDo: [ :stream | stream nextPutAll: 'andrew oscar'].
+\end{code}
 
+The file \ct{authors.txt} may be simply overridden with:
+\begin{code}{}
+FileSystem disk workingDirectory / 'authors.txt' 
+	writeStreamDo: [ :stream | stream nextPutAll: 'bob joe'].
+\end{code}
+
+Reading back the file may gives an odd result:
+\begin{code}{}
 | working |
 working := FileSystem disk workingDirectory.
 working / 'authors.txt' readStreamDo: [ :stream | stream contents ]. 
-	--> 'andrew oscarxandre damien jannik'
+	-->  'bob joee alexandre damien jannik'
 \end{code}
 
 
@@ -232,7 +246,7 @@ Have a look at the streams protocol of \ct{FileReference} for other convenience 
 
 \section{Renaming, copying and deleting Files and Directories}
 
-We can copy and rename files using the messages \ct{copyTo:} and \mbox{\ct{renameTo:}.} Note that while \ct{copyTo:} expects another fileReference,  \ct{renameTo:} expects paths, pathnames or references.
+Files may be copied and renamed using the messages \ct{copyTo:} and \mbox{\ct{renameTo:}.} Note that while \ct{copyTo:} expects another fileReference,  \ct{renameTo:} expects paths, pathnames or references.
 
 \begin{code}{}
 | working |
@@ -278,7 +292,7 @@ You can  copy the contents of a directory using the message \ct{copyAllTo:}. Her
 cache !\textbf{copyAllTo:}! backup.
 \end{code}
 
-Note that the target directory will be automatically created if it was not there before.
+Note that before copying the target directory is created if it does not exist.
 
 \paragraph{Deleting.}
 
@@ -297,9 +311,9 @@ backup !\textbf{deleteAll}!.
 
 
 \section{The main entry point: FileReference}
-While FileSystem is based on multiple concepts and classes such as \mbox{\ct{FileSystem},} \ct{Path} and \ct{FileReference}. \ct{FileReference} is the most important for an end-user. \ct{FileReference} offers a set of operations to manipulate files. We saw some of them until now and now we present a more complete list of operations.
+While FileSystem is based on multiple concepts and classes such as \mbox{\ct{FileSystem},} \ct{Path} and \ct{FileReference}. \ct{FileReference} is the most important for an end-user. \ct{FileReference} offers a set of operations to manipulate files. So far, we have seen some basic operations. This sections cover the more elaborated operations.
 
-At the design level, a file reference (\ct{FileReference}) combines two lower level entities: a path (\ct{Path}) and a filesystem (\ct{FileSystem}) into a single object which provides a simpler protocol for working with files. It implements the same operations as \ct{FileSystem}, but without the need to track paths and filesystem separately.
+At the design level, a file reference (\ct{FileReference}) combines two low-level entities: a path (\ct{Path}) and a filesystem (\ct{FileSystem}) into a single object which provides a simple protocol to manipulate and handle files. A \ct{FileReference} implements many operations of \ct{FileSystem} (both are largely polymorphic), but without the need to track paths and filesystem separately.
 
 \subsection{FileReference information access}
 First given a file reference you can access usual information using messages \ct{basename}, \ct{base}, \ct{extensions}...
@@ -342,8 +356,8 @@ pf parent !\textbf{basenameWithIndicator}!
 
 \paragraph{Path.}
 
-When there is a need to access strings out of a path, the message \ct{pathSegments} returns the full name cut into path elements. 
-Remember that from a design point of view, strings are dead objects so it is often better to deal with the real objects for example using
+When there is a need to access portion of a path, the message \ct{pathSegments} returns the full name cut into path elements, as strings. 
+Remember that from a design point of view, strings are considered as ``dead'' objects so it is often better to deal with the real objects for example using
 the \ct{path} message. 
 
 
@@ -374,11 +388,11 @@ To get the full information you should access the entry itself using the message
 | pf |
 pf := (FileSystem disk workingDirectory / 'package-cache' ) children second.
 pf creationTime.
-	--> 2012-06-10T10:43:19+02:00
+--> 2012-06-10T10:43:19+02:00
 pf modificationTime.
-	--> 2012-06-10T10:43:19+02:00
+--> 2012-06-10T10:43:19+02:00
 pf permissions
-	--> rw-r--r--
+--> rw-r--r--
 \end{code}
 
 Entries are objects that represent all the metadata of a single file. 
@@ -398,9 +412,9 @@ There are several operations on files.
 
 \paragraph{Deleting.}
 \ct{delete}, \ct{deleteAll}, \ct{deleteAllChildren}, all delete the receiver and raise an error if it does not exist. 
-\ct{delete} deletes the file, \ct{deleteAll} deletes the directory and its contents , \ct{deleteAllChildren} (which only deletes children of a directory.  In addition, \ct{deleteIfAbsent:} executes a block when the file does not exist.
+\ct{delete} deletes the file, \ct{deleteAll} deletes the directory and its contents , \ct{deleteAllChildren} (which only deletes children of a directory).  In addition, \ct{deleteIfAbsent:} executes a block when the file does not exist.
 
-Finallty \ct{ensureDelete} deletes the file but does not raise error if the file does not exist. Similarly \ct{ensureDeleteAllChildren}, \ct{ensureDeleteAll} do not raise exception when the receiver does not exists. 
+Finally \ct{ensureDelete} deletes the file but does not raise error if the file does not exist. Similarly \ct{ensureDeleteAllChildren}, \ct{ensureDeleteAll} do not raise exception when the receiver does not exists. 
 
 
 
@@ -463,7 +477,7 @@ We can move files around using the message \ct{moveTo:} which expects a file ref
 Beside moving we can copy files. 
 We can also use \ct{copyAllTo:} to copy files around. Here we copy the files contained in the source folder to the target one. 
 
-The message \ct{copyAllTo:} performs a deep copy of the receiver, to a location specified by the argument. If the receiver is a file, the file will be copied; if a directory, the directory and its contents will be copied recursively. The argument must be a reference that doesn't exist; it will be created by the copy.
+The message \ct{copyAllTo:} performs a deep copy of the receiver, to a location specified by the argument. If the receiver is a file, the file is copied. If the receiver is a directory, the directory and its contents will be copied recursively. The argument must be a reference that does not exist; it will be created by the copy.
 
 \begin{code}{}
 (FileSystem disk workingDirectory / 'sourceFolder') createDirectory. 
@@ -492,18 +506,16 @@ The message \ct{copyAllTo:} can be used to copy a single file too:
   --> false
 \end{code}
 
-\subsection{Locator}
-
-Locators can be considered late-bound references. They're left deliberately fuzzy, and are only resolved to a concrete reference when some file operation is performed. Instead of a filesystem and path, locators are made up of an origin and a path. An origin is an abstract filesystem location, such as the user's home directory, the image file, or the VM executable. When it receives a message like \ct{isFile}, a locator will first resolve its origin, then resolve its path against the origin.
+\subsection{Locator} Locators are late-bound references. They are left deliberately fuzzy, and are only resolved to a concrete reference when some file operation is performed. Instead of a filesystem and path, locators are made up of an origin and a path. An origin is an abstract filesystem location, such as the user's home directory, the image file, or the VM executable. When it receives a message like \ct{isFile}, a locator will first resolve its origin, then resolve its path against the origin.
 
 Locators make it possible to specify things like "an item named 'package-cache' in the same directory as the image file" and have that specification remain valid even if the image is saved and moved to another directory, possibly on a different computer.
 
 \begin{code}{}
     locator := FileLocator imageDirectory / 'package-cache'.
     locator printString.             --> ' {imageDirectory}/package-cache'
-    locator resolve.                 -->  /Users/ducasse/Pharo/PharoHarvestingFixes/20/package-cache
-    locator isFile.                  --> false
-    locator isDirectory.             --> true
+    locator resolve.                  -->  /Users/ducasse/Pharo/PharoHarvestingFixes/20/package-cache
+    locator isFile.              	    --> false
+    locator isDirectory.            --> true
 \end{code}	
 
 The following origins are currently supported:
@@ -522,22 +534,22 @@ The following origins are currently supported:
 Applications may also define their own origins, but the system will not be able to resolve them automatically. Instead, the user will be asked to manually choose a directory. This choice is then cached so that future resolution requests will not require user interaction.
 %\ja{how can I do that ?}\sd{no idea}
 
-\paragraph{\ct{absolutePath} vs. \ct{path}.} The message  \ct{absolutePath} (previously \ct{fullPath}) returns the absolute path of the receiver. When the file reference is not virtual the messages \ct{path} and \ct{absolutePath} provide similar results.
-When the file is a late bound reference (instance of \ct{FileLocator}), \ct{absolutePath} will resolve the file and return the absolute path, while \ct{path} will return an unresolved file reference as shown below.
+\paragraph{\ct{absolutePath} vs. \ct{path}.} The message  \ct{absolutePath} returns the absolute path of the receiver. When the file reference is not virtual the messages \ct{path} and \ct{absolutePath} provide similar results.
+When the file is a late bound reference (instance of \ct{FileLocator}), \ct{absolutePath} resolves the file and returns the absolute path, while \ct{path} returns an unresolved file reference as shown below.
 
 
 \begin{code}{}
 (FileLocator image parent / 'package-cache') path
 --> {image}/../package-cache
 
-(FileLocator image parent / 'package-cache') fullPath
+(FileLocator image parent / 'package-cache') absolutePath
 --> Path / 'Data' / 'Downloads' / 'Pharo-2.0' / 'package-cache'
 
 (FileLocator image parent / 'package-cache') absolutePath
 --> Path / 'Data' / 'Downloads' / 'Pharo-2.0' / 'package-cache'
 \end{code}
 
-References and Locators also provide simple methods for dealing with whole directory trees:
+References and Locators also provide simple methods for dealing with whole directory trees.
 
 %\subsection{Enumeration}
 % was duplications....
@@ -561,7 +573,8 @@ References and Locators also provide simple methods for dealing with whole direc
 
 
 \section{Looking at FileSystem internals}
-Now we explain the key classes of FileSystem from an implementation point of view. There is no real need to read the following to use FileSystem.  
+At that stage, you should be able to comfortably use FileSystem to cover your need about file handing.
+This section is about the internal of FileSystem. It goes over important implementation details, which will surely interest readers willing to have a new kind of file system, for example on a data base or a remote file system. 
 
 \subsection{FileReference = FileSystem + Path}
 Paths and filesystems are the lowest level of the FileSystem API. A \ct{FileReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files as we show in the previous section. References implement the path protocol with methods like \ct{/}, \ct{parent} and \ct{resolve:}.
@@ -656,15 +669,24 @@ The above methods are sufficient for many common tasks, but application develope
 The visitor protocol is very simple. A visitor needs to implement \ct{visitFile:} and \ct{visitDirectory:}. The actual traversal of the filesystem is handled by a guide. A guide works with a visitor, crawling the filesystem and notifying the visitor of the files and directories it discovers. There are three Guide classes, \ct{PreorderGuide}, \ct{PostorderGuide} and \ct{BreadthFirstGuide} , which traverse the filesystem in different orders. To arrange for a guide to traverse the filesystem with a particular visitor is simple. Here's an example:
 
 \begin{code}{}
-    BreadthFirstGuide show: aReference to: aVisitor
+BreadthFirstGuide show: aReference to: aVisitor
 \end{code}	
 
 The enumeration methods described above are implemented with visitors; see \ct{CopyVisitor}, \ct{DeleteVisitor}, and \ct{CollectVisitor} for examples.
 
 
-\section{Chapter Summary}
+\section{Chapter summary}
 
 FileSystem is a powerful and elegant library to manipulate files. It is a fundamental part of Pharo. The Pharo community will continue to extend and build it. The class \ct{FileReference} is the most important entry point to the framework.
+
+\begin{itemize}
+\item \ct{FileSystem} offers factory class methods to build file systems on hard disk and in memory.
+\item \ct{FileReference} is a central class in the framework which represents a file or a folder. A file reference offers methods to operate on a file and navigate within a file system.
+\item Sending the message \ct{asFileReference} to a string character returns its corresponding file reference (\eg \ct{'/tmp' asFileReference})
+\item Creating a file and writing in it is as simple as: \ct{(FileSystem disk workingDirectory / 'foo.txt') writeStreamDo: [ :stream | stream nextPutAll: 'Hello World' ].}
+\item \ct{FileLocator} is a late binding reference, useful when the file location in a hard disk depends on the running context.
+\item \ct{FileSystemDirectoryEntry} offers a large set of low level detail for a given file.
+\end{itemize}
 
 %=========================================================
 \ifx\wholebook\relax\else

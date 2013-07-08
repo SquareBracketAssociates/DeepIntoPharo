@@ -162,7 +162,26 @@ The last thing we might want to do is to display the contents of the
 entry if it is a file. The following gives the final version of the
 file browser:
 \begin{code}{}
-| browser |browser := GLMFinder new  variableSizePanes;  title: 'Find your file';  yourself.browser show: [:a |        a list                when: #isDirectory;                display: [:each | [each children ]                                on: Exception                                do: [Array new]];                format: #basenameWithIndicator.        a text                when: #isFile;                display: [:entry | [entry readStream contents]                            on: Exception                                do:['Can''t display the content of this file'] ] ].browser openOn: FileSystem disk root.
+| browser |
+browser := GLMFinder new
+  variableSizePanes;
+  title: 'Find your file';
+  yourself.
+
+browser show: [:a |
+        a list
+                when: #isDirectory;
+                display: [:each | [each children ]
+                                on: Exception
+                                do: [Array new]];
+                format: #basenameWithIndicator.
+        a text
+                when: #isFile;
+                display: [:entry | [entry readStream contents]
+                            on: Exception
+                                do:['Can''t display the content of this file'] ] ].
+
+browser openOn: FileSystem disk root.
 \end{code}     
                         
 
@@ -742,7 +761,7 @@ To discover other kinds of browsers, explore the hierarchy of the
 
 %-------------------------------------------------------------------------------
 %:%%%%%%%%%%%
-\section{Chapter Summary}
+\section{Chapter summary}
 
 This chapter gave a short introduction to the Glamour browser framework. Glamour is essentially used to build to build tool that enable one to navigate and interact with an arbitrary domain, made of plain objects.
 

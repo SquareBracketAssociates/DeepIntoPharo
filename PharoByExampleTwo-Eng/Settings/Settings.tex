@@ -850,7 +850,7 @@ Now, in the \setbrowser, the user interface looks as shown in \figref{fig:textSe
 %Finally when declaring a setting, the code does not refer explicitly to any Setting class. This has the good property that you can load code containing setting declaration even if the Settings framework is not loaded. This way we make sure 
 %that we get a modular system. In case the settings framework is not loaded, the method containing the setting declaration is just not used by the system.
 
-\section{Chapter Summary}
+\section{Chapter summary}
 
 We presented Settings, a new framework to manage preferences in a modular way. The key point of Settings is that it supports a modular flow of control: a package is responsible to define customization points and can use them locally, then using Settings it is possible to describe such customization points. Finally the Settings Browser collects such setting descriptions and present them to the user. The flow is then from the \setbrowser to the customized packages. 
 

@@ -1485,7 +1485,7 @@ performAll: selectorCollection
 The primary objection to \mthref{simplerObjectPerfromAll} is efficiency.  The implementation of \ct{respondsTo: s} has to lookup \ct{s} in the target's method dictionary  to find out if \ct{s} will be understood.  If the answer is yes, then \ct{perform:} will look it up again.  Moreover, the first lookup is implemented in \st, not in the virtual machine.  If this code is in a performance-critical loop, this might be an issue.  However, if the collection of messages comes from a user interaction, the speed of \ct{performAll:} will not be a problem.
 
 %=================================================================
-\section{Chapter Summary}
+\section{Chapter summary}
 
 In this chapter we saw how to use exceptions to signal and handle abnormal situations arising in our code.
 
