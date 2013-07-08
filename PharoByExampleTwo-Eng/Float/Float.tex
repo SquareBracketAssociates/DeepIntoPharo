@@ -568,6 +568,17 @@ If you want to know how far it is, then get an idea with:
 %\end{itemize}
 
 
+\section{Conclusion}
+
+Floats are approximation of a real number by being able to support a wide range of decimal values. This chapters has reviewed the following points
+
+\begin{itemize}
+\item Never use \ct{=} to compare floats (\eg \ct{(0.1 + 0.2) = 0.3} returns \ct{false})
+\item Use \ct{closeTo:} instead (\eg \ct{(0.1 + 0.2) closeTo: 0.3} returns \ct{true})
+\item A float number is represented in base as \emph{sign} \ct{x} \emph{mantissa} \ct{x} $2^{exponent}$ (\eg \emph{1.2345 = 12345} \ct{x} \emph{10}$^{-4}$)
+\item \ct{truncateTo:} and \ct{roundTo:} do not always work when truncating or rounding up float (\eg \ct{2.8 roundTo: 0.01} returns \ct{2.800...003})
+\end{itemize}
+
 
 There are much more things to know about floats, and if you are advanced enough, it would be a good idea to check this link from the wikipedia page \href{http://www.validlab.com/goldberg/paper.pdf}{"What Every Computer Scientist Should Know About Floating-Point Arithmetic" (http://www.validlab.com/goldberg/paper.pdf)}.
 
