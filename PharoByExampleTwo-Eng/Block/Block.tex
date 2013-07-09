@@ -614,116 +614,56 @@ the ones for block closures as we will later see. Let us have a look at some val
 \item \ct{receiver} is the message receiver.
 \end{itemize}
 
-\subsection{Studying Contexts}
-
-Method arguments and temporaries are stored in contexts. A context has a variable part that
-stores the values of these variables.
-
-When inspecting the following method, stackp holds 3 to represent that there is one argument
-and two temporary variables.
-
-\begin{code}{}
-Bexp>>twoTempsOneArg: arg
-	"self new twoTempsOneArg: 33"
-	| temp1 temp2 |
-	temp1 := temp2 := arg.
-	thisContext copy inspect.
-	^ temp1
-\end{code}
-
-
-\begin{code}{}
-ContextPart>>arguments
-	"returns the arguments of a message invocation"
-
-	| arguments numargs |
-	numargs :=  self method numArgs.
-	arguments := Array new: numargs.
-	1 to: numargs do: [:i | arguments at: i put: (self tempAt: i) ].
-	^ arguments
-\end{code}
-
-
-\subsection{Invoking Another Method}
-\begin{code}{}
-Bexp>>first: arg
-
-	| temp |
-	temp := arg *2.
-	thisContext copy inspect.
-	self second: temp.
-
-Bexp>>second: arg2
-
-	self halt.
-	^ arg2
-\end{code}
-
-In the inspector, you can access the temporary variable of method first: using the expression self tempNamedAt: 'arg'
-
-
-
+The class \ct{MethodContext} and its superclasses \ct{ContextPart} and \ct{InstructionStream} have many methods to get information about a particular context. For example, you can get the values of the arguments by sending the \ct{arguments} message and the value of a particular temporary variable by sending \ct{tempNamed:}.
 
 % ============================================================================
 \section{Closures}
 % ============================================================================
-\begin{code}{}
-#(1 2 3) inject: 0 into: [:sum :each | sum + each]
-\end{code}
+
+Blocks is a concept introduced by SCHEME in the seventies under the name lexical closures. A lexical closure is an anonymous function that is somehow connected to the place where it is defined and to the execution context where it is evaluated. In the following, we will describe this connection. Implement the following method.
 
 \begin{code}{}
-inject: thisValue into: binaryBlock
-	"Accumulate a running value associated with evaluating the argument,
-	binaryBlock, with the current value of the argument, thisValue, and the
-	receiver as block arguments. For instance, to sum the numeric elements of a
-	collection, aCollection inject: 0 into: [:subTotal :next | subTotal + next]."
-	| nextValue |
-	nextValue := thisValue.
-	self do: [:each | nextValue := binaryBlock value: nextValue value: each]. 	^ nextValue
-\end{code}
-
-
-
-Lexical closure is a concept introduced by SCHEME in 70s. Scheme uses lambda expression which is basically an anonymous function (such the block). But using an anonymous function implies to connect it to the current execution context. This is why the lexical closure is important because it defines when variables of block are bound to the execution context. The variable is depending of the scope where it is defined. Let's illustrate that :
-
-\begin{code}{}
-blockLocalTemp
+Bexp>>blockLocalTemp
 	| collection |
-		collection := OrderedCollection new.
-		1 to: 3 do: [ :index || temp |
-			temp := index.
-			collection add: [ temp ] ].
-		^collection collect: [:each | each value].
+	collection := OrderedCollection new.
+	1 to: 3 do: [ :index |
+		| temp |
+		temp := index.
+		collection add: [ temp ] ].
+	^ collection collect: [ :each | each value ]
 \end{code}
 
-Let's comment the code: we create a loop that stores the arg value in a temporary variable created in the loop. We store a block containing the simply temp read access in a collection. After the loop, we evaluate each block and return the collection of value.
-If we evaluate this method, it will return \#(1 2 3). What's happening? At each loop we create a variable existing locally and bind it to a block. Then at the end evaluate block, we evaluate each block with this contextual \emph{temp}.
+Let's comment the code: we create a loop that stores the current index in a temporary variable \ct{temp} created in the loop. Then, we store a block that accesses this variable in a collection. After the loop, we evaluate each accessing block and return the collection of values. If we execute this method, we get a collection with 1, 2 and 3. This result means that each block in the collection refers to a different \ct{temp} variable.
 
 \begin{figure}
 	\centering
         \includegraphics[width=0.7\linewidth]{blockClosureLocalTemp}
-	\caption{blockLocalTemp Execution}
+	\caption{\ct{blockLocalTemp} execution}
 	\label{fig:blockLocalTempExecution}
 \end{figure}
 
-Now see another case :
+Create a new method that is the same as \ct{blockLocalTemp} except that\ct{temp} is a method variable instead of a block variable.
+
 \begin{code}{}
-blockOutsideTemp
-		| collection temp |
-		collection := OrderedCollection new.
-		1 to: 3 do: [ :index |
-			temp := index.
-			collection add: [ temp ] ].
-		^collection collect: [:each | each value].
+Bexp>>blockOutsideTemp
+	| collection temp |
+	collection := OrderedCollection new.
+	1 to: 3 do: [ :index | 
+		temp := index.
+		collection add: [ temp ] ].
+	^ collection collect: [ :each | each value ]
 \end{code}
-Same case except the \emph{temp}, variable will be declared in the upper scope. What will happen? Here the temp at each loop is the \textbf{same} shared variable bind. So when we collect the evaluation of the block at the end we will collect \#(3 3 3).
+
+If we execute the method \ct{blockOutsideTemp}, we now get a collection with 3, 3 and 3. This results means that each block in the collection now refers to a single variable \ct{temp}: we say that \ct{temp} is shared.
 
 \begin{figure}
 	\centering
 		\includegraphics[width=0.7\linewidth]{blockClosureOutsideTemp}
-	\caption{blockOutsideTemp Execution}
+	\caption{\ct{blockOutsideTemp} execution}
 	\label{fig:blockClosureOutsideTemp}
 \end{figure}
+
+\dc{the rest of this section is quite unclear}
 
 When we look at the following Scheme expression and evaluate it you get 4. Indeed a binding is created
 which associates the variable index to the value 0. Then y a lambda expression is defined and it returns
