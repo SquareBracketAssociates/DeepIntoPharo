@@ -180,7 +180,7 @@ Let's look at it in detail. Figure~\ref{fig:variable} shows the execution of the
 \item The method \ct{evaluateBlock:} defines its own local variable \ct{t} with the same name than the one in the block. However, this is not this variable that is used when the block is evaluated. While executing the method \ct{evaluateBlock:} the block is evaluated (step 2), during the execution of the expression \ct{t traceCr} the non-local variable \ct{t} is looked up in the home context of the block \ie the method context that created the block and not the context of the currently executed method.
 \end{itemize}
 
-\begin{figure}[!h]
+\begin{figure}
 \begin{center}\includegraphics[width=\textwidth]{variable}
 \caption{ non-local variables are looked in the method activation context where the block was created and not evaluated.\label{fig:variable} \dc{must change this figure to reflect the real method names.}\dc{logCr -> traceCr}}
 \end{center}
@@ -453,7 +453,7 @@ What we see is that the calling method \ct{start} is fully executed. The method 
 
 When the return statement of the block is executed in the method \ct{evaluateBlock:}, the execution discards the pending computation and returns to the method execution point that created the home context of the block. The block is defined in  the method \ct{defineBlock}. The home context of the block is the activation context that represents the execution of the method \ct{defineBlock}. This is why the rest of the computation in the block itself, in the \ct{defineBlock} method, and in the \ct{arg:} method is discarded.
 
-\begin{figure}[!h]
+\begin{figure}
 \begin{center}\includegraphics[width=\textwidth]{nonLocalReturn2}
 \caption{A block with non-local return execution returns to the method execution that activated the block home context.\dc{rename methods}\label{nonLocalReturn}}
 \end{center}
@@ -556,33 +556,24 @@ When we execute \ct{returnBlock}, the method returns the block to its caller (he
 % ==========================================================================
 \section{Context: representing method execution}
 % ============================================================================
-Imagine that we have a simple method as the following one.
 
-\begin{code}{}
-Bexp>>first: arg
-	| temp |
-	temp := arg * 2.
-	^ temp
-\end{code}
+A Smalltalk interpreter needs the following information to represent its current execution state:
 
-We can easily imagine that when such method is invoked multiple times with different arguments, we need a way to keep
-the value of the argument \ct{arg} and the temporary variable \ct{temp}. In addition, the instruction or program counter (the index saying what is the next instruction) can hold different values depending on the execution state and location. Therefore, there is a need to represent such information. Literature calls it a context. A Smalltalk interpreter needs the following information to represent its current execution state:
+The Pharo interpreter represents its current execution state with the following information:
+
 \begin{enumerate}
-\item The CompiledMethod whose bytecodes are being executed.
-\item The location of the next bytecode to be executed in that
-CompiledMethod. This is the interpreter's instruction pointer.
-\item The receiver and arguments of the message that invoked the
-CompiledMethod.
-\item Any temporary variables needed by the CompiledMethod.
-\item A stack.
+\item the \ct{CompiledMethod} whose bytecodes are being executed;
+\item the location of the next bytecode to be executed in that
+\ct{CompiledMethod}. This is the interpreter's instruction pointer;
+\item the receiver and arguments of the message that invoked the
+\ct{CompiledMethod};
+\item any temporary variable needed by the \ct{CompiledMethod};
+\item a call stack.
 \end{enumerate}
 
+In Pharo, the class \ct{MethodContext} represents this execution information. A \ct{MethodContext} instance holds information about a specific execution point.  The pseudo-variable \ct{thisContext} gives an access to the current execution point.
 
-
-In Pharo, the class \ct{MethodContext} represents such execution information. Instances of \ct{MethodContext} hold information about a specific execution point and we can obtain them using the pseudo-variable \ct{thisContext}.
-
-Let us look at an example. Modify the method as follow and execute it using \ct{Bexp new first: 33}.
-You will get the inspector shown in Figure~\ref{oneContext}.
+Let us look at an example. Implement the following method and execute it using \ct{Bexp new first: 33}.
 
 \begin{code}{}
 Bexp>>first: arg
@@ -592,41 +583,41 @@ Bexp>>first: arg
 	^ temp
 \end{code}
 
-Note that we copy the current context obtained using \ct{thisContext} because the Virtual Machine reuses contexts to avoid their creation when not necessary and it nilles out some values such as the temp value.
+You will get the inspector shown in Figure~\ref{oneContext}. Note that we copy the current context obtained using \ct{thisContext} because the Virtual Machine limits memory consumption by reusing contexts.
 
-\begin{figure}[!h]
+\begin{figure}
 \begin{center}\includegraphics[width=5cm]{OneContext}
 \caption{A method context where we can access the value of the temporary variable \ct{temp} at that given point of execution.\label{oneContext}}
 \end{center}
 \end{figure}
 
 \ct{MethodContext} does not only represent activation context of method execution but also
-the ones for block closures as we will see later. Let us have a look at some value of the current context:
+the ones for block closures as we will later see. Let us have a look at some values of the current context:
 
 \begin{itemize}
-\item \ct{sender} points to the previous context that led to the creation of the current context. Here when you executed the expression, a context was created and this context is the sender of the current one.
+\item \ct{sender} points to the previous context that led to the creation of the current one. Here when you executed the expression, a context was created and this context is the sender of the current one.
 
 \item \ct{method} points to the currently executing method.
 
-\item \ct{pc} holds the value of the last executed instruction. Here its value is 27. To see which instruction it is, double click on the \ct{method} instance variable and select the all bytecodes field, you should obtain the situation depicted in Figure~\ref{ByteCodes}, which shows that the next instruction to be executed is pop (instruction 28).
+\item \ct{pc} holds a reference to the latest executed instruction. Here its value is 27. To see which instruction is referred to, double click on the \ct{method} instance variable and select the \ct{all bytecodes} field, you should obtain the situation depicted in Figure~\ref{ByteCodes}, which shows that the next instruction to be executed is \ct{pop} (instruction 28).
+
+\begin{figure}
+  \begin{center}\includegraphics[width=5cm]{ByteCodes}
+    \caption{The last instruction executed was the message send \ct{inspect}.\label{ByteCodes}}
+  \end{center}
+\end{figure}
 
 \item \ct{stackp} defines the number of stored temporary variables.
 
-\item \ct{closureOrNil} holds a reference to the closure currently executed or nil.
+\item \ct{closureOrNil} holds a reference to the currently executing closure or nil.
 
 \item \ct{receiver} is the message receiver.
 \end{itemize}
 
-\begin{figure}[!h]
-\begin{center}\includegraphics[width=5cm]{ByteCodes}
-\caption{The last instruction executed was the message send \ct{inspect}.\label{ByteCodes}}
-\end{center}
-\end{figure}
-
 \subsection{Studying Contexts}
 
-Method arguments and temporaries are stored in contexts. A context have a variable part that
-stores them.
+Method arguments and temporaries are stored in contexts. A context has a variable part that
+stores the values of these variables.
 
 When inspecting the following method, stackp holds 3 to represent that there is one argument
 and two temporary variables.
@@ -708,7 +699,7 @@ blockLocalTemp
 Let's comment the code: we create a loop that stores the arg value in a temporary variable created in the loop. We store a block containing the simply temp read access in a collection. After the loop, we evaluate each block and return the collection of value.
 If we evaluate this method, it will return \#(1 2 3). What's happening? At each loop we create a variable existing locally and bind it to a block. Then at the end evaluate block, we evaluate each block with this contextual \emph{temp}.
 
-\begin{figure}[htbp]
+\begin{figure}
 	\centering
         \includegraphics[width=0.7\linewidth]{blockClosureLocalTemp}
 	\caption{blockLocalTemp Execution}
@@ -726,7 +717,8 @@ blockOutsideTemp
 		^collection collect: [:each | each value].
 \end{code}
 Same case except the \emph{temp}, variable will be declared in the upper scope. What will happen? Here the temp at each loop is the \textbf{same} shared variable bind. So when we collect the evaluation of the block at the end we will collect \#(3 3 3).
-\begin{figure}[htbp]
+
+\begin{figure}
 	\centering
 		\includegraphics[width=0.7\linewidth]{blockClosureOutsideTemp}
 	\caption{blockOutsideTemp Execution}
@@ -826,7 +818,7 @@ Even in this case the block can access and modify the variables from the method 
 
 Let us consider the example shown in the following picture.
 
-\begin{figure}[H]
+\begin{figure}
 \begin{center}
 \includegraphics[width=\textwidth]{BlockWithFullClosures}
 \end{center}
@@ -860,7 +852,7 @@ Hence the next step in using a stack for contexts is to make sure method context
 
 The following example shows how remote variables are no longer directly stored in the home context but in a separate remote array.
 
-\begin{figure}[H]
+\begin{figure}
 \begin{center}
 \includegraphics[width=\textwidth]{BlockWithMethodContext}
 \end{center}
