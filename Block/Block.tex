@@ -362,7 +362,7 @@ In the previous code snippet when the expressions \ct{res second value} and \ct{
 % ============================================================================
 \section{Returning from inside a block}
 % ============================================================================
-In this section we explain why it is  not a good idea to have return statements inside a block (such as \ct{[^ 33]}) that you pass or store into instance variables. A block with an explicit return statement is called a non-local returning block. Let us start illustrating some basic points first.
+In this section we explain why it is  not a good idea to have return statements inside a block (such as \ct{[^ 33]}) that you pass or store into instance variables. A block with an explicit return statement is called a \emph{non-local returning block}. Let us start illustrating some basic points first.
 
 \subsection{Basics on return}
 
@@ -663,81 +663,68 @@ If we execute the method \ct{blockOutsideTemp}, we now get a collection with 3, 
 	\label{fig:blockClosureOutsideTemp}
 \end{figure}
 
-\dc{the rest of this section is quite unclear}
-
-When we look at the following Scheme expression and evaluate it you get 4. Indeed a binding is created
-which associates the variable index to the value 0. Then y a lambda expression is defined and it returns
- the variable index (its value). Then within this context another expression is evaluated which starts
-with a begin statement: first the value of the variable index is set to 4. Second the lambda expression is
-evaluated. It returns then the value of the
-
-\begin{code}{}
-(let* ((index 0)
-       (y (lambda () index)))
-  (begin
-    (set! index 4)
-    (y)))
-\end{code}
-
-\begin{code}{}
-(let ((index 0))
-  (let ((y (lambda () index)))
-    (begin
-      (set! index 4)
-      (y))))
-\end{code}
-
-\begin{code}{}
-((lambda (index)
-   ((lambda () (begin
-                (set! index 4)
-                index))))
- 0)
-\end{code}
-
-
-What you see is that the lambda expression is sharing the binding (index 0) with expression \ct{(begin...)}
-therefore when this binding is modify from the body of the begin expression, the lambda expression sees its impact
-and this is why it returns 4 and not 0 because.
-
-
-
 % ============================================================================
 \section{Opening the trunk}
 % ============================================================================
-The Virtual Machine represents execution state as context objects, one per method or block currently executed (or activated). In Pharo, method and block activations are represented by MethodContext instances.
-We will explain contexts as well as method execution to finish by block closure evaluation.
 
-
-
+The Virtual Machine represents execution state as context objects, one per method or block currently executed (the word \emph{activated} is also used). In Pharo, method and block activations are represented by \ct{MethodContext} instances.
+In the rest of this chapter we explain contexts, method execution, and block closure evaluation.
 
 \subsection{Sending a Message}
-Let us look at what happens when we send a message.
 
 To send a message to a receiver, the VM has to:
 
 \begin{enumerate}
-\item Find the class of the receiver using the receiver object's header.
-\item Lookup the method in the class methodDictionary. If the method is not found, repeat this lookup in superclasses. When no class in the superclass chain can understand the message, send the message \ct{doesNotUnderstand:} to the receiver so that the error can be handled in a manner appropriate to that object.
 
-\item Extract the appropriate compiled method from the method dictionary where the message was found and then
-\begin{enumerate}
-\item check for a primitive associated with the method by reading the method header
-\item if there is a primitive, execute it.
-\item if it completes successfully, return the result object directly to the message sender.
-\item otherwise, continue as if there was no primitive called and pass to step 4.
+\item Find the class of the receiver using the receiver object's
+  header.
+
+\item Lookup the method in the class method dictionary. If the method
+  is not found, repeat this lookup in each superclass. When no class
+  in the superclass chain can understand the message, The VM sends the
+  message \ct{doesNotUnderstand:} to the receiver so that the error
+  can be handled in a manner appropriate to that object.
+
+\item When an appropriate method is found:
+
+  \begin{enumerate}
+  \item check for a primitive associated with the method by reading
+    the method header;
+  \item if there is a primitive, execute it;
+  \item if the primitive completes successfully, return the result object
+    to the message sender;
+  \item when there is no primitive or the primitive fails, continue to
+    the next step.
+  \end{enumerate}
+
+\item Create a new context. Set up the program counter, stack pointer,
+  home contexts, then copy the arguments and receiver from the message
+  sending context's stack to the new stack.
+
+\item Activate that new context and start executing the instructions
+  in the new method.
 \end{enumerate}
-\item Create a new activation record. Set up the program counter, stack pointer,
-home contexts, then copy the arguments and receiver from the message sending context's stack to the new stack.
-\item Activate that new context and start executing the instructions in the new method.
-\end{enumerate}
 
-When a message is sent, computation state may have to be changed to execute a different compiled method in response to this new message. The execution old state must be remembered because the instructions after the message send must be executed after the value of the message is returned.
-The execution saves its state in objects called contexts. There will be many contexts in the system at any one time. The context that represents the current state of execution is called the active context.
+The execution state before the message send must be remembered because
+the instructions after the message send must be executed when the
+message returns. State is saved in objects called contexts. There will
+be many contexts in the system at any time. The context that
+represents the current state of execution is called the active
+context.
 
-When a message send happens in the active context, the active context becomes suspended and a new context is created and made active. The suspended context retains the state associated with the original compiled method until that context becomes active again. A context must remember the context that it suspended so that the suspended context can be resumed when a result is returned. The suspended context is called the new context's sender.
+When a message send happens in the active context, the active context
+is suspended and a new context is created and activated. The
+suspended context retains the state associated with the original
+compiled method until that context becomes active again. A context
+must remember the context that it suspended so that the suspended
+context can be resumed when a result is returned. The suspended
+context is called the new context's sender.
 
-Contexts are objects representing a given execution state also called activation record, like a C stack represents execution of a C program. Contexts maintain the program counter and stack pointer, holding pointers to the sending context, the method for which this is appropriate, etc. A MethodContext represents an executing method, it points back to the context from which it was activated, holds onto its receiver and compiled method.
+A context, also called activation record, is an object representing a
+given execution state just like a C stack represents execution of a C
+program. A context maintains a program counter, the method for which
+this is appropriate, \etc. A \ct{MethodContext} represents an executing
+method and has a pointer back to the context from which it was activated.
 
 %\begin{figure}
 %\begin{center}
@@ -746,142 +733,106 @@ Contexts are objects representing a given execution state also called activation
 %\end{figure}
 
 \subsection{Remote Variables in Blocks}
-Temporaries and arguments for Blocks are handled the same way as in Methods.
+
+Temporaries and arguments for blocks are handled the same way as in methods.
 Arguments are passed on the stack and temporaries are held in the corresponding context.
-However a block can access more variables than a simple method.
-It is possible to refer to arguments and temporaries from the enclosing method.
-As you have seen before, blocks can be passed around freely and activated any time later.
-Even in this case the block can access and modify the variables from the method it was defined in.
+Nevertheless, a block can access more variables than a method:
+a block can refer to arguments and temporaries from the enclosing method.
+As we have seen before, blocks can be passed around freely and activated at any time.
+In all cases, the block can access and modify the variables from the method it was defined in.
 
 
-\subsection{Real Closures with MethodContext and BlockContext}
+\subsection{Optimizing the Stack in the VM}
 
-Let us consider the example shown in the following picture.
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=\textwidth]{BlockWithFullClosures}
-\end{center}
-\end{figure}
-
-The \ct{temp} variable used in the block the \ct{exampleReadInBlock} method is a remote variable.
+Let us consider the example shown in Figure \ref{fig:BlockWithFullClosures}.
+The \ct{temp} variable used in the block of the \ct{exampleReadInBlock} method is \emph{a remote variable}.
 \ct{temp} is initialized and changed in the method body and later on read in the block.
 The actual value of the variable is not stored in the block context but in the defining method context, also known as home context.
 In a typical implementation the home context of a block is accessed through its closure.
-This approach works well if all objects are first-class objects, including the methods and block context.
+This approach works well if all objects are first-class objects, including the method and block context.
 Blocks can be evaluated outside their home context and still refer to remote variables.
-Hence all home contexts might outlive the method activation. \cb{cannot-return example is missing here}
+Hence all home contexts might outlive the method activation.
 
-\subsection{Optimizing the Stack in the VM}
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=\textwidth]{BlockWithFullClosures}
+    \caption{A first understanding of closures.\label{fig:BlockWithFullClosures}}
+  \end{center}
+\end{figure}
+
 The previously mentioned approach for block contexts has disadvantages from a low-level point of view.
 If method and block contexts are normal objects that means they have to be garbage collected at some point.
-Combined with the typical coding practice of using small methods that call many other objects Smalltalk system generate a lot of contexts.
+Combined with the typical coding practice of using small methods that call many other objects, Smalltalk systems can generate a lot of contexts.
 
 The most efficient way to deal with method contexts is to not create them at all.
-At the VM this is done by using real stack frames.
+At the VM level, this is done by using real stack frames.
 Method contexts can be easily mapped to stack frames: whenever we call a method we create a new frame, whenever we return from a method we delete the current frame.
 In that matter Smalltalk is not different from C.
-This means whenever we return from a method the method context / stack frame is immediately removed.
-Hence no high-level garbage collection is needed. \cb{maybe explain a bit more how the stack frames work in C}
-However using the stack gets much more complicated when we have to support blocks.
+This means whenever we return from a method the method context (stack frame) is immediately removed.
+Hence no high-level garbage collection is needed.
+Nevertheless, using the stack gets much more complicated when we have to support blocks.
 
-As we mentioned before, methods contexts that are used as home contexts might outlive their activation.
-If method contexts work as they did up to now we would to check each time for home contexts if a stack frame is removed.
+As we mentioned before, method contexts that are used as home contexts might outlive their activation.
+If method contexts work as we explained up to now we would have to check each time for home contexts if a stack frame is removed.
 This comes with a big performance penalty.
 Hence the next step in using a stack for contexts is to make sure method contexts can be safely removed when we return from a method.
 
-The following example shows how remote variables are no longer directly stored in the home context but in a separate remote array.
+The Figure \ref{fig:BlockWithMethodContext} shows how remote variables
+are no longer directly stored in the home context but in a separate
+remote array.
 
 \begin{figure}
-\begin{center}
-\includegraphics[width=\textwidth]{BlockWithMethodContext}
-\end{center}
+  \begin{center}
+    \includegraphics[width=\textwidth]{BlockWithMethodContext}
+    \caption{How the VM stores remote variables so that they continue to leave when a method returns.\label{fig:BlockWithMethodContext}}
+  \end{center}
 \end{figure}
 
-
-
-\subsection{Reading Remote Variables in a TemporaryVector}
-The following example defines a block that read a temporary variable from its enclosing block.
-\begin{code}{}
-exampleReadInBlock
-    | readOnlyInBlock |
-    readOnlyInBlock := #readOnlyInBlock.
-    ^ [ readOnlyInBlock ] value
-\end{code}
+% \subsection{Reading Remote Variables in a TemporaryVector}
+% The following example defines a block that read a temporary variable from its enclosing block.
+% \begin{code}{}
+%   exampleReadInBlock
+%   | readOnlyInBlock |
+%   readOnlyInBlock := #readOnlyInBlock.
+%   ^ [ readOnlyInBlock ] value
+% \end{code}
 
 
 
-\subsection{Optimizing read-only Temporaries accessed from a Block}
-The bytecodes for this method look as follows.
-\begin{code}{}
-pushConstant: #readOnlyInBlock
-popIntoTemp: 0
-pushTemp: 0
+% \subsection{Optimizing read-only Temporaries accessed from a Block}
+% The bytecodes for this method look as follows.
+% \begin{code}{}
+%   pushConstant: #readOnlyInBlock
+%   popIntoTemp: 0
+%   pushTemp: 0
 
-closureNumCopied: 1 numArgs: 0 bytes 24 to 25
-pushTemp: 0
-blockReturn
+%   closureNumCopied: 1 numArgs: 0 bytes 24 to 25
+%   pushTemp: 0
+%   blockReturn
 
-send: value
-returnTop
-\end{code}
+%   send: value
+%   returnTop
+% \end{code}
 
 
-\subsection{More Examples}
-\begin{code}{}
-exampleWrittenInBlock
-    | writtenInBlock |
-    [ writtenInBlock := #foo ] value.
-    ^ writtenInBlock
-\end{code}
+% \subsection{More Examples}
+% \begin{code}{}
+%   exampleWrittenInBlock
+%   | writtenInBlock |
+%   [ writtenInBlock := #foo ] value.
+%   ^ writtenInBlock
+% \end{code}
 
-\begin{code}{}
-exampleTempNamedPut
-    | externalViciouslyWritten |
-    externalViciouslyWritten := #external.
-    [ thisContext tempNamed: #externalViciouslyWritten put: #internal. externalViciouslyWritten ] value.
-    ^ externalViciouslyWritten
-\end{code}
+% \begin{code}{}
+%   exampleTempNamedPut
+%   | externalViciouslyWritten |
+%   externalViciouslyWritten := #external.
+%   [ thisContext tempNamed: #externalViciouslyWritten put: #internal. externalViciouslyWritten ] value.
+%   ^ externalViciouslyWritten
+% \end{code}
 
 % too many arguments for blocks
 % 
-\section{Chapter Summary}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-%=========================================================
-\ifx\wholebook\relax\else
-   \bibliographystyle{jurabib}
-   \nobibliography{scg}
-   \end{document}
-\fi
-
-%=================================================================
-\ifx\wholebook\relax\else\end{document}\fi
-%=================================================================
-
-%-----------------------------------------------------------------
-
-%%% Local Variables:
-%%% coding: utf-8
-%%% mode: latex
-%%% TeX-master: t
-%%% TeX-PDF-mode: t
-%%% ispell-local-dictionary: "english"
-%%% End:
-
-
 %| last |
 %last := thisContext.
 %thisContext runSimulated: [#(1 2 3) detect: [:e| e even]] contextAtEachStep: [:c| c ~~ last ifTrue: [Transcript print: c; cr; flush. last := c]]
@@ -949,4 +900,40 @@ exampleTempNamedPut
 \section{Chapter conclusion}
 % ============================================================================
 
-We want to thank Ben Coman for his english corrections and Eliot Miranda for the discussions and explanations about his implementation of fast closure for Squeak and Pharo. We thank Norbert Hartl for his feedback.
+% We want to thank Ben Coman for his english corrections and Eliot
+% Miranda for the discussions and explanations about his implementation
+% of fast closure for Squeak and Pharo. We thank Norbert Hartl for his
+% feedback.
+
+In this chapter we learned how to use \emph{blocks}, also called
+\emph{closures}, and how they are implemented. We saw that we can use
+a block even if the method defining it has returned. A block can
+access its own variables and also \emph{remote} variables: instance
+variables, temporaries and arguments of the defining method. We also
+saw how blocks can terminate a method and return a value to the
+sender. We say that these blocks are \emph{non-local returning blocks}
+and that some care has to be taken to avoid errors: a block can not
+terminate a method that has already returned. Finally, we understood
+what the \ct{thisContext} pseudo variable is and how to use it to get
+information about the executing context and potentially change it.
+
+%=========================================================
+\ifx\wholebook\relax\else
+   \bibliographystyle{jurabib}
+   \nobibliography{scg}
+   \end{document}
+\fi
+
+%=================================================================
+\ifx\wholebook\relax\else\end{document}\fi
+%=================================================================
+
+%-----------------------------------------------------------------
+
+%%% Local Variables:
+%%% coding: utf-8
+%%% mode: latex
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% ispell-local-dictionary: "english"
+%%% End:
