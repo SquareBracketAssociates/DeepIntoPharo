@@ -433,7 +433,7 @@ Bexp>>jumpingOut
 
 For example, the following expression \ct{Bexp new jumpingOut} will return 3 and not 42. \ct{^ 42} will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels and return to the method caller. Some old code in Pharo (predating introduction of exceptions) passes non-local returning blocks around leading to complex flows and difficult to maintain code. In subsequent sections we will carefully look at where a return is actually returning.
 
-\paragraph{A more interesting example.}
+\subsection{Understanding return}
 Now to see that a return is really escaping the current execution, let us build a slightly more complex call flow. We define four methods among which one creates an escaping block \ct{defineBlock} and one evaluates this block (\ct{arg:}). Pay attention that to stress the escaping behavior of a return we defined \ct{evaluatingBlock:} so that it endlessly loops after evaluating its argument.
 
 \begin{code}{}
@@ -538,7 +538,7 @@ Bexp>>defineBlock
 To verify where the execution will end, you can use the expression \ct{thisContext home sender copy inspect. } which returns a method context pointing to the assignment in the method \ct{start}.
 
 \paragraph{Couple more examples.}
-The following examples show that escaping blocks jump to their home contexts but do not unwind the stack after this point \sd{explain that}. For example the previous example shows that the method \ct{start} was fully executed.
+The following examples show that escaping blocks jump to their home contexts but do not unwind the stack after this point \sd{explain that or change the sentence}. For example the previous example shows that the method \ct{start} was fully executed.
 We define \ct{valuePassingEscapingBlock} on the class \ct{BlockClosure} as follows.
 
 \begin{code}{}
@@ -546,7 +546,7 @@ BlockClosure>>valuePassingEscapingBlock
 	  self value: [ ^nil ]
 \end{code}
 
-Then we define a simple assert: method that raises an error if its argument is false.
+Then we define a simple \ct{assert:} method that raises an error if its argument is false.
 
 \begin{code}{}
 Bexp>>assert: aBoolean
@@ -570,8 +570,7 @@ This method defines a block whose argument \ct{break} is evaluated as soon as th
 
 If you change the \ct{valuePassingEscapingBlock} message sent by \ct{value: [^ nil]} in the \ct{testValueWithExitBreak} method above, you will not get the trace because the execution of the method \ct{testValueWithExitBreak} will exit when the block is evaluated. In this case, calling \ct{valuePassingEscapingBlock} is not equivalent to calling \ct{value: [^nil]} because the home context of the escaping block \ct{[ ^ nil ]} is different.  With the original \ct{valuePassingEscapingBlock}, the home context of the block \ct{[^ nil]}
 is \ct{valuePassingEscapingBlock} and not the method \ct{testValueWithExitContinue} itself.
-Therefore when evaluated, the escaping block will change the execution flow to the \ct{valuePassingEscapingBlock} message in the method \ct{testValueWithExitBreak} (similarly to the previous example where the flow came back just after the invocation of the \ct{defineBlock} message).
-Put a self halt before the assert: to convince you. In one case, you will reach the halt while in the other not.
+Therefore when evaluated, the escaping block will change the execution flow to the \ct{valuePassingEscapingBlock} message in the method \ct{testValueWithExitBreak} (similarly to the previous example where the flow came back just after the invocation of the \ct{defineBlock} message). Put a \ct{self halt} before the \ct{assert:} to convince you. In one case, you will reach the halt while in the other not.
 
 \paragraph{Non-local return blocks.} As a block is always evaluated in its home context, it is possible to attempt to return from a method execution which has already returned. This runtime error condition is trapped by the VM.
 
@@ -582,14 +581,13 @@ Bexp>>returnBlock
 Bexp new returnBlock value ~-> Exception
 \end{code}
 
-When we execute \ct{returnBlock}, the method returns the block to its caller (here the top level execution). When evaluating the block, because the method defining it has already terminated, an error is signaled.
+When we execute \ct{returnBlock}, the method returns the block to its caller (here the top level execution). When evaluating the block, because the method defining it has already terminated and because the block is containing a return expression that should normally   return to the sender of the block home context, an error is signaled.
 
 
 % ==========================================================================
 \section{Context: representing method execution}
 % ============================================================================
-
-A Smalltalk interpreter needs the following information to represent its current execution state:
+Contexts represents method execution. A Smalltalk interpreter needs the following information to represent its current execution state:
 
 The Pharo interpreter represents its current execution state with the following information:
 
@@ -652,7 +650,9 @@ The class \ct{MethodContext} and its superclasses \ct{ContextPart} and \ct{Instr
 \section{Closures}
 % ============================================================================
 
-Blocks is a concept introduced by SCHEME in the seventies under the name lexical closures. A lexical closure is an anonymous function that is somehow connected to the place where it is defined and to the execution context where it is evaluated. In the following, we will describe this connection. Implement the following method.
+%Blocks is a concept introduced by SCHEME in the seventies under the name lexical closures. 
+
+A lexical closure is an anonymous function that is somehow connected to the place where it is defined and to the execution context where it is evaluated. In the following, we will describe this connection. Implement the following method.
 
 \begin{code}{}
 Bexp>>blockLocalTemp
