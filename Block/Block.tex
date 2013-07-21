@@ -585,11 +585,9 @@ When we execute \ct{returnBlock}, the method returns the block to its caller (he
 
 
 % ==========================================================================
-\section{Context: representing method execution}
+\section{Contexts: representing method execution}
 % ============================================================================
-Contexts represents method execution. A Smalltalk interpreter needs the following information to represent its current execution state:
-
-The Pharo interpreter represents its current execution state with the following information:
+Contexts represents method execution. The Pharo execution engine represents its current execution state with the following information:
 
 \begin{enumerate}
 \item the \ct{CompiledMethod} whose bytecodes are being executed;
