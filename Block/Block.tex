@@ -395,6 +395,7 @@ In this section we explain why it is  not a good idea to have return statements 
 By default the returned value of a method is the receiver of the message \ie self.
 A return expression (the expression starting with the character \ct{^}) allows one to return a different value than the receiver of the message. In addition, the execution of a return statement exits the currently executed method and returns to its caller. This ignores the expressions following the return statement.
 
+\paragraph{Experiment 7: return's exiting behavior.}
 Define the following method. Executing \ct{Bexp new testExplicitReturn}  prints 'one' and 'two' but it will not print \ct{not printed}, since the method \ct{testExplicitReturn} will have returned before.
 
 \begin{code}{}
@@ -404,6 +405,7 @@ Bexp>>testExplicitReturn
 	self traceCr: 'not printed'
 \end{code}
 
+Note that the return expression should be the last statement of a block body.
 
 %Finally, in Smalltalk, \ct{^} should be the last statement of a block body. You should get a compile error if you type and compile the following expression.
 %
@@ -417,7 +419,7 @@ Bexp>>testExplicitReturn
 
 
 \subsection{Escaping behavior of non-local return}
-A return expression behaves also like an escape mechanism since the execution flow will directly jump out to the current invoking method. For example, the following expression \ct{Bexp new jumpingOut} will return 3 and not 42. \ct{^ 42} will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels and return to the method caller. Some old code  in Pharo (predating introduction of exceptions) passes non-local returning blocks around leading to complex flows and difficult to maintain code. In subsequent sections we will carefully look at where a return is actually returning.
+A return expression behaves also like an escaping mechanism since the execution flow will directly jump out to the current invoking method. Let's define a new method \ct{jumpingOut} as follows to illustrate this behavior.
 
 \begin{code}{}
 Bexp>>jumpingOut
@@ -428,8 +430,11 @@ Bexp>>jumpingOut
 	^ 42
 \end{code}
 
-Now to see that a return is really escaping the current execution, let us build a slightly more complex call flow.
-We define four methods among which one creates an escaping block \ct{defineBlock} and one evaluates this block (\ct{arg:}). Pay attention that to stress the escaping behavior of a return we defined \ct{evaluatingBlock:} so that it endlessly loops after evaluating its argument.
+
+For example, the following expression \ct{Bexp new jumpingOut} will return 3 and not 42. \ct{^ 42} will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels and return to the method caller. Some old code in Pharo (predating introduction of exceptions) passes non-local returning blocks around leading to complex flows and difficult to maintain code. In subsequent sections we will carefully look at where a return is actually returning.
+
+\paragraph{A more interesting example.}
+Now to see that a return is really escaping the current execution, let us build a slightly more complex call flow. We define four methods among which one creates an escaping block \ct{defineBlock} and one evaluates this block (\ct{arg:}). Pay attention that to stress the escaping behavior of a return we defined \ct{evaluatingBlock:} so that it endlessly loops after evaluating its argument.
 
 \begin{code}{}
 Bexp>>start
@@ -481,7 +486,7 @@ When the return statement of the block is executed in the method \ct{evaluateBlo
 
 \begin{figure}
 \begin{center}\includegraphics[width=\textwidth]{nonLocalReturn2}
-\caption{A block with non-local return execution returns to the method execution that activated the block home context.\label{nonLocalReturn}}
+\caption{A block with non-local return execution returns to the method execution that activated the block home context. Frames represent contexts and dashed frames represent the same block at different execution time.\label{nonLocalReturn}}
 \end{center}
 \end{figure}
 
@@ -489,11 +494,11 @@ As shown by Figure~\ref{nonLocalReturn}, \ct{[^33]} will return to the sender of
 
 \begin{itemize}
 \item Step 1 represents the execution up to the invocation of the
-  method \ct{defineBlock}: 'start start' is printed.
+  method \ct{defineBlock}: \ct{'start start'} is printed.
 
 \item Step 3 represents the execution up to the block creation, which
-  is done in Step 2. 'defineBlock start' is printed. The home context
-  of the block is the \ct{defineContext} method execution context.
+  is done in Step 2. \ct{'defineBlock start'} is printed. The home context
+  of the block is the \ct{defineBlock} method execution context.
 
 \item Step 4 represents the execution up to the invocation of the method
   \ct{evaluateBlock:}. \ct{arg start'} is printed.
@@ -502,14 +507,14 @@ As shown by Figure~\ref{nonLocalReturn}, \ct{[^33]} will return to the sender of
   'evaluateBlock: start' is printed.
 
 \item Step 6 represents the execution of the block up to the
-  condition: 'block start' is printed.
+  condition: \ct{'block start'} is printed.
 
 \item Step 7 represents the execution up to the return statement.
 
 \item Step 8 represents the execution of the return statement. It
   returns to the sender of the block home context, \ie just after the
-  invocation of the method defineBlock in the method start. The
-  execution continues and 'start end' gets printed.
+  invocation of the method \ct{defineBlock} in the method \ct{start}. The
+  execution continues and \ct{'start end'} gets printed.
 \end{itemize}
 
 \paragraph{Accessing information.} 
@@ -522,18 +527,19 @@ Note that such expressions will be executed during the block evaluation.
 Bexp>>defineBlock
 	| res |
 	self traceCr: 'defineBlock start'.
-	res := self arg: [ thisContext home inspect. self traceCr: 'block start'.
-                            1 isZero ifFalse: !\textbf{[}! ^ 33 !\textbf{]}!.
+	res := self arg: [ thisContext home inspect. 
+					        self traceCr: 'block start'.
+                            1 isZero ifFalse: [ ^ 33 ].
                             self traceCr: 'block end'. ].
 	self traceCr: 'defineBlock end'.
 	^ res
 \end{code}
 
-To verify where the execution will end you can use the expression \ct{thisContext home sender copy inspect. } which returns a method context pointing to the assignment in the method \ct{start}.
+To verify where the execution will end, you can use the expression \ct{thisContext home sender copy inspect. } which returns a method context pointing to the assignment in the method \ct{start}.
 
 \paragraph{Couple more examples.}
-The following examples show that escaping blocks jumped to their home context but do not unwind the stack after this point. For example the previous example shows that the method \ct{start} was fully executed.
-We define \ct{valuePassingEscapingBlock} on the class BlockClosure as follows.
+The following examples show that escaping blocks jump to their home contexts but do not unwind the stack after this point \sd{explain that}. For example the previous example shows that the method \ct{start} was fully executed.
+We define \ct{valuePassingEscapingBlock} on the class \ct{BlockClosure} as follows.
 
 \begin{code}{}
 BlockClosure>>valuePassingEscapingBlock
