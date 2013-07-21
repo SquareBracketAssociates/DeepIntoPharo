@@ -166,28 +166,30 @@ Bexp>>evaluateBlock: aBlock
 	| t |
 	t := nil.
 	aBlock value	
+
+Bexp new setVariableAndDefineBlock 
+--> 42
 \end{code}
 
-Executing the \ct{Bexp new setVariableAndDefineBlock} expression prints 42 in the Transcript (message \ct{traceCr}). The value of the temporary variable \ct{t} defined in the \ct{setVariableAndDefineBlock} method is the one used rather than the one of \ct{t} defined inside \ct{evaluateBlock:} even if the block is evaluated during the execution of the later method.
 
-The variable \ct{t} is not looked up in the context of the  block-evaluating method \ct{evaluateBlock:} but in the context of the block-defining method \ct{setVariableAndDefineBlock}.
+Executing the \ct{Bexp new setVariableAndDefineBlock} expression prints 42 in the Transcript (message \ct{traceCr}). The value of the temporary variable \ct{t} defined in the \ct{setVariableAndDefineBlock} method is the one used rather than the one of \ct{t} defined inside \ct{evaluateBlock:} even if the block is evaluated during the execution of the later method. The variable \ct{t} is not looked up in the context of the  block-evaluating method \ct{evaluateBlock:} but in the context of the block-defining method \ct{setVariableAndDefineBlock}.
 
 Let's look at it in detail. Figure~\ref{fig:variable} shows the execution of the expression \ct{Bexp new setVariableAndDefineBlock}. 
 
 \begin{itemize}
 \item During the execution of method \ct{setVariableAndDefineBlock}, a variable \ct{t} is defined and it is assigned 42. Then a block is created and this block refers to the method activation context - which holds temporary variables (Step 1). 
 
-\item The method \ct{evaluateBlock:} defines its own local variable \ct{t} with the same name than the one in the block. However, this is not this variable that is used when the block is evaluated. While executing the method \ct{evaluateBlock:} the block is evaluated (step 2), during the execution of the expression \ct{t traceCr} the non-local variable \ct{t} is looked up in the home context of the block \ie the method context that created the block and not the context of the currently executed method.
+\item The method \ct{evaluateBlock:} defines its own local variable \ct{t} with the same name than the one in the block. However, this is not this variable that is used when the block is evaluated. While executing the method \ct{evaluateBlock:} the block is evaluated (Step 2), during the execution of the expression \ct{t traceCr} the non-local variable \ct{t} is looked up in the home context of the block \ie the method context that \emph{created} the block and not the context of the currently executed method.
 \end{itemize}
 
 \begin{figure}
 \begin{center}\includegraphics[width=\textwidth]{variable}
-\caption{Non-local variables are looked in the method activation context where the block was created and not evaluated.\label{fig:variable}}
+\caption{Non-local variables are looked in the method activation context where the block was \emph{created} and not evaluated.\label{fig:variable}}
 \end{center}
 \end{figure}
 
 
-\paragraph{Experiment 2: Changing a variable value.} The method \ct{setVariableAndDefineBlock2} shows that a non-local variable value can be changed during the evaluation of a block. Executing \ct{Bexp new setVariableAndDefineBlock2} prints 33, since 33 is the last value of the variable \ct{t}.
+\paragraph{Experiment 2: Changing a variable value.} Let's continue our experiences. The method \ct{setVariableAndDefineBlock2} shows that a non-local variable value can be changed during the evaluation of a block. Executing \ct{Bexp new setVariableAndDefineBlock2} prints 33, since 33 is the last value of the variable \ct{t}.
 
 
 \begin{code}{}
@@ -195,7 +197,12 @@ Bexp>>setVariableAndDefineBlock2
 	| t |
 	t := 42.
 	self evaluateBlock: [ t := 33. t traceCr ]
+
+Bexp new setVariableAndDefineBlock2	
+	--> 33
 \end{code}
+
+
 
 \paragraph{Experiment 3: Accessing a shared non-local variable.}
 Two blocks can share a non-local variable and they can modify the value of this variable at different moments. To see this, let us define a new method \ct{setVariableAndDefineBlock3} as follows:
@@ -209,12 +216,20 @@ Bexp>>setVariableAndDefineBlock3
 	self evaluateBlock: [ t traceCr ]
 \end{code}
 
+\begin{code}{}
+Bexp new setVariableAndDefineBlock3
+	--> 42
+	--> 33
+	--> 33
+	--> 66 
+	--> 66
+\end{code}
+
 \ct{Bexp new setVariableAndDefineBlock3} will print 42, 33, 33, 66 and 66.
-Here the two blocks \ct{[ t := 33. t traceCr ]} and \ct{[ t := 66. t traceCr ]} access the same variable \ct{t} and can modify it. During the first execution of the method \ct{evaluateBlock:} its current value \ct{42} is printed, then the value is changed and printed. A similar situation occurs with the second call. This example shows that blocks share the context where variables are stored.
+Here the two blocks \ct{[ t := 33. t traceCr ]} and \ct{[ t := 66. t traceCr ]} access the same variable \ct{t} and can modify it. During the first execution of the method \ct{evaluateBlock:} its current value \ct{42} is printed, then the value is changed and printed. A similar situation occurs with the second call. This example shows that blocks share the context where variables are stored and also that a block does not copy the value of a captured variable. It just refers to the location of the variables and several blocks can refer to the same location.
 
 \paragraph{Experiment 4: Variable lookup is done at execution time.}\
-The following example shows that the value of the variable is looked up at runtime.
-First add the instance variable \ct{block} to the class \ct{Bexp}.
+The following example shows that the value of the variable is looked up at runtime and not copied during the block creation. First add the instance variable \ct{block} to the class \ct{Bexp}.
 
 \begin{code}{}
 Object subclass: #Bexp
@@ -235,9 +250,10 @@ Bexp>>setVariableAndDefineBlock4
 	block := [ t traceCr: t ].
 	t := 69.
 	self evaluateBlock: block
-\end{code}
 
-\ct{Bexp new setVariableAndDefineBlock4} prints 69.
+Bexp new setVariableAndDefineBlock4 
+	--> 69.
+\end{code}
 
 \paragraph{Experiment 5: For method arguments.}\
 Naturally we can expect that method arguments are bound in the context of the defining method. Let's illustrate this point now. Define the following methods.
@@ -256,8 +272,8 @@ Bexp>>evaluateBlockAndIgnoreArgument: arg
 
 Now executing \ct{Bexp new testArg: 'foo'} prints \ct{'foo'} even if in the method \ct{evaluateBlockAndIgnoreArgument:} the temporary \ct{arg} is redefined.
 
-\paragraph{Experiment 6: self binding.}
-For binding of self, we simply define a new class and a couple of methods.
+\paragraph{Experiment 6: self binding.} Now we can wonder if self is also captured.
+To test we need another class. Let's simply define a new class and a couple of methods.
 Add the instance variable \ct{x} to the class \ct{Bexp} and define the \ct{initialize} method as follows:
 
 \begin{code}{}
@@ -298,30 +314,40 @@ Bexp>>evaluateBlock
 	self evaluateBlock: [self crTrace ; traceCr: x]
 \end{code}
 
+\begin{code}{}
+Bexp new evaluateBlock
+  --> a Bexp123  "and not a Bexp269"
+\end{code}
+
 Now when we execute \ct{Bexp new evaluateBlock}, we get \ct{a Bexp123} printed in the Transcript, showing that a block captures self too, since an instance of Bexp2 evaluated the block but the printed object (self) is the original Bexp instance that was accessible at the block creation time.
+
+\paragraph{Conclusion.} We show that blocks capture variables that are reached from the context in which the block was defined and not where there are executed. Blocks keep references to variable locations that can be shared between multiple blocks. 
 
 
 % ============================================================================
 \section{Variables can outlive their defining method}
 % ============================================================================
 
-Non block local variables referred to by a block continue to be accessible and shared with other expressions even if the method execution terminated. We say that variables outlive the method execution that defined them.
-Let us take some examples.
+Non-block local variables referred to by a block continue to be accessible and shared with other expressions even if the method execution terminated. We say that variables outlive the method execution that defined them.
+Let's take some examples.
 
-\paragraph{Method-Block Sharing.} Define the following method \ct{foo} which defines a temporary variable \ct{a}.
+\paragraph{Method-Block Sharing.} We start with a simple example showing that a variable is shared between a method and a block (as in the previous experiences in fact). Define the following method \ct{foo} which defines a temporary variable \ct{a}.
 
 \begin{code}{}
 Bexp>>foo
 	| a |
 	[ a := 0 ] value.
 	^ a
+	
+Bexp new foo
+   --> 0	
 \end{code}
 
 When we execute \ct{Bexp new foo}, we get 0 and not nil.
 Here what you see is that the value is shared between the method body and the block. Inside the method body we can access the variable whose value was set by the block evaluation.
 Both the method  and block bodies access the same temporary variable \ct{a}.
 
-Now define the method \ct{twoBlockArray} as follows:
+Let's make it slightly more complicated. Define the method \ct{twoBlockArray} as follows:
 
 \begin{code}{}
 Bexp>>twoBlockArray
@@ -354,7 +380,7 @@ res second value traceCr.
 \end{code}
 
 Let us step back and look at an important point.
-In the previous code snippet when the expressions \ct{res second value} and \ct{res first value} are executed, the method \ct{twoBlockArray} has already finished its execution - as such it is not on the execution stack anymore.  Still the temporary variable \ct{a} can be accessed and set to a new value. This experiment shows that the variables referred to by a block may live longer than the method which created the block that refers to them. We say that the variables outlive their defining method execution.
+In the previous code snippet when the expressions \ct{res second value} and \ct{res first value} are executed, the method \ct{twoBlockArray} has already finished its execution - as such it is not on the execution stack anymore.  Still the temporary variable \ct{a} can be accessed and set to a new value. This experiment shows that the variables referred to by a block may live longer than the method which created the block that refers to them. We say that the variables outlive the execution of their defining method.
 
  You can see from this example that while temporary variables are somehow stored in an activation context, the implementation is a bit more subtle than that. The block implementation needs to keep referenced variables in a structure that is not in the execution stack but lives on the heap. We will go in more details in a following section.
 
