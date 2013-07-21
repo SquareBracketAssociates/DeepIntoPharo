@@ -56,7 +56,7 @@ In this chapter we present some basic block behaviors such as the notion of stat
 \section{Basics}
 % ============================================================================
 
-What is a block? Historically, a block is a lambda expression, also called an anonymous function. A block is a piece of code whose evaluation is frozen and kicked in using messages. Blocks are defined by square brackets.
+What is a block? A block is a lambda expression that captures (or closes over) its environment. We will see later what it means exactly. A block can also be perceived as an anonymous function. A block is a piece of code whose evaluation is frozen and kicked in using messages. Blocks are defined by square brackets.
 
 If you execute and print the result of the following code, you will not get 3 but a block.
 
@@ -134,9 +134,9 @@ Some messages are related to process scheduling. We list the most important ones
 % ============================================================================
 \section{Variables and Blocks}
 % ============================================================================
-A block can have its own temporary variables. Such variables are initialized during each block evaluation and are local to the block. Now the question we want to make clear is what is happening when a block refers to other (non-local) variables. Later, for the curious, we will present how local variables are implemented and stored.
+A block can have its own temporary variables. Such variables are initialized during each block evaluation and are local to the block. Now the question we want to make clear is what is happening when a block refers to other (non-local) variables. A block will close over the external variables it uses. It means that even if the block is executed later in an environment that does not lexically contains the variables used by a block, the block will still have access the variables during its execution. Later, for the curious, we will present how local variables are implemented and stored.
 
-In Pharo, private variables (such as self, instance variables, method temporaries and arguments) are lexically scoped. These variables are bound (get a value associated to them) in \emph{the context (a stack frame)} in which the block that contains them is \emph{defined}, rather than the context in which the block is evaluated.  Traditionally, the context in which a block is defined is named the \emph{block home context}.
+In Pharo, private variables (such as self, instance variables, method temporaries and arguments) are lexically scoped (it means that an expression in the method can access to the instance variables of the class for example but the same expression in another class cannot access the same variables). At runtime, these variables are bound (get a value associated to them) in \emph{the context (a stack frame)} in which the block that contains them is \emph{defined}, rather than the context in which the block is evaluated. It means that a block when evaluated somewhere else can access variables that existed when it was created. Traditionally, the context in which a block is defined is named the \emph{block home context}.
 
 In essence, a context (called stack frame in other languages) represents information about the current evaluation step such as the context from which the current one is executed, the next byte code to be executed, and the value of the temporary variables. A context is an activation record representing a Smalltalk execution stack element. This is important and we will come back later to this concept.
 
@@ -152,20 +152,20 @@ Object subclass: #Bexp
 \end{code}
 
 
-\paragraph{Experiment 1: Variable lookup.} A variable is looked up in the block definition context.
+\paragraph{Experiment 1: Variable lookup.} A variable is looked up in the block definition context. We define two methods: one that defines a variable \ct{t} and sets it to 42 and a block and one that defines a new variable executes a block defined elsewhere.
 
 
 
 \begin{code}{}
-Bexp>>evaluateBlock: aBlock
-	| t |
-	t := nil.
-	aBlock value
-
 Bexp>>setVariableAndDefineBlock
 	| t |
 	t := 42.
 	self evaluateBlock: [ t traceCr ]
+	
+Bexp>>evaluateBlock: aBlock
+	| t |
+	t := nil.
+	aBlock value	
 \end{code}
 
 Executing the \ct{Bexp new setVariableAndDefineBlock} expression prints 42 in the Transcript (message \ct{traceCr}). The value of the temporary variable \ct{t} defined in the \ct{setVariableAndDefineBlock} method is the one used rather than the one of \ct{t} defined inside \ct{evaluateBlock:} even if the block is evaluated during the execution of the later method.
