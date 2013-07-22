@@ -132,7 +132,7 @@ Some messages are related to process scheduling. We list the most important ones
 
 
 % ============================================================================
-\section{Variables and Blocks}
+\section{Variables and blocks}
 % ============================================================================
 A block can have its own temporary variables. Such variables are initialized during each block evaluation and are local to the block. Now the question we want to make clear is what is happening when a block refers to other (non-local) variables. A block will close over the external variables it uses. It means that even if the block is executed later in an environment that does not lexically contains the variables used by a block, the block will still have access the variables during its execution. Later, for the curious, we will present how local variables are implemented and stored.
 
@@ -325,13 +325,12 @@ Now when we execute \ct{Bexp new evaluateBlock}, we get \ct{a Bexp123} printed i
 
 
 % ============================================================================
-\subsection{Closures}
+\subsection{Block-local variables}
 % ============================================================================
 
-%Blocks is a concept introduced by SCHEME in the seventies under the name lexical closures. 
-As we saw previously a block is a lexical closure that is connected to the place where it is defined and to the execution context where it is evaluated. 
+As we saw previously a block is a lexical closure that is connected to the place where it is defined and to the execution context where it is evaluated. In the following, we will illustrate this connection by showing that block local variables are allocated in the execution context link to their creation.
 
-In the following, we will illustrate this connection. Implement the following method.
+\paragraph{Block allocation.} Implement the following method \ct{blockLocalTemp}.
 
 \begin{code}{}
 Bexp>>blockLocalTemp
@@ -344,7 +343,8 @@ Bexp>>blockLocalTemp
 	^ collection collect: [ :each | each value ]
 \end{code}
 
-Let's comment the code: we create a loop that stores the current index in a temporary variable \ct{temp} created in the loop. Then, we store a block that accesses this variable in a collection. After the loop, we evaluate each accessing block and return the collection of values. If we execute this method, we get a collection with 1, 2 and 3. This result means that each block in the collection refers to a different \ct{temp} variable.
+Let's comment the code: we create a loop that stores the current index in a temporary variable \ct{temp} created in the loop. Then, we store a block that accesses this variable in a collection. After the loop, we evaluate each accessing block and return the collection of values. If we execute this method, we get a collection with 1, 2 and 3. This result shows that each block in the collection refers to a different \ct{temp} variable.
+This is due to the fact that an execution context is created for each block evaluation (at each loop step) and that the block \ct{[ temp ]} refers to this context.
 
 \begin{figure}
 	\centering
@@ -353,7 +353,7 @@ Let's comment the code: we create a loop that stores the current index in a temp
 	\label{fig:blockLocalTempExecution}
 \end{figure}
 
-Create a new method that is the same as \ct{blockLocalTemp} except that \ct{temp} is a method variable instead of a block variable.
+\paragraph{Method allocation.} Create a new method that is the same as \ct{blockLocalTemp} except that \ct{temp} is a method variable instead of a block variable.
 
 \begin{code}{}
 Bexp>>blockOutsideTemp
@@ -365,7 +365,7 @@ Bexp>>blockOutsideTemp
 	^ collection collect: [ :each | each value ]
 \end{code}
 
-If we execute the method \ct{blockOutsideTemp}, we now get a collection with 3, 3 and 3. This results means that each block in the collection now refers to a single variable \ct{temp}: we see that \ct{temp} is shared by the blocks.
+If we execute the method \ct{blockOutsideTemp}, we now get a collection with 3, 3 and 3. This results shows that each block in the collection now refers to a single variable \ct{temp} allocated in the \ct{blockOutsideTemp} context leading to the fact that \ct{temp} is shared by the blocks.
 
 \begin{figure}
 	\centering
@@ -647,7 +647,7 @@ We saw that blocks refer to the home context when looking for variables. So now 
 \begin{enumerate}
 \item the \ct{CompiledMethod} whose bytecodes are being executed;
 \item the location of the next bytecode to be executed in that
-\ct{CompiledMethod}. This is the interpreter's instruction pointer;
+\ct{CompiledMethod}. This is the interpreter's program pointer;
 \item the receiver and arguments of the message that invoked the
 \ct{CompiledMethod};
 \item any temporary variable needed by the \ct{CompiledMethod};
@@ -688,11 +688,11 @@ the ones for block closures as we will later see. Let us have a look at some val
 
 \begin{figure}[b]
   \begin{center}\includegraphics[width=5cm]{ByteCodes}
-    \caption{The last instruction executed was the message send \ct{inspect}.\label{ByteCodes}}
+    \caption{The pc variable holds 27 because the last (bytecode) instruction executed was the message send \ct{inspect}.\label{ByteCodes}}
   \end{center}
 \end{figure}
 
-\item \ct{stackp} defines the number of stored temporary variables.
+\item \ct{stackp} defines the number of stored temporary variables. This includes messages arguments, therefore in the example it should be two (one for \ct{temp} and one for \ct{arg})
 
 \item \ct{closureOrNil} holds a reference to the currently executing closure or nil.
 
@@ -704,13 +704,13 @@ The class \ct{MethodContext} and its superclasses \ct{ContextPart} and \ct{Instr
 
 
 % ============================================================================
-\section{Opening the trunk}
+\section{Message execution}
 % ============================================================================
 
 The Virtual Machine represents execution state as context objects, one per method or block currently executed (the word \emph{activated} is also used). In Pharo, method and block activations are represented by \ct{MethodContext} instances.
-In the rest of this chapter we explain contexts, method execution, and block closure evaluation.
+In the rest of this chapter we survey contexts, method execution, and block closure evaluation.
 
-\subsection{Sending a Message}
+\subsection{Sending a message}
 
 To send a message to a receiver, the VM has to:
 
@@ -721,7 +721,7 @@ To send a message to a receiver, the VM has to:
 
 \item Lookup the method in the class method dictionary. If the method
   is not found, repeat this lookup in each superclass. When no class
-  in the superclass chain can understand the message, The VM sends the
+  in the superclass chain can understand the message, the VM sends the
   message \ct{doesNotUnderstand:} to the receiver so that the error
   can be handled in a manner appropriate to that object.
 
@@ -758,21 +758,24 @@ suspended context retains the state associated with the original
 compiled method until that context becomes active again. A context
 must remember the context that it suspended so that the suspended
 context can be resumed when a result is returned. The suspended
-context is called the new context's sender.
+context is called the new context's sender. Figure~\ref{fig:MethodAndMethodContext}
+represents the relations between compiled methods and context. The method points to the currently executed method. The program counter points
+to the last instruction of the compiled method. Sender points to the context that was previously active.  
 
-A context, also called activation record, is an object representing a
-given execution state just like a C stack represents execution of a C
-program. A context maintains a program counter, the method for which
-this is appropriate, \etc. A \ct{MethodContext} represents an executing
-method and has a pointer back to the context from which it was activated.
+%A context, also called activation record, is an object representing a
+%given execution state just like a C stack represents execution of a C
+%program. A context maintains a program counter, the method for which
+%this is appropriate, \etc. A \ct{MethodContext} represents an executing
+%method and has a pointer back to the context from which it was activated.
 
-%\begin{figure}
-%\begin{center}
-%\includegraphics[width=8cm]{MethodAndMethodContext}
-%\end{center}
-%\end{figure}
+\begin{figure}
+\begin{center}
+\includegraphics[width=8cm]{MethodAndMethodContext}
+\caption{Relations between contexts and compiled methods \label{fig:MethodAndMethodContext}.}
+\end{center}
+\end{figure}
 
-\subsection{Remote Variables in Blocks}
+\subsection{Remote variables in Blocks}
 
 Temporaries and arguments for blocks are handled the same way as in methods.
 Arguments are passed on the stack and temporaries are held in the corresponding context.
@@ -782,7 +785,7 @@ As we have seen before, blocks can be passed around freely and activated at any 
 In all cases, the block can access and modify the variables from the method it was defined in.
 
 
-\subsection{Optimizing the Stack in the VM}
+%\subsection{Optimizing the stack in the VM}
 
 Let us consider the example shown in Figure \ref{fig:BlockWithFullClosures}.
 The \ct{temp} variable used in the block of the \ct{exampleReadInBlock} method is \emph{a remote variable}.
@@ -800,7 +803,7 @@ Hence all home contexts might outlive the method activation.
   \end{center}
 \end{figure}
 
-The previously mentioned approach for block contexts has disadvantages from a low-level point of view.
+\paragraph{Implementation.} The previously mentioned approach for block contexts has disadvantages from a low-level point of view.
 If method and block contexts are normal objects that means they have to be garbage collected at some point.
 Combined with the typical coding practice of using small methods that call many other objects, Smalltalk systems can generate a lot of contexts.
 
