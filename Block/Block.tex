@@ -589,7 +589,7 @@ Bexp>>defineBlock
 To verify where the execution will end, you can use the expression \ct{thisContext home sender copy inspect. } which returns a method context pointing to the assignment in the method \ct{start}.
 
 \paragraph{Couple more examples.}
-The following examples show that escaping blocks jump to their home contexts but do not unwind the stack after this point \sd{explain that or change the sentence}. For example the previous example shows that the method \ct{start} was fully executed.
+The following examples show that escaping blocks jump to sender of their home contexts. For example the previous example shows that the method \ct{start} was fully executed.
 We define \ct{valuePassingEscapingBlock} on the class \ct{BlockClosure} as follows.
 
 \begin{code}{}
@@ -635,7 +635,8 @@ Bexp new returnBlock value ~-> Exception
 When we execute \ct{returnBlock}, the method returns the block to its caller (here the top level execution). When evaluating the block, because the method defining it has already terminated and because the block is containing a return expression that should normally   return to the sender of the block home context, an error is signaled.
 
 
-
+\paragraph{Conclusion.} Blocks with non-local expressions (\ct{[^ ...]})
+return to the sender of the block home context (the context representing the execution led to the block creation).
 
 
 
