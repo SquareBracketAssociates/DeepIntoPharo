@@ -325,6 +325,57 @@ Now when we execute \ct{Bexp new evaluateBlock}, we get \ct{a Bexp123} printed i
 
 
 % ============================================================================
+\subsection{Closures}
+% ============================================================================
+
+%Blocks is a concept introduced by SCHEME in the seventies under the name lexical closures. 
+As we saw previously a block is a lexical closure that is connected to the place where it is defined and to the execution context where it is evaluated. 
+
+In the following, we will illustrate this connection. Implement the following method.
+
+\begin{code}{}
+Bexp>>blockLocalTemp
+	| collection |
+	collection := OrderedCollection new.
+	1 to: 3 do: [ :index |
+		| temp |
+		temp := index.
+		collection add: [ temp ] ].
+	^ collection collect: [ :each | each value ]
+\end{code}
+
+Let's comment the code: we create a loop that stores the current index in a temporary variable \ct{temp} created in the loop. Then, we store a block that accesses this variable in a collection. After the loop, we evaluate each accessing block and return the collection of values. If we execute this method, we get a collection with 1, 2 and 3. This result means that each block in the collection refers to a different \ct{temp} variable.
+
+\begin{figure}
+	\centering
+        \includegraphics[width=0.7\linewidth]{blockClosureLocalTemp}
+	\caption{\ct{blockLocalTemp} execution}
+	\label{fig:blockLocalTempExecution}
+\end{figure}
+
+Create a new method that is the same as \ct{blockLocalTemp} except that \ct{temp} is a method variable instead of a block variable.
+
+\begin{code}{}
+Bexp>>blockOutsideTemp
+	| collection temp |
+	collection := OrderedCollection new.
+	1 to: 3 do: [ :index | 
+		temp := index.
+		collection add: [ temp ] ].
+	^ collection collect: [ :each | each value ]
+\end{code}
+
+If we execute the method \ct{blockOutsideTemp}, we now get a collection with 3, 3 and 3. This results means that each block in the collection now refers to a single variable \ct{temp}: we see that \ct{temp} is shared by the blocks.
+
+\begin{figure}
+	\centering
+		\includegraphics[width=0.7\linewidth]{blockClosureOutsideTemp}
+	\caption{\ct{blockOutsideTemp} execution}
+	\label{fig:blockClosureOutsideTemp}
+\end{figure}
+
+
+% ============================================================================
 \section{Variables can outlive their defining method}
 % ============================================================================
 
@@ -585,54 +636,7 @@ When we execute \ct{returnBlock}, the method returns the block to its caller (he
 
 
 
-% ============================================================================
-\section{Closures}
-% ============================================================================
 
-%Blocks is a concept introduced by SCHEME in the seventies under the name lexical closures. 
-
-A lexical closure is an anonymous function that is somehow connected to the place where it is defined and to the execution context where it is evaluated. In the following, we will describe this connection. Implement the following method.
-
-\begin{code}{}
-Bexp>>blockLocalTemp
-	| collection |
-	collection := OrderedCollection new.
-	1 to: 3 do: [ :index |
-		| temp |
-		temp := index.
-		collection add: [ temp ] ].
-	^ collection collect: [ :each | each value ]
-\end{code}
-
-Let's comment the code: we create a loop that stores the current index in a temporary variable \ct{temp} created in the loop. Then, we store a block that accesses this variable in a collection. After the loop, we evaluate each accessing block and return the collection of values. If we execute this method, we get a collection with 1, 2 and 3. This result means that each block in the collection refers to a different \ct{temp} variable.
-
-\begin{figure}
-	\centering
-        \includegraphics[width=0.7\linewidth]{blockClosureLocalTemp}
-	\caption{\ct{blockLocalTemp} execution}
-	\label{fig:blockLocalTempExecution}
-\end{figure}
-
-Create a new method that is the same as \ct{blockLocalTemp} except that \ct{temp} is a method variable instead of a block variable.
-
-\begin{code}{}
-Bexp>>blockOutsideTemp
-	| collection temp |
-	collection := OrderedCollection new.
-	1 to: 3 do: [ :index | 
-		temp := index.
-		collection add: [ temp ] ].
-	^ collection collect: [ :each | each value ]
-\end{code}
-
-If we execute the method \ct{blockOutsideTemp}, we now get a collection with 3, 3 and 3. This results means that each block in the collection now refers to a single variable \ct{temp}: we see that \ct{temp} is shared by the blocks.
-
-\begin{figure}
-	\centering
-		\includegraphics[width=0.7\linewidth]{blockClosureOutsideTemp}
-	\caption{\ct{blockOutsideTemp} execution}
-	\label{fig:blockClosureOutsideTemp}
-\end{figure}
 
 
 % ==========================================================================
