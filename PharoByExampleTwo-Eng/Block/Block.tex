@@ -47,10 +47,10 @@ would be difficult to have such a small and compact syntax. The use of blocks in
 is key to get conditionals and loops as library messages and not hardcoded in the language syntax. This is why we can say that
 blocks work extremely well with the message passing syntax of Smalltalk.
 
-In addition blocks are  effective to improve the readability, reusability and efficiency of code.
-However the dynamic runtime semantics of Smalltalk is often not well documented. Blocks in the presence of return statements behave like an escaping mechanism and while this can lead to ugly code when used to its extreme, it is important to understand it. In the Pharo by Example book, we presented how to write and use blocks. On the contrary, this chapter focuses on deep aspects and their runtime behavior.
+In addition blocks are  effective to improve the readability, reusability and efficiency of code. However the dynamic runtime semantics of Smalltalk is often not well documented. Blocks in the presence of return statements behave like an escaping mechanism and while this can lead to ugly code when used to its extreme, it is important to understand it. In the Pharo by Example book, we presented how to write and use blocks. On the contrary, this chapter focuses on deep aspects and their runtime behavior.
 
-In this chapter we present some basic block behaviors such as the notion of static environments defined at block compile-time. To understand blocks, we describe how  a program executes.
+In this chapter we present the central notion of definition environments defined at block compile-time. We present how block returns can change program flow. Finally to understand blocks, we describe how programs execute and in particular we present contexts, also called activation records, which represent a given execution state.
+This chapter complements the one on exceptions (see Chapter~\ref{cha:exception}).
 
 % ============================================================================
 \section{Basics}
@@ -702,6 +702,25 @@ the ones for block closures as we will later see. Let us have a look at some val
 
 The class \ct{MethodContext} and its superclasses \ct{ContextPart} and \ct{InstructionStream} define many methods to get information about a particular context. For example, you can get the values of the arguments by sending the \ct{arguments} message and the value of a particular temporary variable by sending \ct{tempNamed:}.
 
+
+\subsection{Block nesting and contexts}
+\sd{should edit the following}
+The outerContext is a link in the static chain.  Each block is created inside some context.  This is the block's outerContext.  If the block is not nested then the outerCOntext will also be the home context  But if the block is nested inside another block activation, then the outerContext refers to that block activation, and the block activation's block's outerContext is the home context.  So there are as many outerContext steps as there are nesting levels.
+
+
+\begin{code}{}
+| homeContext b1 |
+homeContext := thisContext.
+b1 := [| b2 |
+          self assert: thisContext closure == b1.
+          self assert: b1 outerContext == homeContext.
+	    self assert: b1 home = homeContext.
+          b2 := [self assert: thisContext closure == b2.
+                    self assert: b2 outerContext closure outerContext == homeContext].
+			  self assert: b2 home = homeContext.
+          b2 value].
+b1 value 
+\end{code}
 
 
 % ============================================================================
