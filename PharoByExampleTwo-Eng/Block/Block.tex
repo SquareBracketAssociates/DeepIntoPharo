@@ -336,7 +336,7 @@ As we saw previously a block is a lexical closure that is connected to the place
 Bexp>>blockLocalTemp
 	| collection |
 	collection := OrderedCollection new.
-	1 to: 3 do: [ :index |
+	#(1 2 3) do: [ :index |
 		| temp |
 		temp := index.
 		collection add: [ temp ] ].
@@ -359,7 +359,7 @@ This is due to the fact that an execution context is created for each block eval
 Bexp>>blockOutsideTemp
 	| collection temp |
 	collection := OrderedCollection new.
-	1 to: 3 do: [ :index | 
+	#(1 2 3) do: [ :index | 
 		temp := index.
 		collection add: [ temp ] ].
 	^ collection collect: [ :each | each value ]
