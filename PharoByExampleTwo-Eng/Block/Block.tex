@@ -693,7 +693,7 @@ the ones for block closures as we will later see. Let us have a look at some val
   \end{center}
 \end{figure}
 
-\item \ct{stackp} defines the number of stored temporary variables. This includes messages arguments, therefore in the example it should be two (one for \ct{temp} and one for \ct{arg})
+\item \ct{stackp} defines the depth of the stack of variables in the context. In most case, its value is the number of stored temporary variables (including arguments). But in certain cases, for example during a message sent, the depth of the stack is increased: the receiver is pushed, then the arguments, lastly the message sent is executed and the depth of the stack goes back to its previous value.
 
 \item \ct{closureOrNil} holds a reference to the currently executing closure or nil.
 
