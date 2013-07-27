@@ -667,14 +667,12 @@ return to the sender of the block home context (the context representing the exe
 % ==========================================================================
 \section{Contexts: representing method execution}
 % ============================================================================
-We saw that blocks refer to the home context when looking for variables. So now we will look at contexts. Contexts represent method execution. The Pharo execution engine represents its current execution state with the following information:
+We saw that blocks refer to the home context when looking for variables. So now we will look at contexts. Contexts represent program execution. The Pharo execution engine represents its current execution state with the following information:
 
 \begin{enumerate}
 \item the \ct{CompiledMethod} whose bytecodes are being executed;
-\item the location of the next bytecode to be executed in that
-\ct{CompiledMethod}. This is the interpreter's program pointer;
-\item the receiver and arguments of the message that invoked the
-\ct{CompiledMethod};
+\item the location of the next bytecode to be executed in that \ct{CompiledMethod}. This is the interpreter's program pointer;
+\item the receiver and arguments of the message that invoked the \ct{CompiledMethod};
 \item any temporary variable needed by the \ct{CompiledMethod};
 \item a call stack.
 \end{enumerate}
@@ -702,7 +700,7 @@ You will get the inspector shown in Figure~\ref{oneContext}. Note that we copy t
 \end{figure}
 
 \ct{MethodContext} does not only represent activation context of method execution but also
-the ones for block closures as we will later see. Let us have a look at some values of the current context:
+the ones for blocks. Let us have a look at some values of the current context:
 
 \begin{itemize}
 \item \ct{sender} points to the previous context that led to the creation of the current one. Here when you executed the expression, a context was created and this context is the sender of the current one.
@@ -717,20 +715,25 @@ the ones for block closures as we will later see. Let us have a look at some val
   \end{center}
 \end{figure}
 
-\item \ct{stackp} defines the depth of the stack of variables in the context. In most case, its value is the number of stored temporary variables (including arguments). But in certain cases, for example during a message sent, the depth of the stack is increased: the receiver is pushed, then the arguments, lastly the message sent is executed and the depth of the stack goes back to its previous value.
+\item \ct{stackp} defines the depth of the stack of variables in the context. In most case, its value is the number of stored temporary variables (including arguments). But in certain cases, for example during a message send, the depth of the stack is increased: the receiver is pushed, then the arguments, lastly the message send is executed and the depth of the stack goes back to its previous value.
 
 \item \ct{closureOrNil} holds a reference to the currently executing closure or nil.
 
 \item \ct{receiver} is the message receiver.
 \end{itemize}
 
-The class \ct{MethodContext} and its superclasses \ct{ContextPart} and \ct{InstructionStream} define many methods to get information about a particular context. For example, you can get the values of the arguments by sending the \ct{arguments} message and the value of a particular temporary variable by sending \ct{tempNamed:}.
+The class \ct{MethodContext} and its superclasses define many methods to get information about a particular context. For example, you can get the values of the arguments by sending the \ct{arguments} message and the value of a particular temporary variable by sending \ct{tempNamed:}.
 
 
 \subsection{Block nesting and contexts}
-\sd{should edit the following}
-The outerContext is a link in the static chain.  Each block is created inside some context.  This is the block's outerContext.  If the block is not nested then the outerCOntext will also be the home context  But if the block is nested inside another block activation, then the outerContext refers to that block activation, and the block activation's block's outerContext is the home context.  So there are as many outerContext steps as there are nesting levels.
+Now let's look at the case of nesting block and its impact on home contexts.
+In fact a block points to a context when it was created: it is its \emph{outer context}. Now depending on the situation the outer context of a block can be its home context or not. 
+This is not complex: Each block is created inside some context.  This is the block's outer context. The outer context is the direct context in which a block was created. The home context is the one at the method level. 
+If the block is not nested then the outer context is also be the block home context.
 
+But if the block is nested inside another block execution, then the outer context refers to that block execution context, and the block execution's block's outerContext is the home context.  There are as many outer context steps as there are nesting levels.
+
+Let us look at the following example. When you execute just press ok to the dialogs popping up.
 
 \begin{code}{}
 | homeContext b1 |
@@ -738,13 +741,20 @@ homeContext := thisContext.
 b1 := [| b2 |
           self assert: thisContext closure == b1.
           self assert: b1 outerContext == homeContext.
-	    self assert: b1 home = homeContext.
+	      self assert: b1 home = homeContext.
           b2 := [self assert: thisContext closure == b2.
-                    self assert: b2 outerContext closure outerContext == homeContext].
-			  self assert: b2 home = homeContext.
+                  self assert: b2 outerContext closure outerContext == homeContext].
+		     	  self assert: b2 home = homeContext.
           b2 value].
 b1 value 
 \end{code}
+
+\begin{itemize}
+\item First we set in \ct{homeContext}, the context before the block creation. \ct{homeContext} is the home context of the blocks \ct{b1} and \ct{b2} because they are defined during this execution.
+
+\item 
+
+\end{itemize}
 
 
 % ============================================================================
