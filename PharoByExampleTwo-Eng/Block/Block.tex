@@ -49,16 +49,16 @@ blocks work extremely well with the message passing syntax of Smalltalk.
 
 In addition blocks are  effective to improve the readability, reusability and efficiency of code. However the fine dynamic runtime semantics of Smalltalk is often not well documented. For example, blocks in the presence of return statements behave like an escaping mechanism and while this can lead to ugly code when used to its extreme, it is important to understand it. 
 
-In this chapter you will learn about the central notion of definition environments defined at block creation time. We present how block returns can change program flow. Finally to understand blocks, we describe how programs execute and in particular we present contexts, also called activation records, which represent a given execution state.
+In this chapter you will learn about the central notion of definition environments  and the capture of variables at block creation time. You will learn how block returns can change program flow. Finally to understand blocks, we describe how programs execute and in particular we present contexts, also called activation records, which represent a given execution state. We will show how contexts are used during the block execution.
 This chapter complements the one on exceptions (see Chapter~\ref{cha:exception}). In the Pharo by Example book, we presented how to write and use blocks. On the contrary, this chapter focuses on deep aspects and their runtime behavior.
 
 % ============================================================================
 \section{Basics}
 % ============================================================================
 
-What is a block? A block is a lambda expression that captures (or closes over) its environment. We will see later what it means exactly. A block can also be perceived as an anonymous function. A block is a piece of code whose evaluation is frozen and kicked in using messages. Blocks are defined by square brackets.
+What is a block? A block is a lambda expression that captures (or closes over) its environment at creation-time. We will see later what it means exactly. A block can also be perceived as an anonymous function. A block is a piece of code whose evaluation is frozen and kicked in using messages. Blocks are defined by square brackets.
 
-If you execute and print the result of the following code, you will not get 3 but a block.
+If you execute and print the result of the following code, you will not get 3 but a block. Indeed you did not ask for the block value but just for the block itself and you got it.
 
 \begin{code}[Block definition]{Block Definition}
 [ 1 + 2 ] --> [ 1 + 2 ]
@@ -134,11 +134,14 @@ Some messages are related to process scheduling. We list the most important ones
 % ============================================================================
 \section{Variables and blocks}
 % ============================================================================
-A block can have its own temporary variables. Such variables are initialized during each block evaluation and are local to the block. Now the question we want to make clear is what is happening when a block refers to other (non-local) variables. A block will close over the external variables it uses. It means that even if the block is executed later in an environment that does not lexically contains the variables used by a block, the block will still have access the variables during its execution. Later, for the curious, we will present how local variables are implemented and stored.
+A block can have its own temporary variables. Such variables are initialized during each block evaluation and are local to the block. We will see later how such variables are kept. Now the question we want to make clear is what is happening when a block refers to other (non-local) variables. A block will close over the external variables it uses. It means that even if the block is executed later in an environment that does not lexically contains the variables used by a block, the block will still have access the variables during its execution. Later we will present how local variables are implemented and stored using contexts.
 
-In Pharo, private variables (such as self, instance variables, method temporaries and arguments) are lexically scoped (it means that an expression in the method can access to the instance variables of the class for example but the same expression in another class cannot access the same variables). At runtime, these variables are bound (get a value associated to them) in \emph{the context (a stack frame)} in which the block that contains them is \emph{defined}, rather than the context in which the block is evaluated. It means that a block when evaluated somewhere else can access variables that existed when it was created. Traditionally, the context in which a block is defined is named the \emph{block home context}.
+In Pharo, private variables (such as self, instance variables, method temporaries and arguments) are lexically scoped (it means that an expression in the method can access to the instance variables of the class for example but the same expression in another class cannot access the same variables). At runtime, these variables are bound (get a value associated to them) in \emph{the context} in which the block that contains them is \emph{defined}, rather than the context in which the block is evaluated. It means that a block when evaluated somewhere else can access variables that where in its scope (visible to the block) when the block was created. Traditionally, the context in which a block is defined is named the \emph{block home context}.
 
-In essence, a context (called stack frame in other languages) represents information about the current evaluation step such as the context from which the current one is executed, the next byte code to be executed, and the value of the temporary variables. A context is an activation record representing a Smalltalk execution stack element. This is important and we will come back later to this concept.
+The block home context represents a particular point of execution (since this is a program execution that created the block in the first place), therefore this notion of block home context is represented by an object that represents program execution: in Smalltalk a context. In essence, a context (called stack frame or activation record in other languages) represents information about the current evaluation step such as the context from which the current one is executed, the next byte code to be executed, and the value of the temporary variables. A context is an activation record representing a Smalltalk execution stack element. This is important and we will come back later to this concept.
+
+\important{A block is created inside some context (an object that represents an execution point).}
+
 
 \subsection{Some little experiments}
 Let's experiment a bit to understand how variables are bound in a block. Define a class named \ct{Bexp} (for BlockExperiment):
@@ -172,22 +175,24 @@ Bexp new setVariableAndDefineBlock
 \end{code}
 
 
-Executing the \ct{Bexp new setVariableAndDefineBlock} expression prints 42 in the Transcript (message \ct{traceCr}). The value of the temporary variable \ct{t} defined in the \ct{setVariableAndDefineBlock} method is the one used rather than the one of \ct{t} defined inside \ct{evaluateBlock:} even if the block is evaluated during the execution of the later method. The variable \ct{t} is not looked up in the context of the  block-evaluating method \ct{evaluateBlock:} but in the context of the block-defining method \ct{setVariableAndDefineBlock}.
+Executing the \ct{Bexp new setVariableAndDefineBlock} expression prints 42 in the Transcript (message \ct{traceCr}). The value of the temporary variable \ct{t} defined in the \ct{setVariableAndDefineBlock} method is the one used rather than the one defined inside the method \ct{evaluateBlock:} even if the block is evaluated during the execution of this method. The variable \ct{t} is  looked up in the context of the block creation (context created during the execution of the method \ct{setVariableAndDefineBlock} and not in the context of the block evaluation 
+(method \ct{evaluateBlock:}).
 
 Let's look at it in detail. Figure~\ref{fig:variable} shows the execution of the expression \ct{Bexp new setVariableAndDefineBlock}. 
 
 \begin{itemize}
 \item During the execution of method \ct{setVariableAndDefineBlock}, a variable \ct{t} is defined and it is assigned 42. Then a block is created and this block refers to the method activation context - which holds temporary variables (Step 1). 
 
-\item The method \ct{evaluateBlock:} defines its own local variable \ct{t} with the same name than the one in the block. However, this is not this variable that is used when the block is evaluated. While executing the method \ct{evaluateBlock:} the block is evaluated (Step 2), during the execution of the expression \ct{t traceCr} the non-local variable \ct{t} is looked up in the home context of the block \ie the method context that \emph{created} the block and not the context of the currently executed method.
+\item The method \ct{evaluateBlock:} defines its own local variable \ct{t} with the same name than the one in the block. However, this is not this variable that is used when the block is evaluated. While executing the method \ct{evaluateBlock:} the block is evaluated (Step 2), during the execution of the expression \ct{t traceCr} the non-local variable \ct{t} is looked up in the \emph{home context} of the block \ie the method context that \emph{created} the block and not the context of the currently executed method.
 \end{itemize}
 
 \begin{figure}
 \begin{center}\includegraphics[width=\textwidth]{variable}
-\caption{Non-local variables are looked in the method activation context where the block was \emph{created} and not evaluated.\label{fig:variable}}
+\caption{Non-local variables are looked in the method activation context where the block was \emph{created} and not where it is \emph{evaluated}.\label{fig:variable}}
 \end{center}
 \end{figure}
 
+\important{Non-local variables are looked up in the \emph{home context} of the block (\ie the method context that \emph{created} the block) and not the context executing the block.}
 
 \paragraph{Experiment 2: Changing a variable value.} Let's continue our experiences. The method \ct{setVariableAndDefineBlock2} shows that a non-local variable value can be changed during the evaluation of a block. Executing \ct{Bexp new setVariableAndDefineBlock2} prints 33, since 33 is the last value of the variable \ct{t}.
 
@@ -226,7 +231,7 @@ Bexp new setVariableAndDefineBlock3
 \end{code}
 
 \ct{Bexp new setVariableAndDefineBlock3} will print 42, 33, 33, 66 and 66.
-Here the two blocks \ct{[ t := 33. t traceCr ]} and \ct{[ t := 66. t traceCr ]} access the same variable \ct{t} and can modify it. During the first execution of the method \ct{evaluateBlock:} its current value \ct{42} is printed, then the value is changed and printed. A similar situation occurs with the second call. This example shows that blocks share the context where variables are stored and also that a block does not copy the value of a captured variable. It just refers to the location of the variables and several blocks can refer to the same location.
+Here the two blocks \ct{[ t := 33. t traceCr ]} and \ct{[ t := 66. t traceCr ]} access the same variable \ct{t} and can modify it. During the first execution of the method \ct{evaluateBlock:} its current value \ct{42} is printed, then the value is changed and printed. A similar situation occurs with the second call. This example shows that blocks share the location where variables are stored and also that a block does not copy the value of a captured variable. It just refers to the location of the variables and several blocks can refer to the same location.
 
 \paragraph{Experiment 4: Variable lookup is done at execution time.}\
 The following example shows that the value of the variable is looked up at runtime and not copied during the block creation. First add the instance variable \ct{block} to the class \ct{Bexp}.
@@ -319,7 +324,7 @@ Bexp new evaluateBlock
   --> a Bexp123  "and not a Bexp269"
 \end{code}
 
-Now when we execute \ct{Bexp new evaluateBlock}, we get \ct{a Bexp123} printed in the Transcript, showing that a block captures self too, since an instance of Bexp2 evaluated the block but the printed object (self) is the original Bexp instance that was accessible at the block creation time.
+Now when we execute \ct{Bexp new evaluateBlock}, we get \ct{a Bexp123} printed in the Transcript, showing that a block captures self too, since an instance of Bexp2 evaluated the block but the printed object (\ct{self}) is the original \ct{Bexp} instance that was accessible at the block creation time.
 
 \paragraph{Conclusion.} We show that blocks capture variables that are reached from the context in which the block was defined and not where there are executed. Blocks keep references to variable locations that can be shared between multiple blocks. 
 
@@ -328,7 +333,7 @@ Now when we execute \ct{Bexp new evaluateBlock}, we get \ct{a Bexp123} printed i
 \subsection{Block-local variables}
 % ============================================================================
 
-As we saw previously a block is a lexical closure that is connected to the place where it is defined and to the execution context where it is evaluated. In the following, we will illustrate this connection by showing that block local variables are allocated in the execution context link to their creation.
+As we saw previously a block is a lexical closure that is connected to the place where it is defined. In the following, we will illustrate this connection by showing that block local variables are allocated in the execution context link to their creation. We will show the difference when a variable is local to a block or to a method (see \figref{blockLocalTempExecution}).
 
 \paragraph{Block allocation.} Implement the following method \ct{blockLocalTemp}.
 
@@ -344,14 +349,27 @@ Bexp>>blockLocalTemp
 \end{code}
 
 Let's comment the code: we create a loop that stores the current index in a temporary variable \ct{temp} created in the loop. Then, we store a block that accesses this variable in a collection. After the loop, we evaluate each accessing block and return the collection of values. If we execute this method, we get a collection with 1, 2 and 3. This result shows that each block in the collection refers to a different \ct{temp} variable.
-This is due to the fact that an execution context is created for each block evaluation (at each loop step) and that the block \ct{[ temp ]} refers to this context.
+This is due to the fact that an execution context is created for each block creation (at each loop step) and that the block \ct{[ temp ]} refers to this context.
+
+%\begin{figure}
+%	\centering
+%        \includegraphics[width=0.7\linewidth]{blockClosureLocalTemp}
+%	\caption{\ct{blockLocalTemp} execution}
+%	\label{fig:blockLocalTempExecution}
+%\end{figure}
 
 \begin{figure}
 	\centering
-        \includegraphics[width=0.7\linewidth]{blockClosureLocalTemp}
-	\caption{\ct{blockLocalTemp} execution}
+		\begin{minipage}[c]{5.5cm}
+        \includegraphics[width=\linewidth]{blockClosureLocalTemp}
+        \end{minipage}
+        \begin{minipage}[c]{5.5cm}
+        \includegraphics[width=\linewidth]{blockClosureOutsideTemp}
+        \end{minipage}
+	\caption{\ct{blockLocalTemp} execution (Left) - \ct{blockOutsideTemp} execution (Right)}
 	\label{fig:blockLocalTempExecution}
 \end{figure}
+
 
 \paragraph{Method allocation.} Create a new method that is the same as \ct{blockLocalTemp} except that \ct{temp} is a method variable instead of a block variable.
 
@@ -367,12 +385,12 @@ Bexp>>blockOutsideTemp
 
 If we execute the method \ct{blockOutsideTemp}, we now get a collection with 3, 3 and 3. This results shows that each block in the collection now refers to a single variable \ct{temp} allocated in the \ct{blockOutsideTemp} context leading to the fact that \ct{temp} is shared by the blocks.
 
-\begin{figure}
-	\centering
-		\includegraphics[width=0.7\linewidth]{blockClosureOutsideTemp}
-	\caption{\ct{blockOutsideTemp} execution}
-	\label{fig:blockClosureOutsideTemp}
-\end{figure}
+%\begin{figure}
+%	\centering
+%		\includegraphics[width=0.7\linewidth]{blockClosureOutsideTemp}
+%	\caption{\ct{blockOutsideTemp} execution}
+%	\label{fig:blockClosureOutsideTemp}
+%\end{figure}
 
 
 % ============================================================================
