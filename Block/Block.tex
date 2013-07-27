@@ -451,8 +451,7 @@ res second value traceCr.
 Let us step back and look at an important point.
 In the previous code snippet when the expressions \ct{res second value} and \ct{res first value} are executed, the method \ct{twoBlockArray} has already finished its execution - as such it is not on the execution stack anymore.  Still the temporary variable \ct{a} can be accessed and set to a new value. This experiment shows that the variables referred to by a block may live longer than the method which created the block that refers to them. We say that the variables outlive the execution of their defining method.
 
- You can see from this example that while temporary variables are somehow stored in an activation context, the implementation is a bit more subtle than that. The block implementation needs to keep referenced variables in a structure that is not in the execution stack but lives on the heap. We will go in more details in a following section.
-
+ You can see from this example that while temporary variables are somehow stored in an activation context, the implementation is a bit more subtle than that. The block implementation needs to keep referenced variables in a structure that is not in the execution stack but lives on the heap. 
 
 % ============================================================================
 \section{Returning from inside a block}
@@ -497,13 +496,17 @@ Bexp>>jumpingOut
 					each = 3
 						ifTrue: [^ 3]].
 	^ 42
+	
+Bexp new jumpingOut
+  --> 3
 \end{code}
 
 
-For example, the following expression \ct{Bexp new jumpingOut} will return 3 and not 42. \ct{^ 42} will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels and return to the method caller. Some old code in Pharo (predating introduction of exceptions) passes non-local returning blocks around leading to complex flows and difficult to maintain code. In subsequent sections we will carefully look at where a return is actually returning.
+For example, the following expression \ct{Bexp new jumpingOut} will return 3 and not 42. \ct{^ 42} will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels and return to the method caller. Some old code (predating introduction of exceptions) passes non-local returning blocks around leading to complex flows and difficult to maintain code. We strongly suggest not to use this style because it leads to complex code and bugs.
+In subsequent sections we will carefully look at where a return is actually returning.
 
 \subsection{Understanding return}
-Now to see that a return is really escaping the current execution, let us build a slightly more complex call flow. We define four methods among which one creates an escaping block \ct{defineBlock} and one evaluates this block (\ct{arg:}). Pay attention that to stress the escaping behavior of a return we defined \ct{evaluatingBlock:} so that it endlessly loops after evaluating its argument.
+Now to see that a return is really escaping the current execution, let us build a slightly more complex call flow. We define four methods among which one (\ct{defineBlock}) creates an escaping block,  one (\ct{arg:}) evaluates this block and one (\ct{evaluatingBlock:}) that execute the block. Pay attention that to stress the escaping behavior of a return we defined \ct{evaluatingBlock:} so that it endlessly loops after evaluating its argument.
 
 \begin{code}{}
 Bexp>>start
@@ -549,9 +552,9 @@ start start
 start end
 \end{code}
 
-What we see is that the calling method \ct{start} is fully executed. The method \ct{defineBlock} is not completely executed. Indeed, its escaping block \ct{[^33]} is executed two calls away in the method \ct{evaluateBlock:}. The evaluation of the block returns to the sender of the block home context. Here the home context of the block is the execution context of the method \ct{defineBlock}. The sender of this execution was created by the execution of the method \ct{start}, therefore the return execution returns to the execution point of the \ct{start} execution context.
+What we see is that the calling method \ct{start} is fully executed. The method \ct{defineBlock} is not completely executed. Indeed, its escaping block \ct{[^33]} is executed two calls away in the method \ct{evaluateBlock:}. The evaluation of the block returns to the \emph{block home context sender} (\ie the context that invoked the method creating the block). 
 
-When the return statement of the block is executed in the method \ct{evaluateBlock:}, the execution discards the pending computation and returns to the method execution point that created the home context of the block. The block is defined in  the method \ct{defineBlock}. The home context of the block is the activation context that represents the execution of the method \ct{defineBlock}. This is why the rest of the computation in the block itself, in the \ct{defineBlock} method, and in the \ct{arg:} method is discarded.
+When the return statement of the block is executed in the method \ct{evaluateBlock:}, the execution discards the pending computation and returns to the \emph{method execution point that created the home context of the block}. The block is defined in  the method \ct{defineBlock}. The home context of the block is the activation context that represents the definition of the method \ct{defineBlock}. Therefore the return expression returns to the \ct{start} method execution just after the \ct{defineBlock} execution. This is why the pending executions of \ct{arg:} and \ct{evaluateBlock:} are discarded and why we see the execution of the method \ct{start} end.
 
 \begin{figure}
 \begin{center}\includegraphics[width=\textwidth]{nonLocalReturn2}
@@ -585,6 +588,9 @@ As shown by Figure~\ref{nonLocalReturn}, \ct{[^33]} will return to the sender of
   invocation of the method \ct{defineBlock} in the method \ct{start}. The
   execution continues and \ct{'start end'} gets printed.
 \end{itemize}
+
+\important{Non local return \ct{[^ ...]} returns to the sender of the block home context. It means to the method execution point that called the one that created the block.}
+
 
 \paragraph{Accessing information.} 
 
