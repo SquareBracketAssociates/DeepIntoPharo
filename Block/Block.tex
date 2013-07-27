@@ -42,7 +42,7 @@
 \chapter{Blocks: a Detailed Analysis}\chalabel{blocks}
 
 
-Blocks (lexical closures) are a powerful and essential feature of Smalltalk. Without them it
+Lexically-scoped block closures, blocks in short, are a powerful and essential feature of Smalltalk. Without them it
 would be difficult to have such a small and compact syntax. The use of blocks in Smalltalk
 is key to get conditionals and loops as library messages and not hardcoded in the language syntax. This is why we can say that
 blocks work extremely well with the message passing syntax of Smalltalk.
@@ -752,8 +752,10 @@ b1 value
 \begin{itemize}
 \item First we set in \ct{homeContext}, the context before the block creation. \ct{homeContext} is the home context of the blocks \ct{b1} and \ct{b2} because they are defined during this execution.
 
-\item 
+\item \ct{thisContext closure == b1} shows that the context inside the execution of the block \ct{b1} has a pointer to \ct{b1}. The outer context of b1 is \ct{homeContext}. Nothing new because \ct{b1} is defined during the execution starting after the assignment. The home context of \ct{b1} is the same than its outer context.
 
+\item Inside \ct{b2} execution, the current context points to \ct{b2} itself since it is a closure. More interesting 
+the outer context of the closure in which b2 is defined \ie b1 points to \ct{homeContext}. Finally the home context of \ct{b2} is \ct{homeContext}. This last point shows that the all the nested blocks have a separate outer context but they share the same home context.
 \end{itemize}
 
 
@@ -761,8 +763,7 @@ b1 value
 \section{Message execution}
 % ============================================================================
 
-The Virtual Machine represents execution state as context objects, one per method or block currently executed (the word \emph{activated} is also used). In Pharo, method and block activations are represented by \ct{MethodContext} instances.
-In the rest of this chapter we survey contexts, method execution, and block closure evaluation.
+The Virtual Machine represents execution state as context objects, one per method or block currently executed (the word \emph{activated} is also used). In Pharo, method and block executions are represented by \ct{MethodContext} instances. In the rest of this chapter we survey contexts, method execution, and block closure evaluation.
 
 \subsection{Sending a message}
 
@@ -801,7 +802,7 @@ To send a message to a receiver, the VM has to:
 
 The execution state before the message send must be remembered because
 the instructions after the message send must be executed when the
-message returns. State is saved in objects called contexts. There will
+message returns. State is saved using contexts. There will
 be many contexts in the system at any time. The context that
 represents the current state of execution is called the active
 context.
@@ -829,7 +830,7 @@ to the last instruction of the compiled method. Sender points to the context tha
 \end{center}
 \end{figure}
 
-\subsection{Remote variables in Blocks}
+\subsection{Sketch of implementation}
 
 Temporaries and arguments for blocks are handled the same way as in methods.
 Arguments are passed on the stack and temporaries are held in the corresponding context.
@@ -842,7 +843,7 @@ In all cases, the block can access and modify the variables from the method it w
 %\subsection{Optimizing the stack in the VM}
 
 Let us consider the example shown in Figure \ref{fig:BlockWithFullClosures}.
-The \ct{temp} variable used in the block of the \ct{exampleReadInBlock} method is \emph{a remote variable}.
+The \ct{temp} variable used in the block of the \ct{exampleReadInBlock} method is non-local or remote variable.
 \ct{temp} is initialized and changed in the method body and later on read in the block.
 The actual value of the variable is not stored in the block context but in the defining method context, also known as home context.
 In a typical implementation the home context of a block is accessed through its closure.
@@ -874,9 +875,9 @@ If method contexts work as we explained up to now we would have to check each ti
 This comes with a big performance penalty.
 Hence the next step in using a stack for contexts is to make sure method contexts can be safely removed when we return from a method.
 
-The Figure \ref{fig:BlockWithMethodContext} shows how remote variables
+The Figure \ref{fig:BlockWithMethodContext} shows how non-local variables
 are no longer directly stored in the home context but in a separate
-remote array.
+remote array, which is heap allocated.
 
 \begin{figure}
   \begin{center}
@@ -997,23 +998,22 @@ remote array.
 \section{Chapter conclusion}
 % ============================================================================
 
-% We want to thank Ben Coman for his english corrections and Eliot
-% Miranda for the discussions and explanations about his implementation
-% of fast closure for Squeak and Pharo. We thank Norbert Hartl for his
-% feedback.
+
 
 In this chapter we learned how to use \emph{blocks}, also called
-\emph{closures}, and how they are implemented. We saw that we can use
+\emph{lexical closures}, and how they are implemented. We saw that we can use
 a block even if the method defining it has returned. A block can
-access its own variables and also \emph{remote} variables: instance
+access its own variables and also \emph{non local} variables: instance
 variables, temporaries and arguments of the defining method. We also
 saw how blocks can terminate a method and return a value to the
 sender. We say that these blocks are \emph{non-local returning blocks}
 and that some care has to be taken to avoid errors: a block can not
-terminate a method that has already returned. Finally, we understood
-what the \ct{thisContext} pseudo variable is and how to use it to get
+terminate a method that has already returned. Finally, we show
+what contexts are and how they play an important role with block creation and execution.
+We show what the \ct{thisContext} pseudo variable is and how to use it to get
 information about the executing context and potentially change it.
 
+We thank Cl\'ement B\'era and Eliot Miranda for the clarifications.
 %=========================================================
 \ifx\wholebook\relax\else
    \bibliographystyle{jurabib}
