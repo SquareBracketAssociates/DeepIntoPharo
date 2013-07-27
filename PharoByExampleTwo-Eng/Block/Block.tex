@@ -552,7 +552,7 @@ start start
 start end
 \end{code}
 
-What we see is that the calling method \ct{start} is fully executed. The method \ct{defineBlock} is not completely executed. Indeed, its escaping block \ct{[^33]} is executed two calls away in the method \ct{evaluateBlock:}. The evaluation of the block returns to the \emph{block home context sender} (\ie the context that invoked the method creating the block). 
+What we see is that the calling method \ct{start} is fully executed. The method \ct{defineBlock} is not completely executed. Indeed, its escaping block \ct{[^33]} is executed two calls away in the method \ct{evaluateBlock:}. The evaluation of the block returns to the \emph{block home context sender} (\ie the context that invoked the method creating the block).
 
 When the return statement of the block is executed in the method \ct{evaluateBlock:}, the execution discards the pending computation and returns to the \emph{method execution point that created the home context of the block}. The block is defined in  the method \ct{defineBlock}. The home context of the block is the activation context that represents the definition of the method \ct{defineBlock}. Therefore the return expression returns to the \ct{start} method execution just after the \ct{defineBlock} execution. This is why the pending executions of \ct{arg:} and \ct{evaluateBlock:} are discarded and why we see the execution of the method \ct{start} end.
 
@@ -566,7 +566,7 @@ As shown by Figure~\ref{nonLocalReturn}, \ct{[^33]} will return to the sender of
 
 \begin{itemize}
 \item Step 1 represents the execution up to the invocation of the
-  method \ct{defineBlock}: \ct{'start start'} is printed.
+  method \ct{defineBlock}. The trace \ct{'start start'} is printed.
 
 \item Step 3 represents the execution up to the block creation, which
   is done in Step 2. \ct{'defineBlock start'} is printed. The home context
@@ -576,7 +576,7 @@ As shown by Figure~\ref{nonLocalReturn}, \ct{[^33]} will return to the sender of
   \ct{evaluateBlock:}. \ct{arg start'} is printed.
 
 \item Step 5 represents the execution up to the block evaluation.
-  'evaluateBlock: start' is printed.
+  'evaluateBlock start' is printed.
 
 \item Step 6 represents the execution of the block up to the
   condition: \ct{'block start'} is printed.
@@ -594,7 +594,7 @@ As shown by Figure~\ref{nonLocalReturn}, \ct{[^33]} will return to the sender of
 
 \paragraph{Accessing information.} 
 
-To manually verify and find the home context of a block we can do the following: add the expression \ct{thisContext home inspect} in the block of the  method \ct{defineBlock}. We can also add the expression \ct{thisContext closure home inspect} which accesses the closure via the current execution context and gets its home context. Note that in both cases, even if the block is evaluated during the execution of the method \ct{evaluateBlock:}, the home context of the block is the method \ct{defineBlock}.
+To manually verify and find the home context of a block we can do the following: Add the expression \ct{thisContext home inspect} in the block of the  method \ct{defineBlock}. We can also add the expression \ct{thisContext closure home inspect} which accesses the closure via the current execution context and gets its home context. Note that in both cases, even if the block is evaluated during the execution of the method \ct{evaluateBlock:}, the home context of the block is the method \ct{defineBlock}.
 
 Note that such expressions will be executed during the block evaluation.
 
@@ -602,7 +602,7 @@ Note that such expressions will be executed during the block evaluation.
 Bexp>>defineBlock
 	| res |
 	self traceCr: 'defineBlock start'.
-	res := self arg: [ thisContext home inspect. 
+	res := self arg: [ !\textbf{thisContext home inspect. }!
 					        self traceCr: 'block start'.
                             1 isZero ifFalse: [ ^ 33 ].
                             self traceCr: 'block end'. ].
