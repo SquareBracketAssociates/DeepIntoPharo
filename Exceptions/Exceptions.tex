@@ -1044,11 +1044,91 @@ Process>>>debug: context title: title full: bool
 						fullView: bool.
 \end{code}
 
+
+%=========================================================
+\section{Specific exceptions}
+
+The class \ct{Exception} in \pharo{} has ten direct subclasses, as shown in \figref{wholeHierarchy}.
+The first thing that we notice from this figure is that the Exception hierarchy is a bit of a mess; you can expect to see some of the details change as \pharo{} is improved.
+
+\begin{figure}[ht]\centering
+        \includegraphics[width=.95\linewidth]{ExceptionSubclasses}
+        \caption{A part of \pharo exception hierarchy.\figlabel{wholeHierarchy}}
+\end{figure}
+
+The second thing that we notice is that there are two large sub-hierarchies: \ct{Error} and \ct{Notification}. 
+Errors tell us that the program has fallen into some kind of abnormal situation. 
+In contrast, Notifications tell us that an event has occurred, but without the assumption that it is abnormal. 
+So, if a \ct{Notification} is not handled, the program will continue to execute. 
+An important subclass of \ct{Notification} is \ct{Warning};  warnings are used to notify other parts of the system, or the user, of abnormal but non-lethal behavior.
+%
+%Graphical user interfaces make great use of notifications. In \pharo, \ct{ProgressNotification}, another subclass of \ct{Notification}, is used to move the progress bar forward when a long-running task is being executed. \ab{I wanted to put in a reference to the methods that do this, but couldn't find them.  Can someone else put this in, please?} 
+%\ab{This appears not to be true, so I commented out the whole paragraph}
+
+The property of being resumable is largely orthogonal to the location of an exception in the hierarchy.   In general, \ct{Error}s are not resumable, but 10 of its subclasses \emph{are} resumable.  For example, \ct{MessageNotUnderstood} is a subclass of \ct{Error}, but it is resumable.  \ct{TestFailure}s are not resumable, but, as you would expect, \ct{ResumableTestFailure}s are. 
+
+Resumability is controlled by the private \ct{Exception} method \mthind{Exception}{isResumable}. 
+For example:
+\begin{code}{@TEST}
+Exception new isResumable --> true
+Error new isResumable --> false
+Notification new isResumable --> true
+Halt new isResumable --> true
+MessageNotUnderstood new isResumable --> true
+\end{code}
+
+As it turns out, roughly 2/3 of all exceptions are resumable:
+\begin{code}{}
+Exception allSubclasses size --> 160
+(Exception allSubclasses select: [:each | each new isResumable]) size --> 79
+\end{code}
+If you declare a new subclass of exceptions, you should look in its protocol for the \ct{isResumable} method, and override it as appropriate to the semantics of your exception.
+
+In some situations, it will never makes sense to resume an exception.
+In such a case you should signal a non-resumable subclass\,---\,either an existing one or one of your own creation.
+In other situations, it will always be OK to resume an exception, without the handler having to do anything.
+In fact, this gives us another way of characterizing a notification:
+a \ct{Notification} is a resumable \ct{Exception} that can be safely resumed without first modifying the state of the system.
+More often, it will be safe to resume an exception only if the state of the system is first modified in some way.
+So, if you signal a resumable exception, you should be very clear about what you expect an exception handler to do before it resumes the exception.
+
+\paragraph{When defining a new exception.} It is a difficult problem to decide when it is worth to define a new exception instead of reusing an existing one. Here are some heuristics: first, you should evaluate if you can have an adequate solution to the exceptional situation. Second if you need a specific default behavior when the exceptional situation is not handled. Finally if you need to store more information to handle the exception case. 
+
+%=============================================
+\section{When not to use exceptions}
+Just because \pharo{} has exception handling, you should not conclude that it is always appropriate to use it.  
+Recall that in the introduction to this chapter, we said that exception handling is for \emph{exceptional} situations.  
+So, the first rule for using exceptions is \emph{not} to use them for situations that \emph{can reasonably be expected to occur} in a normal execution. 
+
+Of course, if you are writing a library, what is normal depends on the context in which your library is used.
+To make this concrete, let's look at \ct{Dictionary} as an example:
+\lct{\emph{aDictionary} at: \emph{aKey}} will signal an \ct{Error} if \lct{\emph{aKey}} is not present.
+But you should not write a handler for this error!
+If the logic of your application is such that there is some possibility that the key will not be in the dictionary, then you should instead use \lct{at: \emph{aKey} ifAbsent: [\emph{remedial action}]}.
+In fact, \ct{Dictionary>>>at:} is implemented using \ct{Dictionary>>>at:ifAbsent:}.
+\lct{\emph{aCollection} detect: \emph{aPredicateBlock}} is similar: if there is any possibility that the predicate might not be satisfied, you should use \lct{\emph{aCollection} detect: \emph{aPredicateBlock} ifNone: [\emph{remedial action}]}. 
+
+When you write methods that signal exceptions, you should consider whether you should also provide an alternative method that takes a remedial block as an additional argument, and evaluates it if the normal action cannot be completed.  
+Although this technique can be used in any programming language that support closures, because \st{} uses closures for \emph{all} its control structures, it is a particularly natural one to use in \st{}.
+
+Another way of avoiding exception handling is to test the precondition of the exception before sending the message that may signal it.  For example, in \mthref{objectPerformAll}, we sent a message to an object using \ct{perform:}, and handled the \ct{MessageNotUnderstood} error that might ensue.  A much simpler alternative is to check to see if the message is understood before executing the \ct{perform:}
+
+\needlines{5}
+\begin{method}[simplerObjectPerfromAll]{Object>>performAll: revisited}
+performAll: selectorCollection
+	selectorCollection
+		do: [:each | (self respondsTo: each)
+				ifTrue: [self perform: each]]
+\end{method}
+
+The primary objection to \mthref{simplerObjectPerfromAll} is efficiency.  The implementation of \ct{respondsTo: s} has to lookup \ct{s} in the target's method dictionary  to find out if \ct{s} will be understood.  If the answer is yes, then \ct{perform:} will look it up again.  Moreover, the first lookup is implemented in \st, not in the virtual machine.  If this code is in a performance-critical loop, this might be an issue.  However, if the collection of messages comes from a user interaction, the speed of \ct{performAll:} will not be a problem.
+
+
 %=========================================================
 \section{Exceptions implementation}
 Up to now, we have presented the use of exceptions without really explaining deeply how there are implemented at the Virtual Machine level. Note that since you do not need to know how exceptions are implemented to use them, you can simply skip this section in a first reading. Now if you are curious and really 
 want to know how this is implemented at the Virtual Machine level, this section is for you. 
-The mechanism is quite simple, making it worth to know how it operates. Let's have a look at how exceptions are implemented at the Virtual Machine level and use stack execution elements to store their information.
+The mechanism is quite simple, making it worth to know how it operates. Let's have a look at how exceptions are implemented at the Virtual Machine level and use stack execution elements (contexts) to store their information.
 
 \paragraph{Storing Handlers.}
 First we need to understand how the exception class and its associated handler are stored and how this information is found at run-time. Let's look at the definition of the central method \mthind{BlockClosure}{on:do:} defined on the class \ct{BlockClosure}. 
@@ -1069,7 +1149,7 @@ So, the \st code that follows the primitive serves two purposes: it documents wh
 Here we see that \ct{on:do:} simply sets the temporary variable \ct{handlerActive} to true, and then evaluates the receiver (which is, of course, a block).  
 
 This is surprisingly simple, but somewhat puzzling.  Where are the arguments of the \ct{on:do:} method stored?
-To get the answer,  let's look at the definition of the class \ct{MethodContext}, whose instances make up the execution stack: 
+To get the answer,  let's look at the definition of the class \ct{MethodContext}, whose instances represent the execution stack elements. As described in Chapter~\ref{cha:blocks}, a context (also called activation record or stack frame in other languages) represents a specific point of execution (it holds a program counter, points to the next instruction to execute, previous context, arguments and receiver): 
 
 \begin{code}{}
 ContextPart variableSubclass: #MethodContext
@@ -1081,7 +1161,7 @@ ContextPart variableSubclass: #MethodContext
 
 There is no instance variable here to store the exception class or the handler, nor is there any place in the superclass to store them. 
 However, note that \ct{MethodContext} is defined as a \ct{variableSubclass}.
-This means that in addition to the named instance variables, objects of this class have some indexed slots.  In fact, every \ct{MethodContext} has an indexed slot for each argument of the method whose invocation it represents.  There are also additional indexed slots for the temporary variables of the method.
+This means that in addition to the named instance variables, instances of this class have some indexed slots.  In fact, every \ct{MethodContext} has an indexed slot for each argument of the method whose invocation it represents.  There are also additional indexed slots for the temporary variables of the method.
 
 In the case that interest us, the arguments of the \ct{on:do:} message are stored in the indexed variables of the stack execution instance. To verify this, evaluate the following piece of code:
 
@@ -1125,17 +1205,17 @@ Note that you can also execute the following code you obtain an explorer and tha
         \caption{Explore a method context to find the exception class and the handler.\figlabel{exploration}}
 \end{figure}
 
-So we saw that \ct{on:do:} execution stores the exception class and its handler on the method context (execution stack frame). Note that this is not specific to \ct{on:do:} but 
+We see that \ct{on:do:} execution stores the exception class and its handler on the method context (execution stack frame). Note that this is not specific to \ct{on:do:} but 
 any message execution stores argument on the stack frame. 
 
 
 \paragraph{Finding Handlers.}
 Now that we know where the information is stored, let's have a look at how it is found at runtime. 
 
-We might think that the primitive 199 is complex to write. 
+We might think that the primitive 199 (the one used by \ct{on:do:}) is complex to write. 
 But it  is trivial, because primitive 199 \emph{always} fails!
 Because the primitive always fails, the \st{} body of \ct{on:do:} is always executed.
-However, the presence of the \ct{<primitive: 199>} annotation marks the executing context in a unique way. 
+However, the presence of the \ct{<primitive: 199>} annotation marks the execution context in a unique way. 
 
 The source code of the primitive is found in \ct{Interpreter>>>primitiveMarkHandlerMethod} in the \pkgind{VMMaker} \sqsrc package: 
 
@@ -1407,83 +1487,6 @@ ContextPart>>resume: value through: firstUnwindCtxt
 \end{code}
 
 
-%=========================================================
-\section{Specific exceptions}
-
-The class \ct{Exception} in \pharo{} has ten direct subclasses, as shown in \figref{wholeHierarchy}.
-The first thing that we notice from this figure is that the Exception hierarchy is a bit of a mess; you can expect to see some of the details change as \pharo{} is improved.
-
-\begin{figure}[ht]\centering
-        \includegraphics[width=.95\linewidth]{ExceptionSubclasses}
-        \caption{A part of \pharo exception hierarchy.\figlabel{wholeHierarchy}}
-\end{figure}
-
-The second thing that we notice is that there are two large sub-hierarchies: \ct{Error} and \ct{Notification}. 
-Errors tell us that the program has fallen into some kind of abnormal situation. 
-In contrast, Notifications tell us that an event has occurred, but without the assumption that it is abnormal. 
-So, if a \ct{Notification} is not handled, the program will continue to execute. 
-An important subclass of \ct{Notification} is \ct{Warning};  warnings are used to notify other parts of the system, or the user, of abnormal but non-lethal behavior.
-%
-%Graphical user interfaces make great use of notifications. In \pharo, \ct{ProgressNotification}, another subclass of \ct{Notification}, is used to move the progress bar forward when a long-running task is being executed. \ab{I wanted to put in a reference to the methods that do this, but couldn't find them.  Can someone else put this in, please?} 
-%\ab{This appears not to be true, so I commented out the whole paragraph}
-
-The property of being resumable is largely orthogonal to the location of an exception in the hierarchy.   In general, \ct{Error}s are not resumable, but 10 of its subclasses \emph{are} resumable.  For example, \ct{MessageNotUnderstood} is a subclass of \ct{Error}, but it is resumable.  \ct{TestFailure}s are not resumable, but, as you would expect, \ct{ResumableTestFailure}s are. 
-
-Resumability is controlled by the private \ct{Exception} method \mthind{Exception}{isResumable}. 
-For example:
-\begin{code}{@TEST}
-Exception new isResumable --> true
-Error new isResumable --> false
-Notification new isResumable --> true
-Halt new isResumable --> true
-MessageNotUnderstood new isResumable --> true
-\end{code}
-
-As it turns out, roughly 2/3 of all exceptions are resumable:
-\begin{code}{}
-Exception allSubclasses size --> 160
-(Exception allSubclasses select: [:each | each new isResumable]) size --> 79
-\end{code}
-If you declare a new subclass of exceptions, you should look in its protocol for the \ct{isResumable} method, and override it as appropriate to the semantics of your exception.
-
-In some situations, it will never makes sense to resume an exception.
-In such a case you should signal a non-resumable subclass\,---\,either an existing one or one of your own creation.
-In other situations, it will always be OK to resume an exception, without the handler having to do anything.
-In fact, this gives us another way of characterizing a notification:
-a \ct{Notification} is a resumable \ct{Exception} that can be safely resumed without first modifying the state of the system.
-More often, it will be safe to resume an exception only if the state of the system is first modified in some way.
-So, if you signal a resumable exception, you should be very clear about what you expect an exception handler to do before it resumes the exception.
-
-\paragraph{When defining a new exception.} It is a difficult problem to decide when it is worth to define a new exception instead of reusing an existing one. Here are some heuristics: first, you should evaluate if you can have an adequate solution to the exceptional situation. Second if you need a specific default behavior when the exceptional situation is not handled. Finally if you need to store more information to handle the exception case. 
-
-%=============================================
-\section{When not to use exceptions}
-Just because \pharo{} has exception handling, you should not conclude that it is always appropriate to use it.  
-Recall that in the introduction to this chapter, we said that exception handling is for \emph{exceptional} situations.  
-So, the first rule for using exceptions is \emph{not} to use them for situations that \emph{can reasonably be expected to occur} in a normal execution. 
-
-Of course, if you are writing a library, what is normal depends on the context in which your library is used.
-To make this concrete, let's look at \ct{Dictionary} as an example:
-\lct{\emph{aDictionary} at: \emph{aKey}} will signal an \ct{Error} if \lct{\emph{aKey}} is not present.
-But you should not write a handler for this error!
-If the logic of your application is such that there is some possibility that the key will not be in the dictionary, then you should instead use \lct{at: \emph{aKey} ifAbsent: [\emph{remedial action}]}.
-In fact, \ct{Dictionary>>>at:} is implemented using \ct{Dictionary>>>at:ifAbsent:}.
-\lct{\emph{aCollection} detect: \emph{aPredicateBlock}} is similar: if there is any possibility that the predicate might not be satisfied, you should use \lct{\emph{aCollection} detect: \emph{aPredicateBlock} ifNone: [\emph{remedial action}]}. 
-
-When you write methods that signal exceptions, you should consider whether you should also provide an alternative method that takes a remedial block as an additional argument, and evaluates it if the normal action cannot be completed.  
-Although this technique can be used in any programming language that support closures, because \st{} uses closures for \emph{all} its control structures, it is a particularly natural one to use in \st{}.
-
-Another way of avoiding exception handling is to test the precondition of the exception before sending the message that may signal it.  For example, in \mthref{objectPerformAll}, we sent a message to an object using \ct{perform:}, and handled the \ct{MessageNotUnderstood} error that might ensue.  A much simpler alternative is to check to see if the message is understood before executing the \ct{perform:}
-
-\needlines{5}
-\begin{method}[simplerObjectPerfromAll]{Object>>performAll: revisited}
-performAll: selectorCollection
-	selectorCollection
-		do: [:each | (self respondsTo: each)
-				ifTrue: [self perform: each]]
-\end{method}
-
-The primary objection to \mthref{simplerObjectPerfromAll} is efficiency.  The implementation of \ct{respondsTo: s} has to lookup \ct{s} in the target's method dictionary  to find out if \ct{s} will be understood.  If the answer is yes, then \ct{perform:} will look it up again.  Moreover, the first lookup is implemented in \st, not in the virtual machine.  If this code is in a performance-critical loop, this might be an issue.  However, if the collection of messages comes from a user interaction, the speed of \ct{performAll:} will not be a problem.
 
 %=================================================================
 \section{Chapter summary}
