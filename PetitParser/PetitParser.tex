@@ -312,7 +312,7 @@ those, some more are defined in the protocol \tabref{terminal-parsers}.
     \#blank asParser          & Parses a space or a tabulation.                     \\
     \#newline asParser        & Parses the carriage return or line feed characters. \\
     \#space asParser          & Parses any white space character including new line.\\
-    \#tab asParser            & Parses a tabulator character.                       \\
+    \#tab asParser            & Parses a tab character.                       \\
     \#lowercase asParser      & Parses a lowercase character.                       \\
     \#uppercase asParser      & Parses an uppercase character.                      \\
     nil asParser	          & Parses nothing.                                     \\
@@ -1736,7 +1736,7 @@ ExpressionGrammar>>number
   As you can see on \figref{pp/browserFollow}, the follow set of \ct{prim} is 
     closing bracket character parser '\ct{)}', star character parser '\ct{*}', 
     plus character parser '\ct{+}' or \ct{epsilon} parser (which states for empty string).
-  In another words, once you finished parsing \ct{prim} rule the input should
+  In other words, once you finished parsing \ct{prim} rule the input should
     continue with one of '\ct{)}', '\ct{*}', '\ct{+}' characters or the input should be completely consumed.
   
   One can use follow set to double-check that the grammar is specified correctly.
@@ -1875,8 +1875,8 @@ ExpressionGrammar>>mul
   % performed $n-1$ steps and in the end returned to the position $2$.
   If you see many backward jumps for a grammar, you should
   reconsider the order of choice parsers, restructure your grammar
-  or use memoized parser.
-  We will hava a detailed look on a backtracking issue in the 
+  or use a memoized parser.
+  We will have a detailed look on a backtracking issue in the
   following section.
 
   \begin{figure}[ht]
@@ -1899,8 +1899,8 @@ ExpressionGrammar>>mul
   As an exercise, we will try to improve a \clsind{BacktrackingParser} from \scrref{pp/backtrackingParser}. 
   The \clsind{BacktrackingParser} was designed to accept input corresponding to the
   regular expressions '\ct{a*b}' and '\ct{a*c}'.
-  The parser gives us correct results, but there is a problem with a performance.
-  The \clsind{BacktrackingParser} performs a lot of backtracking.
+  The parser gives us correct results, but there is a problem with performance.
+  The \clsind{BacktrackingParser} does too much backtracking.
   %So let us try to parse '\ct{aaaaaaaaaaaaaab}'.
 
   %Try '\ct{aaaaaaaaaaaaac}' and '\ct{aaaaaaaaaaaaaab}' as input and observe what happens.
@@ -1908,7 +1908,7 @@ ExpressionGrammar>>mul
 
 
 
-\begin{script}{Parser that accepts regular expressions '\ct{a*b}' or '\ct{a*c}'. Unfortunately, it performs a lot of backtracking as well. \label{scr:pp/backtrackingParser}}
+\begin{script}{A parser accepting '\ct{a*b}' and '\ct{a*c}' with too much backtracking. \label{scr:pp/backtrackingParser}}
 PPCompositeParser subclass: #BacktrackingParser
 	instanceVariableNames: 'ab ap c p'
 	classVariableNames: ''
@@ -1922,10 +1922,10 @@ BacktrackingParser>>ab
 BacktrackingParser>>c
   ^ 'c' asParser
 
-BacktrackingParser>>p 
+BacktrackingParser>>p
   ^ ab / ap / c
 
-BacktrackingParser>>start 
+BacktrackingParser>>start
   ^ p
 
 
@@ -1933,11 +1933,11 @@ BacktrackingParser>>ap
   ^ 'a' asParser, p! !
 \end{script}
 
-Let us get some overview to better understand, what is happening. 
+Let us get some overview to better understand, what is happening.
 First of all, try to parse $input_b$ = '\ct{aaaaaaaaab}' and $input_c$ = '\ct{aaaaaaaaac}'.
 As we can see from progress depicted in \figref{pp/example-progressAaab}, the $input_b$ is parsed in more or less linear time and there is no backtracking.
-But the progress depicted in \figref{pp/example-progressAaac} looks worse.
-The $input_c$  is parsed with a lot of backtracking and in much longer time. 
+But the progress depicted in \figref{pp/example-progressAaac} looks bad.
+The $input_c$  is parsed with a lot of backtracking and in much more time.
 We can even compare the tally output for both inputs $input_b$ and $input_c$ (see \figref{pp/example-tallyAaab} and \figref{pp/example-tallyAaac}).
 In case of $input_b$, the total invocation count of the parser \ct{b} is 19 and invocation count of the parser \ct{a} is 9.
 It is much less than 110 invocations for the parser \ct{b} and 55 invocation for the parser \ct{a} in case of $input_c$.
@@ -1970,16 +1970,15 @@ It is much less than 110 invocations for the parser \ct{b} and 55 invocation for
   \end{center}
 \end{figure}
 
-What is happening? 
-We can see there is some problem with $input_c$, but what is the problem?
+We can see there is some problem with $input_c$.
 Maybe the debugger window can give us more hints.
 Let us have a look at the debugger window for $input_b$ as depicted in \figref{pp/example-debugAaab}.
-We can see that in each step, one '\ct{a}' is consumed and the parser \ct{ab} is invoked again as long as it reaches the '\ct{b}'.
-On the other hand, the debugger window for $input_c$ as depicted in \figref{pp/example-debugAaac} looks worse.
-There is a progress within the \ct{p} -> \ct{ab} -> \ct{ap} -> \ct{p} loop, but the parser \ct{ab} fails in the each repetition of the loop. 
-And since the parser \ct{ab} fails after it reads all the string to the end and sees '\ct{c}' instead of '\ct{b}', we have localized the cause of the backtracking.
+We can see that in each step, one '\ct{a}' is consumed and the parser \ct{ab} is invoked until it reaches the '\ct{b}'.
+The debugger window for $input_c$ as depicted in \figref{pp/example-debugAaac} looks much different.
+There is a progress within the \ct{p} -> \ct{ab} -> \ct{ap} -> \ct{p} loop but the parser \ct{ab} fails in each repetition of the loop.
+Since the parser \ct{ab} fails after having read all the string to the end and seen '\ct{c}' instead of '\ct{b}', we have localized the cause of the backtracking.
 We know the problem now, so what can we do?
-Maybe we should update \clsind{BacktrackingParser} parser so that the '\ct{a*c}' strings are parsed in a similar way as the '\ct{a*b}' strings.
+We may try to update \clsind{BacktrackingParser} so that the '\ct{a*c}' strings are parsed in a similar way as the '\ct{a*b}' strings.
 You can see such a modification in \scrref{pp/backtrackingParser-update-1}.
 
 
@@ -1998,7 +1997,7 @@ You can see such a modification in \scrref{pp/backtrackingParser-update-1}.
 \end{figure}
 
 
-\begin{script}{Parser that accepts regular expressions '\ct{a*b}' or '\ct{a*c}'. The first improved version. \label{scr:pp/backtrackingParser-update-1}}
+\begin{script}{A slightly better parser accepting '\ct{a*b}' and '\ct{a*c}'. \label{scr:pp/backtrackingParser-update-1}}
 PPCompositeParser subclass: #BacktrackingParser
 	instanceVariableNames: 'ab ac p'
 	classVariableNames: ''
@@ -2020,10 +2019,9 @@ BacktrackingParser>>start
   ^ p
 \end{script}
 
-As we check the progress for $input_c$ as depicted in \figref{pp/example-progressAaac-update-1}, we can see significant improvement.
-Improvement is confirmed by the tally window as well.
-For $input_c$, the tally shows only 20 invocations of the parser \ct{b} and 9 invocations of the parser \ct{a} (see \figref{pp/example-tallyAaac-update-1}).
-This is very good improvement compared to the 110 invocations of the parser \ct{b} and 55 invocations of the parser \ct{a} in an original version of \clsind{BacktrackingParser}.
+We can check the new metrics for $input_c$ in both \figref{pp/example-progressAaac-update-1} and \figref{pp/example-tallyAaac-update-1}. There is significant improvement.
+For $input_c$, the tally shows only 20 invocations of the parser \ct{b} and 9 invocations of the parser \ct{a}.
+This is very good improvement compared to the 110 invocations of the parser \ct{b} and 55 invocations of the parser \ct{a} in the original version of \clsind{BacktrackingParser} (see \figref{pp/example-tallyAaac}).
 
 \begin{figure}
   \begin{center}
@@ -2039,23 +2037,22 @@ This is very good improvement compared to the 110 invocations of the parser \ct{
   \end{center}
 \end{figure}
 
+\dc{STOP HERE}
+
 Yet, we might try to do even better.
-There is still one backtracking happening for $input_c$. 
-It happens when the parser \ct{ab} tries to recognize the '\ct{a*b}' input, then it fails (and backtracks) so that the parser \ct{ac} can recognize the '\ct{a*c}' input.
-What if we try to consume all the '\ct{a}'s and then we choose between '\ct{b}' and '\ct{c}' in the very end?
+There is still one backtracking happening for $input_c$.
+It happens when the parser \ct{ab} tries to recognize the '\ct{a*b}' input and fails (and backtracks) so that the parser \ct{ac} can recognize the '\ct{a*c}' input.
+What if we try to consume all the '\ct{a}'s and then we choose between '\ct{b}' and '\ct{c}' at the very end?
 You can see such a modification of the \clsind{BacktrackingParser} in \scrref{pp/backtrackingParser-update-2}.
 In that case, we can see the progress without any backtracking even for $input_c$ as depicted in \figref{pp/example-progressAaac-update-2}.
-If we compare the tally windows from of the first and second versions (see \figref{pp/example-tallyAaac-update-2} and \figref{pp/example-tallyAaac-update-1}),we can see that second version is by 19 invocations (10 for a sequence parser and 9 for the second parser \ct{a}) for $input_c$. 
+If we compare the tally windows from of the first and second versions (see \figref{pp/example-tallyAaac-update-2} and \figref{pp/example-tallyAaac-update-1}),we can see that second version is by 19 invocations (10 for a sequence parser and 9 for the second parser \ct{a}) for $input_c$.
 
 On the other hand, the number of parser invocations for $input_b$ increased by 18 (the \tabref{example-tally} summarizes the total number of invocations for particular versions of the \clsind{BacktrackingParser}).
 Now, it is up to the developer to decide which grammar more suitable for his needs. 
 It is better to use the second update in case the '\ct{a*b}' and '\ct{a*c}' strings occurs with the same probability as an input.
 If we expect more '\ct{a*b}' strings as an input, the first version is better.
 
-
-
-
-\begin{script}{Parser that accepts regular expressions '\ct{a*b}' or '\ct{a*c}'. Second improved version. \label{scr:pp/backtrackingParser-update-2}}
+\begin{script}{An even better parser accepting '\ct{a*b}' and '\ct{a*c}'. \label{scr:pp/backtrackingParser-update-2}}
 PPCompositeParser subclass: #BacktrackingParser
 	instanceVariableNames: 'abc p'
 	classVariableNames: ''
