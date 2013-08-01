@@ -90,7 +90,7 @@ parser methodologies:
   alternatives. Valid input always results in exactly one parse-tree,
   the result of a parse is never ambiguous.
 
-\item[Packrat Parsers] give linear parse time guarantees and avoid
+\item[Packrat Parsers] give linear parse-time guarantees and avoid
   common problems with left-recursion in PEGs.
 \end{description}
 
@@ -1822,10 +1822,10 @@ ExpressionGrammar>>mul
   \end{center}
 \end{figure}
 
-\item[Tally] shows how many times was particular parser called during
-  parsing of the input. The percentage shows number of calls to total
-  number of calls ratio. This might be useful while optimizing
-  performance of your parser (such as  \figref{pp/tally}).
+\item[Tally] shows how many times a particular parser got called
+  during the parsing. The percentage shows the number of calls to total number
+  of calls ratio. This might be useful while optimizing performance of
+  your parser (see \figref{pp/tally}).
     
 \begin{figure}[ht]
   \begin{center}
@@ -1837,7 +1837,7 @@ ExpressionGrammar>>mul
 \item[Profile] shows how much time was spent in particular parser
   during parsing of the input. The percentage shows the ratio of time
   to total time. This might be useful while optimizing performance of
-  your parser  (such as  \figref{pp/profile}).
+  your parser (see \figref{pp/profile}).
     
 \begin{figure}[ht]
   \begin{center}
@@ -1897,10 +1897,10 @@ ExpressionGrammar>>mul
 
 \subsection{Debugging example}
   As an exercise, we will try to improve a \clsind{BacktrackingParser} from \scrref{pp/backtrackingParser}. 
-  The \clsind{BacktrackingParser} was designed to accept input corresponding to the
+  The \ct{BacktrackingParser} was designed to accept input corresponding to the
   regular expressions \ct{'a*b'} and \ct{'a*c'}.
   The parser gives us correct results, but there is a problem with performance.
-  The \clsind{BacktrackingParser} does too much backtracking.
+  The \ct{BacktrackingParser} does too much backtracking.
   %So let us try to parse \ct{'aaaaaaaaaaaaaab'}.
 
   %Try \ct{'aaaaaaaaaaaaac'} and \ct{'aaaaaaaaaaaaaab'} as input and observe what happens.
@@ -1945,28 +1945,28 @@ It is much less than 110 invocations for the parser \ct{b} and 55 invocation for
 \begin{figure}
   \begin{center}
     \includegraphics[width=\linewidth]{example-progressAaab}
-    \caption{Progress of the \clsind{BacktrackingParser} for $input_b$. \label{fig:pp/example-progressAaab}}
+    \caption{Progress of the \ct{BacktrackingParser} for $input_b$. \label{fig:pp/example-progressAaab}}
   \end{center}
 \end{figure}
 
 \begin{figure}
   \begin{center}
     \includegraphics[width=\linewidth]{example-progressAaac}
-    \caption{Progress of the \clsind{BacktrackingParser} for $input_c$. \label{fig:pp/example-progressAaac}}
+    \caption{Progress of the \ct{BacktrackingParser} for $input_c$. \label{fig:pp/example-progressAaac}}
   \end{center}
 \end{figure}
 
 \begin{figure}
   \begin{center}
     \includegraphics[width=\linewidth]{example-tallyAaab}
-    \caption{Tally output of the \clsind{BacktrackingParser} for $input_b$. \label{fig:pp/example-tallyAaab}}
+    \caption{Tally output of the \ct{BacktrackingParser} for $input_b$. \label{fig:pp/example-tallyAaab}}
   \end{center}
 \end{figure}
 
 \begin{figure}
   \begin{center}
     \includegraphics[width=\linewidth]{example-tallyAaac}
-    \caption{Tally output of the \clsind{BacktrackingParser} for $input_c$. \label{fig:pp/example-tallyAaac}}
+    \caption{Tally output of the \ct{BacktrackingParser} for $input_c$. \label{fig:pp/example-tallyAaac}}
   \end{center}
 \end{figure}
 
@@ -1978,21 +1978,21 @@ The debugger window for $input_c$ as depicted in \figref{pp/example-debugAaac} l
 There is a progress within the \ct{p} -> \ct{ab} -> \ct{ap} -> \ct{p} loop but the parser \ct{ab} fails in each repetition of the loop.
 Since the parser \ct{ab} fails after having read all the string to the end and seen \ct{'c'} instead of \ct{'b'}, we have localized the cause of the backtracking.
 We know the problem now, so what can we do?
-We may try to update \clsind{BacktrackingParser} so that the \ct{'a*c'} strings are parsed in a similar way as the \ct{'a*b'} strings.
+We may try to update \ct{BacktrackingParser} so that the \ct{'a*c'} strings are parsed in a similar way as the \ct{'a*b'} strings.
 You can see such a modification in \scrref{pp/backtrackingParser-update-1}.
 
 
 \begin{figure}
   \begin{center}
     \includegraphics[width=\linewidth]{example-debugAaab}
-    \caption{Debugging output of the \clsind{BacktrackingParser} for $input_b$. \label{fig:pp/example-debugAaab}}
+    \caption{Debugging output of \ct{BacktrackingParser} for $input_b$. \label{fig:pp/example-debugAaab}}
   \end{center}
 \end{figure}
 
 \begin{figure}
   \begin{center}
     \includegraphics[width=\linewidth]{example-debugAaac}
-    \caption{Debugging output of the \clsind{BacktrackingParser} for $input_c$. \label{fig:pp/example-debugAaac}}
+    \caption{Debugging output of \ct{BacktrackingParser} for $input_c$. \label{fig:pp/example-debugAaac}}
   \end{center}
 \end{figure}
 
@@ -2021,36 +2021,33 @@ BacktrackingParser>>start
 
 We can check the new metrics for $input_c$ in both \figref{pp/example-progressAaac-update-1} and \figref{pp/example-tallyAaac-update-1}. There is significant improvement.
 For $input_c$, the tally shows only 20 invocations of the parser \ct{b} and 9 invocations of the parser \ct{a}.
-This is very good improvement compared to the 110 invocations of the parser \ct{b} and 55 invocations of the parser \ct{a} in the original version of \clsind{BacktrackingParser} (see \figref{pp/example-tallyAaac}).
+This is very good improvement compared to the 110 invocations of the parser \ct{b} and 55 invocations of the parser \ct{a} in the original version of \ct{BacktrackingParser} (see \figref{pp/example-tallyAaac}).
 
 \begin{figure}
   \begin{center}
     \includegraphics[width=\linewidth]{example-progressAaac-update-1}
-    \caption{Progress of the \clsind{BacktrackingParser} after the first update for $input_c$. \label{fig:pp/example-progressAaac-update-1}}
+    \caption{Progress of \ct{BacktrackingParser} for $input_c$ after the first update. \label{fig:pp/example-progressAaac-update-1}}
   \end{center}
 \end{figure}
 
 \begin{figure}
   \begin{center}
     \includegraphics[width=\linewidth]{example-tallyAaac-update-1}
-    \caption{Tally of the \clsind{BacktrackingParser} after the first update for $input_c$. \label{fig:pp/example-tallyAaac-update-1}}
+    \caption{Tally of \ct{BacktrackingParser} for $input_c$ after the first update. \label{fig:pp/example-tallyAaac-update-1}}
   \end{center}
 \end{figure}
-
-\dc{STOP HERE}
 
 Yet, we might try to do even better.
 There is still one backtracking happening for $input_c$.
 It happens when the parser \ct{ab} tries to recognize the \ct{'a*b'} input and fails (and backtracks) so that the parser \ct{ac} can recognize the \ct{'a*c'} input.
 What if we try to consume all the \ct{'a'}s and then we choose between \ct{'b'} and \ct{'c'} at the very end?
-You can see such a modification of the \clsind{BacktrackingParser} in \scrref{pp/backtrackingParser-update-2}.
+You can see such a modification of the \ct{BacktrackingParser} in \scrref{pp/backtrackingParser-update-2}.
 In that case, we can see the progress without any backtracking even for $input_c$ as depicted in \figref{pp/example-progressAaac-update-2}.
-If we compare the tally windows from of the first and second versions (see \figref{pp/example-tallyAaac-update-2} and \figref{pp/example-tallyAaac-update-1}),we can see that second version is by 19 invocations (10 for a sequence parser and 9 for the second parser \ct{a}) for $input_c$.
 
-On the other hand, the number of parser invocations for $input_b$ increased by 18 (the \tabref{example-tally} summarizes the total number of invocations for particular versions of the \clsind{BacktrackingParser}).
-Now, it is up to the developer to decide which grammar more suitable for his needs. 
-It is better to use the second update in case the \ct{'a*b'} and \ct{'a*c'} strings occurs with the same probability as an input.
-If we expect more \ct{'a*b'} strings as an input, the first version is better.
+On the other hand, the number of parser invocations for $input_b$ increased by 18 (the \tabref{example-tally} summarizes the total number of invocations for each version of the \ct{BacktrackingParser}).
+It is up to the developer to decide which grammar is more suitable for his needs.
+It is better to use the second improved version in case \ct{'a*b'} and \ct{'a*c'} occur with the same probability in the input.
+If we expect more \ct{'a*b'} strings in the input, the first version is better.
 
 \begin{script}{An even better parser accepting \ct{'a*b'} and \ct{'a*c'}. \label{scr:pp/backtrackingParser-update-2}}
 PPCompositeParser subclass: #BacktrackingParser
@@ -2060,13 +2057,13 @@ PPCompositeParser subclass: #BacktrackingParser
 	category: 'PetitTutorial'
 
 BacktrackingParser>>abc
-  ^  ('b' asParser / 'c' asParser)
+  ^  ('b' asParser / 'c' asParser) /
      ('a' asParser, abc)
 
-BacktrackingParser>>p 
+BacktrackingParser>>p
   ^ abc
 
-BacktrackingParser>>start 
+BacktrackingParser>>start
   ^ p
 \end{script}
 
@@ -2074,28 +2071,30 @@ BacktrackingParser>>start
 \begin{figure}
   \begin{center}
     \includegraphics[width=\linewidth]{example-progressAaac-update-2}
-    \caption{Progress of the \clsind{BacktrackingParser} after the second update for $input_c$. \label{fig:pp/example-progressAaac-update-2}}
+    \caption{Progress of the \ct{BacktrackingParser} after the second update for $input_c$. \label{fig:pp/example-progressAaac-update-2}}
   \end{center}
 \end{figure}
 
 \begin{figure}
   \begin{center}
     \includegraphics[width=\linewidth]{example-tallyAaac-update-2}
-    \caption{Tally of the \clsind{BacktrackingParser} after the second update for $input_c$. \label{fig:pp/example-tallyAaac-update-2}}
+    \caption{Tally of the \ct{BacktrackingParser} after the second update for $input_c$. \label{fig:pp/example-tallyAaac-update-2}}
   \end{center}
 \end{figure}
 
 \begin{table}
   \centering
   \begin{tabular}{lcc}
-                     & \multicolumn{2}{c}{\textbf{\# of invocations}}  \\
-    \textbf{Version} & ${input_b}$ & ${input_c}$ \\
+    \toprule
+                       & \multicolumn{2}{c}{\textbf{\# of invocations}} \\
+    \textbf{Version}   & ${input_b}$                                    & ${input_c}$ \\
     \midrule
-    Original          & 28 & 233 \\
-    First Version     & 28 & 70  \\
-    Second Version    & 46 & 48  \\
+    Original           & 28                                             & 233         \\
+    First improvement  & 28                                             & 70          \\
+    Second improvement & 46                                             & 48          \\
+    \bottomrule
   \end{tabular}
-  \caption{Number of parser invocations for $input_b$ and $input_c$ depending on a version of the \clsind{BacktrackingParser}.}
+  \caption{Number of parser invocations for $input_b$ and $input_c$ depending on the version of \ct{BacktrackingParser}.}
   \label{tab:example-tally}
 \end{table}
 
@@ -2103,24 +2102,23 @@ BacktrackingParser>>start
 \section{Packrat Parsers}
 
 In the beginning of the chapter, we have mentioned four parser methodologies, one of them was \emph{Packrat Parsers}.
-We claimed that the packrat parsing gives linear parse time.
-But in the debugging example we saw that original version of the \clsind{BacktrackingParser} parsed $input_c$ of length 10 in 233 steps. 
-And if you try to parser $longinput_c$ = \ct{'aaaaaaaaaaaaaaaaaaaac'} (length 20), you will see it takes 969 steps.
+We claimed that packrat parsing gives linear parse times.
+But in the debugging example we saw that original version of the \ct{BacktrackingParser} parsed $input_c$ of length 10 in 233 steps.
+And if you try to parse $longinput_c$ = \ct{'aaaaaaaaaaaaaaaaaaaac'} (length 20), you will see that the original parser needs 969 steps.
 Indeed, the progress is not linear.
-The question is why, if packrat parsers ensure linear parse time?
 
 The PetitParser framework does not use packrat parsing by default.
-You need to use \ct{memoized} message to enable packrat parsing.
-The memoized parser ensures, that the parsing for the particular position in an input and the particular parser will be performed only once and the result will be remembered in a dictionary for a future use.
-The second time the parser tries to parse the input the position used before, the result will be looked up in the dictionary.
+You need to send the \ct{memoized} message to enable packrat parsing.
+The memoized parser ensures that the parsing for the particular position in an input and the particular parser will be performed only once and the result will be remembered in a dictionary for a future use.
+The second time the parser wants to parse the input, the result will be looked up in the dictionary.
 This way, a lot of unnecessary parsing can be avoided.
 The disadvantage is that PetitParser needs much more memory to remember all the results of all the possible parsers at all the possible positions.
 
-To give you an example with a packrat parser, let us return back to the \clsind{BacktrackingParser} once again (see \scrref{pp/backtrackingParser}).
-As we have analyzed before, the problem was in the parser \ct{ab} that constantly fails in the \ct{p} -> \ct{ab} -> \ct{ap} -> \ct{p} loop.
+To give you an example with a packrat parser, let us return back to the \ct{BacktrackingParser} once again (see \scrref{pp/backtrackingParser}).
+As we have analyzed before, the problem was in the parser \ct{ab} that constantly failed in the \ct{p} -> \ct{ab} -> \ct{ap} -> \ct{p} loop.
 Now we can do the trick and memoize the parser \ct{ab} by updating the method \ct{ab} as in \scrref{pp/backtrackingParser-memo}.
 When the memoization is applied, we get the progress as in \figref{pp/example-progressAaac-memo} with the total number of 63 invocations for $input_c$ and the 129 invocations for $longinput_c$.
-With the minor modification of \clsind{BacktrackingParser} we got a linear parsing time (related to the length of an input)  with a factor around 6.
+With the minor modification of \ct{BacktrackingParser} we got a linear parsing time (related to the length of the input)  with a factor around 6.
 
 \begin{script}{Memoized version of the parser \ct{ab}. \label{scr:pp/backtrackingParser-memo}}
 BacktrackingParser>>ab
@@ -2131,7 +2129,7 @@ BacktrackingParser>>ab
 \begin{figure}
   \begin{center}
     \includegraphics[width=\linewidth]{example-progressAaac-memo}
-    \caption{Progress of the memoized version of the \clsind{BacktrackingParser}. \label{fig:pp/example-progressAaac-memo}}
+    \caption{Progress of the memoized version of the \ct{BacktrackingParser}. \label{fig:pp/example-progressAaac-memo}}
   \end{center}
 \end{figure}
 
@@ -2141,23 +2139,19 @@ This concludes our tutorial of PetitParser. We have reviewed the following point
 
 
 \begin{itemize}
-\item A Parser is a composition of multiple terminal parser combined with combinators.
+\item A parser is a composition of multiple smaller parsers combined with combinators.
 \item To parse a string, use the method \ct{parse:}.
-\item To know if a string matches with the grammar, use the method \ct{matches:}.
+\item To know if a string matches a grammar, use the method \ct{matches:}.
 \item The method \ct{flatten} returns a String from the result of the parsing.
 \item The method \ct{==>} performs the transformation given in the block given in parameter.
-\item You can compose grammar using PPCompositeParser.
-\item Use the framework of PetitParser to test your parser by subclassing PPCompositeParserTest.
+\item Compose parsers (and create a grammar) by subclassing \ct{PPCompositeParser}.
+\item Test your parser by subclassing \ct{PPCompositeParserTest}.
 \end{itemize}
 
 
-For a more 
-extensive view of PetitParser, its concepts and implementation, the Moose 
-book\footnotemark{} and Lukas Renggli's PhD\footnotemark{} both have a dedicated 
-chapter.
-
-\footnotetext{\url{http://www.themoosebook.org/book/internals/petit-parser}}
-\footnotetext{\url{http://scg.unibe.ch/archive/phd/renggli-phd.pdf}}
+For a more extensive view of PetitParser, its concepts and
+implementation, the Moose book\footnote{\url{http://www.themoosebook.org/book/internals/petit-parser}} and Lukas Renggli's
+PhD\footnote{\url{http://scg.unibe.ch/archive/phd/renggli-phd.pdf}} have both a dedicated chapter.
 
 %=============================================================
 \ifx\wholebook\relax\else
