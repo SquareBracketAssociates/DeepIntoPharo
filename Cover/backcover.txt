@@ -1,3 +1,22 @@
+Pharo is a dynamic object-oriented programming language. Pharo is model and syntax are uniform, simple and expressive. 
+These properties added to a powerful and flexible IDE attracts regularly new developers. The community around Pharo has been steadily increasing over the years. This community is actively creating exciting and innovative software artefacts helping the development of advanced software systems. Pharo leverages the software building experience to its best by offering open and object-oriented programming environments and libraries.
+
+
+The book covers a large spectrum of topics ranging from central language aspects such as blocks and exceptions to package management or graphics oriented 
+frameworks. Recent frameworks like Roassal or Petit Parser are covered. This book contains unique material often presented in a tutorial  form with many experiences to carry on. 
+
+Everybody will learn something reading this book:  Programmers familiar with Pharo will enjoy the highlights made of some particularly beautiful aspects of Pharo as well as discovering new and powerful frameworks. Practitioners making their debut with Pharo will board for a wonderful journey in the realm of objects. 
+
+Deep into Pharo not only presents some internal aspects of Pharo but it presents important libraries that proved to be important for a business and development perspective. 
+
+
+
+
+
+
+
+
+
 Pharo is an object-oriented programming language. Largely due to its expressivety and simplicity, the community around Pharo has been steadily increasing. Pharo leverages the software building experience to its best by offerring open and object-oriented programming environments and libraries.
 
 This book covers advanted features and libraries of the Pharo language. Innovative and widely used frameworks are also described in a tutorial-like fashion.
