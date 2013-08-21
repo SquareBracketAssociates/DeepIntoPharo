@@ -1930,7 +1930,7 @@ BacktrackingParser>>start
 
 
 BacktrackingParser>>ap
-  ^ 'a' asParser, p! !
+  ^ 'a' asParser, p
 \end{script}
 
 Let us get some overview to better understand, what is happening.
@@ -1940,7 +1940,7 @@ But the progress depicted in \figref{pp/example-progressAaac} looks bad.
 The $input_c$  is parsed with a lot of backtracking and in much more time.
 We can even compare the tally output for both inputs $input_b$ and $input_c$ (see \figref{pp/example-tallyAaab} and \figref{pp/example-tallyAaac}).
 In case of $input_b$, the total invocation count of the parser \ct{b} is 19 and invocation count of the parser \ct{a} is 9.
-It is much less than 110 invocations for the parser \ct{b} and 55 invocation for the parser \ct{a} in case of $input_c$.
+It is much less than 110 invocations for the parser \ct{b} and 55 invocations for the parser \ct{a} in case of $input_c$.
 
 \begin{figure}
   \begin{center}
@@ -1971,7 +1971,7 @@ It is much less than 110 invocations for the parser \ct{b} and 55 invocation for
 \end{figure}
 
 We can see there is some problem with $input_c$.
-Maybe the debugger window can give us more hints.
+If we still don't know what is the problem, the debugger window might give us more hints.
 Let us have a look at the debugger window for $input_b$ as depicted in \figref{pp/example-debugAaab}.
 We can see that in each step, one \ct{'a'} is consumed and the parser \ct{ab} is invoked until it reaches the \ct{'b'}.
 The debugger window for $input_c$ as depicted in \figref{pp/example-debugAaac} looks much different.
@@ -1999,7 +1999,7 @@ You can see such a modification in \scrref{pp/backtrackingParser-update-1}.
 
 \begin{script}{A slightly better parser accepting \ct{'a*b'} and \ct{'a*c'}. \label{scr:pp/backtrackingParser-update-1}}
 PPCompositeParser subclass: #BacktrackingParser
-	instanceVariableNames: 'ab ac p'
+	instanceVariableNames: 'ab ac'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'PetitTutorial'
@@ -2012,11 +2012,8 @@ BacktrackingParser>>ac
   ^  'b' asParser / 
      ('c' asParser, ab)
 
-BacktrackingParser>>p 
+BacktrackingParser>>start
   ^ ab / ac
-
-BacktrackingParser>>start 
-  ^ p
 \end{script}
 
 We can check the new metrics for $input_c$ in both \figref{pp/example-progressAaac-update-1} and \figref{pp/example-tallyAaac-update-1}. There is significant improvement.
@@ -2051,7 +2048,7 @@ If we expect more \ct{'a*b'} strings in the input, the first version is better.
 
 \begin{script}{An even better parser accepting \ct{'a*b'} and \ct{'a*c'}. \label{scr:pp/backtrackingParser-update-2}}
 PPCompositeParser subclass: #BacktrackingParser
-	instanceVariableNames: 'abc p'
+	instanceVariableNames: 'abc'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'PetitTutorial'
@@ -2060,11 +2057,8 @@ BacktrackingParser>>abc
   ^  ('b' asParser / 'c' asParser) /
      ('a' asParser, abc)
 
-BacktrackingParser>>p
-  ^ abc
-
 BacktrackingParser>>start
-  ^ p
+  ^ abc
 \end{script}
 
 
@@ -2123,7 +2117,8 @@ With the minor modification of \ct{BacktrackingParser} we got a linear parsing t
 \begin{script}{Memoized version of the parser \ct{ab}. \label{scr:pp/backtrackingParser-memo}}
 BacktrackingParser>>ab
   ^ ( 'b' asParser / 
-	    ('a' asParser, ab)) memoized
+	   ('a' asParser, ab)
+     ) memoized
 \end{script}
 
 \begin{figure}
