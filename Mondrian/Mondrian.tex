@@ -83,7 +83,7 @@ We will detail and review all the mechanisms involved in the visualization later
 
 A \ct{ROMondrianViewBuilder} models the Mondrian domain-specific language (DSL)\footnote{\url{http://www.moosetechnology.org/tools/mondrian}}. %It is mostly compatible with the original Mondrian language \ja{what is it?}.% (cf., Mondrian paper and website).
 %ROMondrianBuilder acts as a translation between the Mondrian DSL and the Roassal model.
-A \ct{ROMondrianViewBuilder} internally contains an instance of a \ct{ROView}, called raw view. Its accessor is \ct{raw}. All scripting  using the \ct{ROMondrianViewBuilder} result in creating \ct{ROElement}s with the shapes and interactions set by the script, and added to the raw view. To start a visualization with the builder, you can use the following code:
+A \ct{ROMondrianViewBuilder} internally contains an instance of a \lct{ROView}, called raw view. Its accessor is \ct{raw}. All scripting  using the \ct{ROMondrianViewBuilder} result in creating \ct{ROElement}s with the shapes and interactions set by the script, and added to the raw view. To start a visualization with the builder, you can use the following code:
 
 \begin{code}{}
 view := ROMondrianViewBuilder new.
@@ -525,7 +525,6 @@ A color may be assigned to an object identity using \ct{identityFillColorOf:}. T
 
 Let's jump back on the abstract class example. The following script indicates abstract classes and how many abstract methods they define:
 
-\newpage
 \begin{code}{}
 view shape rectangle
 	size: [ :cls | (cls methods select:  #isAbstract ) size * 5 ] ;
@@ -694,7 +693,6 @@ A subview contains its own layout. Interactions and shapes defined in a subview 
 
 Methods of the visualization given in the previous section may be moved by a simple drag and drop. However, it may be wished that the methods have a fixed position, and only the classes can be drag-and-dropped. In that case, the message \ct{forward} has to be sent to the interaction. Consider:
 
-\newpage
 \begin{code}{}
 view nodes: ROShape withAllSubclasses forEach: [:cls |
 	view interaction forward.
