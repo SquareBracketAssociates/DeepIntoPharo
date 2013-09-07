@@ -1,0 +1,53 @@
+% $Author:  $
+% $Date: 2009-07-06 10:21:47 +0200 (Mon, 06 Jul 2009) $
+% $Revision: 27886 $
+% HISTORY:
+
+%=================================================================
+\ifx\wholebook\relax\else
+% --------------------------------------------
+% Lulu:
+	\documentclass[a4paper,10pt,twoside]{book}
+	\usepackage[
+		papersize={6.13in,9.21in},
+		hmargin={.75in,.75in},
+		vmargin={.75in,1in},
+		ignoreheadfoot
+	]{geometry}
+	\input{../common.tex}
+	\pagestyle{headings}
+	\setboolean{lulu}{true}
+% --------------------------------------------
+% A4:
+%	\documentclass[a4paper,11pt,twoside]{book}
+%	\input{../common.tex}
+%	\usepackage{a4wide}
+% --------------------------------------------
+    \graphicspath{{figures/} {../figures/}}
+	\begin{document}
+	% \renewcommand{\nnbb}[2]{} % Disable editorial comments
+	\sloppy
+	\frontmatter
+\fi
+%=================================================================
+\chapter{Biographies}\chalabel{Biographies}
+
+\begin{wrapfigure}[10]{r}{2.5in}
+\centering
+\includegraphics[width=2in]{alexandre.pdf}
+\end{wrapfigure}
+
+Alexandre Bergel obtained his PhD in 2005 from the University of Berne, Switzerland. His PhD has been awarded by the prestigious Ernst-Denert prize in 2006. After his PhD, he completed a first postdoc at Lero & Trinity College Dublin, Ireland, and a second at the Hasso-Plattner Institute, Germany. Alexandre Bergel and his collaborators carry out research in software engineering and software quality, more specifically on code profiling, testing and data visualization.
+
+Alexandre Bergel has authored over 60 articles, published in international and peer reviewed scientific forums, including the most competitive conferences and journals in the field of software engineering. Alexandre has participated to over 50 program committees of international events. Alexandre has also a strong interest in applying his research results to industry. Several of his research prototypes have been turned into products.
+
+
+
+
+%=============================================================
+\ifx\wholebook\relax\else
+   \bibliographystyle{jurabib}
+   \nobibliography{scg}
+   \end{document}
+\fi
+%=============================================================
