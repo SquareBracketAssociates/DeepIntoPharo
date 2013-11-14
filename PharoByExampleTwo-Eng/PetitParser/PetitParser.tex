@@ -862,7 +862,7 @@ parser parse: '1+2 *3'.          --> '1 + 2 * 3'
 parser parse: '(1+ 2 )* 3'.      --> '(1 + 2) * 3'
 \end{script}
 
-\subsection{Easy expressions with PPExpressionParser}
+\subsection{Easy expressions with \lct{PPExpressionParser}}
 
 PetitParser proposes a powerful tool to create expressions;
 \ct{PPExpressionParser} is a parser to conveniently define an expression
@@ -892,6 +892,11 @@ expression
 expression parse: '1-2/3'.       --> (1/3)
 \end{script}
 
+How do you decide when to create a subclass of \ct{PPCompositeParser}
+or instantiate \ct{PPExpressionParser}? On the one hand, you should
+instantiate a \ct{PPExpressionParser} if you want to do a small parser
+for a small task. On the other hand, if you have a grammar that's
+composed of many parsers, you should subclass \ct{PPCompositeParser}.
 
 \section{Testing a grammar}
 
