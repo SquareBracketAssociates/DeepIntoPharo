@@ -1,0 +1,33 @@
+
+\subsection{Excluding specific exceptions}
+
+We already learned how to handle exceptions or sets of exceptions. But, in some situations we want to exclude some exception in the handler that would be handled otherwise. Suppose we have a handler for \clsind{Exception}, something like this.
+
+\begin{code}{}
+result := [ 1 / 0 ] 
+	on: Exception
+	do: [:ex | ex return: '+Infinity'].
+result --> '+Infinity'
+\end{code}
+
+Up to now nothing new. Now, we want to debug this code, so we will put a \clsind{Halt}:
+
+\begin{code}{}
+result := [ self halt.
+			1 / 0 ] 
+	on: Exception
+	do: [:ex | ex return: '+Infinity'].
+result --> '+Infinity'
+\end{code}
+
+What happened is that "self halt" signals an specific exception (\clsind{Halt}) wich is ultimately a subclass of \clsind{Exception} so it's handled an returns Infinity. In this case what we really want is to handle \clsind{Exception} but not \clsind{Halt}, it's easy to do just using "minus".
+
+\begin{code}{}
+result := [ self halt.
+			1 / 0 ] 
+	on: Exception - Halt
+	do: [:ex | ex return: '+Infinity'].
+\end{code}
+
+This code will raise the Debugger on the halt point. If you want to known how this works take a look at \ct{Exception class>>#-} and the class \clsind{ExceptionSetWithExclusions}.
+
