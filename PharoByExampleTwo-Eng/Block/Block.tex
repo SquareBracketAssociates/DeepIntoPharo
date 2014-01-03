@@ -138,7 +138,7 @@ A block can have its own temporary variables. Such variables are initialized dur
 
 In Pharo, private variables (such as self, instance variables, method temporaries and arguments) are lexically scoped (it means that an expression in a method can access to the  variables visible from that method). At runtime, the variables a block can access are bound (get a value associated to them) in \emph{the context} in which the block that contains them is \emph{defined}, rather than the context in which the block is evaluated. It means that a block when evaluated somewhere else can access variables that where in its scope (visible to the block) when the block was created. Traditionally, the context in which a block is defined is named the \emph{block home context}.
 
-The block home context represents a particular point of execution (since this is a program execution that created the block in the first place), therefore this notion of block home context is represented by an object that represents program execution: in Smalltalk a context. In essence, a context (called stack frame or activation record in other languages) represents information about the current evaluation step such as the context from which the current one is executed, the next byte code to be executed, and the value of the temporary variables. A context is an activation record representing a Smalltalk execution stack element. This is important and we will come back later to this concept.
+The block home context represents a particular point of execution (since this is a program execution that created the block in the first place), therefore this notion of block home context is represented by an object that represents program execution: a context object in Pharo. In essence, a context (called stack frame or activation record in other languages) represents information about the current evaluation step such as the context from which the current one is executed, the next byte code to be executed, and temporary variable values. A context is an activation record representing a Pharo execution stack element. This is important and we will come back later to this concept.
 
 \important{A block is created inside some context (an object that represents an execution point).}
 
@@ -383,7 +383,7 @@ Bexp>>blockOutsideTemp
 	^ collection collect: [ :each | each value ]
 \end{code}
 
-If we execute the method \ct{blockOutsideTemp}, we now get a collection with 3, 3 and 3. This results shows that each block in the collection now refers to a single variable \ct{temp} allocated in the \ct{blockOutsideTemp} context leading to the fact that \ct{temp} is shared by the blocks.
+If we execute the method \ct{blockOutsideTemp}, we now get a collection with 3, 3 and 3. This result shows that each block in the collection now refers to a single variable \ct{temp} allocated in the \ct{blockOutsideTemp} context leading to the fact that \ct{temp} is shared by the blocks.
 
 %\begin{figure}
 %	\centering
@@ -506,7 +506,7 @@ For example, the following expression \ct{Bexp new jumpingOut} will return 3 and
 In subsequent sections we will carefully look at where a return is actually returning.
 
 \subsection{Understanding return}
-Now to see that a return is really escaping the current execution, let us build a slightly more complex call flow. We define four methods among which one (\ct{defineBlock}) creates an escaping block,  one (\ct{arg:}) evaluates this block and one (\ct{evaluatingBlock:}) that execute the block. Pay attention that to stress the escaping behavior of a return we defined \ct{evaluatingBlock:} so that it endlessly loops after evaluating its argument.
+Now to see that a return is really escaping the current execution, let us build a slightly more complex call flow. We define four methods among which one (\ct{defineBlock}) creates an escaping block,  one (\ct{arg:}) evaluates this block and one (\ct{evaluatingBlock:}) that executes the block. Pay attention that to stress the escaping behavior of a return we defined \ct{evaluatingBlock:} so that it endlessly loops after evaluating its argument.
 
 \begin{code}{}
 Bexp>>start
@@ -726,14 +726,14 @@ The class \ct{MethodContext} and its superclasses define many methods to get inf
 
 
 \subsection{Block nesting and contexts}
-Now let's look at the case of nesting block and its impact on home contexts.
+Now let's look at the case of block nesting and its impact on home contexts.
 In fact a block points to a context when it was created: it is its \emph{outer context}. Now depending on the situation the outer context of a block can be its home context or not. 
 This is not complex: Each block is created inside some context.  This is the block's outer context. The outer context is the direct context in which a block was created. The home context is the one at the method level. 
 If the block is not nested then the outer context is also be the block home context.
 
 But if the block is nested inside another block execution, then the outer context refers to that block execution context, and the block execution's block's outerContext is the home context.  There are as many outer context steps as there are nesting levels.
 
-Let us look at the following example. When you execute just press ok to the dialogs popping up.
+Let's look at the following example. When you execute just press ok to the dialogs popping up.
 
 \begin{code}{}
 | homeContext b1 |
