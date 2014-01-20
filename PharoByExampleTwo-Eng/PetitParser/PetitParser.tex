@@ -2014,8 +2014,8 @@ BacktrackingParser>>ab
      ('a' asParser, ab)
 
 BacktrackingParser>>ac
-  ^  'b' asParser / 
-     ('c' asParser, ab)
+  ^  'c' asParser / 
+     ('a' asParser, ac)
 
 BacktrackingParser>>start
   ^ ab / ac
