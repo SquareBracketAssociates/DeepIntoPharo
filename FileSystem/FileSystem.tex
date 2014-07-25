@@ -40,12 +40,12 @@
  
 The library for dealing with files in Pharo is called FileSystem. It offers an expressive and elegant object-oriented design.  This chapter presents the key aspects of the API to cover most of the needs one may have.
 
-FileSystem is the result of a long and hard work from many people. FileSystem has been originally developed by Colin Putney and the library is distributed under the MIT license, as for most components of Pharo. Camillo Bruni made some changes to the original design or API. Camillo Bruni integrated it into Pharo with the help of Esteban Lorenzano and Guillermo Polito. This chapter would not exist without the previous work of all the contributors of FileSystem. We are grateful to all of them. 
+FileSystem is the result of long and hard work from many people. FileSystem was originally developed by Colin Putney and the library is distributed under the MIT license, as for most components of Pharo. Camillo Bruni made some changes to the original design. Camillo Bruni integrated it into Pharo with the help of Esteban Lorenzano and Guillermo Polito. This chapter would not exist without the previous work of all the contributors of FileSystem. We are grateful to all of them. 
 
 \section{Getting started}
-The framework supports different ``kinds'' of filesystems that are interchangeable and may transparently work with each other. The probably most common usage of FileSystem is to directly work with files stored on your hard disk. We are going to work with that one for now. 
+The framework supports different ``kinds'' of filesystems that are interchangeable and may transparently work with each other. The probably most common usage of FileSystem is to directly work with files stored on your hard-drive. We are going to work with that one for now. 
 
-The class \ct{FileSystem} offers factory class-methods to offer access of different filesystems. 
+The class \ct{FileSystem} offers factory class-methods to offer access to different filesystems. 
 Sending the message \mthind{FileSystem}{disk} to \ct{FileSystem}, returns a file system as on your physical hard-drive. Sending \ct{memory} creates a new file system stored in memory image. 
 
 \begin{code}{}
@@ -61,7 +61,7 @@ The message \mthind{FileReference}{workingDirectory} above returns a reference t
 
 FileSystem defines four classes that are important for the end-user: \ct{FileSystem}, \ct{FileReference}, \ct{FileLocator}, and \ct{FileSystemDirectoryEntry}. \ct{FileSystem} offers factory methods to create a new file system. A \ct{FileReference} is a reference to a folder or a file and offers methods to navigate and perform operations. 
 A \ct{FileLocator} is a late binding reference. When asked to perform concrete operation, a file locator looks up the current location of the origin, and resolve the path against it. 
-A \ct{FileSystemDirectoryEntry} allows one to get the additional information of a file or a directory. These classes belongs to the 'FileSystem-Core' package, and are explained below in the chapter.
+A \ct{FileSystemDirectoryEntry} allows one to get the additional information of a file or a directory. These classes belong to the 'FileSystem-Core' package, and are explained below in the chapter.
 
 You should not use platform specific classes such as \ct{UnixStore} or \ct{WindowsStore}, these are internal classes. All code snippets below work on \ct{FileReference} instances.
 
@@ -198,7 +198,7 @@ stream contents.			--> 'Hello World'
 stream close.
 \end{code}
 
-Please note that \ct{writeStream} overrides any existing file and \ct{readStream} throws an exception if the file does not exist. Forgetting to close stream is a common mistake, for which even advanced programmers regularly fall into. Closing a stream free low level resources, which is a good thing to do. The messages \ct{readStreamDo:} and \ct{writeStreamDo:} may be to use to not have to use \ct{close}. Consider:
+Please note that \ct{writeStream} overrides any existing file and \ct{readStream} throws an exception if the file does not exist. Forgetting to close stream is a common mistake, for which even advanced programmers regularly fall into. Closing a stream frees low level resources, which is a good thing to do. The messages \ct{readStreamDo:} and \ct{writeStreamDo:} frees the programmer from explicitly closing the stream. Consider:
 
 \begin{code}{}
 | working  |
@@ -222,7 +222,7 @@ FileSystem disk workingDirectory / 'authors.txt'
 	writeStreamDo: [ :stream | stream nextPutAll: 'bob joe'].
 \end{code}
 
-Reading back the file may gives an odd result:
+Reading back the file may give an odd result:
 \begin{code}{}
 | working |
 working := FileSystem disk workingDirectory.
@@ -244,9 +244,9 @@ Have a look at the streams protocol of \ct{FileReference} for other convenience 
 
 
 
-\section{Renaming, copying and deleting Files and Directories}
+\section{Renaming, copying and deleting files and directories}
 
-Files may be copied and renamed using the messages \ct{copyTo:} and \mbox{\ct{renameTo:}.} Note that while \ct{copyTo:} expects another fileReference,  \ct{renameTo:} expects paths, pathnames or references.
+Files may be copied and renamed using the messages \ct{copyTo:} and \mbox{\ct{renameTo:}.} Note that while \ct{copyTo:} tasks as argument another fileReference,  \ct{renameTo:} takes a path, pathname or reference.
 
 \begin{code}{}
 | working |
@@ -271,7 +271,7 @@ working / 'skweek.txt' readStreamDo: [ :stream | stream contents ].
 
 
 \paragraph{Directory creation.}
-To create a directory use the message \mthind{FileReference}{createDirectory} as follows:
+To create a directory, use the message \mthind{FileReference}{createDirectory} as follows:
 
 \begin{code}{}
 | working  |
@@ -286,7 +286,7 @@ backup children.
 
 
 \paragraph{Copy everything.}
-You can  copy the contents of a directory using the message \ct{copyAllTo:}. Here we copy the complete package-cache to that the backup directory using \mthind{FileReference}{copyAllTo:}:
+You can  copy the contents of a directory using the message \ct{copyAllTo:}. Here we copy the complete package-cache to the backup directory using \mthind{FileReference}{copyAllTo:}:
 
 \begin{code}{}
 cache !\textbf{copyAllTo:}! backup.
@@ -301,7 +301,7 @@ To delete a single file, use the message \mthind{FileReference}{delete}:
  (working / 'bar.txt') !\textbf{delete}!.
 \end{code}
 
-To delete a complete directory tree (including the receiver) use \mthind{FileReference}{deleteAll}. Be careful with that one though.
+To delete a complete directory tree (including the receiver) use \mthind{FileReference}{deleteAll}. Be careful to not delete the wrong folder though.
 
 \begin{code}{}
 backup !\textbf{deleteAll}!.
@@ -311,12 +311,12 @@ backup !\textbf{deleteAll}!.
 
 
 \section{The main entry point: FileReference}
-While FileSystem is based on multiple concepts and classes such as \mbox{\ct{FileSystem},} \ct{Path} and \ct{FileReference}. \ct{FileReference} is the most important for an end-user. \ct{FileReference} offers a set of operations to manipulate files. So far, we have seen some basic operations. This sections cover the more elaborated operations.
+While FileSystem is based on multiple concepts and classes such as \mbox{\ct{FileSystem},} \ct{Path} and \ct{FileReference}. \ct{FileReference} is the most important for an end-user. \ct{FileReference} offers a set of operations to manipulate files. So far, we have seen some basic operations. This section covers the more elaborated operations.
 
 At the design level, a file reference (\ct{FileReference}) combines two low-level entities: a path (\ct{Path}) and a filesystem (\ct{FileSystem}) into a single object which provides a simple protocol to manipulate and handle files. A \ct{FileReference} implements many operations of \ct{FileSystem} (both are largely polymorphic), but without the need to track paths and filesystem separately.
 
 \subsection{FileReference information access}
-First given a file reference you can access usual information using messages \ct{basename}, \ct{base}, \ct{extensions}...
+Once given a file reference you can access usual information using messages \ct{basename}, \ct{base}, \ct{extensions}...
 
 \begin{code}{}
 | pf |
@@ -341,7 +341,7 @@ pf !\textbf{extensions}!
 FileSystem introduces the notion of file reference indicators. An indicator is a visual clue conveying the type of the reference.
 For now three kind of indicators are implemented,  \ct{'?'} for a non existing reference, \ct{'/'} for a directory,
 and the empty string for a file. \ct{FileReference} defines the  message \ct{basenameWithIndicator} that takes advantage of indicators.
-The following expressions shows its use. 
+The following expressions show its use. 
 
 
 \begin{code}{}
@@ -356,8 +356,8 @@ pf parent !\textbf{basenameWithIndicator}!
 
 \paragraph{Path.}
 
-When there is a need to access portion of a path, the message \ct{pathSegments} returns the full name cut into path elements, as strings. 
-Remember that from a design point of view, strings are considered as ``dead'' objects so it is often better to deal with the real objects for example using
+When there is a need to access a portion of a path, the message \ct{pathSegments} returns the full name cut into path elements, as strings. 
+Remember that from a design point of view, strings are considered as ``dead'' objects, so it is often better to deal with the real objects for example using
 the \ct{path} message. 
 
 
@@ -414,7 +414,7 @@ There are several operations on files.
 \ct{delete}, \ct{deleteAll}, \ct{deleteAllChildren}, all delete the receiver and raise an error if it does not exist. 
 \ct{delete} deletes the file, \ct{deleteAll} deletes the directory and its contents , \ct{deleteAllChildren} (which only deletes children of a directory).  In addition, \ct{deleteIfAbsent:} executes a block when the file does not exist.
 
-Finally \ct{ensureDelete} deletes the file but does not raise error if the file does not exist. Similarly \ct{ensureDeleteAllChildren}, \ct{ensureDeleteAll} do not raise exception when the receiver does not exists. 
+Finally \ct{ensureDelete} deletes the file but does not raise error if the file does not exist. Similarly \ct{ensureDeleteAllChildren}, \ct{ensureDeleteAll} do not raise exception when the receiver does not exist. 
 
 
 
@@ -439,7 +439,7 @@ Finally \ct{ensureDelete} deletes the file but does not raise error if the file 
 
 \paragraph{Creating Directory.}
 \ct{createDirectory} creates a new directory and raises an error if it already exists. 
-\ct{ensureCreateDirectory} verifies that the directory does not exist and only creates if necessary.
+\ct{ensureCreateDirectory} verifies that the directory does not exist and only creates it if necessary.
 \ct{ensureCreateFile} creates if necessary a file.
  
  
@@ -474,8 +474,8 @@ We can move files around using the message \ct{moveTo:} which expects a file ref
 	-->true
 \end{code}
 
-Beside moving we can copy files. 
-We can also use \ct{copyAllTo:} to copy files around. Here we copy the files contained in the source folder to the target one. 
+Besides moving files, we can copy them. 
+We can also use \ct{copyAllTo:} to copy files. Here, we copy the files contained in the source folder to the target one. 
 
 The message \ct{copyAllTo:} performs a deep copy of the receiver, to a location specified by the argument. If the receiver is a file, the file is copied. If the receiver is a directory, the directory and its contents will be copied recursively. The argument must be a reference that does not exist; it will be created by the copy.
 
@@ -521,13 +521,13 @@ Locators make it possible to specify things like "an item named 'package-cache' 
 The following origins are currently supported:
 
 \begin{itemize}
-\item \ct{imageDirectory} - the directory in which the image resides in
+\item \ct{imageDirectory} - the directory in which the image resides 
 \item\ct{image} - the image file
 \item\ct{changes} - the changes file
 \item\ct{vmBinary} - the executable for the running virtual machine
 \item\ct{vmDirectory} - the directory containing the VM application (may not be the parent of \ct{vmBinary})
 \item\ct{home} - the user's home directory
-\item\ct{desktop} - the directory that hold the contents of the user's desktop
+\item\ct{desktop} - the directory that holds the contents of the user's desktop
 \item\ct{documents} - the directory where the user's documents are stored (e.g. '/Users/colin/Documents')
 \end{itemize}
 
@@ -573,15 +573,15 @@ References and Locators also provide simple methods for dealing with whole direc
 
 
 \section{Looking at FileSystem internals}
-At that stage, you should be able to comfortably use FileSystem to cover your need about file handing.
-This section is about the internal of FileSystem. It goes over important implementation details, which will surely interest readers willing to have a new kind of file system, for example on a data base or a remote file system. 
+At that stage, you should be able to comfortably use FileSystem to cover your need file handing.
+This section is about the internal components of FileSystem. It goes over important implementation details, which will surely interest readers willing to have a new kind of file system, for example on a data base or a remote file system. 
 
 \subsection{FileReference = FileSystem + Path}
 Paths and filesystems are the lowest level of the FileSystem API. A \ct{FileReference} combines a path and a filesystem into a single object which provides a simpler protocol for working with files as we show in the previous section. References implement the path protocol with methods like \ct{/}, \ct{parent} and \ct{resolve:}.
 
 
 \subsection{FileSystem}
-A filesystem is an interface to access hierarchies of directories and files. "The filesystem," provided by the host operating system, is represented by \ct{DiskStore} and its platform-specific subclasses. However, the user should not access them directly but using \ct{FileSystem} as we show previously. Other kinds of filesystems are also possible. The memory filesystem provides a RAM disk filesystem where all files are stored as ByteArrays in the image. The zip filesystem represents the contents of a zip file.
+A filesystem is an interface to access hierarchies of directories and files. "The filesystem," provided by the host operating system, is represented by \ct{DiskStore} and its platform-specific subclasses. However, the user should not access them directly but instead use \ct{FileSystem} as we showed previously. Other kinds of filesystems are also possible. The memory filesystem provides a RAM disk filesystem where all files are stored as ByteArrays in the image. The zip filesystem represents the contents of a zip file.
 
 Each filesystem has its own working directory, which is used to resolve any relative paths that are passed to it. Some examples:
 
