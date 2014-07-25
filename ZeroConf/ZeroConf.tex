@@ -71,7 +71,7 @@ Now let's have a look at the script help.
 bash 20+vm --help 
 \end{code}
 
-The help says that the \ct{20+vm} command downloads the current virtual machine and puts it into the pharo-vm folder. In addition, it creates several scripts: \ct{pharo} to launch the system, \ct{pharo-ui} a script to launch the image in UI mode. Finally it also downloads the latest image and changes files.
+The help says that the \ct{20+vm} command downloads the current virtual machine and puts it into the pharo-vm folder. In addition, it creates several scripts: \ct{pharo} to launch the system, \ct{pharo-ui} a script to launch the image in UI mode. Finally, it also downloads the latest image and changes files.
 
 \begin{code}{Output of 20+vm --help }
 This script downloads the latest Pharo 20 Image.
@@ -103,7 +103,7 @@ wget --quiet -O - get.pharo.org/20+vm | bash
 
 
 \paragraph{Note for the believers in automated tasks.} 
-The scripts are fetched automatically from our jenkins server (\url{https://ci.inria.fr/pharo/job/Scripts-download/}) from the gitorious server \mbox{\url{https://gitorious.org/pharo-build/pharo-build}.}
+The scripts are fetched automatically from our Jenkins server (\url{https://ci.inria.fr/pharo/job/Scripts-download/}) from the gitorious server \mbox{\url{https://gitorious.org/pharo-build/pharo-build}.}
 Yes we believe in automated tasks that free our energy. 
 
 \section{Getting the VM only}
@@ -114,7 +114,7 @@ wget -O - get.pharo.org/vm | bash
 \end{code}
 
 
-Again as any script you can always check its help message.
+As any script you can always check its help message.
 
 \begin{code}{}
 This script downloads the latest Pharo VM.
@@ -136,11 +136,11 @@ Figure~\ref{fig:website} shows the list of scripts available that you can get at
 
 
 \section{Handling command line options}
-We have now a brand new and nice way to handle command line arguments. It is self documented and easily extendable. Let us have a look at how the command line is handled. As usual we will start to show you how to find your way alone.
+We have a brand new and nice way to handle command line arguments. It is self-documented and easily extendable. Let us have a look at how the command line is handled. As usual we will start by showing you how to find your way alone.
 
 
 \subsection{How to find our way}
-Again we love and value self documentation so just use the  \ct{--help} option to get an explanation. 
+Because we highly value self-documentation, just use the  \ct{--help} option to get an explanation. 
 
 \begin{code}{}
 ./pharo Pharo.image --help
@@ -164,11 +164,11 @@ It first checks if another handler is available. If so it will activate the foun
 
 
 \subsection{System version and handler list}
-Two of the default options are important \ct{versions} and \ct{list}. Let us have a look to them now.
+Two of the default options are important \ct{versions} and \ct{list}. Let us have a look at them now.
 
 
 
-\paragraph{Getting system version.} A typical and important command line option is \ct{--version}. Please use it when you communicate bugs and deviant behavior. 
+\paragraph{Getting system version.} A typical and important command line option is \ct{--version}. Please use it when you report bugs and deviant behavior. 
 
 \begin{code}{}
 ./pharo Pharo.image --version
@@ -179,9 +179,9 @@ git://gitorious.org/cogvm/blessed.git Commit: 452863bdfba2ba0b188e7b172e9bc597a2
 
 The \ct{--version} argument gives the version of the virtual machine. If you wish to obtain the version of the image, then you need to open the image, use the World menu, and select About.
 
-\paragraph{List of available handlers.} The command line option \ct{--list} is interesting since it give you the list of the \emph{current} option handlers. This list depends on the handlers that are currently loaded in the system. In particular it means that you can simply add an handler for your specific situation and wishes.
+\paragraph{List of available handlers.} The command line option \ct{--list} lists of the \emph{current} option handlers. This list depends on the handlers that are currently loaded in the system. In particular, it means that you can simply add a handler for your specific situation and wishes.
 
-The following list shows that handlers available in the system we used when writing this chapter.
+The following list shows the available handlers.
 
 \begin{code}{}
 ./pharo Pharo.image --list
@@ -197,10 +197,6 @@ Currently installed Command Line Handlers:
     eval            Directly evaluates passed in one line scripts
 \end{code}
 
-Now you probably wonder how certain option should be used. Indeed it does not look like using the config option which handles the loading of Metacello configurations is crystal clear, isn't. But as you guessed handler are also self described. Let us have a look at this one. 
-
-
-
 \paragraph{Loading Metacello Configuration.}
 To get some explanation about the use of the config option, just request its associated help as follows: 
 
@@ -208,7 +204,7 @@ To get some explanation about the use of the config option, just request its ass
 ./pharo Pharo.image config --help
 \end{code}
 
-Note that this help is the one of the associated handler not the one of the command line generic system. 
+Note that this help is the one of the associated handler, not one of the command line generic system. 
 
 \begin{code}{}
 Usage: config [--help] <repository url> [<configuration>] [--install[=<version>]] [--group=<group>] [--username=<username>] [--password=<password>]
@@ -243,7 +239,7 @@ Examples:
 
 
 \section{Anatomy of a handler}
-As we mentioned it, the command line mechanism is open and can be extended. We will look now how the handler for the eval option is defined. 
+As we mentioned, the command line mechanism is open and can be extended. We will look now how at the handler for the eval option is defined. 
 
 
 \paragraph{Evaluating Pharo Expressions.} You can use the command line to evaluate expressions as follows: \ct{./pharo Pharo.image eval '1+2'}
@@ -277,7 +273,7 @@ BasicCodeLoader subclass: #EvaluateCommandLineHandler
 	category: 'System-CommandLine'
 \end{code}
 
-Then we define the \ct{commandName} on the class side as well as the method \ct{isResponsibleFor:}.
+We then define the \ct{commandName} on the class side as well as the method \ct{isResponsibleFor:}.
 
 \begin{code}{}
 EvaluateCommandLineHandler class>>commandName
@@ -312,15 +308,15 @@ In particular we define a class comment since this is this class comment that wi
 %	\caption{XMLWriter ZeroConf scripts. \label{fig:jenkins}}
 %\end{figure}
 
-If you want your image saved at the end of an evaluation script, pass the \ct{--save} option just after \ct{eval}.
+If you want your image saved at the end of an evaluation script, use the \ct{--save} option just after \ct{eval}.
 
 \section{Using ZeroConf script with Jenkins}
-Now that we have such scripts and the possibility to specify option, we can write jenkins scripts which are relying as less as possible on bash. 
+Now that we have such scripts and the possibility to specify option, we can write Jenkins scripts which rely on BASH as least as possible.
 
-For example here is the command that we use in jenkins for the project XMLWriter (which is hosted on PharoExtras). 
+For example here is the command that we use in Jenkins for the project XMLWriter (which is hosted on PharoExtras). 
 
 \begin{code}{}
-# jenkins puts all the params after a / in the job name as well :(
+# Jenkins puts all the params after a / in the job name as well :(
 export JOB_NAME=`dirname $JOB_NAME`
 
 wget --quiet -O - get.pharo.org/$PHARO+$VM | bash
@@ -336,7 +332,7 @@ zip -r $JOB_NAME.zip $JOB_NAME.image $JOB_NAME.changes
 \end{code}
 
 \section{Chapter summary}
-You can now really easily get access to the latest version of Pharo and build scripts. In addition the 
+You can now really easily access to the latest version of Pharo and build scripts. In addition, the 
 command-line handler opens new horizons to be used in shell scripts.
 
 %=========================================================
