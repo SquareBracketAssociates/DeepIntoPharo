@@ -652,7 +652,8 @@ Since we love simple scripts where we do not have to think too much, here is a f
 \begin{script}{Script to synchronize from one Monticello repository to another}
 | source goferSource destination goferDestination files destinationFiles |
 
-source := MCHttpRepository location: 'http://www.squeaksource.com'.
+source := MCHttpRepository 
+			location: 'http://www.squeaksource.com/MyProject'.
 destination := MCSmalltalkhubRepository
     owner: 'TheOwner'
     project: 'YourPackage'
