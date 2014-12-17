@@ -61,12 +61,12 @@ All applications have to deal with exceptional situations.
 Arithmetic errors may occur (such as division by zero), unexpected situations may arise (file not found), or resources may be exhausted (network down, disk full, \etc).
 The old-fashioned solution is to have operations that fail return a special \emph{error code}; this means that client code must check the return value of each operation, and take special action to handle errors. This leads to brittle code. 
 
-With the help of a series of examples, we shall explore all of these possibilities, and we shall also take a deep look into the internal mechanics of exceptions and exception handlers.
+With the help of a series of examples, we shall explore all of these possibilities, and take a closer look into the internal mechanics of exceptions and exception handlers.
 
 \section{Introduction}
 
 Modern programming languages, including \st offer a dedicated exception-handling mechanism that greatly simplifies the way in which exceptional situations are signaled and handled.
-Before the development of the \ind{ANSI \st{}} standard in 1996, several  exception handling mechanisms existed, largely incompatible with each other. \pharo's exception handling follows the ANSI standard, with some embellishments; we present it in this chapter from a user perspective.
+Before the development of the \ind{ANSI \st{}} standard in 1996, several  exception handling mechanisms existed, mostly incompatible with each other. \pharo's exception handling follows the ANSI standard, with some embellishments; we present it in this chapter from a user perspective.
 
 The basic idea behind exception handling is that 
 client code does not clutter the main logic flow with checks for error codes, but specifies instead an \emph{exception handler} to ``catch'' exceptions.
@@ -209,8 +209,8 @@ The general mechanism is provided by the message \mthind{BlockClosure}{on:do:}. 
 !\emph{aBlock}! on: !\emph{exceptionClass}! do: !\emph{handlerAction}!
 \end{code}
 \noindent
-\lct{\emph{aBlock}} is the code that detects an abnormal situation and signals an exception; it is called the \emph{protected block}.   
-\lct{\emph{handlerAction}} is the block that is evaluated if an exception is signaled; it is called the \emph{exception handler}.
+\lct{\emph{aBlock}} is the code that detects an abnormal situation and signals an exception; called the \emph{protected block}.   
+\lct{\emph{handlerAction}} is the block that is evaluated if an exception is signaled and called the \emph{exception handler}.
 \ct{exceptionClass} defines the class of exceptions that \ct{handlerAction} will be asked to handle.
 
 
@@ -238,8 +238,8 @@ The message \ct{on:do:} returns the value of the receiver (the protected block) 
 
 The beauty of this mechanism lies in the fact that the protected block can be written in  a straightforward way, \emph{without regard to any possible errors}. A single exception handler is responsible for taking care of anything that may go wrong.
 
-Consider the following example, where we want to copy the contents of one file to another.
-Although several file-related things could go wrong, with exception handling we simply write a straight-line method, and define a single exception handler for the whole transaction: 
+Consider the following example where we want to copy the contents of one file to another.
+Although several file-related things could go wrong, with exception handling, we simply write a straight-line method, and define a single exception handler for the whole transaction: 
 \clsindex{FileStream}
 \clsindex{FileStreamException}
 \needlines{7}
@@ -279,7 +279,7 @@ destination := 'log-backup.txt'.
 	toStream ifNotNil: [toStream close].
 \end{code}
 
-If any other exception than \ct{FileStreamException} happens the files are not properly closed. 
+If any exception other than \ct{FileStreamException} happens, the files are not properly closed. 
 
 
 %=================================================================
@@ -344,7 +344,7 @@ In \pharo{}, an exception is an instance of an exception class which is part of 
 For example, 
 because the exceptions \clsind{FileDoesNotExistException}, \clsind{FileExistsException} and \clsind{CannotDeleteFileException} are special kinds of \clsind{FileStreamException}, they are represented as subclasses of \ct{FileStreamException}, as shown in \figref{hierarchy}.
 This notion of ``specialization'' lets us associate an exception handler with a more or less general exceptional situation.
-So, we can write different expressions depending on the level of granularity we want:
+Allowing us to write different expressions depending on the level of granularity we want:
 
 \begin{code}{}
 [ ... ] on: Error do: [ ... ]  or 
@@ -367,8 +367,8 @@ Two key messages are involved in exception handling: \ct{on:do:}, which, as we h
 
 \subsection{Catching sets of exceptions}
 
-So far we have always used \ct{on:do:} to catch just a single class of exception. The handler will only be invoked if the exception signaled is a sub-instance of the specified exception class.
-However, we can imagine situations where we might like to catch multiple classes of exceptions. This is easy to do, just specify a list of classes separated by commas as shown in the following example.
+So far, we have always used \ct{on:do:} to catch just a single class of exception. The handler will only be invoked if the exception signaled is a sub-instance of the specified exception class.
+However, we can imagine situations where we might like to catch multiple classes of exceptions. This is easy to do. Just specify a list of classes separated by commas as shown in the following example.
 
 \begin{code}{@TEST | result |}
 result := [ Warning signal . 1/0 ]
@@ -377,7 +377,7 @@ result := [ Warning signal . 1/0 ]
 result --> 1
 \end{code}
 
-If you are wondering how this works, just have a look at the implementation of \ct{Exception class>>>,}
+If you are wondering how this works, have a look at the implementation of \ct{Exception class>>>,}
 
 \begin{code}{}
 Exception class>>>, anotherException
@@ -385,7 +385,7 @@ Exception class>>>, anotherException
 	^ExceptionSet new add: self; add: anotherException; yourself
 \end{code}
 
-The rest of the magic occurs in the class \clsind{ExceptionSet}, which has a surprisingly trivial implementation.
+The rest of the magic occurs in the class \clsind{ExceptionSet}, which has a surprisingly simple implementation.
 
 \begin{code}{}
 Object subclass: #ExceptionSet
@@ -410,7 +410,7 @@ ExceptionSet>>>handles: anException
 	^false
 \end{code}
 
-The message \ct{handles:} is also defines on a single exception and returns whether the receiver handles the exception.
+The message \ct{handles:} is also defined on a single exception and returns whether the receiver handles the exception.
 
 
 
@@ -419,7 +419,7 @@ The message \ct{handles:} is also defines on a single exception and returns whet
 %=================================================================
 \section{Signaling an exception}
 
-To signal an exception\footnote{Synonyms are to ``raise'' or to ``throw'' an exception. Since the vital message is called \lct{signal}, we use that terminology exclusively in this chapter.}, you only need to create an instance of the exception class, and to send it the message \ct{signal}, or \ct{signal:} with a textual description. The class \ct{Exception class} provides a convenience method \ct{signal}, which creates and signals an exception. So, here are two equivalent ways to signal a \clsind{ZeroDivide} exception:
+To signal an exception\footnote{Synonyms are to ``raise'' or to ``throw'' an exception. Since the vital message is called \lct{signal}, we use that terminology exclusively in this chapter.}, you only need to create an instance of the exception class and send it the message \ct{signal}, or \ct{signal:} with a textual description. The class \ct{Exception class} provides a convenience method \ct{signal}, which creates and signals an exception. Here are two equivalent ways to signal a \clsind{ZeroDivide} exception:
 \needlines{2}
 \begin{code}{}
 	ZeroDivide new signal.
@@ -474,7 +474,7 @@ Object>>>doesNotUnderstand: aMessage
 	^ aMessage sentTo: self.
 \end{code}
 
-That completes our description of how exceptions are used.  The remainder of this chapter discusses how exceptions are implemented, and adds some details that are relevant only if you define your own exceptions.
+That completes our description of how exceptions are used.  The remainder of this chapter discusses how exceptions are implemented and adds some details that are relevant only if you define your own exceptions.
 
 %=================================================================
 
@@ -505,7 +505,7 @@ The current \pharo virtual machine does actually use full Smalltalk objects all 
 
 \index{BlockClosure!on:do:}
 When we send \lct{\emph{aBlock} on: \emph{ExceptionClass} do: \emph{actionHandler}}, we intend to associate an exception handler (\lct{\emph{actionHandler}}) with a given class of exceptions (\lct{\emph{ExceptionClass}}) for the activation context of the protected block \lct{\emph{aBlock}}.
-This information is used to identify and execute \lct{\emph{actionHandler}} whenever an exception of an appropriate class is signaled; \lct{\emph{actionHandler}} can be found by traversing the stack starting from the top (the most recent message-send) and working down to the context that sent the \ct{on:do:} message.
+This information is used to identify and execute \lct{\emph{actionHandler}} whenever an exception of an appropriate class is signaled; \lct{\emph{actionHandler}} can be found by traversing the stack starting from the top (the most recent message-send) and working downward to the context that sent the \ct{on:do:} message.
 
 If there is no exception handler on the stack, the message \ct{defaultAction} will be sent either by \cmind{ContextPart}{handleSignal:} or by \cmind{UndefinedObject}{handleSignal:}. The latter is associated with the bottom of the stack, and is defined as follows:
 
@@ -557,7 +557,7 @@ result := [ Error signal: 'error 1' ]
 result --> 'Error: error 2'
 \end{code}
 
-This is subtle point so try it and study it. 
+This is subtle, but important point -  study it carefully. 
 %=================================================================
 \section{Handling exceptions}
 
@@ -565,16 +565,16 @@ This is subtle point so try it and study it.
 When an exception is signaled, the handler has several choices about how to handle it.
 In particular, it may:
 \begin{itemize}
-\item[(i)] \emph{abandon} the execution of the protected block, by simply specifying an alternative result -- it is part of the protocol but not used since it is similar to return; 
-\item[(ii)] \emph{return} an alternative result for the protected block, by sending \lct{return: \emph{aValue}} to the exception object;
+\item[(i)] \emph{abandon} the execution of the protected block by simply specifying an alternative result -- it is part of the protocol but not used since it is similar to return; 
+\item[(ii)] \emph{return} an alternative result for the protected block by sending \lct{return: \emph{aValue}} to the exception object;
 \item[(iii)] \emph{retry} the protected block, by sending \ct{retry}, or try a different block by sending \ct{retryUsing:};
-\item[(iv)] \emph{resume} the protected block at the failure point, by sending \ct{resume} or \ct{resume:};
-\item[(v)] \emph{pass} the caught exception to the enclosing handler, by sending \ct{pass}; or
-\item[(vi)] \emph{resignal} a different exception, by sending \ct{resignalAs:} to the exception.
+\item[(iv)] \emph{resume} the protected block at the failure point by sending \ct{resume} or \ct{resume:};
+\item[(v)] \emph{pass} the caught exception to the enclosing handler by sending \ct{pass}; or
+\item[(vi)] \emph{resignal} a different exception by sending \ct{resignalAs:} to the exception.
 % \lr{I would call this \emph{resignal}, because this is not the same as signaling a new exception using \ct{Exception signal} from within a handler block.}
 \end{itemize}
 
-We will briefly look at the first three possibilities, and then we will take a closer look at the remaining ones.
+We will briefly look at the first three possibilities, and then take a closer look at the remaining ones.
 
 %-----------------------------------------------------------------
 \subsection{Abandon the protected block}
@@ -623,7 +623,7 @@ Sometimes we may want to change the circumstances that led to the exception and 
 [Error signal] on: Error do: [:ex | ex retry]    "will loop endlessly"
 \end{code}
 
-Here is a better example.
+Here is another example.
 The protected block is re-evaluated within a modified environment where \ct{theMeaningOfLife} is properly initialized:
 \begin{code}{@TEST | result theMeaningOfLife |}
 result := [ theMeaningOfLife * 7 ]    "error -- theMeaningOfLife is nil"
@@ -654,7 +654,7 @@ whereas this will signal an \ct{Error}:
 [1 / 0] on: ArithmeticError do: [:ex | ex retryUsing: [ Error signal ]]
 \end{code}
 
-As another example, recall the file handling code we saw earlier, in which we printed a message to the Transcript when a file is not found. Instead, we could prompt for the file as follows:
+As another example, keep in mind the file handling code we saw earlier in which we printed a message to the Transcript when a file is not found. Instead, we could prompt for the file as follows:
 \ja{this script does not work}
 \begin{code}{}
 [(StandardFileStream oldFileNamed: 'error42.log') contentsOfEntireFile]
@@ -687,8 +687,9 @@ Here we can clearly see that the value of \ct{MyResumableTestError signal} is th
 
 The message \ct{resume} is equivalent to \ct{resume: nil}.
 
-The usefulness of resuming an exception is illustrated by the following functionality which loads. When installing packages, warnings may be signaled. Warnings should not be considered fatal errors, so we should simply ignore the warning and continue installing. 
-The class \ct{PackageInstaller} does not exist but here is a sketch of a possible implementation.
+The usefulness of resuming an exception is illustrated by the following functionality which loads a package. When installing packages, warnings may be signaled and should not be considered fatal errors, so we should simply ignore the warning and continue installing. 
+
+The class \ct{PackageInstaller} does not exist, though here is a sketch of a possible implementation.
 
 \begin{code}{}
 PackageInstaller>>>installQuietly: packageNameCollection 
@@ -767,7 +768,7 @@ Object>>>performAll: selectorCollection
 			do: [:ex | ex return]]    "also ignores internal errors"
 \end{code}
 
-On closer examination we notice another problem. This handler will not only catch and ignore messages not understood by the original receiver, but also any messages sent but not understood in methods for messages that \emph{are} understood! This will hide programming errors in those methods, which is not our intent.
+On closer examination we notice another problem. This handler will not only catch and ignore messages not understood by the original receiver, but also any messages sent and not understood in methods for messages that \emph{are} understood! This will hide programming errors in those methods, which is not our intent.
 To address this, we need our handler to analyze the exception to see if it was indeed caused by the attempt to perform the current selector.
 Here is the correct implementation.
 \begin{method}[objectPerformAll]{Object>>performAll:}
@@ -782,7 +783,7 @@ Object>>>performAll: selectorCollection
 
 This has the effect of passing on \clsind{MessageNotUnderstood} errors to the surrounding context when they are not part of the list of messages we are performing. The \ct{pass} message will pass the exception to the next applicable handler in the execution stack.
 
-If there is no next handler on the stack, the \ct{defaultAction} message is sent to the exception instance. The \ct{pass} action does not modify the sender chain in any way\,---\,but the handler that control is passed to may do so. Like the other messages discussed in this section, \ct{pass} is special\,---\,it never returns to the sender.
+If there is no next handler on the stack, the \ct{defaultAction} message is sent to the exception instance. The \ct{pass} action does not modify the sender chain in any way\,---\,but the handler that controls it to may do so. Like the other messages discussed in this section, \ct{pass} is special\,---\,it never returns to the sender.
 
 The goal of this section has been to demonstrate the power of exceptions.
 It should be clear that while you can do almost anything with exceptions, the code
@@ -793,7 +794,7 @@ There is often a simpler way to get the same effect without exceptions; see \mth
 \subsection{Resending exceptions}
 
 \index{exception!resending}
-Now suppose that in our \ct{performAll:} example we no longer want to ignore selectors not understood by the receiver, but instead we want to consider an occurrence of such a selector as an error. However, we want it to be signaled as an application-specific exception, let's say \ct{InvalidAction}, rather than the generic \ct{MessageNotUnderstood}. In other words, we want the ability to ``resignal'' a signaled exception as a different one.
+Suppose that in our \ct{performAll:} example we no longer want to ignore selectors not understood by the receiver, but instead we want to consider an occurrence of such a selector as an error. However, we want it to be signaled as an application-specific exception, let's say \ct{InvalidAction}, rather than the generic \ct{MessageNotUnderstood}. In other words, we want the ability to ``resignal'' a signaled exception as a different one.
 
 It might seem that the solution would simply be to signal the new exception in the handler block. The handler block in our implementation of \ct{performAll:} would be:
 
@@ -842,7 +843,7 @@ outerResume --> 2    "resumes to where outer was sent"
 \index{sec:ensure}
 
 Now that we saw how exceptions work, we present the interplay between  exceptions and the \ct{ensure:} and \ct{ifCurtailed:} semantics. Exception handlers are executed then \ct{ensure:} or \ct{ifCurtailed:} blocks are executed.
-\ct{ensure:} argument is always executed while \ct{ifCurtailed:} argument is only executed when its receiver execution led to a  stack got unwind. 
+\ct{ensure:} argument is always executed while \ct{ifCurtailed:} argument is only executed when its receiver execution led to an unwound stack. 
 
 
 The following example shows such behavior.
@@ -859,7 +860,7 @@ It prints: \ct{should show first error} followed by \ct{then should show curtail
 First the \ct{[1/0]} raises a division by zero error. This error is handled by the exception handler. It prints the first message. Then it returns the value 4 and since the 
 receiver raised an error, the argument of the \ct{ifCurtailed:} message is evaluated: it prints the second message. Note that \ct{ifCurtailed:} does not change the return value expressed by the error handler or the \ct{ifCurtailed:} argument.
 
-The following expression shows that when the stack is not unwound the expression value is simply returned and none of the handlers is executed. 1 is returned.
+The following expression shows that when the stack is not unwound the expression value is simply returned and none of the handlers are executed. 1 is returned.
 \begin{code}{}	
 [[ 1 ] 
 		ifCurtailed: [ Transcript show: 'curtailed'; cr. 6 "does not display it" ]] 
@@ -868,7 +869,7 @@ The following expression shows that when the stack is not unwound the expression
 		e return: 4 ].
 \end{code}
 	
-\ct{ifCurtailed:} is a watchdog that reacts to stack abnormal behavior.
+\ct{ifCurtailed:} is a watchdog that reacts to abnormal stack behavior.
 For example, if we add a return statement in the receiver of the previous 
 expression, the argument of the \ct{ifCurtailed:} message is raised.
 Indeed the return statement is invalid since it is not defined in a method.
@@ -891,7 +892,7 @@ The following example shows that \ct{ensure:} is executed systematically, even w
 \end{code}	
 	
 	
-The following expression shows that as previously when an error occurs the handler associated with the error is executed before the ensure: argument. Here the expression prints 	\ct{should show error first}, then \ct{then should show ensure} and it returns 4. 
+The following expression shows that when an error occurs the handler associated with the error is executed before the \ct{ensure:} argument. Here the expression prints 	\ct{should show error first}, then \ct{then should show ensure} and it returns 4. 
 
 \begin{code}{}	
 [[ 1/0 ] 
@@ -964,7 +965,7 @@ In this case the inherited implementations of the first two methods are fine:
 \item \ct{description} is inherited from \ct{Exception}, and answers an adequate textual description.
 \end{itemize}
 
-However, it is necessary to override the implementation of \lct{defaultAction}, because we want that to depend on some settings.  Here is \pharo's implementation:
+However, it is necessary to override the implementation of \lct{defaultAction}, because we want that to depend on some particular settings.  Here is \pharo's implementation:
 \begin{code}{}
 Deprecation>>>defaultAction
 	Log ifNotNil: [:log| log add: self].
@@ -989,7 +990,7 @@ Object>>>deprecated: anExplanationString on: date in: version
 
 \section{Example: Halt implementation}
 
-As we discussed in the Debugger chapter of \emph{Pharo By Example}, 
+As discussed in the Debugger chapter of \emph{Pharo By Example}, 
 the usual way of setting a \ind{breakpoint} within a \st{} method is to insert the message-send \ct{self halt} into the code. The method \mthind{Object}{halt}, implemented in \ct{Object}, uses exceptions to open a debugger at the location of the breakpoint; it is defined as follows:
 
 \needlines{6}
@@ -1084,7 +1085,7 @@ Exception allSubclasses size --> 160
 \end{code}
 If you declare a new subclass of exceptions, you should look in its protocol for the \ct{isResumable} method, and override it as appropriate to the semantics of your exception.
 
-In some situations, it will never makes sense to resume an exception.
+In some situations, it will never make sense to resume an exception.
 In such a case you should signal a non-resumable subclass\,---\,either an existing one or one of your own creation.
 In other situations, it will always be OK to resume an exception, without the handler having to do anything.
 In fact, this gives us another way of characterizing a notification:
@@ -1092,24 +1093,30 @@ a \ct{Notification} is a resumable \ct{Exception} that can be safely resumed wit
 More often, it will be safe to resume an exception only if the state of the system is first modified in some way.
 So, if you signal a resumable exception, you should be very clear about what you expect an exception handler to do before it resumes the exception.
 
-\paragraph{When defining a new exception.} It is a difficult problem to decide when it is worth to define a new exception instead of reusing an existing one. Here are some heuristics: first, you should evaluate if you can have an adequate solution to the exceptional situation. Second if you need a specific default behavior when the exceptional situation is not handled. Finally if you need to store more information to handle the exception case. 
+\paragraph{When defining a new exception.} It is  difficult  to decide when it is worth defining a new exception instead of reusing an existing one. Here are some heuristics: 
+ you should evaluate whether 
+\begin{itemize}
+\item you can have an adequate solution to the exceptional situation, 
+\item you need a specific default behavior when the exceptional situation is not handled, and  
+\item if you need to store more information to handle the exception case. 
+\end{itemize}
 
 %=============================================
 \section{When not to use exceptions}
-Just because \pharo{} has exception handling, you should not conclude that it is always appropriate to use it.  
-Recall that in the introduction to this chapter, we said that exception handling is for \emph{exceptional} situations.  
-So, the first rule for using exceptions is \emph{not} to use them for situations that \emph{can reasonably be expected to occur} in a normal execution. 
+Just because \pharo{} has exception handling, you should not conclude that it is always appropriate to use.  
+As stated in the introduction to this chapter, we said that exception handling is for \emph{exceptional} situations.  
+Therefore, the first rule for using exceptions is \emph{not} to use them for situations that \emph{can reasonably be expected to occur} in a normal execution. 
 
 Of course, if you are writing a library, what is normal depends on the context in which your library is used.
 To make this concrete, let's look at \ct{Dictionary} as an example:
 \lct{\emph{aDictionary} at: \emph{aKey}} will signal an \ct{Error} if \lct{\emph{aKey}} is not present.
-But you should not write a handler for this error!
+But, you should not write a handler for this error!
 If the logic of your application is such that there is some possibility that the key will not be in the dictionary, then you should instead use \lct{at: \emph{aKey} ifAbsent: [\emph{remedial action}]}.
 In fact, \ct{Dictionary>>>at:} is implemented using \ct{Dictionary>>>at:ifAbsent:}.
 \lct{\emph{aCollection} detect: \emph{aPredicateBlock}} is similar: if there is any possibility that the predicate might not be satisfied, you should use \lct{\emph{aCollection} detect: \emph{aPredicateBlock} ifNone: [\emph{remedial action}]}. 
 
-When you write methods that signal exceptions, you should consider whether you should also provide an alternative method that takes a remedial block as an additional argument, and evaluates it if the normal action cannot be completed.  
-Although this technique can be used in any programming language that support closures, because \st{} uses closures for \emph{all} its control structures, it is a particularly natural one to use in \st{}.
+When you write methods that signal exceptions, consider whether you should also provide an alternative method that takes a remedial block as an additional argument, and evaluates it if the normal action cannot be completed.  
+Although this technique can be used in any programming language that supports closures, because \st{} uses closures for \emph{all} its control structures, it is a particularly natural one to use in \st{}.
 
 Another way of avoiding exception handling is to test the precondition of the exception before sending the message that may signal it.  For example, in \mthref{objectPerformAll}, we sent a message to an object using \ct{perform:}, and handled the \ct{MessageNotUnderstood} error that might ensue.  A much simpler alternative is to check to see if the message is understood before executing the \ct{perform:}
 
@@ -1126,9 +1133,9 @@ The primary objection to \mthref{simplerObjectPerfromAll} is efficiency.  The im
 
 %=========================================================
 \section{Exceptions implementation}
-Up to now, we have presented the use of exceptions without really explaining deeply how there are implemented at the Virtual Machine level. Note that since you do not need to know how exceptions are implemented to use them, you can simply skip this section in a first reading. Now if you are curious and really 
+Up to now, we have presented the use of exceptions without really explaining in depth how they are implemented at the Virtual Machine level. Note that since you do not need to know how exceptions are implemented to use them, you can simply skip this section on the first reading. Now if you are curious and really 
 want to know how this is implemented at the Virtual Machine level, this section is for you. 
-The mechanism is quite simple, making it worth to know how it operates. Let's have a look at how exceptions are implemented at the Virtual Machine level and use stack execution elements (contexts) to store their information.
+The mechanism is quite simple, making it worthwhile to know how it operates. Let's have a look at how exceptions are implemented at the Virtual Machine level and use stack execution elements (contexts) to store their information.
 
 \paragraph{Storing Handlers.}
 First we need to understand how the exception class and its associated handler are stored and how this information is found at run-time. Let's look at the definition of the central method \mthind{BlockClosure}{on:do:} defined on the class \ct{BlockClosure}. 
@@ -1144,12 +1151,12 @@ BlockClosure>>>on: exception do: handlerAction
 	^self value 
 \end{code}
 
-This code tells us two things: First, this method is implemented as a primitive, which means that  a primitive operation of the virtual machine is executed when this method is invoked.  VM primitives don't normally return: successful execution of a primitive terminates the method that contains the \lct{<primitive: \emph{n}\,>} instruction, answering the result of the primitive.
+This code tells us two things: First, this method is implemented as a primitive, which means that  a primitive operation of the virtual machine is executed when this method is invoked.  VM primitives do not normally return: successful execution of a primitive terminates the method that contains the \lct{<primitive: \emph{n}\,>} instruction, answering the result of the primitive.
 So, the \st code that follows the primitive serves two purposes: it documents what the primitive does, and is available to be executed if the primitive fails. 
-Here we see that \ct{on:do:} simply sets the temporary variable \ct{handlerActive} to true, and then evaluates the receiver (which is, of course, a block).  
+Here we see that \ct{on:do:} simply sets the temporary variable \ct{handlerActive} to true, and then evaluates the receiver (which is of course, a block).  
 
 This is surprisingly simple, but somewhat puzzling.  Where are the arguments of the \ct{on:do:} method stored?
-To get the answer,  let's look at the definition of the class \ct{MethodContext}, whose instances represent the execution stack elements. As described in Chapter~\ref{cha:blocks}, a context (also called activation record or stack frame in other languages) represents a specific point of execution (it holds a program counter, points to the next instruction to execute, previous context, arguments and receiver): 
+To get the answer,  let's look at the definition of the class \ct{MethodContext}, whose instances represent the execution stack elements. As described in Chapter~\ref{cha:blocks}, a context (also called activation record or stack frame, in other languages) represents a specific point of execution (it holds a program counter, points to the next instruction to execute, previous context, arguments and receiver): 
 
 \begin{code}{}
 ContextPart variableSubclass: #MethodContext
@@ -1163,7 +1170,7 @@ There is no instance variable here to store the exception class or the handler, 
 However, note that \ct{MethodContext} is defined as a \ct{variableSubclass}.
 This means that in addition to the named instance variables, instances of this class have some indexed slots.  In fact, every \ct{MethodContext} has an indexed slot for each argument of the method whose invocation it represents.  There are also additional indexed slots for the temporary variables of the method.
 
-In the case that interest us, the arguments of the \ct{on:do:} message are stored in the indexed variables of the stack execution instance. To verify this, evaluate the following piece of code:
+In the case that interests us, the arguments of the \ct{on:do:} message are stored in the indexed variables of the stack execution instance. To verify this, evaluate the following piece of code:
 
 %\begin{code}{}
 %| exception handler | 
@@ -1191,14 +1198,16 @@ In the case that interest us, the arguments of the \ct{on:do:} message are store
 In the protected block, we query the stack element that represents the protected block execution using \ct{thisContext sender}. This execution was triggered by the \ct{on:do:} message execution. The last line explores a 2-element array that contains the exception class and the exception handler. 
 
 
-If you get some strange results using halt and inspect inside the protected block, pay attention that contexts are recycled by the Virtual Machine. Opening an explorer on \ct{thisContext} will show you that the context sender is effectively the execution of the method \ct{on:do:}. 
+If you get some strange results using \ct{halt} and \ct{inspect} inside the protected block, note that contexts are recycled by the Virtual Machine. Opening an explorer on \ct{thisContext} will show you that the context sender is effectively the execution of the method \ct{on:do:}. 
 
 
-Note that you can also execute the following code you obtain an explorer and that you can see that the exception class and the handler are stored in the first and second variable instance variables of the method context object (a method context represents an execution stack element).
-
+Note that you can also execute the following code:
 \begin{code}{}
 [thisContext sender explore] on: Error do: [:ex|].
 \end{code}
+
+You obtain an explorer and you can see that the exception class and the handler are stored in the first and second variable instance variables of the method context object (a method context represents an execution stack element).
+
 
 \begin{figure}[ht]\centering
         \includegraphics[width=6cm]{exception}
@@ -1212,8 +1221,7 @@ any message execution stores argument on the stack frame.
 \paragraph{Finding Handlers.}
 Now that we know where the information is stored, let's have a look at how it is found at runtime. 
 
-We might think that the primitive 199 (the one used by \ct{on:do:}) is complex to write. 
-But it  is trivial, because primitive 199 \emph{always} fails!
+We might think that the primitive 199 (the one used by \ct{on:do:}) is complex to write, but it is simple, because primitive 199 \emph{always} fails!
 Because the primitive always fails, the \st{} body of \ct{on:do:} is always executed.
 However, the presence of the \ct{<primitive: 199>} annotation marks the execution context in a unique way. 
 
@@ -1228,7 +1236,7 @@ primitiveMarkHandlerMethod
     ^self primitiveFail
 \end{code}
 \hyphenation{Method-Context}
-So now we know that when the method \ct{on:do:} is executed, the \ct{MethodContext} that makes up the stack frame is tagged and the handler and exception class 
+Now we know that when the method \ct{on:do:} is executed, the \ct{MethodContext} that makes up the stack frame is tagged and the handler and exception class 
 are stored there. 
 
 Now, if an exception is signaled further up the stack, the method \ct{signal} can search the stack to find the appropriate handler. This is what the following code is doing:
@@ -1297,7 +1305,7 @@ The \ct{return:} message sent as the final action of \ct{handleSignal} is respon
 
 %The full story is only slightly more complicated because there are actually two classes of objects that make up the stack, \ct{MethodContext}s, which we have already discussed, and \ct{BlockContext}s, which represent the execution of blocks.  \ct{ContextPart} is their common superclass.
 
-So, to summarize, the \ct{signal} method, with minimal assistance from the virtual machine, finds the context that correspond to an \ct{on:do:} message with an appropriate exception class.   Because the execution stack is made up of Context objects that may be manipulated just like any other object, the stack can be shortened at any time.  This is a superb example of flexibility of \st.
+To summarize, the \ct{signal} method, with minimal assistance from the virtual machine, finds the context that correspond to an \ct{on:do:} message with an appropriate exception class.   Because the execution stack is made up of Context objects that may be manipulated just like any other object, the stack can be shortened at any time.  This is a superb example of flexibility of Pharo.
 
 %=========================================================
 \section{Ensure:'s implementation}
@@ -1321,14 +1329,14 @@ ensure: aBlock
 	^ returnValue
 \end{code}
 
-The \lct{<primitive: \emph{198}\,>} works the same way of the \lct{<primitive: \emph{199}\,>} we saw in the previous section. It always fails, however, its presence marks the executing context in a unique way. Moreover, the unwind block is stored the same way as the exception class and its associated handler. More explicitely, it is stored in the context (stack frame) of \mthind{BlockClosure}{ensure:}
+The \lct{<primitive: \emph{198}\,>} works the same way as the \lct{<primitive: \emph{199}\,>} we saw in the previous section. It always fails, however, its presence marks the executing context in a unique way. Moreover, the unwind block is stored the same way as the exception class and its associated handler. More explicitly, it is stored in the context (stack frame) of \mthind{BlockClosure}{ensure:}
 method execution, that can be accessed from the block through  \lct{thisContext sender tempAt: 1}.
 
-In the case where the block doesn't fail and doesn't have a non-local return, the \mthind{BlockClosure}{ensure:} message implementation is very easy to understand. It evaluates the block, stores the result in the \ct{returnValue} variable, evaluates the argument block and lastly returns the result of the block previously stored. The \ct{complete} variable is just here to prevent to execute twice the argument block.
+In the case where the block does not fail and does not have a non-local return, the \mthind{BlockClosure}{ensure:} message implementation is easy to understand. It evaluates the block, stores the result in the \ct{returnValue} variable, evaluates the argument block and lastly returns the result of the block previously stored. The \ct{complete} variable is just here to prevent  the argument block from being executed twice.
 
 \paragraph{Ensuring a failing block.}
 
-The \mthind{BlockClosure}{ensure:} message will execute the argument block even if the block fails. In the following example, the \mthind{Bexp}{ensureWithOnDo} message  returns 2 and executes 1. In the subsequent section we will carefully look at where and what the block is actually returning and in which order are the blocks executed. 
+The \mthind{BlockClosure}{ensure:} message will execute the argument block even if the block fails. In the following example, the \mthind{Bexp}{ensureWithOnDo} message  returns 2 and executes 1. In the subsequent section we will carefully look at where and what the block is actually returning and in which order  the blocks are executed. 
 
 \begin{code}{}
 Bexp>>ensureWithOnDo
@@ -1407,7 +1415,7 @@ ContextPart>>return: value
 	sender resume: value
 \end{code}
 
-The \ct{return:} message will check if the context has a sender, and, if not, send a CannotReturn Exception. Then the sender of this context will call the \ct{resume:} message.
+The \ct{return:} message will check if the context has a sender, and, if not, send a \ctCannotReturn} Exception. Then the sender of this context will call the \ct{resume:} message.
 
 \begin{code}{}
 ContextPart>>resume: value
@@ -1451,7 +1459,7 @@ ContextPart>>terminateTo: previousContext
 	sender := previousContext
 \end{code}
 
-Basically, this method terminates all the contexts between thisContext and self, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). Moreover, the sender of thisContext will become self, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). It is implemented as a primitive, but the code below explains how it works.
+Basically, this method terminates all the contexts between \ct{thisContext} and \ct{self}, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). Moreover, the sender of \ct{thisContext} will become \ct{self}, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). It is implemented as a primitive, but the code below explains how it works.
 
 Let's summarize what happens with \figref{EnsureImpl} which represents the execution of the method  \mthind{Bexp}{ensureWithOnDo} defined previously.
 
@@ -1465,7 +1473,7 @@ Let's summarize what happens with \figref{EnsureImpl} which represents the execu
 
 \paragraph{Ensuring a non local return.}
 
-There is also an implementation of \mthind{BlockClosure}{ensure:} for the non local return. Basically there is the same kind of lookup for unwound contexts as in the \mthind{ContextPart}{resume:} message that is triggered when we return the value in \mthind{ContextPart}{resume:through:}
+There is also an implementation of \mthind{BlockClosure}{ensure:} for the non local return. There is the same kind of lookup for unwound contexts as in the \mthind{ContextPart}{resume:} message that is triggered when we return the value in \mthind{ContextPart}{resume:through:}
 
 \begin{code}{}
 ContextPart>>resume: value through: firstUnwindCtxt
@@ -1494,7 +1502,7 @@ ContextPart>>resume: value through: firstUnwindCtxt
 In this chapter we saw how to use exceptions to signal and handle abnormal situations arising in our code.
 
 \begin{itemize}
-\item Don't use exceptions as a control-flow mechanism.  Reserve them for notifications and for \emph{abnormal} situations.  Consider providing methods that take blocks as arguments as an alternative to signaling exceptions.
+\item Do not use exceptions as a control-flow mechanism.  Reserve them for notifications and for \emph{abnormal} situations.  Consider providing methods that take blocks as arguments as an alternative to signaling exceptions.
 
 \item Use \lct{\emph{protectedBlock} ensure: \emph{actionBlock}} to ensure that \lct{\emph{actionBlock}} will be performed even if \lct{\emph{protectedBlock}} terminates abnormally.
 
