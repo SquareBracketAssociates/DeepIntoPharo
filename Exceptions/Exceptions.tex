@@ -1332,7 +1332,10 @@ ensure: aBlock
 The \lct{<primitive: \emph{198}\,>} works the same way as the \lct{<primitive: \emph{199}\,>} we saw in the previous section. It always fails, however, its presence marks the executing context in a unique way. Moreover, the unwind block is stored the same way as the exception class and its associated handler. More explicitly, it is stored in the context (stack frame) of \mthind{BlockClosure}{ensure:}
 method execution, that can be accessed from the block through  \lct{thisContext sender tempAt: 1}.
 
-In the case where the block does not fail and does not have a non-local return, the \mthind{BlockClosure}{ensure:} message implementation is easy to understand. It evaluates the block, stores the result in the \ct{returnValue} variable, evaluates the argument block and lastly returns the result of the block previously stored. The \ct{complete} variable is just here to prevent  the argument block from being executed twice.
+In the case where the block does not fail and does not have a non-local return, the \mthind{BlockClosure}{ensure:} message implementation executes the block, stores the result in the \ct{returnValue} variable, executes the argument block and lastly returns the result of the block previously stored. 
+The \ct{complete} variable is here to prevent  the argument block from being executed twice. 
+
+When \ct{aBlock value} contains an exception or a non-local return, since the complete variable will be already true, there is no need to execute again the block.
 
 \paragraph{Ensuring a failing block.}
 
@@ -1415,7 +1418,7 @@ ContextPart>>return: value
 	sender resume: value
 \end{code}
 
-The \ct{return:} message will check if the context has a sender, and, if not, send a \ctCannotReturn} Exception. Then the sender of this context will call the \ct{resume:} message.
+The \ct{return:} message will check if the context has a sender, and, if not, send a \ct{CannotReturn} Exception. Then the sender of this context will call the \ct{resume:} message.
 
 \begin{code}{}
 ContextPart>>resume: value
