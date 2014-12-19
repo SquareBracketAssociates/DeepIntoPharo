@@ -468,7 +468,7 @@ In this section we explain why it is  not a good idea to have return statements 
 By default the returned value of a method is the receiver of the message \ie self.
 A return expression (the expression starting with the character \ct{^}) allows one to return a different value than the receiver of the message. In addition, the execution of a return statement exits the currently executed method and returns to its caller. This ignores the expressions following the return statement.
 
-\paragraph{Experiment 7: return's exiting behavior.}
+\paragraph{Experiment 7: Return's Exiting Behavior.}
 Define the following method. Executing \ct{Bexp new testExplicitReturn}  prints 'one' and 'two' but it will not print \ct{not printed}, since the method \ct{testExplicitReturn} will have returned before.
 
 \begin{code}{}
@@ -492,7 +492,7 @@ Note that the return expression should be the last statement of a block body.
 
 
 \subsection{Escaping behavior of non-local return}
-A return expression behaves also like an escaping mechanism since the execution flow will directly jump out to the current invoking method. Let's define a new method \ct{jumpingOut} as follows to illustrate this behavior.
+A return expression behaves also like an escaping mechanism since the execution flow will directly jump out to the current invoking method. Let us define a new method \ct{jumpingOut} as follows to illustrate this behavior.
 
 \begin{code}{}
 Bexp>>jumpingOut
@@ -507,11 +507,12 @@ Bexp new jumpingOut
 \end{code}
 
 
-For example, the following expression \ct{Bexp new jumpingOut} will return 3 and not 42. \ct{^ 42} will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels and return to the method caller. Some old code (predating introduction of exceptions) passes non-local returning blocks around leading to complex flows and difficult to maintain code. We strongly suggest not to use this style because it leads to complex code and bugs.
+For example, the following expression \ct{Bexp new jumpingOut} will return 3 and not 42. \ct{^ 42} will never be reached. The expression \ct{[ ^3 ]} could be deeply nested, its execution jumps out all the levels and return to the method caller. Some old code (predating introduction of exceptions) passes non-local returning blocks around leading to complex flows and difficult to maintain code. We strongly suggest not using this style because it leads to complex code and bugs.
 In subsequent sections we will carefully look at where a return is actually returning.
 
 \subsection{Understanding return}
-Now to see that a return is really escaping the current execution, let us build a slightly more complex call flow. We define four methods among which one (\ct{defineBlock}) creates an escaping block,  one (\ct{arg:}) evaluates this block and one (\ct{evaluatingBlock:}) that executes the block. Pay attention that to stress the escaping behavior of a return we defined \ct{evaluatingBlock:} so that it endlessly loops after evaluating its argument.
+Now to see that a return is really escaping the current execution, let us build a slightly more complex call flow. We define four methods among which one (\ct{defineBlock}) creates an escaping block,  one (\ct{arg:}) evaluates this block and one (\ct{evaluatingBlock:}) that executes the block. 
+Note that to stress the escaping behavior of a return we defined \ct{evaluatingBlock:} so that it endlessly loops after evaluating its argument.
 
 \begin{code}{}
 Bexp>>start
@@ -546,7 +547,7 @@ Bexp>>evaluateBlock: aBlock
 \end{code}
 
 
-Executing \ct{Bexp new start}  prints the following (we added indentation to stress the calling flow).
+Executing \ct{Bexp new start}  prints the following (indentation added to stress the calling flow).
 
 \begin{code}{}
 start start
@@ -563,7 +564,7 @@ When the return statement of the block is executed in the method \ct{evaluateBlo
 
 \begin{figure}
 \begin{center}\includegraphics[width=\textwidth]{nonLocalReturn2}
-\caption{A block with non-local return execution returns to the method execution that activated the block home context. Frames represent contexts and dashed frames represent the same block at different execution time.\label{nonLocalReturn}}
+\caption{A block with non-local return execution returns to the method execution that activated the block home context. Frames represent contexts and dashed frames represent the same block at different execution points.\label{nonLocalReturn}}
 \end{center}
 \end{figure}
 
@@ -578,10 +579,10 @@ As shown by Figure~\ref{nonLocalReturn}, \ct{[^33]} will return to the sender of
   of the block is the \ct{defineBlock} method execution context.
 
 \item Step 4 represents the execution up to the invocation of the method
-  \ct{evaluateBlock:}. \ct{arg start'} is printed.
+  \ct{evaluateBlock:}. \ct{'arg start'} is printed.
 
 \item Step 5 represents the execution up to the block evaluation.
-  'evaluateBlock start' is printed.
+  \ct{'evaluateBlock start'} is printed.
 
 \item Step 6 represents the execution of the block up to the
   condition: \ct{'block start'} is printed.
@@ -594,7 +595,9 @@ As shown by Figure~\ref{nonLocalReturn}, \ct{[^33]} will return to the sender of
   execution continues and \ct{'start end'} gets printed.
 \end{itemize}
 
-\important{Non local return \ct{[^ ...]} returns to the sender of the block home context. It means to the method execution point that called the one that created the block.}
+\important{Non local return \ct{[^ ...]} returns to the sender of the block home context, \ie to the method execution point that called the one that created the block.}
+
+\important{A return in a method returns a value to the sender of the method and stop executing the method containing the return. A non-local return does the same even if the block is executed by another method.}
 
 
 \paragraph{Accessing information.} 
@@ -618,7 +621,7 @@ Bexp>>defineBlock
 To verify where the execution will end, you can use the expression \ct{thisContext home sender copy inspect. } which returns a method context pointing to the assignment in the method \ct{start}.
 
 \paragraph{Couple more examples.}
-The following examples show that escaping blocks jump to sender of their home contexts. For example the previous example shows that the method \ct{start} was fully executed.
+The following examples show that escaping blocks jump to sender of their home contexts. The previous example shows that the method \ct{start} was fully executed.
 We define \ct{valuePassingEscapingBlock} on the class \ct{BlockClosure} as follows.
 
 \begin{code}{}
@@ -646,11 +649,11 @@ Bexp>>testValueWithExitBreak
 	self assert: val = 4.
 \end{code}
 
-This method defines a block whose argument \ct{break} is evaluated as soon as the step 4 of a loop is reached. Then a variable \ct{val} is printed and we make sure that its value is 4. Executing \ct{Bexp new testValueWithExitBreak} performs without raising an error and prints 4 to the Transcript: the loop has been stopped, the value has been printed, and the assert has been validated.
+This method defines a block whose argument \ct{break} is evaluated as soon as the step 4 of a loop is reached. A variable \ct{val} is then printed and we make sure that its value is 4. Executing \ct{Bexp new testValueWithExitBreak} performs without raising an error and prints 4 to the Transcript: the loop has been stopped, the value has been printed, and the assert has been validated.
 
 If you change the \ct{valuePassingEscapingBlock} message sent by \ct{value: [^ nil]} in the \ct{testValueWithExitBreak} method above, you will not get the trace because the execution of the method \ct{testValueWithExitBreak} will exit when the block is evaluated. In this case, calling \ct{valuePassingEscapingBlock} is not equivalent to calling \ct{value: [^nil]} because the home context of the escaping block \ct{[ ^ nil ]} is different.  With the original \ct{valuePassingEscapingBlock}, the home context of the block \ct{[^ nil]}
 is \ct{valuePassingEscapingBlock} and not the method \ct{testValueWithExitContinue} itself.
-Therefore when evaluated, the escaping block will change the execution flow to the \ct{valuePassingEscapingBlock} message in the method \ct{testValueWithExitBreak} (similarly to the previous example where the flow came back just after the invocation of the \ct{defineBlock} message). Put a \ct{self halt} before the \ct{assert:} to convince you. In one case, you will reach the halt while in the other not.
+Therefore when evaluated, the escaping block will change the execution flow to the \ct{valuePassingEscapingBlock} message in the method \ct{testValueWithExitBreak} (similarly to the previous example where the flow came back just after the invocation of the \ct{defineBlock} message). Put a \ct{self halt} before the \ct{assert:} to convince you. In one case, you will reach the halt while in another case not.
 
 \paragraph{Non-local return blocks.} As a block is always evaluated in its home context, it is possible to attempt to return from a method execution which has already returned. This runtime error condition is trapped by the VM.
 
@@ -712,7 +715,7 @@ the ones for blocks. Let us have a look at some values of the current context:
 
 \item \ct{method} points to the currently executing method.
 
-\item \ct{pc} holds a reference to the latest executed instruction. Here its value is 27. To see which instruction is referred to, double click on the \ct{method} instance variable and select the \ct{all bytecodes} field, you should obtain the situation depicted in Figure~\ref{ByteCodes}, which shows that the next instruction to be executed is \ct{pop} (instruction 28).
+\item \ct{pc} holds a reference to the latest executed instruction. Here its value is 27. To see which instruction is referred to, double click on the \ct{method} instance variable and select the \ct{all bytecodes} field, you should get the situation depicted in Figure~\ref{ByteCodes}, which shows that the next instruction to be executed is \ct{pop} (instruction 28).
 
 \begin{figure}[b]
   \begin{center}\includegraphics[width=5cm]{ByteCodes}
@@ -720,7 +723,7 @@ the ones for blocks. Let us have a look at some values of the current context:
   \end{center}
 \end{figure}
 
-\item \ct{stackp} defines the depth of the stack of variables in the context. In most case, its value is the number of stored temporary variables (including arguments). But in certain cases, for example during a message send, the depth of the stack is increased: the receiver is pushed, then the arguments, lastly the message send is executed and the depth of the stack goes back to its previous value.
+\item \ct{stackp} defines the depth of the stack of variables in the context. In most cases, its value is the number of stored temporary variables (including arguments). But in certain cases, for example during a message send, the depth of the stack is increased: the receiver is pushed, then the arguments, lastly the message send is executed and the depth of the stack goes back to its previous value.
 
 \item \ct{closureOrNil} holds a reference to the currently executing closure or nil.
 
@@ -731,14 +734,14 @@ The class \ct{MethodContext} and its superclasses define many methods to get inf
 
 
 \subsection{Block nesting and contexts}
-Now let's look at the case of block nesting and its impact on home contexts.
-In fact a block points to a context when it was created: it is its \emph{outer context}. Now depending on the situation the outer context of a block can be its home context or not. 
+Now let us look at the case of block nesting and its impact on home contexts.
+In fact, a block points to a context when it was created: it is its \emph{outer context}. Now depending on the situation the outer context of a block can be its home context or not. 
 This is not complex: Each block is created inside some context.  This is the block's outer context. The outer context is the direct context in which a block was created. The home context is the one at the method level. 
-If the block is not nested then the outer context is also be the block home context.
+If the block is not nested then the outer context is also  the block home context.
 
-But if the block is nested inside another block execution, then the outer context refers to that block execution context, and the block execution's block's outerContext is the home context.  There are as many outer context steps as there are nesting levels.
+If the block is nested inside another block execution, then the outer context refers to that block execution context, and the block execution's outerContext is the home context.  There are as many outer context steps as there are nesting levels.
 
-Let's look at the following example. When you execute just press ok to the dialogs popping up.
+Let's look at the following example. When you execute, just press "ok" to the dialogs popping up.
 
 \begin{code}{}
 | homeContext b1 |
@@ -757,10 +760,9 @@ b1 value
 \begin{itemize}
 \item First we set in \ct{homeContext}, the context before the block creation. \ct{homeContext} is the home context of the blocks \ct{b1} and \ct{b2} because they are defined during this execution.
 
-\item \ct{thisContext closure == b1} shows that the context inside the execution of the block \ct{b1} has a pointer to \ct{b1}. The outer context of b1 is \ct{homeContext}. Nothing new because \ct{b1} is defined during the execution starting after the assignment. The home context of \ct{b1} is the same than its outer context.
+\item \ct{thisContext closure == b1} shows that the context inside the execution of the block \ct{b1} has a pointer to \ct{b1}. The outer context of b1 is \ct{homeContext}. Nothing new because \ct{b1} is defined during the execution starting after the assignment. The home context of \ct{b1} is the same as its outer context.
 
-\item Inside \ct{b2} execution, the current context points to \ct{b2} itself since it is a closure. More interesting 
-the outer context of the closure in which b2 is defined \ie b1 points to \ct{homeContext}. Finally the home context of \ct{b2} is \ct{homeContext}. This last point shows that the all the nested blocks have a separate outer context but they share the same home context.
+\item Inside \ct{b2} execution, the current context points to \ct{b2} itself since it is a closure. The outer context of the closure in which b2 is defined \ie b1 points to \ct{homeContext}. Finally the home context of \ct{b2} is \ct{homeContext}. This last point shows that all the nested blocks have a separate outer context, but they share the same home context.
 \end{itemize}
 
 
@@ -768,7 +770,7 @@ the outer context of the closure in which b2 is defined \ie b1 points to \ct{hom
 \section{Message execution}
 % ============================================================================
 
-The Virtual Machine represents execution state as context objects, one per method or block currently executed (the word \emph{activated} is also used). In Pharo, method and block executions are represented by \ct{MethodContext} instances. In the rest of this chapter we survey contexts, method execution, and block closure evaluation.
+The Virtual Machine represents execution state as context objects, one per method or block currently executed (the word \emph{activated} is also used). In Pharo, method and block executions are represented by \ct{MethodContext} instances. In the rest of this chapter we survey contexts, method execution, and block closure execution.
 
 \subsection{Sending a message}
 
@@ -864,25 +866,22 @@ Hence all home contexts might outlive the method activation.
 \end{figure}
 
 \paragraph{Implementation.} The previously mentioned approach for block contexts has disadvantages from a low-level point of view.
-If method and block contexts are normal objects that means they have to be garbage collected at some point.
-Combined with the typical coding practice of using small methods that call many other objects, Smalltalk systems can generate a lot of contexts.
+If method and block contexts are normal objects that means they have to be garbage collected at some point. Combined with the typical coding practice of using small methods that call many other objects, Pharo can generate a lot of contexts.
 
 The most efficient way to deal with method contexts is to not create them at all.
 At the VM level, this is done by using real stack frames.
-Method contexts can be easily mapped to stack frames: whenever we call a method we create a new frame, whenever we return from a method we delete the current frame.
-In that matter Smalltalk is not different from C.
-This means whenever we return from a method the method context (stack frame) is immediately removed.
-Hence no high-level garbage collection is needed.
+Method contexts can be easily mapped to stack frames: whenever we call a method we create a new frame, whenever we return from a method we delete the current frame. In that matter Pharo is not very different from C.
+This means whenever we return from a method the method context (stack frame) is immediately removed. Hence no high-level garbage collection is needed.
 Nevertheless, using the stack gets much more complicated when we have to support blocks.
 
-As we mentioned before, method contexts that are used as home contexts might outlive their activation.
+As  mentioned before, method contexts that are used as home contexts might outlive their activation.
 If method contexts work as we explained up to now we would have to check each time for home contexts if a stack frame is removed.
 This comes with a big performance penalty.
 Hence the next step in using a stack for contexts is to make sure method contexts can be safely removed when we return from a method.
 
 The Figure \ref{fig:BlockWithMethodContext} shows how non-local variables
-are no longer directly stored in the home context but in a separate
-remote array, which is heap allocated.
+are no longer directly stored in the home context, but in a separate
+remote array which is heap allocated.
 
 \begin{figure}
   \begin{center}
