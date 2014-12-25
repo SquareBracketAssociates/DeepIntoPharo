@@ -532,7 +532,7 @@ ROHorizontalLineLayout new on: view elements.
 view open.
 \end{code}
 
-\fig{H}{0.6}{hier2}{Adding some shape for each class}
+\fig{H}{0.5}{hier2}{Adding some shape for each class}
 
 
 %=====================
@@ -697,7 +697,7 @@ ROHorizontalLineLayout new on: view elements.
 view open
 \end{code}
 
-\fig{H}{0.6}{hier3}{Adding links between each class and its superclass}
+\fig{H}{0.5}{hier3}{Adding links between each class and its superclass}
 
 Now we have each class in the \ct{Collection} hierarchy with the shape we want and connected with each superclass. However we do not see a real hierarchy. This is because we need an appropriate layout to arrange all the elements of the view. The next section covers how to apply layouts to elements.
 
@@ -747,8 +747,8 @@ We first create elements for the vertical line, apply the \ct{ROVerticalLineLayo
 \begin{figure}[H]
 \label{fig:differentLayouts}
 \vspace{0pt}
-	\begin{minipage}[t]{1\textwidth}
-     \begin{code}{}
+\begin{minipage}[t]{1\textwidth}
+\begin{code}{}
 | view verticalElements horizontalElements |
 view := ROView new.
 verticalElements := ROElement spritesOn: (1 to: 3).
@@ -763,15 +763,14 @@ view
 	addAll: horizontalElements; 
 	addAll: verticalElements.
 view open.
-  \end{code}
-   \end{minipage}  
-
+\end{code}
+\end{minipage}  
 \hfill
-   \begin{minipage}[t]{1\textwidth}
-      \vspace{0pt} \raggedright
-       \centering
-		\includegraphics[width=0.3\textwidth]{differentLayouts} 
-   \end{minipage}
+\begin{minipage}[t]{1\textwidth}
+\vspace{0pt} \raggedright
+\centering
+\includegraphics[width=0.3\textwidth]{differentLayouts} 
+\end{minipage}
 \caption{Applying different layouts to different sets of elements}
 \end{figure} 
 
@@ -826,9 +825,9 @@ ROLayout >> executeOnElements: elements
 The \ct{executeOnElements:} method invokes three hook methods:
 
 \begin{enumerate}
-\item \textbf{doInitialize:} Method executed before beginning the layout. Useful when the graph to be ordered needs to be prepared;
-\item \textbf{doExecute:} Apply the layout algorithm. Elements are relocated accordingly;
-\item \textbf{doPost:} Method executed after having performed the layout. 
+\item \ct{doInitialize:} Method executed before beginning the layout. Useful when the graph to be ordered needs to be prepared;
+\item \ct{doExecute:} Apply the layout algorithm. Elements are relocated accordingly;
+\item \ct{doPost:} Method executed after having performed the layout. 
 \end{enumerate}
 
 A pre- and post-processing may be defined. This is useful for example if the layout is multi-staged or if appropriate events have to be emitted. These actions are set as callbacks using the \ct{ROLayoutBegin} and \ct{ROLayoutEnd} events.
@@ -841,7 +840,6 @@ layout := ROHorizontalLineLayout new.
 layout on: ROLayoutBegin do: [ :event | t := t + 1 ].
 layout on: ROLayoutEnd do: [ :event | t := t + 1 ].
 layout applyOn: (ROElement forCollection: (1 to: 3)).
-
 self assert: (t = 2).
 \end{code}
 
@@ -904,7 +902,7 @@ view open.
    \begin{minipage}[t]{0.5\textwidth}
       \vspace{0pt}\raggedright
        \centering
-		\includegraphics[width=0.6\textwidth]{diagonalLineLayout}
+		\includegraphics[width=0.5\textwidth]{diagonalLineLayout}
    \end{minipage}
 \label{fig:diagonalLineLayout}
 \caption{Diagonal Line layout applied to a collection of elements}
@@ -926,25 +924,24 @@ associations := OrderedCollection new.
 
 \begin{code}{}
 classElements do: [:c | 
-	"Make each element reflect their model characteristics"
+		"Make each element reflect their model characteristics"
 	c width: c model instVarNames size.
 	c height: c model methods size.
-	"we add shape for the element to be seen"
+		"Add shape for the element to be seen"
 	c + ROBorder. 
-	"we make it draggable by the mouse"
+		"Make it draggable by the mouse"
 	c @ RODraggable.
-	"Create associations to build edges"
+		"Create associations to build edges"
 	(c model superclass = Object)
 		ifFalse: [ associations add: ((view elementFromModel: c model superclass) -> c)]	
 	 ].
 \end{code}
 
 \begin{code}{}	 
-"Add edges between each class and its superclass"
+	"Add edges between each class and its superclass"
 edges := ROEdge linesFor: associations.
 view addAll: edges.
-
-"Arrange all the elements as a hierarchy"
+	"Arrange all the elements as a hierarchy"
 ROTreeLayout new on: view elements.
 view open
 \end{code}
@@ -952,7 +949,7 @@ view open
 
 The resulting visualization can be seen in \figref{collectionHierarchy}.
 
-\fig{H}{0.4}{collectionHierarchy}{Collection class hierarchy with width representing the number of instance variables and height the number of methods.}
+\fig{H}{0.35}{collectionHierarchy}{Collection class hierarchy with width representing the number of instance variables and height the number of methods.}
 
 %=====================
 
@@ -1135,10 +1132,11 @@ rawView open
 
 \subsubsection{ROAnimation}
 %:Oscar: There is not enough to understand how animation work here
-Animations are also interactions in Roassal (\ie \ct{ROAnimation} is a subclass of \ct{ROInteraction}). Some animations allow elements to be translated either linearly at a constant speed (\ct{ROLinearMove}), with an acceleration (\ct{ROMotionMove}), or according to a mathematical function (\ct{ROFunctionMove}). Animations offered by the class \ct{ROZoomInMove} and \ct{ROZoomOutMove} make a view to be focused in and out. All animations are subclasses of \ct{ROAnimation}.
-
+Animations are also interactions in Roassal (\ie \ct{ROAnimation} is a subclass of \ct{ROInteraction}). All animations are subclasses of \ct{ROAnimation}.
+ Some animations allow elements to be translated either linearly at a constant speed (\ct{ROLinearMove}), with an acceleration (\ct{ROMotionMove}), or following a mathematical function (\ct{ROFunctionMove}). \ct{ROZoomInMove} and \ct{ROZoomOutMove} perform an animation zooming in or out. 
+ 
 Each animation has a number of cycles to complete, executing each one by sending the \ct{doStep} message.
-A \ct{ROAnimation} also allows one to set a block to be executed after the animation is finished, using the \ct{after:} message. It is important to notice that any action to be done after the animation is finished must be set before the animation is triggered, otherwise it will not be executed. %\sd{do you have a before: message.} \vp{no, we do not have it, i'll add it and update this}
+A \ct{ROAnimation} also allows one to set a block to be executed after the animation is finished, using the \ct{after:} message. It is important to notice that any action to be carried out after the animation is finished must be set before the animation is triggered, otherwise it will not be executed. 
 
 %:Oscar:Not clear what's going on here.
 \begin{figure}[H]
@@ -1169,9 +1167,9 @@ view open.
 %=====================
 \section{Understanding a View's Camera} \seclabel{camera}
 
-A view's camera represents the point of view from which it is actually viewed. 
+A view's camera represents the point of view from which the space is actually viewed. 
 
-When \ct{translateBy:} or \ct{translateTo:} messages are sent to a view, what actually happens is that its camera moves instead of the view itself. The position of the camera is given by the \ct{position} instance variable. The camera's position is set by hand sending the same messages to the camera, \ct{translateBy:} or \ct{translateTo:}, but using negated values as parameters. This means if the view has to be translated by 10 pixels horizontally and vertically, we can do it like this:
+When \ct{translateBy:} or \ct{translateTo:} messages are sent to a view, what actually happens is that its camera moves instead of the view itself. The position of the camera is given by the \ct{position} message. The camera's position is set manually sending the same messages to the camera, \ct{translateBy:} or \ct{translateTo:}, but using negated values as parameters. This means that if the view has to be translated by 10 pixels horizontally and vertically, we can do it like this:
 
 \begin{code}{}
 view translateBy: 10@10
@@ -1184,26 +1182,25 @@ view camera translateBy: (-10)@(-10)
 \end{code}
 
 %:Oscar: Not clear what are the extent and real extent ...
-A camera has an extent, which is what we are seeing and a real extent, which represents the far extent. 
-The extent of the view's camera affects the way a view is drawn in a canvas. When rendering a view, each point, rectangle or other shape that needs to be drawn will be plotted according to the camera's extent. This is done by transforming each absolute position in \emph{virtual} points relative to the camera's vision.
+A camera has an extent, which is what we are seeing, and a real extent, which represents the far extent.  The extent of the view's camera affects the way a view is drawn in a canvas. When rendering a view, each point, rectangle or other shape that needs to be drawn will be plotted according to the camera's extent. This is done by transforming each absolute position in \emph{virtual} points relative to the camera's vision.
 For example, when zooming in on a view, the content on the extent is ``stretched'' to fill the real extent, which makes objects bigger.
 The extent and the real extent of the camera are modified using \ct{extent:} and \ct{realExtent:} accessors, respectively. The camera also stores the window size of the visualization.
 
 The camera has an altitude from the view, which is computed using the extent. The smaller the extent is, the lower the camera is located, and vice-versa. The altitude of the camera can be set by sending the \ct{altitude:} message using a number as parameter.
 A camera cannot be rotated, only translated. This also means that the camera is always perpendicularly looking at the view.
 
-\figref{cameraDiagram} illustrates what we have just mentioned. It indicates all the  information regarding the view it is associated with. It can also be seen that the visible part of the visualization is giving by the camera's extent.
+\figref{cameraDiagram} illustrates what we have just mentioned. It indicates all of the  information regarding the view for which it is associated.We also see that the visible part of the visualization is given by the camera's extent.
 
 
 \begin{figure}[H]
-        \centering
-		\subfigure[Camera diagram]{\includegraphics[width=1\textwidth]{cameraDiagram}} \hfill
-		\subfigure[Camera extent, showing what it is actually seen]{\includegraphics[width=0.3\textwidth]{cameraExtent}}\hfill
-        \caption{Components of a view's camera}\label{fig:cameraDiagram}
+\centering
+\subfigure[Camera diagram]{\includegraphics[width=1\textwidth]{cameraDiagram}} \hfill
+\subfigure[Camera extent, showing what it is actually seen]{\includegraphics[width=0.3\textwidth]{cameraExtent}}\hfill
+\caption{Components of a view's camera}\label{fig:cameraDiagram}
 %:Oscar: This diagram also does not make clear what the "real extent" is or why it is needed
 \end{figure}
 
-The \ct{ROZoomMove} interaction affects the extent of the camera. This interaction modifies the camera's position and extents it to fit a desired rectangle. For example, when zooming in to focus in a particular element of the view, the \ct{ROZoomMove}  translates and extends the camera to fit that element's bounds.
+The \ct{ROZoomMove} interaction affects the extent of the camera. This interaction modifies the camera's position and extends it to fit a desired rectangle. For example, when zooming in to focus on a particular element of the view, the \ct{ROZoomMove}  translates and extends the camera to fit that element's bounds.
 This movement is simulated by changing the camera's altitude.
 
 \paragraph{Using the camera to build a minimap for navigation.}
@@ -1215,21 +1212,18 @@ view := ROView new.
 view @ RODraggable .
 view on: ROMouseRightClick do: [ :event | 
 		ROZoomInMove new on: view ].
-
 view on: ROMouseLeftClick do: [ :event | 
 		ROZoomOutMove new on: view ].
-
-eltos := ROElement spritesOn: (1 to: 400).
-eltos do:  [:el | el + ROLabel  ].
-view addAll: eltos.
+elts := ROElement spritesOn: (1 to: 400).
+elts do:  [ :el | el + ROLabel  ].
+view addAll: elts.
 ROGridLayout new on: view elements.
-
-"Mini map opens by pressing m"
+	"Mini map opens by pressing m"
 view @ ROMiniMap.
 view open.
 \end{code}
 
-It opens a view with 400 labelled elements. Elements are ordered using a grid layout. Pressing the left mouse button zooms in the view. The right mouse button zooms out. Pressing the \ct{m} key will open a minimap. This feature is enabled using the \ct{ROMiniMap} interaction.
+It opens a view with 400 labelled elements and elements are ordered using a grid layout. Pressing the left mouse button zooms in the view. The right mouse button zooms out. Pressing the \ct{m} key will open a minimap. This feature is enabled using the \ct{ROMiniMap} interaction.
 
 The \ct{ROMiniMap} opens a new window that gives a complete vision of a visualization. It also eases the navigation by using the original view's camera.
 
@@ -1241,21 +1235,17 @@ Coming back to our main example, the interaction is simply added by sending the 
 
 \fig{H}{0.9}{miniMap}{\ct{ROMiniMap} applied to the Collection Hierarchy example}
 
-The smaller version of the view is displayed using \ct{ROMiniMapDisplayer}, a particular shape, subclass of \ct{ROViewDisplayer}. 
-\ct{ROViewDisplayer} is a shape that displays a view on an element (it is essentially used for the popup view). The difference between both is that \ct{ROMiniMapDisplayer} uses its own camera, which has a different extent than the view's camera. This allows one to see the same view with different sizes. 
+The smaller version of the view is displayed using \ct{ROMiniMapDisplayer}, a particular shape, subclass of \ct{ROViewDisplayer}.  \ct{ROViewDisplayer} is a shape that displays a view on an element (it is essentially used for the popup view). The difference between both is that \ct{ROMiniMapDisplayer} uses its own camera, which has a different extent than the view's camera. This allows one to see the same view with different sizes. 
 
-The lupa size represents the visible part of the window and its position is related to the view's camera position. When the view is translated to a point, the lupa follows it by changing its position: the point representing the camera position is translated to a point on the \ct{ROMiniMapDisplayer} camera extent. And when the view is zoomed in or zoomed out the extent of the camera is changed, increasing or decreasing the lupa's size.
-
-%\alex{MiniMap}
-%\alex{Semantic zooming: Making objects appear when the camera goes down}
-
+The magnifier size represents the visible part of the window and its position is related to the view's camera position. When the view is translated to a point, the magnifier follows it by changing its position: the point representing the camera position is translated to a point on the \ct{ROMiniMapDisplayer} camera extent. And when the view is zoomed in or zoomed out the extent of the camera is changed, increasing or decreasing the magnifier's size.
 
 
 \section{Beyond Pharo}
 
-Roassal has been designed to be easily ported to other Smalltalk dialects. Currently it has been ported to VisualWorks, Amber and VA Smalltalk.
+Roassal has been designed to be easily ported to other Smalltalk dialects. Currently it has been ported to VisualWorks.
 
-As \figref{structure} shows, Roassal consists of three main components:
+%As \figref{structure} shows, 
+Roassal consists of three main components:
 
 \begin{itemize}
 \item  The Roassal Core, a set of packages that define all the main classes, like \ct{ROView}, \ct{ROElement}, \ct{ROShape} and \ct{ROCamera}. It also contains all the tests.
@@ -1271,7 +1261,7 @@ The first must be a subclass of \ct{ROAbstractCanvas} and the second must be sub
 The \ct{ROPlatform} class defines how the bridge between the core and the dependent packages must be implemented. This class defines instance variables, like \ct{canvasClass} and \ct{widgetFactory}, which store the corresponding classes to use according to their name. Each platform-dependent package must implement its own platform class as subclass of \ct{ROPlatform} and reference all the implemented platform dependent classes.
 Internally, every time one of these classes is needed, the core relies on the current instance of \ct{ROPlatform} to return the needed class.
 
-\fig{H}{0.3}{structure}{Roassal structure}
+%\fig{H}{0.3}{structure}{Roassal structure}
 
 %=====================
 
