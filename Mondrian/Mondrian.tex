@@ -30,18 +30,18 @@
 
 \indent
 
-Giving a meaning to a a large amount of data is challenging without adequate tools. Textual outputs are known to be limited in their expression and interactions. 
+Attaching a meaning to a large amount of data is challenging without adequate tools. Textual outputs are known to be limited in their expression and interactions. 
 
 Mondrian is a Domain Specific Language to script visualizations. Its latest implementation runs on top of Roassal (see Chapter~\ref{cha:roassal}).  
 It is made to visualize and interact with any arbitrary data, defined in terms of objects and their relationships. Mondrian is commonly employed in software assessment activities. Mondrian excels at visualizing software source code. 
 This chapter introduces Mondrian's principles and describes its expressive commands to quickly make up your data. For more detailed information, please refer to the dedicated Moose book chapter~\footnote{\url{http://themoosebook.org/book/internals/mondrian}}.
-After its reading, you will be able to create interactive and visual representation.
+After reading it, you will be able to create interactive and visual representations.
 
 %=====================
 
 \section{Installation and first visualization}
 
-Mondrian is part of Roassal. Check the Roassal chapter for installation procedure. If you are using a Moose distribution of Pharo \footnote{\url{http://www.moosetechnology.org/}}, then you already have Roassal. 
+Mondrian is based on Roassal. Check the Roassal chapter for installation procedures. If you are using a Moose distribution of Pharo \footnote{\url{http://www.moosetechnology.org/}}, then you already have Roassal. 
 
 \subsection{A First Visualization}
 You can get a first visualization by entering and executing the following code in a workspace. By executing the following in a workspace, you should see the Collection class hierarchy.
@@ -53,9 +53,7 @@ view shape rectangle
 	width:  [ :cls | cls numberOfVariables * 5 ];  
 	height: #numberOfMethods;
 	linearFillColor: #numberOfLinesOfCode within:  Collection withAllSubclasses.
-		
 view interaction action: #browse.
-
 view nodes: ROShape withAllSubclasses.
 view edgesFrom: #superclass.
 view treeLayout.
@@ -68,8 +66,8 @@ The visualization should be read as follows:
 \item each class is graphically represented as a box
 \item inheritance is indicated with edges between boxes. A superclass is above its subclasses
 \item the \emph{width} of each class indicates the amount of instance variable 
-\item the \emph{height} of a class indicates the amount of methods defined in the class. Taller the class is, more methods it defines.
-\item the class \emph{shading} indicates the amount of lines of code the class contains. The class painted in black contains the most lines of code. The white class contains the smallest quantity of lines of code.
+\item the \emph{height} of a class indicates the amount of methods defined in the class. The taller the class is, the more methods it defines.
+\item the class \emph{shading} indicates the amount of lines of code the class contains. The class colored in black contains the most lines of code. The white class contains the smallest quantity of lines of code.
 \end{itemize}
 
 We will detail and review all the mechanisms involved in the visualization later on.
@@ -77,12 +75,7 @@ We will detail and review all the mechanisms involved in the visualization later
 
 \section{Starting with Mondrian}
 
-%=====================
-%\section{The Mondrian DSL}
-
-
-A \ct{ROMondrianViewBuilder} models the Mondrian domain-specific language (DSL)\footnote{\url{http://www.moosetechnology.org/tools/mondrian}}. %It is mostly compatible with the original Mondrian language \ja{what is it?}.% (cf., Mondrian paper and website).
-%ROMondrianBuilder acts as a translation between the Mondrian DSL and the Roassal model.
+A \ct{ROMondrianViewBuilder} models the Mondrian domain-specific language (DSL).
 A \ct{ROMondrianViewBuilder} internally contains an instance of a \lct{ROView}, called raw view. Its accessor is \ct{raw}. All scripting  using the \ct{ROMondrianViewBuilder} result in creating \ct{ROElement}s with the shapes and interactions set by the script, and added to the raw view. To start a visualization with the builder, you can use the following code:
 
 \begin{code}{}
@@ -90,8 +83,8 @@ view := ROMondrianViewBuilder new.
 view open.
 \end{code}
 
-A Mondrian builder can also be initialized with an instance of a ROView. However it is important to understand that this is not required, as the builder by default will create its own raw view.
-When working with the builder, is it possible to use the Mondrian DSL, sending messages to an instance of the \ct{ROMondrianViewBuilder}, or directly with the raw view. %However the main benefit of the builder it to use the Mondrian scripting.
+A Mondrian builder can also be initialized with an instance of a ROView. It, however, is important to understand that this is not required, as the builder by default will create its own raw view.
+When working with the builder, it is possible to use the Mondrian DSL, sending messages to an instance of the \ct{ROMondrianViewBuilder}, or directly with the raw view. 
 
 \begin{code}{}
 rawView := ROView new.
@@ -223,8 +216,7 @@ view := ROMondrianViewBuilder new.
 view shape rectangle 
 	color: Color red.
 view nodes: (1 to: 4).
-view 
-	edgesFromAssociations: (Array with: 1-> 2 with: 2 -> 3 with: 2 -> 4).
+view edgesFromAssociations: (Array with: 1-> 2 with: 2 -> 3 with: 2 -> 4).
 view open.
 \end{code}
    \end{minipage}
@@ -270,7 +262,6 @@ view open.
 \subsection*{The Collection Hierarchy example}
 
 The Mondrian DSL allows a simpler scripting to the Collection hierarchy visualization than the one constructed through the chapter. By setting how each element and edge must be created, it is not necessary for us to create them by hand.
-The following code can be replaced for the earlier version:
 
 \begin{code}{}
 view := ROMondrianViewBuilder new.
@@ -284,14 +275,10 @@ view open.
 \end{code}
 
 
-
-
-
-There are essentially two ways to work with Mondrian, either using the easel or a view renderer. 
-The easel is a tool in which users may interactively and incrementally build a visualization by means of a script.  The easel is particularly useful when prototyping.
+There are essentially two ways to work with Mondrian, either using the easel or a view renderer. The easel is a tool in which users may interactively and incrementally build a visualization by means of a script.  The easel is particularly useful when prototyping.
 \ct{MOViewRenderer} enables a visualization to be programmatically built, in a non-interactive fashion. You probably want to use this class when embedding your visualization in your application.
 
-We will first use Mondrian in its easiest way, by using the easel. To open an easel, you can either use the World menu (it should contains the entry ``Mondrian Easel'') or execute the expression:
+We will first use Mondrian in its easiest way, by using the easel. To open an easel, you can either use the World menu (it should contain the entry ``Mondrian Easel'') or execute the expression:
 
 \begin{code}{}
 ROEaselMorphic open.
@@ -331,13 +318,13 @@ The visualization you obtain is:
 
 \begin{center}\includegraphics[scale=0.4]{picture3}\end{center}
 
-In the subsequent section we will visualize software code. Visualizing source code is often employed to discover patterns, useful when assessing code quality.
+In the subsequent section we will visualize software code to illustrate the power of Mondrian. Visualizing source code is often employed to discover patterns, useful when assessing code quality.
 
 %=====================
 
-\section{Visualizing the collection framework}
+\section{Visualizing the Collection framework}
 
-We will now visualize Pharo classes. In the remaining of this section, we will intensively use the reflective capability of Pharo to introspect the collection class hierarchy. This will serve as compelling examples. Let's visualize the hierarchy of classes contained in the Collection framework:
+We will now visualize Pharo classes. For the remainder of this section, we will intensively use the reflective capability of Pharo to introspect the collection class hierarchy. This will serve as compelling examples. Let's visualize the hierarchy of classes contained in the Collection framework:
 
 \begin{code}{}
 view nodes: Collection withAllSubclasses.
@@ -355,9 +342,9 @@ Classes are ordered vertically along their inheritance link. A superclass is abo
 
 \section{Reshaping nodes}
 
-Mondrian visualizes graph of objects. Each object of the domain is associated to a graph element, a node or an edge. Graph elements are not aware of their graphical representation. Graphical aspect is given by a shape. 
+Mondrian visualizes graphs of objects. Each object of the domain is associated to a graph element, a node or an edge. Graph elements are not aware of their graphical representation. Graphical aspect is given by a shape. 
 
-So far, we have solely use the default shape to represent node and edges. The default shape of a node is a five pixels wide square and the default shape of an edge is a thin straight gray line.
+So far, we have solely use the default shape to represent node and edges. The default shape of a node is a five-pixel wide square and the default shape of an edge is a thin, straight, and gray line.
 
 A number of dimensions defines the appearance of a shape: the width and the height of a rectangle, the size of a line dash, border and inner colors, for example. We will reshape the nodes of our visualization to convey more information about the internal structure of the classes we are visualizing. Consider:
 
@@ -370,7 +357,7 @@ view edgesFrom: #superclass.
 view treeLayout.
 \end{code}
 
-\figref{picture5} shows the result. Each class is represented as a box. The \ct{Collection} class, the root of the hierarchy, is the top most box. The width of a class tells about the amount of instance variables it has. We multiply it by 3 for more contrasting results. The height tells about the number of methods. We can immediately spot classes with many more methods than others: \ct{Collection}, \ct{SequentiableCollection}, \ct{String}, \ct{CompiledMethod}. Classes with more variables than others are: \ct{RunArray} and \ct{SparseLargeTable}.
+\figref{picture5} shows the result. Each class is represented as a box. The \ct{Collection} class (the root of the hierarchy) is the top most box. The width of a class conveys the amount of instance variables it has. We multiply it by 3 for more contrasting results. The height conveys the number of methods. We can immediately spot classes with many more methods than others: \ct{Collection}, \ct{SequentiableCollection}, \ct{String}, \ct{CompiledMethod}. Classes with more variables than others are: \ct{RunArray} and \ct{SparseLargeTable}.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=\linewidth]{picture5}}
@@ -382,7 +369,7 @@ view treeLayout.
 
 \section{Multiple edges}
 
-The message \ct{edgesFrom:} is used to draw one edge at most per node. A variant of it is \ct{edges:from:toAll:}. It support the definition of several edges starting from a given node. Consider the dependencies between classes. The script: 
+The message \ct{edgesFrom:} is used to draw one edge at most per node. A variant of it is \ct{edges:from:toAll:}. It supports the definition of several edges starting from a given node. Consider the dependencies between classes. The script: 
 
 \begin{code}{}
 view shape rectangle
@@ -406,7 +393,7 @@ The obtained visualization is given in \figref{classDependencies}.
 \ct{String} and \ct{CompiledMethod} clearly shows up. These two classes contains many references to other classes.
 We also see that \ct{text:} makes a shape contain a text.
 
-Mondrian provides a whole bunch of utility methods to easily create elements.  Consider the expression:
+Mondrian provides a set of utility methods to easily create elements.  Consider the expression:
 \begin{code}{}
 view edgesFrom: #superclass
 \end{code}
@@ -451,7 +438,7 @@ view
 
 \section{Colored shapes}
 
-A shape may be colored in various different way. Node shapes understand the message \ct{fillColor:}, \ct{textColor:}, \ct{borderColor:}. Line shapes understands \ct{color:}. Let's color the visualization of the collection hierarchy:
+A shape may be colored in various ways. Node shapes understand the message \ct{fillColor:}, \ct{textColor:}, \ct{borderColor:}. Line shapes understand \ct{color:}. Let's color the visualization of the collection hierarchy:
 
 \begin{code}{}
 view shape rectangle
@@ -465,7 +452,7 @@ view edgesFrom: #superclass.
 view treeLayout.
 \end{code}
 
-The produced visualization is given in \figref{abstractClasses}. It easily help identifying abstract classes that are not named as ``Array'' and the one that are abstract without having an abstract method.
+The produced visualization is given in \figref{abstractClasses}. It easily help identify abstract classes that are not named as ``Array'' and the ones that are abstract without an abstract method.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=\linewidth]{arrayClasses}}
@@ -473,7 +460,7 @@ The produced visualization is given in \figref{abstractClasses}. It easily help 
 \label{fig:abstractClasses}
 \end{figure}
 
-Similarly than with \ct{height:} and \ct{width:}, messages to defines color either takes a symbol, a block or a constant value as argument. The argument is evaluated against the domain object represented by the graphical element (a double dispatch sends the message \ct{moValue:} to the argument). 
+Similar as with \ct{height:} and \ct{width:}, messages to define color either take a symbol, a block or a constant value as argument. The argument is evaluated against the domain object represented by the graphical element (a double dispatch sends the message \ct{moValue:} to the argument). 
 The use of \ct{ifTrue:ifFalse:} is not really practicable. Utilities methods are provided for that purpose to easily pick a color from a particular condition. The definition of the shape can simply be:
 
 \begin{code}{}
@@ -491,7 +478,7 @@ The method \ct{hasAbstractMethods} is defined on Behavior and Metaclass in \phar
 
 \section{More on colors}
 
-Colors are pretty useful to designate a property (\eg gray if the class is abstract). They may also be employed to represent a continuous distribution. For example, the color intensity may indicate the result of a metric. Consider the previous script in which the node color intensity tells about the number of lines of code:
+Colors are pretty useful to designate a property (\eg gray if the class is abstract). They may also be employed to represent a continuous distribution. For example, the color intensity may indicate the result of a metric. Consider the previous script in which the node color intensity conveys the number of lines of code:
 
 \begin{code}{}
 view interaction action: #browse.
@@ -507,17 +494,15 @@ view treeLayout.
 \figref{systemComplexity} shows the resulting picture. The message \ct{linearFillColor:within:} takes as first argument a block function that return a numerical value. The second argument is a group of elements that is used to scale the intensity of each node. The block function is applied to each element of the group. The fading scales from white (0 line of code) to black (the maximum lines of code). The maximum intensity is given by the maximum \ct{#numberOfLinesOfCode} for all the subclasses of \ct{Collection}. 
 Variants of \ct{linearFillColor:within:} are \ct{linearXXXFillColor:within:}, where \ct{XXX} is one among \ct{Blue}, \ct{Green}, \ct{Red}, \ct{Yellow}.
 
-The visualization\footnote{This visualization is named 'System complexity', if you wish to know more about it, you can refer to 'Polymetric Views---A Lightweight Visual Approach to Reverse Engineering' (Transactions on Software Engineering, 2003).} you now obtain puts in relation for each class the number of methods, the number of instance variables and the number of lines of code. Differences in size between classes might suggest some maintenance activities. 
-
-
+The visualization named 'System complexity' (from Polymetric Views---A Lightweight Visual Approach to Reverse Engineering' (Transactions on Software Engineering, 2003) shows for each class the number of methods, the number of instance variables and the number of lines of code. Differences in size between classes might suggest some maintenance activities. 
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=6cm]{systemComplexity}}
-\caption{The system complexity visualization: nodes are classes; height is the number of lines of methods; width the number of variables; color tells about the number of lines of code.}
+\caption{The system complexity visualization: nodes are classes; height is the number of lines of methods; width the number of variables; color conveys about the number of lines of code.}
 \label{fig:systemComplexity}
 \end{figure}
 
-A color may be assigned to an object identity using \ct{identityFillColorOf:}. The argument is either a block or a symbol, evaluated against the domain object. A color is associate to the result of the argument.
+A color may be assigned to an object identity using \ct{identityFillColorOf:}. The argument is either a block or a symbol, evaluated against the domain object. A color is associated with the result of the argument.
 
 %=====================
 
@@ -537,11 +522,11 @@ view treeLayout.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=0.6\linewidth]{abstractClasses2.png}}
-\caption{Boxes are classes and links are inheritance relationships. The amount of abstract method is indicated by the size of the class. A red class defines abstract methods and a pink class inherits from an abstract class solely.}
+\caption{Boxes are classes and links are inheritance relationships. The amount of abstract method is indicated by the size of the class. A red class defines abstract methods and a pink class solely inherits from an abstract class.}
 \label{fig:abstractClasses2}
 \end{figure}
 
-\figref{abstractClasses2} indicate classes that are abstract either by inheritance or by defining abstract methods. Class size indicates the amount of abstract method defined. 
+\figref{abstractClasses2} indicates classes that are abstract either by inheritance or by defining abstract methods. Class size indicates the amount of abstract methods defined. 
 
 The popup message can be enhanced to list abstract methods. Putting the mouse above a class does not only give its name, but also the list of abstract methods defined in the class. The following piece of code has to be added at the beginning:
 
@@ -623,7 +608,7 @@ A subview contains its own layout. Interactions and shapes defined in a subview 
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=0.6\linewidth]{methodDependencies.png}}
-\caption{Large boxes are classes. Inner boxes are methods. Edges shows a possible invocation between the two.}
+\caption{Large boxes are classes. Inner boxes are methods. Edges show a possible invocation between the two.}
 \label{fig:abstractClasses3}
 \end{figure}
 
@@ -707,13 +692,13 @@ view edgesFrom: #superclass.
 view treeLayout.
 \end{code}
 
-Moving a method will move the class instead. It is often convenient to drag and drop more than one element. As most operating systems, Mondrian offers multiple selection using the Ctrl or Cmd key. This default behavior is available for every nodes. Multiple selection allows for a group of node to be moved.
+Moving a method will move the class instead. It is often convenient to drag and drop more than one element. As most operating systems, Mondrian offers multiple selection using the Ctrl or Cmd key. This default behavior is available for every node. Multiple selection allows for a group of nodes to be moved.
 
 %=====================
 
 \section{Events}
 
-Each mouse movement, click and keyboard keystroke corresponds to a particular event. Mondrian offers a rich hierarchy of events. The root of the hierarchy is MOEvent. To associate a particular action to an event, a handler has to be defined on the object interaction. On the following example, clicking on a class opens a code browser:
+Each mouse movement, click and keyboard keystroke corresponds to a particular event. Mondrian offers a rich hierarchy of events. The root of the hierarchy is MOEvent. To associate a particular action to an event, a handler has to be defined on the object interaction. In the following example, clicking on a class opens a code browser:
 
 \begin{code}{}
 view shape rectangle
@@ -749,7 +734,7 @@ view gridLayout gapSize: 2.
 
 Entering the node 5 highlights the nodes 4, 6, 1 and 9. This mechanism is quite efficient to not overload with connecting edges. Only the information is shown for the node of interest. 
 
-A more compelling application of \ct{highlightWhenOver:} is with the following example. A hierarchy of class is displayed on the left hand side. On the right hand size a hierarchy of unit tests is displayed. Locating the mouse pointer above a unit test highlights the classes that are referenced by one of the unit test method. Consider the (rather long) script:
+A more compelling application of \ct{highlightWhenOver:} is with the following example. A hierarchy of class is displayed on the left hand side. On the right hand size a hierarchy of unit tests is displayed. Locating the mouse pointer above a unit test highlights the classes that are referenced by one of the unit test methods. Consider the (rather long) script:
 
 \begin{code}{}
 "System complexity of the collection classes"
@@ -791,18 +776,7 @@ view node: 'compound' forIt: [
 \end{figure}
 
 
-The script contains two parts. The first part is the ubiquitous system complexity of the collection framework.  The second part renders the tests contained in the CollectionsTests. The width of a class is the number of literals contained in it. The height is the number of lines of code. Since the collection tests makes a great use of traits to reuse code, these metrics have to be scaled down. When the mouse is put over a test unit, then all the classes of the collection framework referenced in this class are highlighted. 
-
-%Displaying edges when overing a particular node is a recurrent problem in visualization. The method \ct{dynamicEdge:using:} is offered for that purpose. The following example draw arrowed lines from an element to the two others:
-%
-%\begin{code}{}
-%view interaction 
-%	dynamicEdge: [ :model | (Array with: 10 with: 20 with: 30) copyWithout: model ]
-%	using: (ROLine arrowed color: Color red).
-%view shape rectangle size: 20.
-%view nodes: (Array with: 10 with: 20 with: 30).
-%view circleLayout.
-%\end{code}
+The script contains two parts. The first part is the ubiquitous system complexity of the collection framework.  The second part renders the tests contained in the CollectionsTests. The width of a class is the number of literals contained in it. The height is the number of lines of code. Since the collection tests makes a great use of traits to reuse code, these metrics have to be scaled down. When the mouse is placed over a test unit, then all the classes of the collection framework referenced in this class are highlighted. 
 
 %=====================
 
@@ -825,14 +799,8 @@ Mondrian is an older visualization framework developed by Tudor Girba and Michae
 %Mondrian (the program) greatly influenced the design of Roassal. It supports visualization scripting based on a dedicated domain-specific language (DSL): the DSL is based on a stack model where elements on the top can be parametrized. Roassal is designed to be a flexible framework and it is not tight to a DSL. Roassal can be extended to support Mondrian-like DSL scripting. This is what this chapter is all about.
 
 
-\paragraph{Acknowledgment}
+\paragraph{Acknowledgment.}
 We are very grateful to Nicolas Rosselot Urrejola for his review of an early draft of the chapter.
-
-%Mondrian is a perpetual evolving application. This chapter intents to cover the features frequently used. If there is a topic you wish to see discussed here, send an email to alexandre@bergel.eu.
-%
-%We hope you haved enjoyed it!
-%
-%=====================
 
 
 %=============================================================
@@ -842,102 +810,3 @@ We are very grateful to Nicolas Rosselot Urrejola for his review of an early dra
    \end{document}
 \fi
 %=============================================================
-
-
-%Dead text:
-
-Node color \ja{nothing about edge color ? I think we can say that it is possible too} is an important information support, as the width and the height of a node. Color should be easy to pick to represent particular condition.
-
-The keyword if:fillColor: enables one to assign a color for a particular condition. Consider we want to extend the previous example by coloring abstract classes in red.
-
-\begin{code}{}
-view shape rectangle
-  width: [ :each | each instVarNames size * 3 ];
-  height: [ :each | each methods size ];
-  if: #hasAbstractMethods fillColor: Color red.
-view nodes: Collection withAllSubclasses.
-
-view edges: Collection withAllSubclasses from: #yourself toAll: #subclasses.
-
-view treeLayout.
-\end{code}
-
-
-The message \ct{if:fillColor:} may be sent to a shape to conditionally set a color. \ja{what is the link with the source code below ?}
-
-\begin{code}{}
-view shape rectangle
-  width: [ :each | each instVarNames size * 3];
-  height: [ :each | each methods size ];
-  if: #hasAbstractMethods fillColor: Color red.
-view nodes: Collection withAllSubclasses.
-
-view edgesFrom: #superclass.
-
-view treeLayout.
-\end{code}
-
-All red nodes represent abstract class. Waving the moose above a node make a text tooltip appear revealing its name. 
-
-\ja{it should not be here, we are in section 'adding colors'}
-Extended possibilities exist to define interaction. We will review them in a future section. For now, if you are interested in opening a system browser directly from a node, you define this interaction: \ja{can you display only the line concerned ? it is difficult to read each time the same code with only one line changed}
-
-\begin{code}{}
-view interaction action: #browse.
-view shape rectangle
-  width: [ :each | each instVarNames size * 3];
-  height: [ :each | each methods size ];
-  if: #hasAbstractMethods fillColor: Color red.
-view nodes: Collection withAllSubclasses.
-
-view edgesFrom: #superclass.
-
-view treeLayout.
-\end{code}
-
-You can easily \ja{I think there are too much 'easy' or 'easily' in the chapter} spot some red node that do not have subclasses. This indicates a design flow since an abstract must to have subclasses. It makes no sense for a class that is not supposed to be instantiated (since it is abstract) to not have a subclass.
-
-The very same analyzes can be realized on your own classes.
-
-\ja{is this code useful ? it seems to be the same as above}
-
-\begin{code}{}
-view interaction action: #browse.
-view shape rectangle
-  width: [ :each | each instVarNames size * 3];
-  height: [ :each | each methods size ];
-  if: #hasAbstractMethods fillColor: Color red.
-view nodes: (PackageInfo named: 'Mondrian') classes.
-
-view edgesFrom: #superclass.
-
-view treeLayout.
-\end{code}
-
-A shape may contains more than one condition. Let's distinguish abstract classes from classes that define abstract methods.
-
-\begin{code}{}
-view shape rectangle
-  width: [ :each | each instVarNames size * 3];
-  height: [ :each | each methods size ];
-  if: #hasAbstractMethods fillColor: Color lightRed;
-  if: [:cls | cls methods anySatisfy: #isAbstract ] fillColor: Color red.
-
-view nodes: Collection withAllSubclasses.
-
-view edgesFrom: #superclass.
-
-view treeLayout.
-\end{code}
-
-All red nodes are still abstract classes. Light red indicates classes that do not define abstract methods; strong red indicates classes that define at least one abstract method.
-
-%-----------------------------------------------------------------
-
-%%% Local Variables:
-%%% coding: utf-8
-%%% mode: latex
-%%% TeX-master: t
-%%% TeX-PDF-mode: t
-%%% ispell-local-dictionary: "english"
-%%% End:
