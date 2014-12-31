@@ -681,7 +681,7 @@ files
 goferDestination push. 
 
 "check if we have exactly the same files at source and destination"
-self assert: destination allVersionNames sorted equals: files sorted.
+destination allVersionNames sorted = files sorted.
 \end{script}
 
 \section{Chapter summary}
