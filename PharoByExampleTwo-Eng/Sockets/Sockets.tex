@@ -571,7 +571,7 @@ A server relying on socket streams still uses a socket for handling incoming con
 Socket streams come into action once a socket is created for interaction with a client.
 The socket is wrapped into a socket stream that eases data exchange using messages such as \ct!sendCommand:! or \ct!nextLine!.
 Once we are done, we close and destroy the socket handling connections and we close the interaction socket stream.
-This latter will take care of closing and destroying the underlying interaction socket.
+The latter will take care of closing and destroying the underlying interaction socket.
 
 \subsection{Binary vs. Ascii mode}
 Data exchanged can be treated as bytes or characters. When a socket stream is configured to exchange bytes using \ct!binary!, it sends and receives data as byte arrays.
@@ -600,19 +600,19 @@ interactionStream nextPutAllFlush: #[65 66 67].
 interactionStream upToEnd.
 \end{script}
 
-Note that whether the client manages strings (ascii mode) or byte arrays (binary mode) has no impact on the server.
-Indeed, in ascii mode, the socket stream handles instances of \ct!ByteString!.
+Note that the client manages strings (ascii mode) or byte arrays (binary mode) have no impact on the server.
+Indeed in ascii mode, the socket stream handles instances of \ct!ByteString!.
 So, each character maps to a single byte. 
 
 \subsection{Delimiting Data}
 SocketStream acts simply as a gateway to some network. 
 It sends or reads bytes without giving them any semantics.
 The semantics, that is the organization and meaning of exchanged data should be handled by other objects.
-Developers should decide a protocol to use and to enforce on both interacting sides to have correct interaction.
+Developers should decide on a protocol to use and enforce on both interacting sides to have correct interaction.
 
-A good practice is to \emph{reify} a protocol, that is to materialize it as an object which wraps a socket stream. 
+A good practice is to \emph{reify} a protocol that is to materialize it as an object which wraps a socket stream. 
 The protocol object analyzes exchanged data and decides accordingly which messages to send to the socket stream.
-Involved entities in any conversation need a protocol that defines how to organize data into sequence of bytes or characters.
+Involved entities in any conversation need a protocol that defines how to organize data into a sequence of bytes or characters.
 Senders should conform to this organization to allow receivers to extract valid data from received sequence of bytes.
  
 One possible solution is to have a set of delimiters inserted between bytes or characters corresponding to each data.
@@ -674,21 +674,21 @@ Of course, in a real setting, this assumption does not hold and one needs to dea
 To read data in chunks, \ct!SocketStream!  responds to the \ct!next:! message as illustrated by \scrref{script:socketStreamNext}.
 We consider that we have a server running at port 9999 of our machine that sends a string which size is a multiple of 5.
 Right after the connection, we wait 100 milliseconds until the data is received.
-Then, we read data in chunks of 5 characters that we display on the Transcript.
-So, if the server sends a string with 10 characters \ct!'HelloWorld'!, we will get on the Transcript \ct!Hello! on one line and \ct!World! on a second line.
+Then, we read data in chunks of five characters that we display on the Transcript.
+So, if the server sends a string with ten characters \ct!'HelloWorld'!, we will get on the Transcript \ct!Hello! on one line and \ct!World! on a second line.
 
 \section{Tips for Networking Experiments}
 In sections related to client-side sockets and socket streams, we used interactions with a web server as an example. So, we forged an HTTP Get query and send it to the server.
 We chose these examples to make experiments straightforward and platform agnostic.
 In real scale applications, interactions involving HTTP should be coded using a higher level library such as Zinc HTTP Client/Server library that is part of the default Pharo distribution\footnote{\url{http://zn.stfx.eu/zn/index.html}}.
 
-Network programming can easily scale up in complexity. Using a toolbox outside Pharo is often necessary to identify what is the source of an odd behavior. This section lists a number of Unix utilities to deal with low level network operations.
+Network programming can easily scale up in complexity. Using a toolbox outside Pharo is often necessary to identify what the source of an odd behavior is. This section lists a number of Unix utilities to deal with low level network operations.
 Readers with a Unix machine (Linux, Mac OS X) or with Cygwin (for Windows) can use \ct!nc! (or netcat), \ct!netstat! and \ct!lsof! for their tests.
 
 \subsection{\ct!nc! (netcat)}\label{sec:netcat}
 \ct!nc! allows one to set up either a client or a server for both TCP (default protocol) and UDP.
 It redirects the content of its \ct!stdin! to the other side.
-The following snippet show how to send \ct!'Hello from a client'! to a server on the local machine listening on port 9090.
+The following snippet shows how to send \ct!'Hello from a client'! to a server on the local machine listening on port 9090.
 \begin{code}{}
 echo Hello from a client | nc 127.0.0.1 9090 
 \end{code}
@@ -721,8 +721,8 @@ echo cat | nc -l 9090
 
 
 \subsection{\ct!netstat!}
-This command provides various information on network interfaces and sockets of your computer.
-It provides many statistics so one needs to use appropriate options to filter out useful information.
+This command provides information on network interfaces and sockets of your computer.
+It provides many statistics so one needs to use appropriate options to filter out information.
 The following command line allows displaying status of tcp sockets and their addresses.
 Note that the port numbers and addresses are separated by a dot.
 \begin{code}{}
@@ -732,9 +732,9 @@ netstat -p tcp -a -n
 \subsection{\ct!lsof!}
 The \ct!lsof! command lists all files open in your system.
 This of course includes sockets, since everything is a file in Unix.
-Why \ct!lsof! is useful, would you say, if we already have \ct!netstat!?
+Why is \ct!lsof! useful, you would ask, if we already have \ct!netstat!?
 The answer is that \ct!lsof! shows the link between processes and sockets.
-So, you can find out sockets related to your program.
+So you can find sockets related to your program.
 
 The example provided by following command line lists TCP sockets.
 The \ct!n! and \ct!P! options force \ct!lsof! to display host addresses and ports as numbers. 
@@ -757,7 +757,7 @@ This chapter introduces the use TCP sockets and socket streams to develop both n
 \item Unix does provide some networking utilities that are useful for debugging and testing purposes.
 \end{itemize}
 
-As mentioned in the introduction, we recommend to use socket streams which are of higher level and provide facility methods.
+As mentioned in the introduction, we recommend using socket streams which are of a higher level and provide facility methods.
 They were successfully used in projects such as Swazoo and Kom web servers used respectively by AidaWeb and Seaside web frameworks.
 
 Nevertheless, socket streams remain still low-level if you have an application involving different objects distributed over communicating images.
