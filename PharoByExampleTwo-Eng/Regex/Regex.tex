@@ -82,7 +82,7 @@ Our job is to write a simple application that will generate a site map for a web
 
 \dothis{If you do not have a web site on your machine, copy a few HTML files to a local directory to serve as a test bed.}
 
-We will develop two classes, \ct{WebDir} and \ct{WebPage}, to represent directories and web pages.  The idea is to create an instance of \ct{WebDir} which will point to the root directory containing our web site.  When we send it the message \ct{makeToc}, it will walk through the files and directories inside it to build up the site map.  It will then create a new file, called \ct{toc.html}, containing links to all the pages in the web site.
+We will develop two classes, \ct{WebDir} and \ct{WebPage}, to represent directories and web pages.  The idea is to create an instance of \ct{WebDir} which will point to the root directory containing our web site.  When we send the message \ct{makeToc}, it will walk through the files and directories inside it to build up the site map.  It will then create a new file, called \ct{toc.html}, containing links to all the pages in the web site.
 
 One thing we will have to watch out for: each \ct{WebDir} and \ct{WebPage} must remember the path to the root of the web site, so it can properly generate links relative to the root.
 
@@ -102,7 +102,7 @@ WebDir class>>selectHome
 \end{code}
 
 The last method opens a browser to select the directory to open.
-Now, if you inspect the result of \ct{WebDir selectHome}, you will be prompted for the directory containing your web pages, and you will be able to verify that \ct{webDir} and \ct{homePath} are properly initialized to the directory holding your web site and the full path name of this directory.
+Now, if you inspect the result of \ct{WebDir selectHome}, you will be prompted for giving the directory containing your web pages, and you will be able to verify that \ct{webDir} and \ct{homePath} are properly initialized to the directory holding your web site and the full path name of this directory.
 
 %\begin{figure}[tbh]
 %\begin{center}
@@ -159,7 +159,7 @@ Since the dot is a special character in regexes, if we want to literally match a
 'x' matchesRegex: '\.' --> false
 \end{code}
 
-Now let's check our regex to find HTML files works as expected.
+Now let's check our regex to see if HTML files work as expected.
 
 \begin{code}{@TEST}
 'index.html' matchesRegex: '.*\.html' --> true
@@ -349,7 +349,7 @@ Now we can test our title extractor, and we should see something like this:
 
 In order to generate our site map, we need to generate links to the individual web pages.
 We can use the document title as the name of the link.  We just need to generate the right path to the web page from the root of the web site.
-Luckily this is trivial\,---\,it is simple the full path to the web page minus the full path to the root directory of the web site.
+Luckily this is simple\,---\ the full path to the web page minus the full path to the root directory of the web site.
 
 We must only watch out for one thing.  Since the \ct{homePath} variable does not end in a \ct{/}, we must append one, so that relative path does not include a leading \ct{/}. Notice the difference between the following two results:
 
@@ -483,7 +483,7 @@ To obtain a regex that matches ``zero or more occurrences of \ct{ab}'', we must 
 \indexmain{Regex syntax!@\ct{+}}
 \indexmain{Regex syntax!@\ct{?}}
 Two other useful operators similar to \ct{*} are \ct{+} and \ct{?}.
-\ct{+} matches one or more instances of the regex it modifies, and \ct{?} will match zero or one instance.
+A \ct{+} matches one or more instances of the regex it modifies, and \ct{?} will match zero or one instance.
 \begin{code}{@TEST}
 'ac' matchesRegex: 'ab*c'	   --> true
 'ac' matchesRegex: 'ab+c'	  --> false    "need at least one b"
@@ -519,7 +519,7 @@ A bit more complex example is the expression \ct{c(a|d)+r}, which matches the na
 It is possible to write an expression that matches an empty string, for example the expression \ct{a|} matches an empty string.  However, it is an error to apply \ct{*}, \ct{+}, or \ct{?} to such an expression: \ct{(a|)*} is invalid.
 
 \indexmain{Regex syntax!character set}
-So far, we have used only characters as the \emph{smallest} components of regular expressions. There are other, more interesting, components. A character set is a string of characters enclosed in square brackets. It matches any single character if it appears between the brackets. For example, \ct{[01]} matches either \ct{0} or \ct{1}:
+So far, we have used only characters as the \emph{smallest} components of regular expressions. There are other more useful components. A character set is a string of characters enclosed in square brackets. It matches any single character if it appears between the brackets. For example, \ct{[01]} matches either \ct{0} or \ct{1}:
 \begin{code}{@TEST}
 '0' matchesRegex: '[01]'   --> true
 '3' matchesRegex: '[01]'   --> false
@@ -553,7 +553,7 @@ Thus, empty and universal sets cannot be specified.
 \subsection{Character classes}
 Regular expressions can also include the following backquote escapes to refer to popular classes of characters: \ct{\w} to match alphanumeric characters, \ct{\d} to match digits, and \ct{\s} to match whitespace.
 Their upper-case variants, \ct{\W}, \ct{\D} and \ct{\S}, match the complementary characters (non-alphanumerics, non-digits and non-whitespace).
-We can see a summary of the syntax seen so far in \tabref{regexsyntax}.
+\tabref{regexsyntax} gives a summary of the syntax seen so far.
 
 \indexmain{Regex syntax}
 \begin{table}
@@ -644,7 +644,7 @@ Floating point numbers should require at least one digit after the dot:
 %\end{code}
 %Note parentheses around some components of the expression above. As the Usage Section shows, they will allow us to obtain the actual strings that have matched them (\ie month name, day number, and year number).
 
-For dessert, here is a recognizer for a general number format: anything like \ct{999}, or \ct{999.999}, or \ct{-999.999e+21}.
+Here is a recognizer for a general number format: anything like \ct{999}, or \ct{999.999}, or \ct{-999.999e+21}.
 \begin{code}{@TEST}
 '-999.999e+21' matchesRegex: '(\+|-)?\d+(\.\d*)?((e|E)(\+|-)?\d+)?' --> true
 \end{code}
@@ -724,7 +724,7 @@ The last group of special primitive expressions is shown in \tabref{boundaries},
 %=================================================================
 \section{Regex API}
 
-Up to now we have focussed mainly on the syntax of regexes.  Now we will have a closer look at the different messages understood by strings and regexes.
+Up to now we have focused mainly on the syntax of regexes.  Now we will have a closer look at the different messages understood by strings and regexes.
 
 %-----------------------------------------------------------------
 \subsection{Matching prefixes and ignoring case}
@@ -999,9 +999,8 @@ In 90\% of the cases, the method \cmind{String}{matchesRegex:}  is all you need 
 
 \paragraph{Caveats.} The matcher is similar in spirit, but \emph{not} in design
 %--let alone the code--
-to Henry Spencer's original regular expression implementation in C.  The focus is on simplicity, not on efficiency. I didn't optimize or profile anything.
-%  I may in future\,---\,or I may not: I do this in my spare time and I don't promise anything. 
-The matcher passes H. Spencer's test suite (see ``test suite'' protocol), with quite a few extra tests added, so chances are good there are not too many bugs.  But watch out anyway.
+to Henry Spencer's original regular expression implementation in C.  The focus is on simplicity, not on efficiency.%  I may in future\,---\,or I may not: I do this in my spare time and I don't promise anything. 
+The matcher passes H. Spencer's test suite (see ``test suite'' protocol), with quite a few extra tests added, so chances are good there are not too many bugs.
 
 \paragraph{Acknowledgments.}
 Since the first release of the matcher, thanks to the input from several fellow Smalltalkers, I became convinced a native Smalltalk regular expression matcher was worth the effort to keep it alive. For the advice and encouragement that made this release possible, I want to thank: Felix Hack, Eliot Miranda, Robb Shecter, David N. Smith, Francis Wolinski and anyone whom I haven't yet met or heard from, but who agrees this has not been a complete waste of time.
@@ -1017,7 +1016,7 @@ This chapter presented the Regex package for \pharo. The essential points of thi
 \begin{itemize}
 \item For simple matching, just send \ct{matchesRegex:} to a string
 \item When performance matters, send \ct{asRegex} to the string representing the regex, and reuse the resulting matcher for multiple matches
-\item Subexpression of a matching regex may be easily retrieved to an arbitrary depth
+\item Subexpression of a matching regex may be easily retrieved
 \item A matching regex can also replace or translate subexpressions in a new copy of the string matched
 \item An enumeration interface is provided to access all matches of a certain regular expression
 \item Regexes work with streams as well as with strings.
