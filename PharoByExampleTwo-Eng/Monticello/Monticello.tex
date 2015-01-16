@@ -53,7 +53,7 @@
 %\chapterauthor{\authoroscar{}}
 
 
-A versioning system helps you to store and log multiple versions of your code. In addition it may help you to manage concurrent accesses to a common source code repository. It keeps track of all changes to a set of documents and enables several developers to collaborate. As soon as the size of your software increases beyond a few classes, you probably need a versioning system.
+A versioning system helps you to store and log multiple versions of your code. In addition, it may help you manage concurrent accesses to a common source code repository. It keeps track of all changes to a set of documents and enables several developers to collaborate. As soon as the size of your software increases beyond a few classes, you probably need a versioning system.
 
 Many different versioning systems are available. \ind{CVS}\footnote{\url{http://www.nongnu.org/cvs}}, \ind{Subversion}\footnote{\url{http://subversion.tigris.org}}, and \ind{Git}\footnote{\url{http://git-scm.com/}} are probably the most popular.
 In principle you could use them to manage the development of \pharo software projects, but such a practice would disconnect the versioning system from the \pharo environment.
@@ -66,9 +66,9 @@ they can do a better job of supporting the development process.
 %\indmain{Monticello}
 There are multiple repositories to store your projects. SmalltalkHub\footnote{\url{http://smalltalkhub.com/}} and Squeaksource 3\footnote{\url{http://ss3.gemstone.com/}} are the two main and free-to-use repositories.
 They are versioning systems for \pharo in which classes and methods, rather than lines of text,
-are the units of change. In this chapter we will use SmalltalkHub, but Squeaksource 3 can be use samely. \emph{SmalltalkHub} is a central online repository in which you can store versions of your applications using \Mont. SmalltalkHub is the equivalent of \ind{SourceForge}, and \Mont the equivalent of CVS. 
+are the units of change. In this chapter we will use SmalltalkHub, but Squeaksource 3 can be use similarly. \emph{SmalltalkHub} is a central online repository in which you can store versions of your applications using \Mont. SmalltalkHub is the equivalent of \ind{SourceForge}, and \Mont the equivalent of CVS. 
 
-In this chapter, you will learn how to use use \Mont and SmalltalkHub to manage your software. We have already met \Mont briefly in earlier chapters\footnote{``A first application'' and ``The Pharo programming environment''}.
+In this chapter, you will learn how to use use \Mont and SmalltalkHub to manage your software. We have already been acquainted with \Mont briefly in earlier chapters\footnote{``A first application'' and ``The Pharo programming environment''}.
 % These chapters are in book1, so we can't cross-reference them!
 % (\charef{firstApp} and \charef{env}).
 This chapter delves into the details of \Mont{} and describes some additional features that are useful for versioning large applications.
@@ -145,7 +145,7 @@ Our new package named \pkg{Perfect} contains:
 \index{Monticello!committing changes}
 Note in \figref{perfect} that the \button{Save} button is disabled (greyed out).
 
-Before we save our \ct{Perfect} package, we need to specify \emph{where} we want to save it. A \emph{repository} is a package container, which may either be local to your machine or remote (accessed over the network). 
+Before we save our \ct{Perfect} package, we need to specify to \emph{where} we want to save it. A \emph{repository} is a package container, which may either be local to your machine or remote (accessed over the network). 
 Various protocols may be used to establish a connection between your \pharo image and a repository. As we will see later (\secref{monti:repositories}), \Mont supports a large choice of repositories, though the most commonly used is HTTP, since this is the one used by SmalltalkHub.
 
 \index{package-cache}
@@ -154,7 +154,7 @@ The package-cache is created automatically in the local directory where your \ph
 By default, copies of your packages are also saved in the package-cache when you save them to a remote server.
 
 Each package knows which repositories it can be saved to.
-To add a new repository to the selected package, press the \button{+Repository} button. This will offer a number of choices of different kinds of repository, including HTTP. For the rest of the chapter we will work with the \ct{package-cache} repository, as this is all we need to explore the features of \Mont.
+To add a new repository to the selected package, press the \button{+Repository} button. This will offer a number of choices of different kind of repository, including HTTP. For the rest of the chapter we will work with the \ct{package-cache} repository, as this is all we need to explore the features of \Mont.
 
 \dothis{Select the directory repository named \lct{package cache}, press \button{Save}, enter an appropriate log message, and \button{Accept} to save the changes.}
 
@@ -293,7 +293,7 @@ Now the tests should be green again.
 \index{Monticello!branching}
 A \emphind{branch} is a line of development versions that exists independently of another line, yet still shares a common ancestor version if you look far enough back in time.
 
-You may create new version branch when saving your package. Branching is useful when you want to have a new parallel development. For example, suppose your job is to maintain a software in your company. One day a different division asks you for the same software, but with a few parts tweaked for them, since they do things slightly differently. The way to deal with this situation is to create a second branch of your program that incorporate the tweaks, while leaving the first branch unmodified.
+You may create a new version branch when saving your package. Branching is useful when you want to have a new parallel development. For example, suppose your job is doing software maintenance in your company. One day a different division asks you for the same software, but with a few parts tweaked for them, since they do things slightly differently. The way to deal with this situation is to create a second branch of your program that incorporate the tweaks, while leaving the first branch unmodified.
 
 \dothis{From the \RI, select version 1 of the \ct{Perfect} package and \button{Load} it. Version 2 should again be displayed in bold, indicating that it no longer loaded (since it is not an ancestor of version 1).
 Now implement the following two \ct{Integer} methods and place them in the \ct{*perfect} protocol, and also modify the existing \ct{PerfectTest} test method as follows:}
@@ -359,7 +359,7 @@ Congratulations! You have now created a new branch of the \ct{Perfect} package.
 %\end{code}
 
 % \alex{This subsection will need a major overhaul when turning the chapter for Pharo. The merging tool is radically different}\sd{Is it not. There is a preference to get the one shown in this section. We should just say useDiff....}
-You can merge one version of a package with another using the \button{Merge} button in the \MCB. Typically you will want to do this when (i) you discover that you have been working on a out-of-date version, or (ii) branches that were previously independent have to be re-integrated. Both scenarios are common when multiple developers are working on the same package.
+You can merge one version of a package with another using the \button{Merge} button in the \MCB. Typically, you will want to do this when (i) you discover that you have been working on a out-of-date version, or (ii) branches that were previously independent have to be re-integrated. Both scenarios are common when multiple developers are working on the same package.
 
 %\ap{Here I stopped}
 
@@ -404,12 +404,12 @@ The merge tool is a tool that allows for fine-grained package version merging. E
 In \figref{mergeTool} we see the three differences between versions 2 and 3 of the \ct{Perfect} package. The method \ct{PerfectTest>>>testPerfectBoundary} is new, and the two indicated methods of \ct{Integer} have been changed. In the lower pane we see the old and new versions of the source code of \ct{Integer>>>isPerfect}.
 New code is displayed in red, removed code is barred and displayed in blue, and unchanged code is shown in black. 
 
-A method or a class is in conflict if its definition has been altered. \figref{mergeTool} shows 2 conflicting methods in the class \ct{Integer}: \ct{isPerfect} and \ct{divisors}. A conflicting package element is indicated by being \underline{underlined}, \sout{barred}, or {\bf bold}. The full set of typeface conventions is as follows:
+A method or a class is in conflict if its definition has been altered. \figref{mergeTool} shows two conflicting methods in the class \ct{Integer}: \ct{isPerfect} and \ct{divisors}. A conflicting package element is indicated by being \underline{underlined}, \sout{barred}, or {\bf bold}. The full set of typeface conventions is as follows:
 
 \begin{description}
 \item[Plain=No Conflict.] A plain typeface indicates the definition is non-conflicting. For example, the method \ct{PerfectTest>>>testPerfectBoundary} does not conflict with an existing method, and can be installed.
-\item[Red=A method is conflicting.] A decision needs to be taken to keep the proposed change or reject it. The proposed method \ct{Integer>>>>isPerfect} is in conflict with an existing definition in the image. The conflict can be resolved by right clicking on the method and \menu{Keep current version} or \menu{Use incoming version}.
-\item[Right arrow=Repository replace current.] An element with right arrow will be used and replace the current element in the image. In \figref{mergeTool} we see that \ct{Integer>>>isPerfect} from version 2 has been used.
+\item[Red=A method is conflicting.] A decision needs to be made to keep the proposed change or reject it. The proposed method \ct{Integer>>>>isPerfect} is in conflict with an existing definition in the image. The conflict can be resolved by right clicking on the method and \menu{Keep current version} or \menu{Use incoming version}.
+\item[Right arrow=Repository replace current.] An element with a right arrow will be used and replace the current element in the image. In \figref{mergeTool} we see that \ct{Integer>>>isPerfect} from version 2 has been used.
 \item[Left arrow=Repository version rejected.] An element with left arrow has been rejected, and the local definition will not be replaced. In \figref{mergeTool} \ct{Integer>>>divisors} from version 2 is rejected, so the definition from version 3 will remain.
 %\on{This appears to no longer be true! -- a rejected element is simply shown in plain font! -- should be fixed.}
 \end{description}
@@ -457,7 +457,7 @@ The advantage of the snapshot browser over the browser is its ability to display
 \index{class extension}
 For example, \figref{packageviewer} shows the class extensions defined in the \pkg{Perfect} package. Note that code cannot be edited here, though by {\actclick}ing, if your environment has been set up accordingly) on a class or a method name you can open a regular browser.
 
-It is a good practice to always browse the code of your package before publishing it, to ensure that it really contains what you think it does.
+It is good practice to always browse the code of your package before publishing it, to ensure that it really contains what you think it does.
 
 \alex{David's browser shows class extensions. Although it does not supersede the snapshot browser, it should be mentioned here}
 
@@ -562,7 +562,7 @@ By {\actclick}ing on a particular version, you can explore the changes with resp
 
 \index{Monticello!dependency}
 \index{package!required|see{Monticello, dependency}}
-Most applications cannot live on their own and typically require the presence of other packages in order to work properly. For example, let us have a look at Pier\footnote{\url{http://source.lukas-renggli.ch/pier}}, a meta-described content management system. Pier is a large piece of software with many facets (tools, documentations, blog, catch strategies, security, ...). Each facet is implemented by a separate package. Most Pier packages cannot be used in isolation since they refer to methods and classes defined in other packages. \Mont provides a dependency mechanism for declaring the \emph{required packages} of a given package to ensure that it will be correctly loaded.
+Most applications cannot live on their own and typically require the presence of other packages in order to work properly. For example, let us have a look at Pier\footnote{\url{http://source.lukas-renggli.ch/pier}}, a meta-described content management system. Pier is a large piece of software with many facets (tools, documentations, blog, catch strategies, security, etc). Each facet is implemented by a separate package. Most Pier packages cannot be used in isolation since they refer to methods and classes defined in other packages. \Mont provides a dependency mechanism for declaring the \emph{required packages} of a given package to ensure that it will be correctly loaded.
 
 Essentially, the dependency mechanism ensures that all required packages of a package are loaded before the package is loaded itself. Since required packages may themselves require other packages, the process is applied recursively to a tree of dependencies, ensuring that the leaves of the tree are loaded before any branches that depend on them.
 Whenever new versions of required packages are checked in, then new versions of the packages that depend on them will automatically depend on the new versions.
@@ -619,12 +619,12 @@ Here is the reason why:
 \item If instead you save \ct{NewPerfect-Tests}, this will \emph{not} cause \ct{NewPerfect-All} to be saved.  This is bad because you effectively break the dependency.  If you then load the latest version of \ct{NewPerfect-All} you will not get the latest versions of the required packages. Don't do it!
 \end{itemize}
 
-\important{Do not name your top level package with a suffix (\eg \ct{Perfect}) that could match your subpackages. Do not define \ct{Perfect} as a required package of \ct{Perfect-Extensions} or \ct{PerfectTest}. You would get in trouble since \Mont would save all the classes for three packages while you only want two packages and an empty one at the top level.}
+\important{Do not name your top level package with a suffix (\eg \ct{Perfect}) that could match your subpackages. Do not define \ct{Perfect} as a required package of \ct{Perfect-Extensions} or \ct{PerfectTest}. You would run into in trouble as \Mont would save all the classes for three packages, though you only want two packages and an empty one at the top level.}
 %-----------------------------------------------------------------
 
 %\subsection{Making a Configuration} 
 
-To build more flexible dependencies between packages, we recommend to use a Metacello configuration (see \charef{metacello}). The \button{+Config} button creates a kind of configuration structure. The only thing to do is to add the dependencies.
+To build more flexible dependencies between packages, we recommend using a Metacello configuration (see \charef{metacello}). The \button{+Config} button creates a kind of configuration structure. The only thing to do is to add the dependencies.
 
 \subsection{Class initialization}
 
@@ -675,9 +675,9 @@ Note that if you change a class that is not in your package, the other package w
 %=================================================================
 \section{Getting a change set from two versions}
 %:\alex{Change set were seen in Chapter 6, page 135 of the version 1 of PBE}
-A Monticello version is the snapshot of one or more packages. A version contains the complete set of class and method definitions that constitute the underlying packages. Sometimes, it is useful to have a ``patch'' from two versions. A patch is the set of all necessary side effect in the system to go from one version A to another version B. 
+A Monticello version is the snapshot of one or more packages. A version contains the complete set of class and method definitions that constitute the underlying packages. Sometimes it is useful to have a ``patch'' from two versions. A patch is the set of all necessary side effects in the system to go from one version A to another version B. 
 
-\emph{Change set} is a \pharo built-in mechanism to define system patches. A change set is composed of global side effects on the system. New change set may be created and edited from the \emph{Change Sorter}. This tool is available from the \menu{World\go{}Tools} entry.
+\emph{Change set} is a \pharo built-in mechanism to define system patches. A change set is composed of global side effects on the system. A new change sets may be created and edited from the \emph{Change Sorter}. This tool is available from the \menu{World\go{}Tools} entry.
 
 The difference between two Monticello versions may be easily captured by creating a new change set before loading a second version of a package. As an illustration, we will capture the differences between version 1 and 2 of the \pkg{Perfect} package:
 \begin{enumerate}
@@ -699,7 +699,7 @@ Several kinds of repositories are supported by \Mont, each with different charac
 \index{Monticello!HTTP repository}
 \paragraph{HTTP.} HTTP repositories are probably the most popular kind of repository since this is the kind supported by SmalltalkHub. % (Such servers can also be configured for read-only access. Saving versions via HTTP uses the PUT method \ab{Is ``put'' the right word}, which must be enabled on the server.)
 
-The nice thing about HTTP repositories is that it's easy to link directly to specific versions from web sites. With a little configuration work on the HTTP server, HTTP repositories can be made browsable by ordinary web browsers, WebDAV clients, and so on.
+The nice thing about HTTP repositories is that it is easy to link directly to specific versions from web sites. With a little configuration work on the HTTP server, HTTP repositories can be made browsable by ordinary web browsers, WebDAV clients, and so on.
 
 HTTP repositories may be used with an HTTP server other than \ind{SmalltalkHub}. For example, a simple configuration\footnote{\url{http://www.visoracle.com/squeak/faq/monticello-1.html}} turns \ind{Apache} into a \Mont repository with restricted access rights:
 
@@ -727,7 +727,7 @@ I love Monticello and look forward to future improvements."
 \end{code}
 
 \index{Monticello!FTP repository}
-\paragraph{FTP.} This is similar to an HTTP repository, except that it uses an FTP server instead. An FTP server may also offer restricted access right and different FTP clients may be used to browse such \Mont repository.
+\paragraph{FTP.} This is similar to an HTTP repository, except that it uses an FTP server instead. An FTP server may also offer restricted access right and different FTP clients may be used to browse such a \Mont repository.
 
 \index{Monticello!GOODS repository}
 \paragraph{GOODS.}
@@ -737,14 +737,14 @@ It's a read-write repository, so it makes a good ``working'' repository where ve
 
 \index{Monticello!directory repository}
 \index{package-cache}
-\paragraph{Directory.} A directory repository stores versions in a directory in the local file system. Since it requires very little work to set up, it's handy for private projects; since it requires no network connection, it's the only option for disconnected development. The \ct{package-cache} we have been using in the exercises for this chapter is an example of this kind of repository. Versions in a directory repository may be copied to a public or shared repository at a later time. SmalltalkHub supports this feature by allowing package versions (.mcz files) to be imported for a given project. Simply log in to SmalltalkHub, navigate to the project, and click on the \menu{Import Versions} link.
+\paragraph{Directory.} A directory repository stores versions in a directory in the local file system. Since it requires very little work to set up, it's handy for private projects. Because it requires no network connection, it's the only option for disconnected development. The \ct{package-cache} we have been using in the exercises for this chapter is an example of this kind of repository. Versions in a directory repository may be copied to a public or shared repository at a later time. SmalltalkHub supports this feature by allowing package versions (.mcz files) to be imported for a given project. Simply log in to SmalltalkHub, navigate to the project, and click on the \menu{Import Versions} link.
 
-\paragraph{Directory with Subdirectories.}  A ``directory with subdirectories'' is very similar to ``directory'' except that it looks in subdirectories to retrieve list of available packages. Instead of having a flat directory that contains all package versions, such as repository may be hierarchically  structured with  subdirectories.
+\paragraph{Directory with Subdirectories.}  A ``directory with subdirectories'' is very similar to ``directory'' except that it looks in subdirectories to retrieve lists of available packages. Instead of having a flat directory that contains all package versions, such as repository may be hierarchically  structured with  subdirectories.
 
 \index{Monticello!SMTP repository}
-\paragraph{SMTP.} SMTP repositories are useful for sending versions by mail. When creating an SMTP repository, you specify a destination email address. This could be the address of another developer\,---\,the package's maintainer, for example\,---\,or a mailing list such as pharo-project. Any versions saved in such a repository will be emailed to this address.  SMTP repositories are write-only.
+\paragraph{SMTP.} SMTP repositories are useful for sending versions by mail. When creating an SMTP repository, you specify a destination email address. This could be the address of another developer\,---\,the package's maintainer, for example\,---\,or a mailing list such as pharo-project. Any versions saved in such a repository will be emailed to that address.  SMTP repositories are write-only.
 
-\paragraph{Programmatically adding repositories} For particular purposes, it may be necessary to programmatically add new repositories. This happens when managing configuration and large set of distributed monticello packages or simply customizing the entries available in the Monticello browser. For example, the following code snippet programmatically adds new directory repositories
+\paragraph{Programmatically adding repositories} For particular purposes, it may be necessary to programmatically add new repositories. This happens when managing configurations and large set of distributed monticello packages or simply customizing the entries available in the Monticello browser. For example, the following code snippet programmatically adds new directory repositories
 
 \begin{code}
 | repo |
@@ -850,7 +850,7 @@ This stands for ``\Mont zip'' since an mcz file is simply a zipped file containi
 
 % \sd{but you lose the fact that this is a package so don't do that.}
 
-You may try to unzip such a file, for example to view the source code directly, but normally end users should not need to unzip these files themselves.
+You may try to unzip such a file, for example to view the source code directly, but normally, end users should not need to unzip these files themselves.
 If you unzip it, you will find the following members of the mcz file.
 
 \paragraph{File contents}
@@ -865,10 +865,10 @@ Mcz files are actually ZIP archives that follow certain conventions. Conceptuall
 A version doesn't contain a full history of the source code. It's a snapshot of the code at a single point in time, with a UUID identifying that snapshot, and a record of the UUIDs of all the previous snapshots it's descended from.
 
 \index{Monticello!snapshot}
-\item \emph{Snapshot}. A Snapshot is a record of the state of the package at a particular time. Each mcz file contains a directory named ``snapshot/''. All the members in this directory contain definitions of program elements, which when combined form the Snapshot. Current versions of \Mont only create one member in this directory, called ``source.st''.
+\item \emph{Snapshot}. A Snapshot is a record of the state of the package at a particular time. Each mcz file contains a directory named ``snapshot/''. All the members in this directory contain definitions of program elements, which when combined, form the Snapshot. Current versions of \Mont only create one member in this directory, called ``source.st''.
 
 \index{Monticello!dependency}
-\item \emph{Dependencies}. A version may depend on specific version of other packages. An mcz file may contain a ``dependencies/'' directory with a member for each dependency. These members will be named after each package the \Mont package depends upon. For example, a \ct{Pier-All} mcz file will contains files named \ct{Pier-Blog} and \ct{Pier-Caching} in its dependencies directory.
+\item \emph{Dependencies}. A version may depend on specific version of other packages. An mcz file may contain a ``dependencies/'' directory with a member for each dependency. These members will be named after each package the \Mont package depends upon. For example, a \ct{Pier-All} mcz file will contain files named \ct{Pier-Blog} and \ct{Pier-Caching} in its dependencies directory.
 \end{itemize}
 
 \paragraph{Source code encoding}
@@ -901,7 +901,7 @@ The following points were covered:
 
 \begin{itemize}
 \item \Mont are mapped to Smalltalk categories and method protocols.
-	If you add a package called \ct{Foo} to \Mont, it will include all classes in categories called \ct{Foo} or starting with \ct{Foo-}. It will also include all methods in those categories, except those in protocols starting with \ct{*}. Finally it will include all \emph{class extension} methods in protocols called \ct{*foo} or starting with \ct{*foo-} anywhere else in the system.
+	If you add a package called \ct{Foo} to \Mont, it will include all classes in categories called \ct{Foo} or starting with \ct{Foo-}. It will also include all methods in those categories, except those in protocols starting with \ct{*}. Finally, it will include all \emph{class extension} methods in protocols called \ct{*foo} or starting with \ct{*foo-} anywhere else in the system.
 
 \item When you modify any methods or classes in a package, it will be marked as ``dirty'' in \Mont, and can be saved to a repository.
 
@@ -914,7 +914,7 @@ The following points were covered:
 
 \item You can create a new \emph{branch} of a package by basing a new version on another version which is earlier than the latest version. The \RI keeps track of the ancestry of packages and can tell you which versions belong to separate branches.
 
-\item Branches can be \emph{merged}. \Mont offers a fine degree of control over the resolution of conflicts between merged versions. The merged version will have as its ancestor the two versions it was merged from.
+\item Branches can be \emph{merged}. \Mont offers a fine degree of control over the resolution of conflicts between merged versions. The merged version will have as its ancestor the two versions from which it merged.
 
 %\item Alternatively, selected changes of a branch can be \emph{backported} to an arbitrary earlier version. This will create a new version that can be merged with any other version that needs those changes. The original backported branch remains independent in this case.
 
