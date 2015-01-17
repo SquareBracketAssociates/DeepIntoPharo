@@ -41,7 +41,7 @@
 
 \indent
 
-Pharo proposes powerful tools to manage source code such as semantics-based merging, tree diff-merge, and a git-like distributed versioning system. In particular as presented in the Monticello Chapter, Pharo uses a package system named Monticello. In this chapter after a first reminder of the key aspects of Monticello we will show how we can script package using Gofer. Gofer is a simple API for Monticello. Gofer was developed by L. Renggli and further extended by E. Lorenzano and C. Bruni. It is used by Metacello, the language to manage package maps that we present in Metacello Chapter (see~\charef{metacello}). 
+Pharo proposes powerful tools to manage source code such as semantics-based merging, tree diff-merge, and a git-like distributed versioning system. In particular as presented in the Monticello Chapter, Pharo uses a package system named Monticello. In this chapter, after a first reminder of the key aspects of Monticello we will show how we can script package using Gofer. Gofer is a simple API for Monticello. Gofer was developed by L. Renggli and further extended by E. Lorenzano and C. Bruni. It is used by Metacello, the language to manage package maps that we present in Metacello Chapter (see~\charef{metacello}). 
 
 %\begin{code}{}
 %we should use:
@@ -54,14 +54,14 @@ Pharo proposes powerful tools to manage source code such as semantics-based merg
 \section{Preamble: Package management system}
 
 \paragraph{Packages.}
-A package is a list of class and method definition. In Pharo a package is not associated with a namespace. A package can extend a class defined in another package: it means that a package, for example \ct{Network} can add methods to the class \ct{String}, even though \ct{String} is not defined in the package \ct{Network}. Class extensions support the definition of layers and allows for the natural definition of packages. 
+A package is a list of class and method definition. In Pharo a package is not associated with a namespace. A package can extend a class defined in another package: it means, for example, that a package \ct{Network} can add methods to the class \ct{String}, even though \ct{String} is not defined in the package \ct{Network}. Class extensions support the definition of layers and allows for the natural definition of packages. 
 
 
 \begin{figure}
 \begin{center}\includegraphics[width=6cm]{classExtension}\end{center}
 \end{figure}
 
-To define a package, you simply need to declare one using the Monticello browser and to define a class extensions, it is enough to define a method with a category starting with `*' followed by the package name (here \ct{'*network'}). 
+To define a package, you simply need to declare one using the Monticello browser and to define a class extensions. It is enough to define a method with a category starting with `*' followed by the package name (here \ct{'*network'}). 
 
 \begin{code}{}
 Object subclass: #ButtonsBar
@@ -90,12 +90,12 @@ We can get the list of changes of a package before publication by simply selecti
 \end{figure}
 
 \paragraph{Package Versioning System.}
-A version management system helps for version storage and keeps an history of system evolution. Moreover, it provides the management of concurrent accesses to a source code repository. It keeps traces of all saved changes and allows us to collaborate with other engineers. More a project grows, more it is important to use a version management system.
+A version management system helps for version storage and keeps an history of system evolution. Moreover, it provides the management of concurrent accesses to a source code repository. It keeps traces of all saved changes and allows us to collaborate with other engineers. The more a project grows, the more important it is to use a version management system.
 
 Monticello defines the package system and version management of Pharo. In Pharo, classes and methods are elementary entities which are versioned by Monticello when actions were done (superclass change, instance variable changes, methods adding, changing, deleting \ldots). A source is an HTTP server which allows us to save projects (particularly packages) managed by Monticello. This is the equivalent of a forge: It provides the management of contributors and their status, visibility information, a wiki with RSS feed. A source open to everybody is available at \url{http://www.smalltalkhub.com/}.
 
 
-\paragraph{Distributed architecture of Monticello.} Monticello is a distributed version control management system like git but dedicated to Smalltalk. Monticello manipulates source code entities such as classes, methods,... It is then possible to manage local and distributed code servers. Gofer allows one to script such servers to publish, download and synchronize servers. 
+\paragraph{Distributed architecture of Monticello.} Monticello is a distributed version control management system like GIT but dedicated to Smalltalk. Monticello manipulates source code entities such as classes, methods,... It is then possible to manage local and distributed code servers. Gofer allows one to script such servers to publish, download and synchronize servers. 
 
 
 Monticello uses a local cache for packages. Each time a package is required, it is first looked up in this local cache. In a similar way, when a package is saved, it is also saved in the local cache.  From a physical point of a view a Monticello package is a zipped file containing meta-data and the complete source code of package. 
@@ -126,8 +126,8 @@ Once \ct{b.1} which was dirty is saved on the server yoursource.com, it is versi
 
 
 \section{What is Gofer?}
-Gofer is a scripting tool for Monticello. It has been developed by Lukas Renggli and it is used by Metacello (the map and project management system built on top of Monticello). Gofer supports the easy creation of scripts to load, save, merge, update, fetch ... packages. In addition, Gofer makes sure that  the system stays in a clean state. Gofer allows one to load packages located in different repositories in a single operation, to load the latest stable version or the currently developed version. Gofer is part of basis of Pharo since Pharo 1.0.
-Metacello uses Gofer as its underlying infrastructure to load complex projects. Gofer is more adapted to load simple package. 
+Gofer is a scripting tool for Monticello. It has been developed by Lukas Renggli and it is used by Metacello (the map and project management system built on top of Monticello). Gofer supports the easy creation of scripts to load, save, merge, update, fetch ... packages. In addition, Gofer makes sure that  the system stays in a clean state. Gofer allows one to load packages located in different repositories in a single operation, to load the latest stable version or the currently developed version. Gofer is part of the basis of Pharo since Pharo 1.0.
+Metacello uses Gofer as its underlying infrastructure to load complex projects. Gofer is more adapted to load simple packages. 
 
 You can ask Gofer to update it itself by executing the following expression: 
 
@@ -154,7 +154,7 @@ Gofer new
     !\textbf{load}!
 \end{code}
 
-When the repository (HTTP or FTP) requires an identification, the message \ct{url:username:password:} is available. Pay attention this is a single message so do not put cascade in between.  The message \ct{directory:} supports the access to local files. 
+When the repository (HTTP or FTP) requires an identification, the message \ct{url:username:password:} is available. Pay close attention as this is a single message, so do not put cascade in between.  The message \ct{directory:} supports the access to local files. 
 
 \begin{code}{}
 Gofer new
@@ -178,7 +178,7 @@ Gofer new
 \end{code}
 
 Since the same public servers are often used, Gofer's API offers a number of shortcuts to shorten the scripts.
-Often we want to write a script and give it to other people to load our code. In such a case having to specify 
+Often, we want to write a script and give it to other people to load our code. In such a case having to specify 
 a password is not really adequate. Here is an example for smalltalkHub (which has some verbose urls such as 
  \url{'http://smalltalkhub.com/mc/PharoBooks/GoferExample/main'} for the project GoferExample). We use the \ct{smalltalkhubUser:project:} message and just specify the minimal information. In this chapter, we also use \ct{squeaksource3:} as a shortcut for \url{http://ss3.gemtalksystems.com/ss}.
 
@@ -269,7 +269,7 @@ Gofer new
 
 The following code snippet loads multiple packages from different servers.  The loading order is respected: the script loads first \ct{Collections-Arithmetic}, then the necessary for \ct{Sound}, and finally  \ct{Phratch}, a port of the well Scratch visual programming language.
 
-Pay attention that it will load the complete Phratch application, so it can take a moment.
+Take note that it will load the complete Phratch application, and may take a moment.
 
 \begin{code}{}
 Gofer new			
@@ -325,14 +325,14 @@ Gofer new
     load
 \end{code}    
 
-Note that such scripts load the latest versions of the packages, therefore they are fragile since if a new package version is published, you will load it even if this is inappropriate. 
-In general it is a good practice to control the version of the external components we rely on and use the latest version for our own current development. Now such problem can be solved with Metacello which is the tool to express configurations and load them. 
+Note that such scripts load the latest versions of the packages and are therefore fragile, because if a new package version is published, you will load it even if this is unstable. 
+In general it is a good practice to control the version of the external components we rely on and use the latest version for our own current development. Now, such problem can be solved with Metacello, the tool to express configurations and load them. 
 
 \subsection{Other protocols}
 
-Gofer supports also FTP as well as loading from a local directory. We basically use the same messages than before with some changes. 
+Gofer supports also FTP as well as loading from a local directory. We basically use the same messages as before, with some changes. 
 
-For FTP, we should specify the URL using \ct{'ftp'} as heading 
+For FTP, we should specify the URL using \ct{'ftp'} as the heading.
 
 \begin{code}{}
 Gofer new
@@ -363,13 +363,13 @@ Here is a list of the possible actions. Some of them are described later.
 \textsf{load}&Load the specified packages.\\
 \textsf{update}&Update the package loaded versions.\\
 \textsf{merge}&Merge the distant version with the one currently loaded.\\
-\textsf{localChanges}&Show the list of changes between  the bases version and the version currently modified.\\
+\textsf{localChanges}&Show the list of changes between  the basis version and the version currently modified.\\
 \textsf{remoteChanges} & Show the changes between the version currently modified and the version published on a server.\\
-\textsf{cleanup}&Cleanup packages: System obsolete information is cleaned.\\
-\textsf{commit / commit:}&Save the packages on a distant server -- with a message log.\\
+\textsf{cleanup}&Cleanup packages: Obsolete system information is cleaned.\\
+\textsf{commit / commit:}&Save the packages to a distant server -- with a message log.\\
 \textsf{revert}&Reload previously loaded packages.\\
-\textsf{recompile}&recompile packages\\
-\textsf{unload}&Unload from the image the packages\\
+\textsf{recompile}&Recompile packages\\
+\textsf{unload}&Unload the packages from the image \\
 \textsf{fetch}&Download the remote package versions from a remote server to the local cache.\\
 \textsf{push}&Upload the versions from the local cache to the remote server.\\
 \end{tabular}
@@ -378,10 +378,10 @@ Here is a list of the possible actions. Some of them are described later.
 \subsection{Working with remote servers}
 Since Monticello is a distributed versioning control system, it is often useful to synchronize  versions published on a remote server with the ones locally published in the MC local cache. Here we show the main operations to support such tasks.
 
-\paragraph{The \ct{merge}, \ct{update} and \ct{revert} operations.}
+\paragraph{\ct{Merge}, \ct{update} and \ct{revert} operations.}
 The message \ct{merge} performs a merge between a remote version and the working copy (the one currently loaded). 
-Changes present in the working copy are merged with the code of the remote one.
-It is often the case that after a merge, the working copy gets dirty and should be republished. The new version will contain the current changes and the changes of the remote version. In case of conflicts the user will be warned, else the operation will happen silently. 
+Changes present in the working copy are merged with the code of the remote copy.
+It is often the case that after a merge, the working copy gets dirty and should be republished. The new version will contain the current changes and the changes of the remote version. In case of conflicts the user will be warned or else the operation will happen silently. 
 
 \begin{code}{}
 Gofer new
@@ -393,18 +393,18 @@ Gofer new
 The message \ct{update} loads the remote version in the image. The modifications 
 of the working copy are lost. 
 
-The message \ct{revert} resets the local version, \ie it loads again the current version. The changes of the working copy are then lost. 
+The message \ct{revert} resets the local version, \ie it loads the current version again. The changes of the working copy are then lost. 
  
 \paragraph{The \ct{commit} and \ct{commit:} operations.}
 Once we have merged or changed a package we want to save it. For this we can use
-the messages \ct{commit} and \ct{commit:}. The second one is expecting a comment - this is in general a good practice. 
+the messages \ct{commit} and \ct{commit:}. The second one is expecting a comment - in general this is a good practice. 
 
 \begin{code}{}
 Gofer new
     "We save the package in the repository"
     smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
     package: 'PBE2GoferExample';
-    "We comments the changes and save"
+    "We comment the changes and save"
     commit: 'I try to use the message commit: '
 \end{code}    
 
@@ -437,7 +437,7 @@ Gofer new
 %/// Image : screenshot.png ///
 
 \paragraph{The \ct{unload} operation.}
-The message \ct{unload} unloads from the image the packages. Note that using the Monticello browser you can delete a package but such operation does not remove the code of the classes associated with the package, it just destroys the package. Unloading a package destroys the packages and the classes it contains. 
+The message \ct{unload} unloads the packages from the image. Note that using the Monticello browser you can delete a package, but such an operation does not remove the code of the classes associated with the package, it just destroys the package. Unloading a package destroys the packages and the classes it contains. 
 
 The following code unloads the packages and its classes from the current image.
 \begin{code}{}
@@ -449,9 +449,9 @@ Gofer new
 Note that you cannot unload Gofer itself that way. \ct{Gofer gofer unload} does not work. 
 
 
-\paragraph{The \ct{fetch} and \ct{push} operations.} Since Monticello is a distributed versioning system, it is good to save locally all the versions you want, without being forced to published on a remote server - this is especially true when working off-line. Now this is tedious to synchronize all the local and remote published packages. The messages \ct{fetch} and \ct{push} are there to support you in this task.
+\paragraph{\ct{Fetch} and \ct{push} operations.} Since Monticello is a distributed versioning system, it is a good idea to save all the versions you want locally, without being forced to published on a remote server. This is especially true when working off-line. As it is tedious to synchronize all the local and remote published packages, the messages \ct{fetch} and \ct{push} are there to support you in this task.
 
-The message \ct{fetch} copies from the remote server the packages that are missing in your local server. The packages are not loaded in Pharo. After a fetch you can load the packages even if the remote server breaks down. 
+The message \ct{fetch} copies the packages that are missing from the remote server in your local server. The packages are not loaded in Pharo. After a fetch you can load the packages even if the remote server breaks down. 
 
 
 \begin{code}{}
@@ -461,7 +461,7 @@ Gofer new
     fetch
 \end{code}    
 
-Now if you want load your packages locally remember to set up that the lookup should consider local cache and disable errors as presented in the beginning of this chapter  (messages  \ct{disableRepositoryErrors} and \ct{enablePackageCache}).
+Now, if you want to load your packages locally remember to set up the lookup so that it takes into account the local cache and disables errors as presented in the beginning of this chapter  (messages  \ct{disableRepositoryErrors} and \ct{enablePackageCache}).
 
 The message \ct{push} performs the inverse operation. It publishes locally available packages to the remote server. All the packages that you published locally are then pushed to the server. 
 
@@ -472,9 +472,9 @@ Gofer new
     push
 \end{code}    
 
-As a pattern, we always keep in our local cache the copies of all the versions of our projects or the projects we used. This way we are autonomous from any network failure and the packages are backed up in our regular backup.
+As a pattern, we always keep the copies of all the versions of our projects or the projects we used in our local cache. This way we are autonomous from any network failure and the packages are backed up in our regular backup.
 
-With these two messages, it is easy to write a script \ct{sync} that synchronize local and remote repositories. 
+With these two messages, it is easy to write a script \ct{sync} that synchronizes local and remote repositories. 
 \begin{code}{}
 Gofer new
     smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
@@ -486,7 +486,7 @@ Gofer new
     fetch
 \end{code}
 
-Of course as mentioned earlier, you can have multiple packages to be pushed and fetched from. 
+As mentioned earlier, you can have multiple packages to be pushed and fetched from. 
 \begin{code}{}
 Gofer new
     smalltalkhubUser: 'PharoBooks' project: 'GoferExample';
@@ -501,7 +501,7 @@ Gofer new
 \end{code}
 
 \subsection{Automating Answers}
-Sometimes package installation asks for information such as passwords. With the systematic use of a build server, packages will probably stop to do that, but this is important to know how to supply answers from within a script to these questions.
+Sometimes package installation asks for information such as passwords. With the systematic use of a build server, packages will probably stop to do that, but it is important to know how to supply answers from within a script to these questions.
 The message \ct{valueSupplyingAnswers:} supports such a task. 
 
 
@@ -518,13 +518,13 @@ The message \ct{valueSupplyingAnswers:} supports such a task.
 	}
 \end{code}
 
-This message should be sent to a block giving a list of questions and their answers as shown by the previous examples
+This message should be sent to a block, giving a list of questions and their answers as shown in previous examples
 
 
 \subsection{Configuration Loading}
 Gofer also supports Metacello configuration loading. It provides a set of the following messages to handle configurations: \ct{configurationOf:},  \ct{loadVersion:}, \ct{loadDevelopment}, and \ct{loadStable}.
 
-Here is an example, loading the development version of NativeBoost. There you only need to specify the NativeBoost project and you will load the \ct{ConfigurationOfNativeBoost} and execute the loading the development version.
+In this example, loading the development version of NativeBoost. There you need only to specify the NativeBoost project and you will load the \ct{ConfigurationOfNativeBoost} and execute the loading the development version.
 
 
 
@@ -548,7 +548,7 @@ When the repository name does not match the name of the configuration you should
 
 
 \section{Some useful scripts}
-Gofer offers a nice facility to get all the packages in a given repository via the message \ct{allResolved}. 
+Gofer offers a nice facility to gather all the packages together in a given repository via the message \ct{allResolved}. 
 
 \begin{script}[]{Getting the number of packages in a repository.}
 (Gofer new
@@ -556,7 +556,7 @@ Gofer offers a nice facility to get all the packages in a given repository via t
 	allResolved) size
 \end{script}
 
-The following script groups the package versions by packages and returns a dictionary with. It can be handy to get some idea of the most committed package.
+The following script gathers the package versions by packages and returns a dictionary.
 \begin{script}[]{Grouping versions by package names.}
 ((Gofer new
 	smalltalkhubUser: 'Pharo' project: 'NativeBoost';
@@ -572,10 +572,10 @@ The following script groups the package versions by packages and returns a dicti
 \end{script}
 
 \subsection{Fetching packages}
-Here is a script to fetch all the packages of a given repository. This is useful to grab all your files and get a version locally.
+Here is a script to fetch all the packages of a given repository. It is useful for grabbing your files and having a version locally.
 
 
-\begin{script}[]{Fetching all the packages of a repository (here from Pharo)}
+\begin{script}[]{Fetching all the packages of a repository}
 | go |
 go := Gofer new squeaksource3: 'Pharo20'.
 go allResolved
@@ -686,16 +686,16 @@ destination allVersionNames sorted = files sorted.
 
 \section{Chapter summary}
 Gofer provides a robust and stable implementation to script the
-management of your packages. Now when you project grows you should
-really consider to use Metacello (see \charef{metacello}).
+management of your packages. When your project grows, you should
+really consider using Metacello (see \charef{metacello}).
 
-In this chapter, we introduced how we can script package with Gofer. 
+In this chapter, we introduce how we can script package with Gofer. 
 \begin{itemize}
 \item The method \ct{load} allows us to load packages from sources given with the method \ct{url:} and \ct{package:}.
 
 \item The method \ct{url:} supports FTP and local directory access.
-\item The API provides some useful shortcut: \ct{smalltalkhubUser:project:} is a shortcut for \ct{http://www.smalltalkhub.com}, \ct{squeaksource3:} for \ct{http://ss3.gemtalksystems.com/ss/} and \ct{gemsource:} for \ct{http://seaside.gemstone.com/ss/}.
-\item We can load several packages by calling multiple times the method \ct{package:} before calling \ct{load}.
+\item The API provides some useful shortcuts: \ct{smalltalkhubUser:project:} is a shortcut for \ct{http://www.smalltalkhub.com}, \ct{squeaksource3:} for \ct{http://ss3.gemtalksystems.com/ss/} and \ct{gemsource:} for \ct{http://seaside.gemstone.com/ss/}.
+\item We can load several packages by calling the method \ct{package:} multiple times before calling \ct{load}.
 \item Once a Gofer instance is parametrized, one can perform a number of relevant operations: \ct{update}, \ct{merge}, \ct{push}, \ldots
 \end{itemize}
 
