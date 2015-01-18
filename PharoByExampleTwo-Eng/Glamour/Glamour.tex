@@ -39,7 +39,7 @@
 
 \chapterauthor{\authortudor}
 
-Browsers are a crucial instrument to understand complex systems or
+Browsers are a crucial instrument in understanding complex systems or
 models. A browser is a tool to navigate and interact with a particular domain.
 Each problem domain is accompanied by an abundance of browsers
 that are created to help analyze and interpret the underlying
@@ -78,7 +78,7 @@ that a column always reflects the content of the element selected in
 the previous column, the first column-content being chosen on opening.
 
 In our case of navigating through the file systems, the browser displays a list
-of a particular directory's entries (each files and directories) in
+of a particular directory's entries (each file and directory) in
 the first column and then, depending on the user selection, appending
 another column (see \figref{casestudies/file_finder}):
 
@@ -280,7 +280,7 @@ Glamour browsers are composed in terms of \emph{panes} and the
 \emph{flow of data} between them. In our browser we currently have
 only one pane displaying packages. The flow of data is specified by
 means of \emph{transmissions}. These are triggered when certain
-changes in the browser graphical user interface occur, such as an item selection in a list. We make our browser more interesting by displaying classes contained in the selected package (see \figref{showclasses}).
+changes in the browser graphical user interface occur, such as an item selection in a list. We make our browser more useful by displaying classes contained in the selected package (see \figref{showclasses}).
 
 \begin{code}{}
 PBE2CodeNavigator>>buildBrowser
@@ -341,7 +341,7 @@ display variable argument is not \ct{null}.
 
 \subsection{Another Presentation}
 So far, packages are visually represented as a flat list. However, packages are naturally structured with the corresponding class category. To
-exploit this structure, we replace the list by a tree presentation for packages:
+exploit this structure, we replace the list with a tree presentation for packages:
 
 \begin{code}{}
 PBE2CodeNavigator>>packagesIn: constructor
@@ -494,7 +494,7 @@ browser transmit from: #packages port: #selection; to: #classes; andShow: [:a | 
 \subsection{Reusing Browsers}
 \label{sec:tutorial/reusing-browsers}
 
-One of  Glamour strengths is to use browsers in
+One of  Glamour's strengths is to use browsers in
 place of primitive presentations such as lists and trees. This conveys formidable possibilities to compose and nest browsers.
 
 The subsequent example defines a class \emph{editor} as shown
@@ -637,8 +637,8 @@ is shown in figure~\ref{fig:composed-browser}.
 \subsection{Actions}
 \label{sec:tutorial/actions}
 
-Navigating through the domain is essential to find interesting elements. However, having a proper set of available actions is essential to let one to interact with the domain.
-Actions may be defined and associated to a presentation. An action is a block that is evaluated when a keyboard shortcut is pressed or when an entry in a context menu is clicked. An action is defined via \ct{act:on:} sent to a presentation:
+Navigating through the domain is essential to finding useful elements. However, having a proper set of available actions is essential to letting one interact with the domain.
+Actions may be defined and associated with a presentation. An action is a block that is evaluated when a keyboard shortcut is pressed or when an entry in a context menu is clicked. An action is defined via \ct{act:on:} sent to a presentation:
 
 \begin{code}{}
 PBE2CodeEditor>>sourceIn: constructor
@@ -765,7 +765,7 @@ To discover other kinds of browsers, explore the hierarchy of the
 %:%%%%%%%%%%%
 \section{Chapter summary}
 
-This chapter gave a short introduction to the Glamour browser framework. Glamour is essentially used to build to build tool that enable one to navigate and interact with an arbitrary domain, made of plain objects.
+This chapter gave a short introduction to the Glamour browser framework. Glamour is essentially used as a build tool that enables one to navigate and interact with an arbitrary domain made of plain objects.
 
 \begin{itemize}
 \item \ct{GLMTabulator} is a generic browser in which widget are ordered in columns and rows.
@@ -775,17 +775,17 @@ This chapter gave a short introduction to the Glamour browser framework. Glamour
 \item List and text panes are obtained by sending \ct{list} and \ct{text} to a browser. Content is set with \ct{display:} and items are formatted with \ct{format:}.
 \item Ports define the component interface of a browser. This enables easy reuse and embedding.
 \item Interaction is defined in term of actions, defined by sending \ct{act:} to a widget.
-\item Glamour support multiple presentations. 
-\item Glamour is not made to build a general purpose graphical user interfaces. 
+\item Glamour supports multiple presentations. 
+\item Glamour is not made to build a general purpose graphical user interface. 
 \end{itemize}
 
 Note that this chapter 
-is not meant to give an exhaustive overview of Glamour, but is merely
+is not meant to give an exhaustive overview of Glamour, but merely
 intended to introduce the reader to the usage and to our intent for
 our approach. For a more extensive view of Glamour, its concepts and
 implementation, the Moose
 book\footnote{\url{http://www.themoosebook.org/book}} has a dedicated
-chapter dedicated.
+chapter.
 
 %=============================================================
 \ifx\wholebook\relax\else
