@@ -1133,9 +1133,9 @@ The primary objection to \mthref{simplerObjectPerfromAll} is efficiency.  The im
 
 %=========================================================
 \section{Exceptions implementation}
-Up to now, we have presented the use of exceptions without really explaining in depth how they are implemented at the Virtual Machine level. Note that since you do not need to know how exceptions are implemented to use them, you can simply skip this section on the first reading. Now if you are curious and really 
-want to know how this is implemented at the Virtual Machine level, this section is for you. 
-The mechanism is quite simple, making it worthwhile to know how it operates. Let's have a look at how exceptions are implemented at the Virtual Machine level and use stack execution elements (contexts) to store their information.
+Up to now, we have presented the use of exceptions without really explaining in depth how they are implemented. Note that since you do not need to know how exceptions are implemented to use them, you can simply skip this section on the first reading. Now if you are curious and really want to know how they are implemented, this section is for you. 
+
+The mechanism is quite simple, making it worthwhile to know how it operates. On the contrary to most mainstream languages, exceptions are implemented in the language side without virtual machine support, using the reification of the runtime stack as a linked list of contexts (method or closure activation record). Let's have a look at how exceptions are implemented and use contexts to store their information.
 
 \paragraph{Storing Handlers.}
 First we need to understand how the exception class and its associated handler are stored and how this information is found at run-time. Let's look at the definition of the central method \mthind{BlockClosure}{on:do:} defined on the class \ct{BlockClosure}. 
@@ -1151,12 +1151,12 @@ BlockClosure>>>on: exception do: handlerAction
 	^self value 
 \end{code}
 
-This code tells us two things: First, this method is implemented as a primitive, which means that  a primitive operation of the virtual machine is executed when this method is invoked.  VM primitives do not normally return: successful execution of a primitive terminates the method that contains the \lct{<primitive: \emph{n}\,>} instruction, answering the result of the primitive.
-So, the \st code that follows the primitive serves two purposes: it documents what the primitive does, and is available to be executed if the primitive fails. 
-Here we see that \ct{on:do:} simply sets the temporary variable \ct{handlerActive} to true, and then evaluates the receiver (which is of course, a block).  
+This code tells us two things: Firstly, this method is implemented as a primitive, which usually means that a primitive operation of the virtual machine is executed when this method is invoked. In the case of exception, the primitive pragma is not a primitive operation: the primitive index is used only to mark the method and it does not execute any code in the virtual machine (the primitive always fail). One could change this implementation and mark differently the method, for example by adding an extra bytecode at the end. It was designed as a primitive because there was already bits reserved for the primitive number and APIs to set and get it in compiled methods so the implementation was straight-forward.
+
+Then, as the primitive is just a marker and not a real primitive operation, the fall back code below the pragma is always executed. In this code, we see that \ct{on:do:} simply sets the temporary variable \ct{handlerActive} to true, and then evaluates the receiver (which is of course, a block).  
 
 This is surprisingly simple, but somewhat puzzling.  Where are the arguments of the \ct{on:do:} method stored?
-To get the answer,  let's look at the definition of the class \ct{MethodContext}, whose instances represent the execution stack elements. As described in Chapter~\ref{cha:blocks}, a context (also called activation record or stack frame, in other languages) represents a specific point of execution (it holds a program counter, points to the next instruction to execute, previous context, arguments and receiver): 
+To get the answer,  let's look at the definition of the class \ct{MethodContext}, whose instances represent the method and closure activation records. As described in Chapter~\ref{cha:blocks}, a context (also called activation record, a context is a reification of a stack frame with notable differences) represents a specific point of execution (it holds a program counter, points to the next instruction to execute, previous context, arguments and receiver): 
 
 \begin{code}{}
 ContextPart variableSubclass: #MethodContext
@@ -1168,7 +1168,7 @@ ContextPart variableSubclass: #MethodContext
 
 There is no instance variable here to store the exception class or the handler, nor is there any place in the superclass to store them. 
 However, note that \ct{MethodContext} is defined as a \ct{variableSubclass}.
-This means that in addition to the named instance variables, instances of this class have some indexed slots.  In fact, every \ct{MethodContext} has an indexed slot for each argument of the method whose invocation it represents.  There are also additional indexed slots for the temporary variables of the method.
+This means that in addition to the named instance variables, instances of this class have some indexed slots.  Every \ct{MethodContext} has indexed slots, that are used to store, among others, arguments and temporary variables of the method whose invocation it represents. 
 
 In the case that interests us, the arguments of the \ct{on:do:} message are stored in the indexed variables of the stack execution instance. To verify this, evaluate the following piece of code:
 
@@ -1194,12 +1194,9 @@ In the case that interests us, the arguments of the \ct{on:do:} message are stor
 	^ {exception. handler} explore
 \end{code}
 
+In the protected block, we query the context that represents the protected block execution using \ct{thisContext sender}. This execution was triggered by the \ct{on:do:} message execution. The last line explores a 2-element array that contains the exception class and the exception handler. 
 
-In the protected block, we query the stack element that represents the protected block execution using \ct{thisContext sender}. This execution was triggered by the \ct{on:do:} message execution. The last line explores a 2-element array that contains the exception class and the exception handler. 
-
-
-If you get some strange results using \ct{halt} and \ct{inspect} inside the protected block, note that contexts are recycled by the Virtual Machine. Opening an explorer on \ct{thisContext} will show you that the context sender is effectively the execution of the method \ct{on:do:}. 
-
+If you get some strange results using \ct{halt} and \ct{inspect} inside the protected block, note that as the method is being executed, the state of the context object changes, and when the method returns, the context is terminated, setting to nil several of its fields. Opening an explorer on \ct{thisContext} will show you that the context sender is effectively the execution of the method \ct{on:do:}. 
 
 Note that you can also execute the following code:
 \begin{code}{}
@@ -1214,16 +1211,13 @@ You obtain an explorer and you can see that the exception class and the handler 
         \caption{Explore a method context to find the exception class and the handler.\figlabel{exploration}}
 \end{figure}
 
-We see that \ct{on:do:} execution stores the exception class and its handler on the method context (execution stack frame). Note that this is not specific to \ct{on:do:} but 
-any message execution stores argument on the stack frame. 
-
+%The next sentence was incorrect, a stack frame does not hold arguments of the method it executes, its caller stack frame does, so I switched stack frame to context.
+We see that \ct{on:do:} execution stores the exception class and its handler on the method context. Note that this is not specific to \ct{on:do:} but any message execution stores arguments on its corresponding context. 
 
 \paragraph{Finding Handlers.}
 Now that we know where the information is stored, let's have a look at how it is found at runtime. 
 
-We might think that the primitive 199 (the one used by \ct{on:do:}) is complex to write, but it is simple, because primitive 199 \emph{always} fails!
-Because the primitive always fails, the \st{} body of \ct{on:do:} is always executed.
-However, the presence of the \ct{<primitive: 199>} annotation marks the execution context in a unique way. 
+As discussed before, the primitive 199 (the one used by \ct{on:do:}) \emph{always} fails! As the primitive always fails, the \st{} body of \ct{on:do:} is always executed. However, the presence of the \ct{<primitive: 199>} is used as a marker. 
 
 The source code of the primitive is found in \ct{Interpreter>>>primitiveMarkHandlerMethod} in the \pkgind{VMMaker} \sqsrc package: 
 
@@ -1236,10 +1230,15 @@ primitiveMarkHandlerMethod
     ^self primitiveFail
 \end{code}
 \hyphenation{Method-Context}
-Now we know that when the method \ct{on:do:} is executed, the \ct{MethodContext} that makes up the stack frame is tagged and the handler and exception class 
-are stored there. 
+Now we know that the context corresponding to the method \ct{on:do:} is marked and a context has a direct reference through an instance variable to the method it has activated. Therefore, we can know if the context is an exception handler by checking if the method it has activated holds primitive 199. That's what's the method \ct{isHandlerContext} is doing (code below).
 
-Now, if an exception is signaled further up the stack, the method \ct{signal} can search the stack to find the appropriate handler. This is what the following code is doing:
+\begin{code}{}
+MethodContext>>>isHandlerContext 
+	"is this context for method that is marked?" 
+	^method primitive = 199 
+\end{code}
+
+Now, if an exception is signaled further down the stack (assuming the stack is growing down), the method \ct{signal} can search the stack to find the appropriate handler. This is what the following code is doing:
 
 \mthindex{Exception}{signal}
 \needlines{5}
@@ -1259,8 +1258,11 @@ ContextPart>>>nextHandlerContext
 	^ self sender findNextHandlerContextStarting
 \end{code}
 
-The method \ct{findNextHandlerContextStarting} is implemented as a primitive (number 197); its body describes what it does. It looks to see
-if the stack frame is a context created by the execution of the method \ct{on:do:} (it just looks to see if the primitive number is 199). If this is the case it answers with that context. 
+The method \ct{findNextHandlerContextStarting} is implemented as a primitive (number 197); its body describes what it does. It walks up the linked list of context from the current context and looks for a context whose method is marked with the \ct{on:do:} primitive 199. If it finds such a context, it answers it.
+
+In the introduction of the section, we said that the implementation of exceptions is done fully at language level. However, we have here primitive 197 which is implemented in the virtual machine. Please note that primitive 197 is just here for performance. In fact, the virtual machine heavily optimizes contexts, allocating an object to represent them only when it is needed (else contexts are present in the form of a machine stack). The primitive 197 is faster because it creates context objects only if the method is marked with the \ct{on:do:} primitive 199 whereas the fallback code requires all the context objects in-between the error signaling context and the error handling context to be created. As every primitive presents for performance, primitive 197 is optional: you can remove  \lct{<primitive: \emph{197}\,>} and your Pharo runtime will still work fine (exceptions would be slower however).
+
+Primitive 197 enforces the use of primitive 199 to mark exception handler. Therefore, if one wants to edit the implementation of exceptions and use other marker than primitive numbers to mark exception handler contexts, one needs to remove this primitive and rely only on fallback code. 
 
 \mthindex{MethodContext}{findNextHandlerContextStarting}
 \begin{code}{}
@@ -1275,37 +1277,37 @@ ContextPart>>>findNextHandlerContextStarting
 	^nil 
 \end{code}
 
-\begin{code}{}
-MethodContext>>>isHandlerContext 
-	"is this context for method that is marked?" 
-	^method primitive = 199 
-\end{code}
-
 Since the method context supplied by \ct{findNextHandlerContextStarting} contains all the exception-handling information, it can be examined to see if the exception class is suitable for handling the current exception.
 If so, the associated handler can be executed; if not, the look-up can continue further. 
 This is all implemented in the \ct{handleSignal:} method.
 
 \begin{code}{}
-ContextPart>>>handleSignal: exception
-	"Sent to handler (on:do:) contexts only.  If my exception class (first arg) handles exception then execute my handle block (second arg), otherwise forward this message to the next handler context.  If none left, execute exception's defaultAction (see nil>>handleSignal:)."
-
-	| val |
-	(((self tempAt: 1) handles: exception) and: [self tempAt: 3]) ifFalse: [
-		^ self nextHandlerContext handleSignal: exception].
-
-	exception privHandlerContext: self contextTag.
-	self tempAt: 3 put: false.  "disable self while executing handle block"
-	val := [(self tempAt: 2) valueWithPossibleArgs: {exception}]
-		ensure: [self tempAt: 3 put: true].
-	self return: val.  "return from self if not otherwise directed in handle block"
+ContextPart>>>handleSignal: exception	"Sent to handler (on:do:) contexts only.  If my exception class (first arg) handles exception then execute my handle block (second arg), otherwise forward this message to the next handler context.  If none left, execute exception's defaultAction (see nil>>handleSignal:)."	| value |	((self exceptionClass handles: exception)	and: [self exceptionHandlerIsActive]) 		ifFalse: [ ^ self nextHandlerContext handleSignal: exception ].	exception privHandlerContext: self contextTag.	"disable self while executing handle block"	self exceptionHandlerIsActive: false. 	value := [ self exceptionHandlerBlock cull: exception ]		ensure: [ self exceptionHandlerIsActive: true ].	"return from self if not otherwise directed in handle block"	self return: value.  
 \end{code}
 
-Notice how this method uses \ct{tempAt: 1} to access the exception class, and ask if it handles the exception.   What about  \ct{tempAt: 3}?  That is the temporary variable \ct{handlerActive} of the \ct{on:do:} method.   Checking that \ct{handlerActive} is \ct{true} and then setting it to \ct{false} ensures that a handler will not be asked to handle an exception that it signals itself. 
-The \ct{return:} message sent as the final action of \ct{handleSignal} is responsible for ``unwinding'' the execution stack by removing the stack frames above \self{}.
+\begin{code}{}
+ContextPart>>>exceptionClass	"handlercontext only. access temporaries from BlockClosure>>#on:do:"	^self tempAt: 1
+\end{code}
+
+\begin{code}{}
+exceptionHandlerBlock	"handlercontext only. access temporaries from BlockClosure>>#on:do:"	^self tempAt: 2
+\end{code}
+
+\begin{code}{}
+exceptionHandlerIsActive	"handlercontext only. access temporaries from BlockClosure>>#on:do:"	^self tempAt: 3
+\end{code}
+
+\begin{code}{}
+exceptionHandlerIsActive: aBoolean	"handlercontext only. access temporaries from BlockClosure>>#on:do:"	self tempAt: 3 put: aBoolean
+\end{code}
+
+Notice how this method uses \ct{tempAt: 1} to access the exception class, and ask if it handles the exception.  What about  \ct{tempAt: 3}?  That is the temporary variable \ct{handlerActive} of the \ct{on:do:} method.   Checking that \ct{handlerActive} is \ct{true} and then setting it to \ct{false} ensures that a handler will not be asked to handle an exception that it signals itself. 
+The \ct{return:} message sent as the final action of \ct{handleSignal} is responsible for \emph{unwinding} the stack, \ie removing all the context between the exception signaler context and its exception handler as well as executing unwind blocks (blocks created with \ct{ensure}).
 
 %The full story is only slightly more complicated because there are actually two classes of objects that make up the stack, \ct{MethodContext}s, which we have already discussed, and \ct{BlockContext}s, which represent the execution of blocks.  \ct{ContextPart} is their common superclass.
+% ====>>>> What a joke, there have been no BlockContext for over 5 years ... Who wrote that comment ? One of the interpreter VM maintainer ?
 
-To summarize, the \ct{signal} method, with minimal assistance from the virtual machine, finds the context that correspond to an \ct{on:do:} message with an appropriate exception class.   Because the execution stack is made up of Context objects that may be manipulated just like any other object, the stack can be shortened at any time.  This is a superb example of flexibility of Pharo.
+To summarize, the \ct{signal} method, with optional assistance from the virtual machine for performance, finds the context that correspond to an \ct{on:do:} message with an appropriate exception class.   Because the execution stack is made up of a linked list of Context objects that may be manipulated just like any other object, the stack can be shortened at any time. This is a superb example of flexibility of Pharo.
 
 %=========================================================
 \section{Ensure:'s implementation}
@@ -1329,13 +1331,11 @@ ensure: aBlock
 	^ returnValue
 \end{code}
 
-The \lct{<primitive: \emph{198}\,>} works the same way as the \lct{<primitive: \emph{199}\,>} we saw in the previous section. It always fails, however, its presence marks the executing context in a unique way. Moreover, the unwind block is stored the same way as the exception class and its associated handler. More explicitly, it is stored in the context (stack frame) of \mthind{BlockClosure}{ensure:}
+The \lct{<primitive: \emph{198}\,>} works the same way as the \lct{<primitive: \emph{199}\,>} we saw in the previous section. It always fails, however, its presence marks the method in way that can easily be detected from the context activating this method. Moreover, the unwind block is stored the same way as the exception class and its associated handler. More explicitly, it is stored in the context of \mthind{BlockClosure}{ensure:}
 method execution, that can be accessed from the block through  \lct{thisContext sender tempAt: 1}.
 
 In the case where the block does not fail and does not have a non-local return, the \mthind{BlockClosure}{ensure:} message implementation executes the block, stores the result in the \ct{returnValue} variable, executes the argument block and lastly returns the result of the block previously stored. 
 The \ct{complete} variable is here to prevent  the argument block from being executed twice. 
-
-When \ct{aBlock value} contains an exception or a non-local return, since the complete variable will be already true, there is no need to execute again the block.
 
 \paragraph{Ensuring a failing block.}
 
@@ -1394,18 +1394,7 @@ There are three important things to see. First, the failing block and the main b
 To understand how this works, we have to look at the end of the exception implementation. We finish the previous explanation on the \ct{handleSignal} method.
 
 \begin{code}{}
-ContextPart>>>handleSignal: exception
-	"Sent to handler (on:do:) contexts only.  If my exception class (first arg) handles exception then execute my handle block (second arg), otherwise forward this message to the next handler context.  If none left, execute exception's defaultAction (see nil>>handleSignal:)."
-
-	| val |
-	(((self tempAt: 1) handles: exception) and: [self tempAt: 3]) ifFalse: [
-		^ self nextHandlerContext handleSignal: exception].
-
-	exception privHandlerContext: self contextTag.
-	self tempAt: 3 put: false.  "disable self while executing handle block"
-	val := [(self tempAt: 2) valueWithPossibleArgs: {exception}]
-		ensure: [self tempAt: 3 put: true].
-	self return: val.  "return from self if not otherwise directed in handle block"
+ContextPart>>>handleSignal: exception	"Sent to handler (on:do:) contexts only.  If my exception class (first arg) handles exception then execute my handle block (second arg), otherwise forward this message to the next handler context.  If none left, execute exception's defaultAction (see nil>>handleSignal:)."	| value |	((self exceptionClass handles: exception)	and: [self exceptionHandlerIsActive]) 		ifFalse: [ ^ self nextHandlerContext handleSignal: exception ].	exception privHandlerContext: self contextTag.	"disable self while executing handle block"	self exceptionHandlerIsActive: false. 	value := [ self exceptionHandlerBlock cull: exception ]		ensure: [ self exceptionHandlerIsActive: true ].	"return from self if not otherwise directed in handle block"	self return: value.  
 \end{code}
 
 In our example, Pharo will execute the failing block, then will look for the next handler context, marked with \lct{<primitive: \emph{199}\,>}. As a regular exception, Pharo finds the exception handler context, and runs the exceptionHandlerBlock.  The method \ct{handleSignal} finishes with the \ct{return:} method. Let's have a look into it.
@@ -1421,23 +1410,11 @@ ContextPart>>return: value
 The \ct{return:} message will check if the context has a sender, and, if not, send a \ct{CannotReturn} Exception. Then the sender of this context will call the \ct{resume:} message.
 
 \begin{code}{}
-ContextPart>>resume: value
-	"Unwind thisContext to self and resume with value as result of last send.  Execute unwind blocks when unwinding.  ASSUMES self is a sender of thisContext"
+resume: value	"Unwind thisContext to self and resume with value as result of last send.  Execute unwind blocks when unwinding.  ASSUMES self is a sender of thisContext"		self resume: value through: (thisContext findNextUnwindContextUpTo: self)
+\end{code}	
 
-	| ctxt unwindBlock |
-	self isDead ifTrue: [self cannotReturn: value to: self].
-	ctxt := thisContext.
-	[	ctxt := ctxt findNextUnwindContextUpTo: self.
-		ctxt isNil
-	] whileFalse: [
-		(ctxt tempAt: 2) ifNil:[
-			ctxt tempAt: 2 put: true.
-			unwindBlock := ctxt tempAt: 1.
-			thisContext terminateTo: ctxt.
-			unwindBlock value].
-	].
-	thisContext terminateTo: self.
-	^ value
+\begin{code}{}
+ContextPart>>resume: value through: firstUnwindContext	"Unwind thisContext to self and resume with value as result of last send.	 Execute any unwind blocks while unwinding.	 ASSUMES self is a sender of thisContext."	| context unwindBlock |	self isDead 		ifTrue: [ self cannotReturn: value to: self ].	context := firstUnwindContext.	[ context isNil ] whileFalse: [			context unwindComplete ifNil:[			context unwindComplete: true.			unwindBlock := context unwindBlock.			thisContext terminateTo: context.			unwindBlock value].		context := context findNextUnwindContextUpTo: self].	thisContext terminateTo: self.	^value
 \end{code}
 
 \begin{figure}[!ht]\centering
@@ -1462,7 +1439,7 @@ ContextPart>>terminateTo: previousContext
 	sender := previousContext
 \end{code}
 
-Basically, this method terminates all the contexts between \ct{thisContext} and \ct{self}, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). Moreover, the sender of \ct{thisContext} will become \ct{self}, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). It is implemented as a primitive, but the code below explains how it works.
+Basically, this method terminates all the contexts between \ct{thisContext} and \ct{self}, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). Moreover, the sender of \ct{thisContext} will become \ct{self}, which is the sender of the \mthind{BlockClosure}{on:do:} context (in our case the context of \mthind{Bexp}{start}). It is implemented as a primitive for performance only, so the primitive is optional and the fallback code has the same behavior.
 
 Let's summarize what happens with \figref{EnsureImpl} which represents the execution of the method  \mthind{Bexp}{ensureWithOnDo} defined previously.
 
@@ -1476,28 +1453,8 @@ Let's summarize what happens with \figref{EnsureImpl} which represents the execu
 
 \paragraph{Ensuring a non local return.}
 
-There is also an implementation of \mthind{BlockClosure}{ensure:} for the non local return. There is the same kind of lookup for unwound contexts as in the \mthind{ContextPart}{resume:} message that is triggered when we return the value in \mthind{ContextPart}{resume:through:}
 
-\begin{code}{}
-ContextPart>>resume: value through: firstUnwindCtxt
-	"Unwind thisContext to self and resume with value as result of last send.
-	 Execute any unwind blocks while unwinding. ASSUMES self is a sender of thisContext."
-
-	| ctxt unwindBlock |
-	self isDead ifTrue: [self cannotReturn: value to: self].
-	ctxt := firstUnwindCtxt.
-	[ctxt isNil] whileFalse:
-		[(ctxt tempAt: 2) ifNil:
-			[ctxt tempAt: 2 put: true.
-			 unwindBlock := ctxt tempAt: 1.
-			 thisContext terminateTo: ctxt.
-			 unwindBlock value].
-		 ctxt := ctxt findNextUnwindContextUpTo: self].
-	thisContext terminateTo: self.
-	^value
-\end{code}
-
-
+The method \mthind{ContextPart}{resume:through:} is also called when performing a non local return. In the case of non local return, the stack is unwound in a similar way than or exception. The virtual machine, while performing a non local return, send the message \ct{aboutToReturn:through:} to the active context. Therefore, if one has changed the implementation of exception in the language, 
 
 %=================================================================
 \section{Chapter summary}
