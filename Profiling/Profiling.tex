@@ -581,7 +581,7 @@ The \ct{** Leaves**} part lists \emph{leaf methods} for the code block that has 
 
 \subsection{**Memory**}
 
-The statistical part on memory consumption tells the observed changes on the quantity of memory allocated and the garbage collector usage. To fully understand this information, one needs to keep in mind that Pharo's garbage collector (GC) is a scavenging GC, relying on the principle that an old object has greater change to live even longer. It is designed following the fact that an old object will probably be kept referenced in the future. On the contrary, a young object has greater change to be quickly dereferenced. 
+The statistical part on memory consumption tells the observed changes on the quantity of memory allocated and the garbage collector usage. To fully understand this information, one needs to keep in mind that Pharo's garbage collector (GC) is a scavenging GC, relying on the principle that an old object has greater chance to live even longer. It is designed following the fact that an old object will probably be kept referenced in the future. On the contrary, a young object has greater chance to be quickly dereferenced. 
 
 Several memory zones are considered and the migration of a young object to the space dedicated for old object is qualified as tenured. (Following the metaphor of American academic scientists, when a permanent position is obtained.)
 
