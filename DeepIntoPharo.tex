@@ -1,0 +1,216 @@
+% $Author$
+% $Date$
+% $Revision$
+
+% HISTORY:
+
+%=================================================================
+% This is the main file for the Pharo By Example book.
+% The individual chapters can also be latexed by themselves.
+% Note that the \end{document} marker occurs near the
+% middle of this file, to leave out additional material
+% for a future version of the book.
+%=================================================================
+
+
+
+\documentclass[a4paper,10pt,twoside]{book}
+\usepackage[
+	papersize={6.13in,9.21in},
+	hmargin={.75in,.75in},
+	vmargin={.75in,1in},
+	ignoreheadfoot
+]{geometry}
+\input{common.tex}
+\setboolean{lulu}{true}
+%=================================================================
+% Add the path for the figures of each chapter here:
+\graphicspath{
+	{figures/}
+	{Monticello/figures/}
+	{Glamour/figures/}
+	{Profiling/figures/}
+	{Regex/figures/}
+	{ZeroConf/figures/}
+	{Exceptions/figures/}
+	{Roassal/figures/}
+	{Mondrian/figures/}
+	{Metacello/figures/}
+	{LittleNumbers/figures/}
+	{Sockets/figures/}
+	{Settings/figures/}
+	{Gofer/figures/}
+	{Block/figures/}
+	{LittleNumbers/figures/}
+	{FileSystem/figures/}
+	{PetitParser/figures/}
+	{Lint/figures/}
+	{Biographies/figures/}
+}
+%=================================================================
+\let\wholebook=\relax
+\makeindex
+\makeglossary
+%=================================================================
+\renewcommand{\nnbb}[2]{} % Disable editorial comments
+%=================================================================
+\begin{document}
+\frontmatter
+%=================================================================
+\setcounter{page}{1}
+\pagestyle{headings}
+%=================================================================
+\author{
+	Alexandre Bergel\quad 
+	Damien Cassou\quad \\
+	St\'ephane Ducasse\quad 
+	Jannik Laval
+	%\\ with Oscar Nierstrasz
+	}
+\title{\Huge\bf Deep into Pharo%\\
+%\small\emph{ESUG 2013 Edition}
+}
+%\isodate
+%\date{\emph{Version of \today}}
+
+\date{}
+\maketitle
+
+
+\input{Copyright/Copyright.tex}
+
+%=================================================================
+\tableofcontents
+\sloppy % To avoid LaTeX's annoying habit of letting lines stick over the margins!
+\mainmatter
+
+
+%%%%%%%
+% TODO Lulu
+%%%%%%%
+%La derniere page du livre doit etre completement vierge.
+% completer le copyright
+%%%%
+%for the cover:
+%%%%
+%Le titre et le nom de l'auteur doivent figurer sur la couverture 
+ %Gardez tous les textes importants et images a au moins 0,95 cm ou 0,375" (soit 0,63 cm ou 0.25" de d?bord + 0,32 cm ou 0.125" de securite) de chaque cote de la couverture (y compris la tranche du dos). Cette zone peut etre coupee ou marquee par les replis de la couverture.
+ %Le texte de la tranche du dos doit etre a au moins 0,2 cm (0.0625") de chaque cote de la tranche du dos.
+%Utilisez ces dimensions: http://connect.lulu.com/t5/Mise-en-page-de-la-couverture/Dimensions-de-couverture-une-pi%C3%A8ce/ta-p/33308
+%La couverture doit avoir un numero ISBN/EAN correct a 13 chiffres.
+
+
+%=================================================================
+\input{Preface/Preface2.tex}
+%% Stef: pass done.
+%% Ja: pass done.
+%=================================================================
+
+\part{Libraries}
+
+\input{ZeroConf/ZeroConf.tex}
+%% Stef ok
+%% Ja ok
+
+\input{FileSystem/FileSystem.tex} 
+%% Stef major pass done
+%% Ja: pass done.
+%% Addressing some points wednesday with camillo.
+
+\input{Sockets/Sockets.tex}
+%FINISHED
+
+\input{Settings/Settings.tex}
+%FINISHED: Stef pass ok fixed + add summary at the end
+
+\input{Regex/Regex.tex}
+%FINISHED Stef: fix some typos.
+
+
+\part{Source Management}
+\input{Monticello/Monticello.tex}
+%FINISHED
+
+\input{Gofer/Gofer.tex}
+%FINISHED
+
+\input{Metacello/Metacello.tex}
+%FINISHED
+
+\part{Frameworks}
+
+\input{Glamour/Glamour.tex}
+%FINISHED 
+
+
+\newcommand{\fig}[4]{
+		\begin{figure}[#1]
+			\centering
+			\includegraphics[width=#2\textwidth]{#3}
+			\caption{\label{fig:#3}#4}
+		\end{figure}}
+
+	\newcommand{\largefig}[4]{
+		\begin{figure*}[#1]
+			\centering
+			\includegraphics[width=#2\textwidth]{#3}
+			\caption{\label{fig:#3}#4}
+		\end{figure*}}
+		
+	\newcommand{\asdf}[4]{
+		\begin{subfigure}[\label{fig:#3}]
+                \centering
+                \includegraphics[width=\textwidth]{#3}
+                \caption{\label{fig:#3}#4}                
+        \end{subfigure}}
+\input{Roassal/Roassal.tex}
+% FINISHED
+
+\input{Mondrian/Mondrian.tex}
+% FINISHED
+
+\part{Language}
+\input{Exceptions/Exceptions.tex}
+% FINISHED
+
+\input{Block/Block.tex}
+%% 95 
+% Part are missing.
+%Need a conclusion
+
+\input{LittleNumbers/LittleNumbers.tex}
+% FINISHED
+
+\input{Float/Float.tex} 
+% FINISHED
+
+\part{Tools}
+\input{Profiling/Profiling.tex}
+%FINISHED
+
+\input{PetitParser/PetitParser.tex}
+%FINISHED
+
+\input{Biographies/Biographies.tex}
+%FINISHED
+
+%=================================================================
+
+% \printglossary
+\bibliographystyle{jurabib}
+\bibliography{scg}
+
+\printindex
+
+
+\end{document}
+
+% \end{document} % NB: The actual end is further up
+%=================================================================
+%%% Local Variables:
+%%% coding: utf-8
+%%% mode: latex
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% ispell-local-dictionary: "english"
+%%% End:
